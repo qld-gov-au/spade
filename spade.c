@@ -11,12 +11,9 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
-#include <meschach/matrix.h>
-#include <meschach/matrix2.h>
-#include <meschach/sparse.h>
-
-void fft_a(VEC *,VEC *);
-void ifft_a(VEC *,VEC *);
+#include "meschach/matrix.h"
+#include "meschach/matrix2.h"
+#include "meschach/sparse.h"
 
 struct GP { double kappa,omega; };
 struct BP { double alpha1,alpha2; };
@@ -1230,7 +1227,7 @@ VEC *kde(y,zy,hw)
 
   VEC *kim = v_get(y->dim);
 
-  fft_a(y,kim);
+  fft(y,kim);
 
   VEC *zim = v_get(zy->dim);
 
@@ -1243,7 +1240,7 @@ VEC *kde(y,zy,hw)
       zim->ve[i] = fac * kim->ve[i];
     }
 
-  ifft_a(zy,zim);
+  ifft(zy,zim);
 
   for (int i=0;i<zy->dim;i++)
     zy->ve[i] = zy->ve[i]  - 0.0124531; // why do i need this?!
