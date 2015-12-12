@@ -1,3 +1,5 @@
+// SPADE
+// Stock assessment using PArtial Differential Equations
 // Alex Campbell 'ghostofsandy' 2015
 
 #ifndef DEBUG
@@ -87,7 +89,7 @@ VEC *cat;
 VEC *eff;
 SPMAT *spobs;
 
-main()
+int main(int argc, char *argv[])
 {
 
   struct GP gp;
@@ -105,191 +107,19 @@ main()
   dp.beta = 1;
   dp.gamma = 1e-6;
 
-  //x = m_get(I+1,J+1);
-  //u = m_get(I+1,J+1);
-
-  //pop(g,(void *)&gp,b,(void *)&bp,zstar,(void *)&dp,x,u);
-  //printf("%f\n",u->me[I][J]);
-  //> write.table(t(csskc$tl/10),file="mesch.dat",sep=" ",row.names=FALSE,col.names=FALSE)
-
-  FILE *ifp;
-  ifp = fopen("mesch.dat","r");
-  int Ndt=7425;
-  float data[Ndt];
-
-  for (int i=0;i<Ndt;i++)
-    fscanf(ifp,"%f", &data[i]);
-
-  fclose(ifp);
-
-  VEC *dt = v_get(Ndt);
-
-  for (int i=0;i<Ndt;i++)
-    dt->ve[i] = (double)data[i];
-
-  VEC *xx;
-  int Ndn=1000;
-
-  xx = v_get(Ndn+1);
-
-  double hh = 173./(float)Ndn;
-  double f = .09; 
-
-  for (int i=0;i<=Ndn;i++)
-    xx->ve[i] = hh*i;
-  xx->ve[Ndn] = xx->ve[Ndn]-1e-10;
-
-  VEC *obs = get_obs(dt,xx,1024);
-
-  struct FMS fms;
-  fms.xx = v_get(Ndn+1);
-
-  for (int i=0;i<=Ndn;i++)
-    fms.xx->ve[i] = hh*i;
-  fms.xx->ve[Ndn] = xx->ve[Ndn]-1e-10;
-
-  fms.obs = get_obs(dt,xx,1024);
-
-  fms.gp = gp;
-
-  VEC *par = v_get(2);
-
-  par->ve[0] = 0.5; //dp.beta;
-  par->ve[1] = 0.5;
-
-  double of = firstmodel(par,(void *)&fms); //objfun((void *)&gp,par,xx,obs);
-
-  VEC *rt = v_get(2);
-  rt = firstmodeld(par,(void *)&fms,rt);
-
-  //printf("%f\n",of);
-  //printf("%.20f %f\n",rt->ve[0],rt->ve[1]);
-
-  //bfgsrun(firstmodel,firstmodeld,par,(void *)&fms);
-
-  //printf("\n");
-  //for (int i=0;i<=Ndn;i++)
-  //  printf("%f %f\n", xx->ve[i],v->ve[i]);
-  //printf("e\n");
-
-  //printf("\n");
-  //for (int i=0;i<Ndn;i++)
-  //  printf("%f %f\n",xx->ve[i],obs->ve[i]);
-  //printf("e\n");  
-
-  /*
-  FILE *ifp2;
-  ifp2 = fopen("meschla.dat","r");
-  int Ndtla=6413;
-  float datal[Ndtla];
-  float dataa[Ndtla];
-
-  for (int i=0;i<Ndtla;i++)
-    fscanf(ifp2,"%f %f", &dataa[i], &datal[i]);
-
-  fclose(ifp2);
-
-  struct SMS sms;
-
-  sms.length = v_get(Ndtla);
-  sms.age = v_get(Ndtla);
-
-  for (int i=0;i<Ndtla;i++)
-    sms.length->ve[i] = datal[i];
-
-  for (int i=0;i<Ndtla;i++)
-    sms.age->ve[i] = dataa[i];
-  */
-
   VEC *z = v_get(2);
   z->ve[0] = gp.kappa;
   z->ve[1] = gp.omega;
 
-  //double ts = secondmodel(z,(void *)&sms); 
-
-  //VEC * gr2 = v_get(2);
-  //gr2 = secondmodeld(z,(void *)&sms,gr2);
-
-  /*
-  printf("\n");
-  for (int i=0;i<300;i++) 
-    {
-      double ag = (double)i / 10.0;
-      double ln = gp.omega*(1-exp(-gp.kappa*ag));
-      printf("%f %f\n",ag,ln);
-    }
-  printf("e");
-
-  printf("\n");
-  for (int i=0;i<sms.length->dim;i++) 
-      printf("%f %f\n",sms.age->ve[i],sms.length->ve[i]);
-  printf("e");
-  */
-
-  /*    
-  printf("\n");
-  for (int i=0;i<300;i++)
-    {
-      for (int j=0;j<300;j++)
-	{
-	  par->ve[0] = (double)i/1000.0;
-	  par->ve[1] = 50.0 + (double)j;
-	  of = secondmodel(par,(void *)&sms);
-	  printf("%f ",of);
-	}
-      printf("\n");
-    }
-  printf("e\n");
-  */
-
-  //printf("%f %f\n",gr2->ve[0],gr2->ve[1]);
-  
-  FILE *ifp3;
-  ifp3 = fopen("meschtr.dat","r");
-  int Ndtr=5610;
-  float dxt[Ndtr];
-  float dxr[Ndtr];
-  float dtl[Ndtr];
-
-  for (int i=0;i<Ndtr;i++)
-    fscanf(ifp3,"%f %f %f", &dxt[i], &dxr[i], &dtl[i]);
-
-  fclose(ifp3);
-
-  struct TMS tms;
-
-  tms.xt = v_get(Ndtr);
-  tms.xr = v_get(Ndtr);
-  tms.tl = v_get(Ndtr);
-
-  for (int i=0;i<Ndtr;i++)
-    tms.xt->ve[i] = dxt[i];
-
-  for (int i=0;i<Ndtr;i++)
-    tms.xr->ve[i] = dxr[i];
-
-  for (int i=0;i<Ndtr;i++)
-    tms.tl->ve[i] = dtl[i];
-
-  double bleh = thirdmodel(z,(void *)&tms); 
-
-  //printf("%f\n",bleh);  
-  //bfgsrun(thirdmodel,thirdmodeld,z,(void *)&tms);
-  /*
-  printf("\n");
-
-  for (int i=0;i<tms.xt->dim;i++)
-    if (tms.tl->ve[i] > 1.95 && tms.tl->ve[i] < 2.05)
-      printf("%f %f\n",tms.xt->ve[i],tms.xr->ve[i]);
-
-  printf("e\n");
-  */
-
   FILE *ifp4;
-  ifp4 = fopen("meschtm-ce.dat","r");
-  int Nce=199928;
-  float ct[Nce];
-  float ti[Nce];
+  ifp4 = fopen(argv[1],"r"); //"meschtm-ce.dat","r");
+  int Nce;//=199928;
+  fscanf(ifp4,"%d",&Nce);
+  float *ct; //[Nce];
+  float *ti; //[Nce];
+
+  ct = (float *) calloc(Nce,sizeof(float));
+  ti = (float *) calloc(Nce,sizeof(float));
 
   for (int i=0;i<Nce;i++)
     fscanf(ifp4,"%f %f", &ct[i],&ti[i]);
@@ -329,7 +159,9 @@ main()
   tmi.I = (int)24/k;
   tmi.J = 400;
 
-  double fa = themodeli(iota,(void *)&tmi); 
+  double fa = themodeli(iota,(void *)&tmi);
+
+  printf("%f\n",fa);
 
   return(0);
 
@@ -673,7 +505,6 @@ int sectioningPhase(xInitial,dir,grad,x_new,model,modeld,stuff,f_new,alpha,fInit
   return -1;
 }
 
-
 double pickAlphaWithinInterval(brcktEndpntA,brcktEndpntB,alpha1,alpha2,f1,fPrime1,f2,fPrime2)
      double brcktEndpntA; 
      double brcktEndpntB;
@@ -689,8 +520,8 @@ double pickAlphaWithinInterval(brcktEndpntA,brcktEndpntB,alpha1,alpha2,f1,fPrime
 	// that interpolates f() and f'() at alpha1 and alpha2. Here f(alpha1) = f1, f'(alpha1) = fPrime1, 
 	// f(alpha2) = f2, f'(alpha2) = fPrime2.
 
-	// Find interpolating Hermite polynomial in the z-space, 
-	// where z = alpha1 + (alpha2 - alpha1)*z
+  // Find interpolating Hermite polynomial in the z-space, 
+  // where z = alpha1 + (alpha2 - alpha1)*z
   VEC *coeff = v_get(4);
   interpolatingCubic(alpha1,alpha2,f1,fPrime1,f2,fPrime2,coeff);
 
@@ -706,7 +537,7 @@ double pickAlphaWithinInterval(brcktEndpntA,brcktEndpntB,alpha1,alpha2,f1,fPrime
       zub = tmp;
     }
 
-	// Minimize polynomial over interval [zlb,zub]
+  // Minimize polynomial over interval [zlb,zub]
   double z = globalMinimizerOfPolyInInterval(zlb,zub,coeff);
   double alpha = alpha1 + z*(alpha2 - alpha1);
   return alpha;
@@ -1515,13 +1346,12 @@ double themodeli(iota,tmi)
   VEC *chat = v_get(x->m); 
   VEC *ttmp = v_get(x->m);
 
-  for (int i=tmi->I/2;i<x->m;i++) {
+  for (int i=tmi->I+1;i<x->m;i++) {
     for (int j=0;j<x->n;j++)
       chattmp->ve[j] = exp(-pow(x->me[i][j]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*w(x->me[i][j])*iota*e(k*(i-tmi->I+1))*u->me[i][j];
 
-    chat->ve[i] = pow(Q(get_row(x,i,VNULL),chattmp) -c(k*(i-(tmi->I+1))),2.0);
+    chat->ve[i] = pow(Q(get_row(x,i,VNULL),chattmp)-c(k*(i-(tmi->I+1))),2.0);
     ttmp->ve[i] = k*(i-(tmi->I+1));
-
 
   }
 
@@ -1695,3 +1525,182 @@ void ustep(zstar,dparams,g,gparams,b,bparams,xh,u,xn,Qh,un,t)
 
 }
 
+  //x = m_get(I+1,J+1);
+  //u = m_get(I+1,J+1);
+
+  //pop(g,(void *)&gp,b,(void *)&bp,zstar,(void *)&dp,x,u);
+  //printf("%f\n",u->me[I][J]);
+  //> write.table(t(csskc$tl/10),file="mesch.dat",sep=" ",row.names=FALSE,col.names=FALSE)
+
+  /*
+  FILE *ifp;
+  ifp = fopen("mesch.dat","r");
+  int Ndt=7425;
+  float data[Ndt];
+
+  for (int i=0;i<Ndt;i++)
+    fscanf(ifp,"%f", &data[i]);
+
+  fclose(ifp);
+
+  VEC *dt = v_get(Ndt);
+
+  for (int i=0;i<Ndt;i++)
+    dt->ve[i] = (double)data[i];
+
+  VEC *xx;
+  int Ndn=1000;
+
+  xx = v_get(Ndn+1);
+
+  double hh = 173./(float)Ndn;
+  double f = .09; 
+
+  for (int i=0;i<=Ndn;i++)
+    xx->ve[i] = hh*i;
+  xx->ve[Ndn] = xx->ve[Ndn]-1e-10;
+
+  VEC *obs = get_obs(dt,xx,1024);
+
+  struct FMS fms;
+  fms.xx = v_get(Ndn+1);
+
+  for (int i=0;i<=Ndn;i++)
+    fms.xx->ve[i] = hh*i;
+  fms.xx->ve[Ndn] = xx->ve[Ndn]-1e-10;
+
+  fms.obs = get_obs(dt,xx,1024);
+
+  fms.gp = gp;
+
+  VEC *par = v_get(2);
+
+  par->ve[0] = 0.5; //dp.beta;
+  par->ve[1] = 0.5;
+
+  double of = firstmodel(par,(void *)&fms); //objfun((void *)&gp,par,xx,obs);
+
+  VEC *rt = v_get(2);
+  rt = firstmodeld(par,(void *)&fms,rt);
+  */
+
+  //printf("%f\n",of);
+  //printf("%.20f %f\n",rt->ve[0],rt->ve[1]);
+
+  //bfgsrun(firstmodel,firstmodeld,par,(void *)&fms);
+
+  //printf("\n");
+  //for (int i=0;i<=Ndn;i++)
+  //  printf("%f %f\n", xx->ve[i],v->ve[i]);
+  //printf("e\n");
+
+  //printf("\n");
+  //for (int i=0;i<Ndn;i++)
+  //  printf("%f %f\n",xx->ve[i],obs->ve[i]);
+  //printf("e\n");  
+
+  /*
+  FILE *ifp2;
+  ifp2 = fopen("meschla.dat","r");
+  int Ndtla=6413;
+  float datal[Ndtla];
+  float dataa[Ndtla];
+
+  for (int i=0;i<Ndtla;i++)
+    fscanf(ifp2,"%f %f", &dataa[i], &datal[i]);
+
+  fclose(ifp2);
+
+  struct SMS sms;
+
+  sms.length = v_get(Ndtla);
+  sms.age = v_get(Ndtla);
+
+  for (int i=0;i<Ndtla;i++)
+    sms.length->ve[i] = datal[i];
+
+  for (int i=0;i<Ndtla;i++)
+    sms.age->ve[i] = dataa[i];
+  */
+
+  //double ts = secondmodel(z,(void *)&sms); 
+
+  //VEC * gr2 = v_get(2);
+  //gr2 = secondmodeld(z,(void *)&sms,gr2);
+
+  /*
+  printf("\n");
+  for (int i=0;i<300;i++) 
+    {
+      double ag = (double)i / 10.0;
+      double ln = gp.omega*(1-exp(-gp.kappa*ag));
+      printf("%f %f\n",ag,ln);
+    }
+  printf("e");
+
+  printf("\n");
+  for (int i=0;i<sms.length->dim;i++) 
+      printf("%f %f\n",sms.age->ve[i],sms.length->ve[i]);
+  printf("e");
+  */
+
+  /*    
+  printf("\n");
+  for (int i=0;i<300;i++)
+    {
+      for (int j=0;j<300;j++)
+	{
+	  par->ve[0] = (double)i/1000.0;
+	  par->ve[1] = 50.0 + (double)j;
+	  of = secondmodel(par,(void *)&sms);
+	  printf("%f ",of);
+	}
+      printf("\n");
+    }
+  printf("e\n");
+  */
+
+  //printf("%f %f\n",gr2->ve[0],gr2->ve[1]);
+  
+  /*
+  FILE *ifp3;
+  ifp3 = fopen("meschtr.dat","r");
+  int Ndtr=5610;
+  float dxt[Ndtr];
+  float dxr[Ndtr];
+  float dtl[Ndtr];
+
+  for (int i=0;i<Ndtr;i++)
+    fscanf(ifp3,"%f %f %f", &dxt[i], &dxr[i], &dtl[i]);
+
+  fclose(ifp3);
+
+  struct TMS tms;
+
+  tms.xt = v_get(Ndtr);
+  tms.xr = v_get(Ndtr);
+  tms.tl = v_get(Ndtr);
+
+  for (int i=0;i<Ndtr;i++)
+    tms.xt->ve[i] = dxt[i];
+
+  for (int i=0;i<Ndtr;i++)
+    tms.xr->ve[i] = dxr[i];
+
+  for (int i=0;i<Ndtr;i++)
+    tms.tl->ve[i] = dtl[i];
+
+  double bleh = thirdmodel(z,(void *)&tms); 
+  */
+
+  //printf("%f\n",bleh);  
+  //bfgsrun(thirdmodel,thirdmodeld,z,(void *)&tms);
+  /*
+  printf("\n");
+
+  for (int i=0;i<tms.xt->dim;i++)
+    if (tms.tl->ve[i] > 1.95 && tms.tl->ve[i] < 2.05)
+      printf("%f %f\n",tms.xt->ve[i],tms.xr->ve[i]);
+
+  printf("e\n");
+  */
