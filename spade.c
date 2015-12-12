@@ -92,6 +92,47 @@ SPMAT *spobs;
 int main(int argc, char *argv[])
 {
 
+  float *ct; 
+  float *ti; 
+  int Nce;
+
+  for (int i = 1; i < argc; i++) { 
+    if (i != argc) {      // Check that we haven't finished parsing already
+      if (!strcmp(argv[i], "-ce")) 
+	{
+
+	  if (i+1 == argc)
+	    {
+	      printf("\n no file specified\n");
+	      exit(0);
+	    }
+
+	  FILE *fp1;
+	  fp1 = fopen(argv[i+1],"r");
+	  fscanf(fp1,"%d",&Nce);
+	  ct = (float *) calloc(Nce,sizeof(float));
+	  ti = (float *) calloc(Nce,sizeof(float));
+
+	  for (int i=0;i<Nce;i++)
+	    fscanf(fp1,"%f %f", &ct[i],&ti[i]);
+
+	  fclose(fp1);
+	  break;
+	}
+      else
+	{
+	  printf("\n");
+	  printf("	proper usage requires at least one filename specified\n");
+	  printf("		e.g. spade -ce ce.dat or ... \n");
+	  printf("\n");
+	  printf("	Other arguments:\n");
+	  printf("			-ce   [no default] catch effort data file\n");
+	  exit(0);
+	}
+    }
+
+  }
+
   struct GP gp;
   gp.kappa=.1;
   gp.omega=173;
@@ -110,21 +151,6 @@ int main(int argc, char *argv[])
   VEC *z = v_get(2);
   z->ve[0] = gp.kappa;
   z->ve[1] = gp.omega;
-
-  FILE *ifp4;
-  ifp4 = fopen(argv[1],"r"); //"meschtm-ce.dat","r");
-  int Nce;//=199928;
-  fscanf(ifp4,"%d",&Nce);
-  float *ct; //[Nce];
-  float *ti; //[Nce];
-
-  ct = (float *) calloc(Nce,sizeof(float));
-  ti = (float *) calloc(Nce,sizeof(float));
-
-  for (int i=0;i<Nce;i++)
-    fscanf(ifp4,"%f %f", &ct[i],&ti[i]);
-
-  fclose(ifp4);
 
   struct TMI tmi;
 
