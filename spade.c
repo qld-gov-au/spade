@@ -19,11 +19,12 @@
 
 struct GP { double kappa,omega; };
 struct BP { double alpha1,alpha2; };
-struct DP { double beta,gamma; };
+struct DP { double beta,gamma,iota; };
 
 struct FMS { VEC *xx; VEC *obs; struct GP gp; };
 struct SMS { VEC *length; VEC *age; };
 struct TMS { VEC *xt; VEC *xr; VEC *tl; };
+struct TMI { struct DP dp; struct GP gp; struct BP bp; int I,J; };
 
 double iota1=5.2;
 double iota2=0.619;
@@ -32,54 +33,55 @@ double eta1=1.703205e-5;
 double eta2=2.9526;
 
 double w(double x) { return eta1*pow(x,eta2); }
-double g();
-double b();
+double s(double x) { return exp(-pow(x-phi*iota1,2.)/(2*iota2*pow(phi,2.))); }
+double g(struct GP *,const double);
+double b(struct BP *,const double);
 
-struct TMI { struct DP dp; struct GP gp; struct BP bp; int I,J; 
-};
+double qn1d(double);
 
-double zstar();
-double zstari();
-double Q();
-double Qn();
-void Q2();
-double Qm();
-void xhstep();
-void xstep();
-void uhstep();
-void ustep();
-VEC *initial();
-double idxselect();
-VEC *idxremove();
-void pop();
-double e();
-double c();
-double objfun();
-VEC *objfund();
-VEC *kullback();
-VEC *kde();
-VEC *regrid();
-double get_bw();
-double linbin();
-double firstmodel();
-VEC *firstmodeld();
-VEC *get_obs();
-int linesearch();
-MAT *UpdateHessian();
-double bfgsrun();
-double pickAlphaWithinInterval();
-int bracketingPhase();
-int sectioningPhase();
-void interpolatingCubic();
-double globalMinimizerOfPolyInInterval();
-double polyval();
-int roots();
-VEC *numgrad();
-double secondmodel();
-VEC *secondmodeld();
-double thirdmodel();
-VEC *thirdmodeld();
-double themodeli();
+double firstmodel(VEC *, void *);
+VEC *firstmodeld(VEC *, void *, VEC *);
+double secondmodel(VEC *, void *);
+VEC *secondmodeld(VEC *, void *, VEC *);
+double thirdmodel(VEC *, void *);
+VEC *thirdmodeld(VEC *, void *, VEC *);
+
+double themodeli(double, void *,MAT *,MAT *,MAT *,MAT *,VEC *,MAT *,IVEC *);
+double themodelid(double,void *,MAT *,MAT *,MAT *,MAT *,VEC *,MAT *,IVEC *);
+double zstar(double,double,double,double,double,double,double); 
+double wstar(double,double,double,double,double);
+double Q(VEC *,VEC *);
+double Qn(VEC *,VEC *,int);
+void Q2(struct BP *,struct GP *,VEC *,VEC *);
+void xhstep(struct GP *,VEC *,VEC *);
+void xstep(struct GP *,VEC *,VEC *,VEC *);
+void uhstep(VEC *,VEC *,VEC *,VEC *,struct BP *,struct GP *,struct DP *,double,double);
+void ustep(VEC *,VEC *,VEC *,VEC *, struct BP *,struct GP *,struct DP *,double,double);
+void phstep(VEC *,VEC *,VEC *,VEC *,VEC *,struct BP *,struct GP *,struct DP *,double,double,double);
+void pstep(VEC *,VEC *,VEC *,VEC *,VEC *,struct BP *,struct GP *,struct DP *,double,double,double);
+VEC *initial(struct GP *,struct BP *,struct DP *,VEC *);
+double idxselect(double,VEC *);
+VEC *idxremove(VEC *,VEC *,int);
+//void pop(double (*)(void *,double),void *,double (*)(void *,double),void *,double (*)(void *,double),void *,MAT *,MAT *);
+double e(double);
+double c(double);
+VEC *kullback(VEC *,VEC *);
+VEC *kde(VEC *,VEC *,double);
+VEC *regrid(VEC *,VEC *,VEC *,VEC *);
+double get_bw(VEC *);
+double linbin(VEC *,VEC *,VEC *,double);
+VEC *get_obs(VEC *,VEC *,int);
+int linesearch(VEC *,VEC *,double,double,double *,double,double,double,double,VEC *,VEC *,double *,double (*)(VEC *,void *),VEC * (*)(VEC *,void *,VEC *),void *);
+MAT *UpdateHessian(MAT*, VEC*,VEC*);
+double bfgsrun(double (*)(VEC *,void *),VEC * (*)(VEC *,void *,VEC *),VEC *,void *);
+double pickAlphaWithinInterval(double,double,double,double,double,double,double,double);
+int bracketingPhase(VEC *,VEC *,double,double,double *,double,double,double,double,VEC *,VEC *,double *,double *,double *,double *,double *,double *,double *,double (*)(VEC *,void *),VEC *(*)(VEC *,void *,VEC *),void *);
+int sectioningPhase(VEC *,VEC *,VEC *,VEC *,double (*)(VEC *,void *),VEC *(*)(VEC *,void *,VEC *),void *,double *,double *,double,double,double,double,double,double,double,double,double,double,double);
+void interpolatingCubic(double,double,double,double,double,double,VEC *);
+double globalMinimizerOfPolyInInterval(double,double,VEC *);
+double polyval(VEC *, double);
+int roots(VEC *,VEC *);
+VEC *numgrad(double (*)(VEC *,void *),void *,VEC *,double);
 
 double h,k;
 
@@ -95,6 +97,17 @@ int main(int argc, char *argv[])
   float *ct; 
   float *ti; 
   int Nce;
+
+  if (argc < 2)
+    {
+      printf("\n");
+      printf("	proper usage requires at least one filename specified\n");
+      printf("		e.g. spade -ce ce.dat or ... \n");
+      printf("\n");
+      printf("	Other arguments:\n");
+      printf("			-ce   [no default] catch effort data file\n");
+      exit(0);
+    }
 
   for (int i = 1; i < argc; i++) { 
     if (i != argc) {      // Check that we haven't finished parsing already
@@ -133,26 +146,12 @@ int main(int argc, char *argv[])
 
   }
 
-  struct GP gp;
-  gp.kappa=.1;
-  gp.omega=173;
-
   h = 173./400.0;
   k = .05;
 
-  struct BP bp;
-  bp.alpha1 = .1;
-  bp.alpha2 = .01;
-
-  struct DP dp;
-  dp.beta = 1;
-  dp.gamma = 1e-6;
-
-  VEC *z = v_get(2);
-  z->ve[0] = gp.kappa;
-  z->ve[1] = gp.omega;
-
-  struct TMI tmi;
+  //VEC *z = v_get(2);
+  //z->ve[0] = gp.kappa;
+  //z->ve[1] = gp.omega;
 
   cat = v_get(481);
   eff = v_get(481);
@@ -176,31 +175,99 @@ int main(int argc, char *argv[])
   printf("e");
   */
 
-  tmi.gp = gp;
-  tmi.dp = dp;
-  tmi.bp = bp;
-
   double iota = 1e-4;
 
-  tmi.I = (int)24/k;
-  tmi.J = 400;
+  qn1d(iota);
 
-  double fa = themodeli(iota,(void *)&tmi);
-
-  printf("%f\n",fa);
+  //printf("%f %f\n",fa,fad);
 
   return(0);
 
 }  
 
-double bfgsrun(model,modeld,x,stuff) //xx,obs)
-     double (*model)();
-     VEC * (*modeld)();
-     VEC *x;
-     void *stuff;
-     //     VEC *xx;
-     //VEC *obs;
-     //     void *gp;
+double qn1d(
+
+	    double iota
+
+	    )
+{
+
+  struct GP gp;
+  gp.kappa=.1;
+  gp.omega=173;
+
+  struct BP bp;
+  bp.alpha1 = .1;
+  bp.alpha2 = .01;
+
+  struct DP dp;
+  dp.beta = 1;
+  dp.gamma = 1e-6;
+  dp.iota = iota;
+
+  struct TMI tmi;
+  tmi.gp = gp;
+  tmi.dp = dp;
+  tmi.bp = bp;
+
+  tmi.I = (int)24/k;
+  tmi.J = 400;
+
+  MAT *x;
+  MAT *u;
+
+  int LI = 2*tmi.I + 1;
+  int J = tmi.J+1;
+
+  x = m_get(LI,J);
+  u = m_get(LI,J);
+
+  MAT *xh; MAT *uh; MAT *xn;
+
+  xh = m_get(LI,J+1);
+  uh = m_get(LI,J+1);
+  xn = m_get(LI-1,J+1);
+
+  VEC *Ui = v_get(LI);
+  IVEC *idxi = iv_get(LI-1);
+
+  double newiota = iota;
+  double eps = 100;
+
+  for (int i=0;i<20;i++)
+    {
+
+      iota = newiota;
+
+      double fa = themodeli(iota,(void *)&tmi,x,u,xh,uh,Ui,xn,idxi);
+      double fad = themodelid(iota,(void *)&tmi,x,u,xh,uh,Ui,xn,idxi);
+
+      //printf("%f %f %f\n",fa,fad,eps);
+
+      if (fabs(fad) < eps)
+	break;
+      else
+	newiota = iota - 1e-19 * fad;
+
+      printf("%d %f %f %f %f\n",i,newiota,iota,fa,fad);
+
+
+    }
+
+  return iota;
+
+}
+  
+
+
+double bfgsrun(
+
+	       double (*model)(VEC *,void *),
+	       VEC * (*modeld)(VEC *,void *,VEC *),
+	       VEC *x,
+	       void *stuff
+
+	       )	       
 {
 
   VEC *oldx = v_get(x->dim);
@@ -295,22 +362,25 @@ double bfgsrun(model,modeld,x,stuff) //xx,obs)
 
 }
 
-int linesearch(x,dir,f,dirD,alpha,rho,sigma,TolFun,fminimum,grad,x_new,f_new,model,modeld,stuff)
-  VEC *x;
-  VEC *dir;
-  double f;
-  double dirD;
-  double *alpha;
-  double rho;
-  double sigma;
-  double TolFun;
-  double fminimum;
-  VEC *grad;
-  VEC *x_new;
-  double *f_new;
-  double (*model)();
-  VEC *(*modeld)();
-  void *stuff;
+int linesearch(
+
+	       VEC *x,
+	       VEC *dir,
+	       double f,
+	       double dirD,
+	       double *alpha,
+	       double rho,
+	       double sigma,
+	       double TolFun,
+	       double fminimum,
+	       VEC *grad,
+	       VEC *x_new,
+	       double *f_new,
+	       double (*model)(VEC *,void *),
+	       VEC *(*modeld)(VEC *,void *,VEC *),
+	       void *stuff
+
+	       )
 {
   if (dirD * 0 != 0)
     return 1;
@@ -333,28 +403,31 @@ int linesearch(x,dir,f,dirD,alpha,rho,sigma,TolFun,fminimum,grad,x_new,f_new,mod
 
 }
 
-int bracketingPhase(xInitial,dir,fInitial,fPrimeInitial,alpha,rho,sigma,TolFun,fminimum,grad,x_new,a,b,f_a,fPrime_a,f_b,fPrime_b,f_new,model,modeld,stuff)
-  VEC *xInitial;
-  VEC *dir;
-  double fInitial;
-  double fPrimeInitial;
-  double *alpha;
-  double rho;
-  double sigma;
-  double TolFun;
-  double fminimum;
-  VEC *grad;
-  VEC *x_new;
-  double *a;
-  double *b;
-  double *f_a;
-  double *fPrime_a;
-  double *f_b;
-  double *fPrime_b;
-  double *f_new;
-  double (*model)();
-  VEC *(*modeld)();
-  void *stuff;
+int bracketingPhase(
+
+		    VEC *xInitial,
+		    VEC *dir,
+		    double fInitial,
+		    double fPrimeInitial,
+		    double *alpha,
+		    double rho,
+		    double sigma,
+		    double TolFun,
+		    double fminimum,
+		    VEC *grad,
+		    VEC *x_new,
+		    double *a,
+		    double *b,
+		    double *f_a,
+		    double *fPrime_a,
+		    double *f_b,
+		    double *fPrime_b,
+		    double *f_new,
+		    double (*model)(VEC *,void *),
+		    VEC *(*modeld)(VEC *,void *,VEC *),
+		    void *stuff
+
+		    )
 
 { /* Fletcher, R. 1987 Practical methods of optimization. 2nd Edition. Page 34 */
   double tau1 = 9.0;
@@ -434,27 +507,30 @@ int bracketingPhase(xInitial,dir,fInitial,fPrimeInitial,alpha,rho,sigma,TolFun,f
     }
 }
 
-int sectioningPhase(xInitial,dir,grad,x_new,model,modeld,stuff,f_new,alpha,fInitial,fPrimeInitial,a,b,f_a,fPrime_a,f_b,fPrime_b,rho,sigma,TolFun)
-  VEC *xInitial;
-  VEC *dir;
-  VEC *grad;
-  VEC *x_new;
-  double (*model)();
-  VEC *(*modeld)();
-  void *stuff;
-  double *f_new;
-  double *alpha;
-  double fInitial;
-  double fPrimeInitial;
-  double a;
-  double b;
-  double f_a;
-  double fPrime_a;
-  double f_b;
-  double fPrime_b;
-  double rho;
-  double sigma;
-  double TolFun;
+int sectioningPhase(
+
+		    VEC *xInitial,
+		    VEC *dir,
+		    VEC *grad,
+		    VEC *x_new,
+		    double (*model)(VEC *,void *),
+		    VEC *(*modeld)(VEC *,void *,VEC *),
+		    void *stuff,
+		    double *f_new,
+		    double *alpha,
+		    double fInitial,
+		    double fPrimeInitial,
+		    double a,
+		    double b,
+		    double f_a,
+		    double fPrime_a,
+		    double f_b,
+		    double fPrime_b,
+		    double rho,
+		    double sigma,
+		    double TolFun
+
+		    )
 {/* Fletcher, R. 1987 Practical methods of optimization. 2nd Edition. Page 35 */
   double eps = 1e-16;
   double tau2 = min(0.1,sigma);
@@ -481,10 +557,10 @@ int sectioningPhase(xInitial,dir,grad,x_new,model,modeld,stuff,f_new,alpha,fInit
       sv_mlt(*alpha,dir,dirtmp);
       v_add(xInitial,dirtmp,x_new);
 
-      double f_alpha = (*model)(x_new,stuff); //objfun(x_new,model,stuff);
+      double f_alpha = (*model)(x_new,stuff);
 
       *f_new = f_alpha;
-      grad = (*modeld)(x_new,stuff,grad); //objfund(gp,x_new,xx,obs,grad);
+      grad = (*modeld)(x_new,stuff,grad);
 
       double fPrime_alpha = in_prod(grad,dir);
 
@@ -531,15 +607,18 @@ int sectioningPhase(xInitial,dir,grad,x_new,model,modeld,stuff,f_new,alpha,fInit
   return -1;
 }
 
-double pickAlphaWithinInterval(brcktEndpntA,brcktEndpntB,alpha1,alpha2,f1,fPrime1,f2,fPrime2)
-     double brcktEndpntA; 
-     double brcktEndpntB;
-     double alpha1; 
-     double alpha2;
-     double f1;
-     double fPrime1; 
-     double f2; 
-     double fPrime2;
+double pickAlphaWithinInterval(
+
+			       double brcktEndpntA,
+			       double brcktEndpntB,
+			       double alpha1,
+			       double alpha2,
+			       double f1,
+			       double fPrime1,
+			       double f2,
+			       double fPrime2
+
+			       )
 {
 	// alpha = pickAlphaWithinInterval(brcktEndpntA,brcktEndpntB,alpha1,alpha2,f1,fPrime1,f2,fPrime2) finds 
 	// a global minimizer alpha within the bracket [brcktEndpntA,brcktEndpntB] of the cubic polynomial 
@@ -569,14 +648,17 @@ double pickAlphaWithinInterval(brcktEndpntA,brcktEndpntB,alpha1,alpha2,f1,fPrime
   return alpha;
 }
 
-void interpolatingCubic(alpha1,alpha2,f1,fPrime1,f2,fPrime2,coeff)
-     double alpha1; 
-     double alpha2; 
-     double f1; 
-     double fPrime1; 
-     double f2; 
-     double fPrime2; 
-     VEC *coeff;
+void interpolatingCubic(
+
+			double alpha1,
+			double alpha2,
+			double f1, 
+			double fPrime1,
+			double f2,
+			double fPrime2,
+			VEC *coeff
+
+			)
 {
 	// coeff = interpolatingCubic(alpha1,alpha2,f1,fPrime1,f2,fPrime2) determines
 	// the coefficients of the cubic polynomial that interpolates f and f' at alpha1 
@@ -590,10 +672,13 @@ void interpolatingCubic(alpha1,alpha2,f1,fPrime1,f2,fPrime2,coeff)
   coeff->ve[0] = (fPrime1 + fPrime2)*deltaAlpha - 2.0*(f2 - f1);
 }
 
-double globalMinimizerOfPolyInInterval(lowerBound,upperBound,coeff)
-     double lowerBound; 
-     double upperBound; 
-     VEC* coeff;
+double globalMinimizerOfPolyInInterval(
+
+				       double lowerBound,
+				       double upperBound,
+				       VEC* coeff
+
+				       )
 {
 	// alpha = globalMinimizerOfPolyInInterval(lowerBound,upperBound,coeff) finds a
 	// global minimizer alpha in the interval lowerBound <= alpha <= upperBound of 
@@ -632,16 +717,22 @@ double globalMinimizerOfPolyInInterval(lowerBound,upperBound,coeff)
   return alpha;
 }
 
-double polyval(coeff,x)
-     VEC* coeff; 
-     double x;
+double polyval(
+
+	       VEC *coeff, 
+	       double x
+
+	       )
 {
   return coeff->ve[0]*pow(x, 3.0) + coeff->ve[1]*pow(x, 2.0) + coeff->ve[2]*x + coeff->ve[3];
 }
 
-int roots(coef,stationary_point)
-     VEC* coef; 
-     VEC* stationary_point;
+int roots(
+
+	  VEC *coef,
+	  VEC *stationary_point
+
+	  )
 {
   if (coef->ve[0] == 0)
     return 1;
@@ -661,10 +752,13 @@ int roots(coef,stationary_point)
   return 1;
 }
 
-MAT *UpdateHessian(H,s,y)
-     MAT* H; 
-     VEC* s; 
-     VEC* y; 
+MAT *UpdateHessian(
+
+		   MAT* H, 
+		   VEC* s,
+		   VEC* y
+
+		   )
 {
 
   MAT *sMr = m_get(1,H->n);
@@ -687,10 +781,13 @@ MAT *UpdateHessian(H,s,y)
   return H;
 }
 
-VEC *get_obs(dt,xx,NdnF)
-     VEC *dt;
-     VEC *xx;
-     int NdnF;
+VEC *get_obs(
+
+	     VEC *dt,
+	     VEC *xx,
+	     int NdnF
+
+	     )
 {
   VEC *y = v_get(NdnF);
  
@@ -716,11 +813,14 @@ VEC *get_obs(dt,xx,NdnF)
 
 }
 
-VEC *numgrad(model,stuff,par,epsilon)
-     double (*model)();
-     void *stuff;
-     VEC *par;
-     double epsilon;
+VEC *numgrad(
+
+	     double (*model)(VEC *,void *),
+	     void *stuff,
+	     VEC *par,
+	     double epsilon
+
+	     )
 {
 
   double f0 = (*model)(par,stuff);
@@ -742,154 +842,162 @@ VEC *numgrad(model,stuff,par,epsilon)
 
 }
 
-/*
-double secathimodel(x,stuff1,stuff2)
-     VEC *x;
-     struct SMS *stuff1;
-     struct TMS *stuff2;
-{
-*/
+double secondmodel(
 
-double secondmodel(x,stuff)
-     VEC *x;
-     struct SMS *stuff;
+		   VEC *x,
+		   void *stuff
+
+		   )
 {
+
+  struct SMS sms; 
+
+  sms = * (struct SMS *) stuff;
 
   double rt = 0;
-  for (int i=0;i<stuff->length->dim;i++)
-    rt += pow(stuff->length->ve[i] - x->ve[1]*(1.0 - exp(-x->ve[0]*stuff->age->ve[i])),2.0);
-  return rt/stuff->length->dim;
+  for (int i=0;i<sms.length->dim;i++)
+    rt += pow(sms.length->ve[i] - x->ve[1]*(1.0 - exp(-x->ve[0]*sms.age->ve[i])),2.0);
+  return rt/sms.length->dim;
 
 }
 
-double thirdmodel(x,stuff)
-     VEC *x;
-     struct TMS *stuff;
+double thirdmodel(
+
+		  VEC *x,
+		  void *stuff
+
+		  )
 {
+
+  struct TMS tms; 
+
+  tms = * (struct TMS *) stuff;
 
   double rt = 0;
 
-  for (int i=0;i<stuff->xt->dim;i++)
+  for (int i=0;i<tms.xt->dim;i++)
     {
-      double e = exp(-x->ve[0]*stuff->tl->ve[i]);
-      double e2 = exp(-2*x->ve[0]*stuff->tl->ve[i]);
-      double xt = stuff->xt->ve[i];
-      double xr = stuff->xr->ve[i];
+      double e = exp(-x->ve[0]*tms.tl->ve[i]);
+      double e2 = exp(-2*x->ve[0]*tms.tl->ve[i]);
+      double xt = tms.xt->ve[i];
+      double xr = tms.xr->ve[i];
       double w = x->ve[1];
       double tmp1 = xt+e*xr+w*e2-w*e;
       double tmp2 = e2+1;
       rt += pow(e*tmp1/tmp2 - xr + w*(1-e),2.0) + pow(tmp1/tmp2 - xt,2.0);
     }
 
-  return rt/stuff->xt->dim;
+  return rt/tms.xt->dim;
 
 }
 
-VEC *thirdmodeld(xp,stuff,grad)
-     VEC *xp;
-     struct TMS *stuff;
-     VEC *grad;
+VEC *thirdmodeld(
+
+		 VEC *xp,
+		 void *stuff,
+		 VEC *grad
+
+		 )
 {
 
+  struct TMS tms; 
+
+  tms = * (struct TMS *) stuff;
+
   double rt1 = 0;
-  for (int i=0;i<=stuff->xt->dim;i++)
+  for (int i=0;i<=tms.xt->dim;i++)
     {
-      double t = stuff->tl->ve[i];
-      double x = stuff->xt->ve[i];
-      double y = stuff->xr->ve[i];
+      double t = tms.tl->ve[i];
+      double x = tms.xt->ve[i];
+      double y = tms.xr->ve[i];
       double k = xp->ve[0];
       double w = xp->ve[1];
       double tmp1 , tmp2 , tmp3 , tmp4 , tmp5 , tmp6 , tmp7 , tmp8 ; tmp1 = 1/exp(2*k*t) ; tmp2 = tmp1+1 ; tmp3 = 1/tmp2 ; tmp4 = 1/exp(k*t) ; tmp5 = tmp4*y+x-tmp4*w+tmp1*w ; tmp6 = 1/pow(tmp2,2) ; tmp7 = t*tmp4*w ; tmp8 = -t*tmp4*y+tmp7-2*t*tmp1*w ; rt1 += 2*(tmp3*tmp4*tmp5-y+(1-tmp4)*w)*(2*tmp5*tmp6*t/exp(3*k*t)+tmp3*tmp4*tmp8+tmp7-t*tmp3*tmp4*tmp5)+2*(tmp3*tmp5-x)*(tmp3*tmp8+2*t*tmp1*tmp6*tmp5) ;
     }
 
   double rt2 = 0;
-  for (int i=0;i<=stuff->xt->dim;i++)
+  for (int i=0;i<=tms.xt->dim;i++)
     {
-      double t = stuff->tl->ve[i];
-      double x = stuff->xt->ve[i];
-      double y = stuff->xr->ve[i];
+      double t = tms.tl->ve[i];
+      double x = tms.xt->ve[i];
+      double y = tms.xr->ve[i];
       double k = xp->ve[0];
       double w = xp->ve[1];
 
       double tmp1 , tmp2 , tmp3 , tmp4 , tmp5 , tmp6 ; tmp1 = 1/exp(2*k*t) ; tmp2 = 1/(tmp1+1) ; tmp3 = 1/exp(k*t) ; tmp4 = -tmp3 ; tmp5 = tmp4+tmp1 ; tmp6 = tmp3*y+x-tmp3*w+tmp1*w ; rt2 += 2*(tmp2*tmp5*tmp3+tmp4+1)*(tmp2*tmp3*tmp6-y+(tmp4+1)*w)+2*tmp2*tmp5*(tmp2*tmp6-x) ;
     }
 
-  grad->ve[0] = rt1/stuff->tl->dim;
-  grad->ve[1] = rt2/stuff->tl->dim;
+  grad->ve[0] = rt1/tms.tl->dim;
+  grad->ve[1] = rt2/tms.tl->dim;
 
   return grad;
 
 }
-      //rt += (2*(exp(-k*t)*(-exp(-k*t)*w+exp(-2*k*t)*w+y*exp(-t*k)+x)/(exp(-2*k*t)+1) + (1-exp(-k*t))*w - y) * 
 
-      /*
-\sum_{i=1}^{n}{\left(\,\left({{e^ {- t_{i}\,k }\,\left(t_{i}\,e
- ^ {- t_{i}\,k }\,w-2\,t_{i}\,e^ {- 2\,t_{i}\,k }\,w-t_{i}\,y_{i}\,e
- ^ {- t_{i}\,k }\right)}\over{e^ {- 2\,t_{i}\,k }+1}}-{{t_{i}\,e^ {- 
- t_{i}\,k }\,\left(-e^ {- t_{i}\,k }\,w+e^ {- 2\,t_{i}\,k }\,w+y_{i}
- \,e^ {- t_{i}\,k }+x_{i}\right)}\over{e^ {- 2\,t_{i}\,k }+1}}+{{2\,t
- _{i}\,e^ {- 3\,t_{i}\,k }\,\left(-e^ {- t_{i}\,k }\,w+e^ {- 2\,t_{i}
- \,k }\,w+y_{i}\,e^ {- t_{i}\,k }+x_{i}\right)}\over{\left(e^ {- 2\,t
- _{i}\,k }+1\right)^2}}+t_{i}\,e^ {- t_{i}\,k }\,w\right)+2\,\left({{
- -e^ {- t_{i}\,k }\,w+e^ {- 2\,t_{i}\,k }\,w+y_{i}\,e^ {- t_{i}\,k }+
- x_{i}}\over{e^ {- 2\,t_{i}\,k }+1}}-x_{i}\right)\,\left({{t_{i}\,e
- ^ {- t_{i}\,k }\,w-2\,t_{i}\,e^ {- 2\,t_{i}\,k }\,w-t_{i}\,y_{i}\,e
- ^ {- t_{i}\,k }}\over{e^ {- 2\,t_{i}\,k }+1}}+{{2\,t_{i}\,e^ {- 2\,t
- _{i}\,k }\,\left(-e^ {- t_{i}\,k }\,w+e^ {- 2\,t_{i}\,k }\,w+y_{i}\,
- e^ {- t_{i}\,k }+x_{i}\right)}\over{\left(e^ {- 2\,t_{i}\,k }+1
- \right)^2}}\right)\right)}
-      */
+VEC *secondmodeld(
 
-VEC *secondmodeld(x,stuff,grad)
-     VEC *x;
-     struct SMS *stuff;
-     VEC *grad;
+		  VEC *x,
+		  void *stuff,
+		  VEC *grad
+
+		  )
 {
+
+  struct SMS sms; 
+
+  sms = * (struct SMS *) stuff;
 
   double rt1 = 0;
-  for (int i=0;i<stuff->length->dim;i++)
-    rt1 = rt1 + -2*x->ve[1]*stuff->age->ve[i]*(stuff->length->ve[i] - x->ve[1]*(1.0 - exp(-x->ve[0]*stuff->age->ve[i])))*exp(-x->ve[0]*stuff->age->ve[i]);
+  for (int i=0;i<sms.length->dim;i++)
+    rt1 = rt1 + -2*x->ve[1]*sms.age->ve[i]*(sms.length->ve[i] - x->ve[1]*(1.0 - exp(-x->ve[0]*sms.age->ve[i])))*exp(-x->ve[0]*sms.age->ve[i]);
 
   double rt2 = 0;
-  for (int i=0;i<stuff->length->dim;i++)
-    rt2 = rt2 + 2*(stuff->length->ve[i] - x->ve[1]*(1.0 - exp(-x->ve[0]*stuff->age->ve[i])))*(exp(-x->ve[0]*stuff->age->ve[i])-1.0);
+  for (int i=0;i<sms.length->dim;i++)
+    rt2 = rt2 + 2*(sms.length->ve[i] - x->ve[1]*(1.0 - exp(-x->ve[0]*sms.age->ve[i])))*(exp(-x->ve[0]*sms.age->ve[i])-1.0);
 
-  grad->ve[0] = rt1/stuff->length->dim;
-  grad->ve[1] = rt2/stuff->length->dim;
+  grad->ve[0] = rt1/sms.length->dim;
+  grad->ve[1] = rt2/sms.length->dim;
 
   return grad;
 
 }
 
-double firstmodel(x,stuff)
-     VEC *x;
-     struct FMS *stuff;
+double firstmodel(
+
+		  VEC *x,
+		  void *stuff
+
+		  )
 {
 
-  VEC *v = v_get(stuff->xx->dim);
+  struct FMS fms;
 
-  int Ndn = stuff->xx->dim-1;
+  fms = * (struct FMS *) stuff;
+
+  VEC *v = v_get(fms.xx->dim);
+
+  int Ndn = fms.xx->dim-1;
   
   VEC *w = v_get(Ndn+1);
 
   for (int i=0;i<=Ndn;i++)
-    w->ve[i] = (x->ve[0] + x->ve[1]*exp(-pow(stuff->xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))) / (stuff->gp.kappa*(stuff->gp.omega-stuff->xx->ve[i]));
+    w->ve[i] = (x->ve[0] + x->ve[1]*exp(-pow(fms.xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))) / (fms.gp.kappa*(fms.gp.omega-fms.xx->ve[i]));
 
   for (int i=1;i<=Ndn;i++)
-    v->ve[i]=exp(-pow(stuff->xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(stuff->gp.omega-stuff->xx->ve[i]))*exp(-Qn(stuff->xx,w,i+1));
+    v->ve[i]=exp(-pow(fms.xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(fms.gp.omega-fms.xx->ve[i]))*exp(-Qn(fms.xx,w,i+1));
     
-  v->ve[0] = exp(-pow(stuff->xx->ve[0]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(stuff->gp.omega));
+  v->ve[0] = exp(-pow(fms.xx->ve[0]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(fms.gp.omega));
   
-  double qv = Q(stuff->xx,v);
+  double qv = Q(fms.xx,v);
 
   for (int i=0;i<=Ndn;i++)
     v->ve[i] = v->ve[i]/qv;
 
   V_FREE(w);
     
-  v = kullback(stuff->obs,v);
+  v = kullback(fms.obs,v);
 
-  double rt = Q(stuff->xx,v);
+  double rt = Q(fms.xx,v);
 
   V_FREE(v);
 
@@ -897,73 +1005,80 @@ double firstmodel(x,stuff)
 
 }
 
-VEC *firstmodeld(x,stuff,grad)
-     VEC *x;
-     struct FMS *stuff;
-     VEC *grad;
+VEC *firstmodeld(
+
+		 VEC *x,
+		 void *stuff,
+		 VEC *grad
+
+		 )
 {
+
+  struct FMS fms;
+
+  fms = * (struct FMS *) stuff;
 
   VEC *rt = v_get(2);
 
-  VEC *v = v_get(stuff->xx->dim);
+  VEC *v = v_get(fms.xx->dim);
 
-  int Ndn = stuff->xx->dim-1;
+  int Ndn = fms.xx->dim-1;
   
   VEC *w = v_get(Ndn+1);
 
   for (int i=0;i<=Ndn;i++)
-    w->ve[i] = (x->ve[0] + x->ve[1]*exp(-pow(stuff->xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))) / (stuff->gp.kappa*(stuff->gp.omega-stuff->xx->ve[i]));
+    w->ve[i] = (x->ve[0] + x->ve[1]*exp(-pow(fms.xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))) / (fms.gp.kappa*(fms.gp.omega-fms.xx->ve[i]));
 
   for (int i=1;i<=Ndn;i++)
-    v->ve[i]=exp(-pow(stuff->xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(stuff->gp.omega-stuff->xx->ve[i]))*exp(-Qn(stuff->xx,w,i+1));
+    v->ve[i]=exp(-pow(fms.xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(fms.gp.omega-fms.xx->ve[i]))*exp(-Qn(fms.xx,w,i+1));
     
-  v->ve[0] = exp(-pow(stuff->xx->ve[0]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(stuff->gp.omega));
+  v->ve[0] = exp(-pow(fms.xx->ve[0]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(fms.gp.omega));
   
-  double B = Q(stuff->xx,v);
+  double B = Q(fms.xx,v);
 
   VEC *w2 = v_get(Ndn+1);
 
   for (int i=0;i<=Ndn;i++)
-    w2->ve[i] = 1./(stuff->gp.kappa*(stuff->gp.omega-stuff->xx->ve[i])); // used to have kappa
+    w2->ve[i] = 1./(fms.gp.kappa*(fms.gp.omega-fms.xx->ve[i])); // used to have kappa
 
   VEC *w3 = v_get(Ndn+1);
   for (int i=0;i<=Ndn;i++)
-    w3->ve[i] = exp(-pow(stuff->xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(stuff->gp.omega-stuff->xx->ve[i]))*exp(-Qn(stuff->xx,w,i+1)) * Qn(stuff->xx,w2,i+1);
+    w3->ve[i] = exp(-pow(fms.xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(fms.gp.omega-fms.xx->ve[i]))*exp(-Qn(fms.xx,w,i+1)) * Qn(fms.xx,w2,i+1);
 
-  double C = Q(stuff->xx,w3);
+  double C = Q(fms.xx,w3);
 
   for (int i=1;i<=Ndn;i++)
-    v->ve[i] = (B*Qn(stuff->xx,w2,i+1)-C ) / B;
+    v->ve[i] = (B*Qn(fms.xx,w2,i+1)-C ) / B;
 
   v->ve[0] = -C/B;
     
-  for (int i=0;i<stuff->obs->dim;i++)
-    v->ve[i]=stuff->obs->ve[i]*v->ve[i];
+  for (int i=0;i<fms.obs->dim;i++)
+    v->ve[i]=fms.obs->ve[i]*v->ve[i];
 
-  rt->ve[0] = Q(stuff->xx,v);
+  rt->ve[0] = Q(fms.xx,v);
 
-  Ndn = stuff->xx->dim-1;
+  Ndn = fms.xx->dim-1;
   
   for (int i=0;i<=Ndn;i++)
-    w->ve[i] = (x->ve[0] + x->ve[1]*exp(-pow(stuff->xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))) / (stuff->gp.kappa*(stuff->gp.omega-stuff->xx->ve[i]));
+    w->ve[i] = (x->ve[0] + x->ve[1]*exp(-pow(fms.xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))) / (fms.gp.kappa*(fms.gp.omega-fms.xx->ve[i]));
 
   for (int i=1;i<=Ndn;i++)
-    v->ve[i]=exp(-pow(stuff->xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(stuff->gp.omega-stuff->xx->ve[i]))*exp(-Qn(stuff->xx,w,i+1));
+    v->ve[i]=exp(-pow(fms.xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(fms.gp.omega-fms.xx->ve[i]))*exp(-Qn(fms.xx,w,i+1));
     
-  v->ve[0] = exp(-pow(stuff->xx->ve[0]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(stuff->gp.omega));
+  v->ve[0] = exp(-pow(fms.xx->ve[0]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(fms.gp.omega));
   
-  B = Q(stuff->xx,v);
+  B = Q(fms.xx,v);
 
   for (int i=0;i<=Ndn;i++)
-    w2->ve[i] =  exp(-pow(stuff->xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))/(stuff->gp.kappa*(stuff->gp.omega-stuff->xx->ve[i]));
+    w2->ve[i] =  exp(-pow(fms.xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))/(fms.gp.kappa*(fms.gp.omega-fms.xx->ve[i]));
 
   for (int i=0;i<=Ndn;i++)
-    w3->ve[i] = exp(-pow(stuff->xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(stuff->gp.omega-stuff->xx->ve[i]))*exp(-Qn(stuff->xx,w,i+1)) * Qn(stuff->xx,w2,i+1);
+    w3->ve[i] = exp(-pow(fms.xx->ve[i]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*(1./(fms.gp.omega-fms.xx->ve[i]))*exp(-Qn(fms.xx,w,i+1)) * Qn(fms.xx,w2,i+1);
 
-  C = Q(stuff->xx,w3);
+  C = Q(fms.xx,w3);
 
   for (int i=1;i<=Ndn;i++)
-    v->ve[i] = (B*Qn(stuff->xx,w2,i+1)-C ) / B;
+    v->ve[i] = (B*Qn(fms.xx,w2,i+1)-C ) / B;
 
   v->ve[0] = -C/B;
 
@@ -971,10 +1086,10 @@ VEC *firstmodeld(x,stuff,grad)
   V_FREE(w2);
   V_FREE(w3);
     
-  for (int i=0;i<stuff->obs->dim;i++)
-    v->ve[i]=stuff->obs->ve[i]*v->ve[i];
+  for (int i=0;i<fms.obs->dim;i++)
+    v->ve[i]=fms.obs->ve[i]*v->ve[i];
 
-  rt->ve[1] = Q(stuff->xx,v);
+  rt->ve[1] = Q(fms.xx,v);
 
   V_FREE(v);
 
@@ -982,11 +1097,14 @@ VEC *firstmodeld(x,stuff,grad)
 
 }
 
-double linbin(dt,y,zx,bw)
-     VEC *dt;
-     VEC *y;
-     VEC *zx;
-     double bw;
+double linbin(
+
+	      VEC *dt,
+	      VEC *y,
+	      VEC *zx,
+	      double bw
+
+	      )
 {
 
   double from = dt->ve[0] - 3*bw;
@@ -1023,8 +1141,11 @@ double linbin(dt,y,zx,bw)
 
 }
 
-double get_bw(dt)
-     VEC *dt;
+double get_bw(
+
+	      VEC *dt
+
+	      )
 { /* Bandwidth. using Silverman's rule of thumb. */
 
   double sm = v_sum(dt);
@@ -1055,9 +1176,12 @@ double get_bw(dt)
 
 }
 
-VEC *kullback(obs, pred)
-     VEC *obs;
-     VEC *pred;
+VEC *kullback(
+
+	      VEC *obs,
+	      VEC *pred
+
+	      )
 {
 
   for (int i=0;i<obs->dim;i++)
@@ -1067,10 +1191,13 @@ VEC *kullback(obs, pred)
 }
 
 
-VEC *kde(y,zy,hw)
-     VEC *y;
-     VEC *zy;
-     double hw;
+VEC *kde(
+
+	 VEC *y,
+	 VEC *zy,
+	 double hw
+
+	 )
 { /* 
     Kernel density estimation: 
     Rosenblatt (1956)
@@ -1110,11 +1237,14 @@ VEC *kde(y,zy,hw)
 }
 
 
-VEC *regrid(zx,xx,zy,obs)
-     VEC *zx;
-     VEC *xx;
-     VEC *zy;
-     VEC *obs;
+VEC *regrid(
+
+	    VEC *zx,
+	    VEC *xx,
+	    VEC *zy,
+	    VEC *obs
+
+	    )
 { /* regrid from FFT grid to main grid */
 
   int i;
@@ -1146,75 +1276,14 @@ VEC *regrid(zx,xx,zy,obs)
   return obs;
 }
 
-/*
-double themodel(x,stuff)
-     VEC *x;
-     struct TS *stuff;
-{
+VEC *idxremove(
 
-  // warmup phase
+	       VEC *zn,
+	       VEC *z,
+	       int idx
 
-  for (int i=0;i<
-*/
+	       )
 
-void pop(g,gparams,b,bparams,d,dparams,x,u)
-     double (*g)();
-     void *gparams;
-     double (*b)();
-     void *bparams;
-     double (*d)();
-     void *dparams;
-     MAT *x;
-     MAT *u;
-{
-
-  VEC *xh; VEC *uh; VEC *xn; VEC *un;
-  int J1 = x->n+1;
-  xh = v_get(J1); uh = v_get(J1);
-  xn = v_get(J1); un = v_get(J1);
-
-  VEC *tmp1; VEC *tmp2;
-  tmp1 = v_get(x->n);
-  tmp2 = v_get(x->n);
-
-  for (int j=1;j<x->n;j++) 
-    x->me[0][j] = h*j;
-
-  VEC *Qi;
-  Qi = v_get(x->m);
- 
-  set_row(u,0,initial(gparams,bparams,dparams,get_row(x,0,tmp1)));
- 
-  Qi->ve[0] = Q(get_row(x,0,tmp1),get_row(u,0,tmp2));
-
-  for (int i=1;i<x->m;i++)
-    {
-
-      xhstep(g,gparams,get_row(x,i-1,tmp1),xh);
-      uhstep(zstar,dparams,g,gparams,b,bparams,get_row(x,i-1,tmp1),xh,get_row(u,i-1,tmp2),uh,Qi->ve[i-1],0.);
-
-      double Qh = Q(xh,uh);
-
-      xstep(g,gparams,get_row(x,i-1,tmp1),xh,xn);
-      ustep(zstar,dparams,g,gparams,b,bparams,xh,get_row(u,i-1,tmp1),xn,Qh,un,0.);
-
-      Qi->ve[i] = Q(xn,un);
-
-      int idx = idxselect(gparams,xn);
-
-      set_row(x,i,idxremove(xn,tmp1,idx));
-      set_row(u,i,idxremove(un,tmp1,idx));
-
-      //printf("%f\n",Qi->ve[i]);
-
-    }
-
-}
-
-VEC *idxremove(zn,z,idx)
-     VEC *zn;
-     VEC *z;
-     int idx;
 {
 
   for (int i=0;i<idx;i++)
@@ -1226,12 +1295,15 @@ VEC *idxremove(zn,z,idx)
   return z;
 }
 
-double idxselect(params,xn)
-     struct GP *params;
-     VEC *xn;
+double idxselect(
+
+		 double omega,
+		 VEC *xn
+
+		 )
 {
   int idx = -1;
-  int val = params->omega;
+  double val = omega;
   for (int i=1;i<xn->dim-1;i++)
     {
       double dif = xn->ve[i+1]-xn->ve[i-1];
@@ -1246,11 +1318,15 @@ double idxselect(params,xn)
 
 }
   
-VEC *initial(gparams,bparams,dparams,v)
-     struct GP *gparams;
-     struct BP *bparams;
-     struct DP *dparams;
-     VEC *v;
+VEC *initial(
+
+	     struct GP *gparams,
+	     struct BP *bparams,
+	     struct DP *dparams,
+	     VEC *v
+
+	     )
+
 {
 
   double inter = 27*bparams->alpha1*pow(gparams->kappa,2.)*gparams->omega+54*bparams->alpha2*pow(gparams->kappa,2.)*pow(gparams->omega,2.);
@@ -1266,48 +1342,47 @@ VEC *initial(gparams,bparams,dparams,v)
   return v;
 }
 
-double g(params, x)
-     struct GP *params;
-     const double x;
+double g(
+
+	 struct GP *params,
+	 const double x
+
+	 )
 { /* von-Bertalanffy growth */
   return params->kappa*(params->omega - x);
 }
 
-double b(params, x)
-     struct BP *params;
-     const double x;
+double b(
+
+	 struct BP *params,
+	 const double x
+
+	 )
 { /* birth function */
   return params->alpha1*x + params->alpha2*pow(x,2.);
 }
-
-double zstari(dparams,gparams,x,U,f)
-     struct DP *dparams;
-     struct GP *gparams;
-     double x;
-     double U;
-     double f;
-{ /* death function inner: beta + gamma U + s(x)f - kappa */
-  return dparams->beta + dparams->gamma*U + exp(-pow(x-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*f - gparams->kappa;
-}
       
-double themodeli(iota,tmi)
-     double iota;
-     struct TMI *tmi;
+double themodeli(
+
+		 double iota,
+		 void *stuff,
+		 MAT *x,
+		 MAT *u,
+		 MAT *xh,
+		 MAT *uh,
+		 VEC *Qi,
+		 MAT *xn,
+		 IVEC *idxi
+
+		 )
 {
+  struct TMI tmi;
 
-  MAT *x;
-  MAT *u;
-
-  int LI = 2*tmi->I + 1;
-  int J = tmi->J+1;
-
-  x = m_get(LI,J);
-  u = m_get(LI,J);
-
-  VEC *xh; VEC *uh; VEC *xn; VEC *un;
+  tmi = * (struct TMI *) stuff;
+  VEC *xn_tmp; VEC *un; VEC *xh_tmp; VEC *uh_tmp;
   int J1 = x->n+1;
-  xh = v_get(J1); uh = v_get(J1);
-  xn = v_get(J1); un = v_get(J1);
+  xn_tmp = v_get(J1); un = v_get(J1);
+  xh_tmp = v_get(J1); uh_tmp = v_get(J1);
 
   VEC *tmp1; VEC *tmp2;
   tmp1 = v_get(x->n);
@@ -1315,56 +1390,33 @@ double themodeli(iota,tmi)
 
   for (int j=1;j<x->n;j++) 
     x->me[0][j] = h*j;
-
-  VEC *Qi;
-  Qi = v_get(x->m);
  
-  set_row(u,0,initial((void *)&tmi->gp,(void *)&tmi->bp,(void *)&tmi->dp,get_row(x,0,tmp1)));
+  set_row(u,0,initial((void *)&tmi.gp,(void *)&tmi.bp,(void *)&tmi.dp,get_row(x,0,tmp1)));
  
   Qi->ve[0] = Q(get_row(x,0,tmp1),get_row(u,0,tmp2));
 
-  for (int i=1;i<tmi->I;i++)
+  for (int i=1;i<x->m;i++)
     {
 
-      xhstep(g,(void *)&tmi->gp,get_row(x,i-1,tmp1),xh);//without eff
-      uhstep(zstari,(void *)&tmi->dp,g,(void *)&tmi->gp,b,(void *)&tmi->bp,get_row(x,i-1,tmp1),xh,get_row(u,i-1,tmp2),uh,Qi->ve[i-1],iota);
+      xhstep(&tmi.gp,get_row(x,i-1,tmp1),xh_tmp);
+      uhstep(get_row(x,i-1,tmp1),xh_tmp,get_row(u,i-1,tmp2),uh_tmp,&tmi.bp,&tmi.gp,&tmi.dp,Qi->ve[i-1],k*(i-(tmi.I+1)));
 
-      double Qh = Q(xh,uh);
+      double Qh = Q(xh_tmp,uh_tmp);
 
-      xstep(g,(void *)&tmi->gp,get_row(x,i-1,tmp1),xh,xn);
-      ustep(zstari,(void *)&tmi->dp,g,(void *)&tmi->gp,b,(void *)&tmi->bp,xh,get_row(u,i-1,tmp1),xn,Qh,un,iota);
+      set_row(xh,i,xh_tmp);
+      set_row(uh,i,uh_tmp);
 
-      Qi->ve[i] = Q(xn,un);
+      xstep(&tmi.gp,get_row(x,i-1,tmp1),xh_tmp,xn_tmp);
+      set_row(xn,i-1,xn_tmp);
+      ustep(xh_tmp,get_row(u,i-1,tmp1),xn_tmp,un,&tmi.bp,&tmi.gp,&tmi.dp,Qi->ve[i-1],k*(i-(tmi.I+1)+.5));
 
-      int idx = idxselect((void *)&tmi->gp,xn);
+      Qi->ve[i] = Q(xn_tmp,un);
 
-      set_row(x,i,idxremove(xn,tmp1,idx));
+      int idx = idxselect(tmi.gp.omega,xn_tmp);
+      idxi->ive[i-1] = idx;
+
+      set_row(x,i,idxremove(xn_tmp,tmp1,idx));
       set_row(u,i,idxremove(un,tmp1,idx));
-
-      //printf("%f\n",Qi->ve[i]);
-
-    }
-
-
-  for (int i=tmi->I+1;i<x->m;i++)
-    {
-
-      xhstep(g,(void *)&tmi->gp,get_row(x,i-1,tmp1),xh);
-      uhstep(zstar,(void *)&tmi->dp,g,(void *)&tmi->gp,b,(void *)&tmi->bp,get_row(x,i-1,tmp1),xh,get_row(u,i-1,tmp2),uh,Qi->ve[i-1],k*(i-(tmi->I+1))); // check t
-
-      double Qh = Q(xh,uh);
-
-      xstep(g,(void *)&tmi->gp,get_row(x,i-1,tmp1),xh,xn);
-      ustep(zstar,(void *)&tmi->dp,g,(void *)&tmi->gp,b,(void *)&tmi->bp,xh,get_row(u,i-1,tmp1),xn,Qh,un,k*(i-(tmi->I+1)+.5));
-
-      Qi->ve[i] = Q(xn,un);
-
-      int idx = idxselect((void *)&tmi->gp,xn);
-
-      set_row(x,i,idxremove(xn,tmp1,idx));
-      set_row(u,i,idxremove(un,tmp1,idx));
-
-      //printf("%f\n",Qi->ve[i]);
 
     }
 
@@ -1372,12 +1424,12 @@ double themodeli(iota,tmi)
   VEC *chat = v_get(x->m); 
   VEC *ttmp = v_get(x->m);
 
-  for (int i=tmi->I+1;i<x->m;i++) {
+  for (int i=tmi.I+1;i<x->m;i++) {
     for (int j=0;j<x->n;j++)
-      chattmp->ve[j] = exp(-pow(x->me[i][j]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*w(x->me[i][j])*iota*e(k*(i-tmi->I+1))*u->me[i][j];
+      chattmp->ve[j] = exp(-pow(x->me[i][j]-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*w(x->me[i][j])*iota*e(k*(i-tmi.I+1))*u->me[i][j];
 
-    chat->ve[i] = pow(Q(get_row(x,i,VNULL),chattmp)-c(k*(i-(tmi->I+1))),2.0);
-    ttmp->ve[i] = k*(i-(tmi->I+1));
+    chat->ve[i] = pow(Q(get_row(x,i,VNULL),chattmp)-c(k*(i-(tmi.I+1))),2.0);
+    ttmp->ve[i] = k*(i-(tmi.I+1));
 
   }
 
@@ -1387,33 +1439,147 @@ double themodeli(iota,tmi)
 
 }
 
-double zstar(dparams,gparams,iota,x,U,t)
-     struct DP *dparams;
-     struct GP *gparams;
-     double iota;
-     double x;
-     double U;
-     double t;
+double themodelid(
+
+		 double iota,
+		 void *stuff,
+		 MAT *x,
+		 MAT *u,
+		 MAT *xh,
+		 MAT *uh,
+		 VEC *Ui,
+		 MAT *xn,
+		 IVEC *idxi
+
+		 )
+{
+  struct TMI tmi;
+
+  tmi = * (struct TMI *) stuff;
+
+  tmi.dp.iota = iota;
+
+  MAT *p;
+
+  int LI = 2*tmi.I + 1;
+  int J = tmi.J+1;
+
+  p = m_get(LI,J);
+
+  VEC *ph; VEC *pn;
+  int J1 = x->n+1;
+  ph = v_get(J1);
+  pn = v_get(J1);
+
+  VEC *tmp1; VEC *tmp2; VEC *tmp3; VEC *tmp4; VEC *tmp5; VEC *tmp6;
+  tmp1 = v_get(x->n);
+  tmp2 = v_get(J1);
+  tmp3 = v_get(x->n);
+  tmp4 = v_get(x->n);
+  tmp5 = v_get(J1);
+  tmp6 = v_get(J1);
+
+  VEC *Pi;
+  Pi = v_get(x->m);
+  
+  Pi->ve[0] = Q(get_row(x,0,tmp1),get_row(p,0,tmp3));
+
+  for (int i=1;i<x->m;i++)
+    {
+
+      phstep(get_row(x,i-1,tmp1),get_row(xh,i-1,tmp2),get_row(p,i-1,tmp3),ph,get_row(u,i-1,tmp4),&tmi.bp,&tmi.gp,&tmi.dp,Ui->ve[i-1],Pi->ve[i-1],k*(i-(tmi.I+1)));
+
+      double Uh = Q(get_row(xh,i,tmp2),get_row(uh,i,tmp5));
+      double Ph = Q(get_row(xh,i,tmp2),ph);
+
+      //printf("%f ",Ph);
+
+      pstep(get_row(xh,i,tmp2),get_row(p,i-1,tmp1),get_row(xn,i-1,tmp6),pn,get_row(uh,i,tmp5),&tmi.bp,&tmi.gp,&tmi.dp,Uh,Ph,k*(i-(tmi.I+1)+.5));
+
+      int idx = idxi->ive[i-1];
+      set_row(p,i,idxremove(pn,tmp2,idx));
+
+    }
+
+  VEC *chattmp = v_get(x->n);
+  VEC *chattmp2 = v_get(x->n);
+  VEC *chat = v_get(x->m); 
+  VEC *ttmp = v_get(x->m);
+
+  for (int i=tmi.I+1;i<x->m;i++) {
+    for (int j=0;j<x->n;j++)
+      {
+	chattmp->ve[j] = s(x->me[i][j])*w(x->me[i][j])*e(k*(i-tmi.I+1))*u->me[i][j];
+	chattmp2->ve[j] = s(x->me[i][j])*w(x->me[i][j])*e(k*(i-tmi.I+1))*u->me[i][j] + s(x->me[i][j])*w(x->me[i][j])*iota*e(k*(i-tmi.I+1))*p->me[i][j];
+      }
+
+    chat->ve[i] = 2*(Q(get_row(x,i,VNULL),chattmp)-c(k*(i-(tmi.I+1))))*(Q(get_row(x,i,VNULL),chattmp2));
+    ttmp->ve[i] = k*(i-(tmi.I+1));
+
+  }
+
+  double rt = Q(ttmp,chat);
+
+  /*
+  M_FREE(x);
+  M_FREE(u);
+  M_FREE(xh);
+  M_FREE(uh);
+  V_FREE(Ui);
+  M_FREE(xn);
+  IV_FREE(idxi);
+  */
+
+  return rt;
+
+}
+
+
+double zstar(
+
+	     double beta,
+	     double gamma,
+	     double kappa,
+	     double iota,
+	     double t,
+	     double x,
+	     double U
+
+	     )
 { /* death function: beta + gamma U + s(x)f(t) - kappa */
-  return dparams->beta + dparams->gamma*U + exp(-pow(x-phi*iota1,2.)/(2*iota2*pow(phi,2.)))*iota*e(t) - gparams->kappa;
+
+  return beta + gamma*U + s(x)*iota*e(t) - kappa;
 }
 
 double e(double t)
 {
-  int idx = floor((t + (k/4))/(k/2));
-  return eff->ve[idx];
+
+  if (t<0)
+    return eff->ve[0];
+  else
+    {
+      int idx = floor((t + (k/4))/(k/2));
+      return eff->ve[idx];
+    }
 }
 
 double c(double t)
 {
-  int idx = floor((t + (k/4))/(k/2));
-  return cat->ve[idx];
+  if (t<0)
+    return cat->ve[0];
+  else
+    {
+      int idx = floor((t + (k/4))/(k/2));
+      return cat->ve[idx];
+    }
 }
 
+double Q(
 
-double Q(x,u)
-     VEC * x;
-     VEC * u;
+	 VEC * x,
+	 VEC * u
+
+	 )
 { /* Q for quadrature. Integrates u over x. */
 
   if (x->dim != u->dim)
@@ -1429,10 +1595,13 @@ double Q(x,u)
 
 }
 
-double Qn(x,u,n)
-     VEC * x;
-     VEC * u;
-     int n;
+double Qn(
+
+	  VEC * x,
+	  VEC * u,
+	  int n
+
+	  )
 { /* Q for quadrature. Integrates u over x. */
 
   //if (x->dim != u->dim)
@@ -1448,32 +1617,39 @@ double Qn(x,u,n)
 }
 
 /* Quadrature plus implicit.. */
-void Q2(b,bparams,g,gparams,x,u)
-     double (*b)();
-     void *bparams;
-     double (*g)();
-     void *gparams;
-     VEC *x;
-     VEC *u;
+void Q2(
+
+	struct BP *bpar,
+	struct GP *gpar,
+	VEC *x,
+	VEC *u
+
+	)
 {
 
   if (x->dim != u->dim)
-    error(E_SIZES,"Q");
+    {
+      printf("%d %d\n",x->dim,u->dim);
+      error(E_SIZES,"Q2");
+    }
 
-  double rt = x->ve[1] * b(bparams,x->ve[1])*u->ve[1] - x->ve[0]*b(bparams,x->ve[1])*u->ve[1]; 
+
+  double rt = x->ve[1] * b(bpar,x->ve[1])*u->ve[1] - x->ve[0]*b(bpar,x->ve[1])*u->ve[1]; 
 
   for (int j=1;j<x->dim-1;j++) 
-    rt = rt + (b(bparams,x->ve[j])*u->ve[j] + b(bparams,x->ve[j+1])*u->ve[j+1]) * (x->ve[j+1]-x->ve[j]);
+    rt = rt + (b(bpar,x->ve[j])*u->ve[j] + b(bpar,x->ve[j+1])*u->ve[j+1]) * (x->ve[j+1]-x->ve[j]);
 
-  u->ve[0] = rt / (2*g(gparams,0.) + x->ve[0]*b(bparams,x->ve[0]) - x->ve[1]*b(bparams,x->ve[0])); 
+  u->ve[0] = rt / (2*g(gpar,0.) + x->ve[0]*b(bpar,x->ve[0]) - x->ve[1]*b(bpar,x->ve[0])); 
 
 }
 
-void xhstep(g,gparams,x,xh)
-     double (*g)();
-     void *gparams;
-     VEC *x;
-     VEC *xh;
+void xhstep(
+
+	    struct GP *gpar,
+	    VEC *x,
+	    VEC *xh
+
+	    )
 {
 
   //printf("%d %d\n",x->dim,xh->dim);
@@ -1483,39 +1659,80 @@ void xhstep(g,gparams,x,xh)
 
   xh->ve[0]=0;
   for (int i=1;i<xh->dim;i++)
-    xh->ve[i]=x->ve[i-1]+(k/2)*g(gparams,x->ve[i-1]);
+    xh->ve[i]=x->ve[i-1]+(k/2)*g(gpar,x->ve[i-1]);
   
 }
 
-void uhstep(zs,dparams,g,gparams,b,bparams,x,xh,u,uh,Qi,t)
-     double (*zs)();
-     void *dparams;
-     double (*g)();
-     void *gparams;
-     double (*b)();
-     void *bparams;
-     VEC *x;
-     VEC *xh;
-     VEC *u;
-     VEC *uh;
-     double Qi;
-     double t;
+void uhstep(
+
+	    VEC *x,
+	    VEC *xh,
+	    VEC *u,
+	    VEC *uh,
+	    struct BP *bpar,
+	    struct GP *gpar,
+	    struct DP *dpar,
+	    double Qi,
+	    double t
+
+	    )
+
 { /* half step */
 
   for (int i=1;i<uh->dim;i++)
-    uh->ve[i]=u->ve[i-1]*exp(-(k/2)*zs(dparams,gparams,x->ve[i-1],Qi,t));
+    uh->ve[i]=u->ve[i-1]*exp(-(k/2)*zstar(dpar->beta,dpar->gamma,gpar->kappa,dpar->iota,t,x->ve[i-1],Qi));
 
-  Q2(b,bparams,g,gparams,xh,uh);
+  Q2(bpar,gpar,xh,uh);
 
 }
 
-void xstep(g,gparams,x,xh,xn,row)
-     double (*g)();
-     void *gparams;
-     VEC *x;
-     VEC *xh;
-     VEC *xn;
-     int row;
+void phstep(
+
+	    VEC *x,
+	    VEC *xh,
+	    VEC *p,
+	    VEC *ph,
+	    VEC *u,
+	    struct BP *bpar,
+	    struct GP *gpar,
+	    struct DP *dpar,
+	    double Ui,
+	    double Pi,
+	    double t
+
+	    )
+
+{
+
+
+  for (int i=1;i<ph->dim;i++)
+    ph->ve[i]=p->ve[i-1]*exp(-(k/2)*zstar(dpar->beta,dpar->gamma,gpar->kappa,dpar->iota,t,x->ve[i-1],Ui)) - wstar(dpar->gamma,Pi,u->ve[i-1],x->ve[i-1],t);
+
+  Q2(bpar,gpar,xh,ph);
+
+}
+
+double wstar(
+
+	     double gamma,
+	     double P,
+	     double u,
+	     double x,
+	     double t
+
+	     )
+{
+  return (s(x)*e(t) + gamma*P)*u;
+}
+
+void xstep(
+
+	   struct GP *gpar,
+	   VEC *x,
+	   VEC *xh,
+	   VEC *xn
+
+	   )
 { 
 
   if (x->dim != xh->dim-1)
@@ -1526,28 +1743,53 @@ void xstep(g,gparams,x,xh,xn,row)
 
   xn->ve[0]=0;
   for (int i=1;i<xn->dim;i++)
-    xn->ve[i]=x->ve[i-1]+k*g(gparams,xh->ve[i]);
+    xn->ve[i]=x->ve[i-1]+k*g(gpar,xh->ve[i]);
   
 }
 
-void ustep(zstar,dparams,g,gparams,b,bparams,xh,u,xn,Qh,un,t)
-     double (*zstar)();
-     void *dparams;
-     double (*g)();
-     void *gparams;
-     double (*b)();
-     void *bparams;
-     VEC *xh;
-     VEC *u;
-     VEC *xn;
-     double Qh;
-     VEC *un;
-     double t;
-{ /* half step */
+void ustep(
+
+	   VEC *xh,
+	   VEC *u,
+	   VEC *xn,
+	   VEC *un,
+	   struct BP *bpar,
+	   struct GP *gpar,
+	   struct DP *dpar,
+	   double Qh,
+	   double t
+	   
+	   )
+{
 
   for (int i=1;i<un->dim;i++)
-    un->ve[i]=u->ve[i-1]*exp(-k*zstar(dparams,gparams,xh->ve[i-1],Qh,t));
-  Q2(b,bparams,g,gparams,xn,un);
+    un->ve[i]=u->ve[i-1]*exp(-k*zstar(dpar->beta,dpar->gamma,gpar->kappa,dpar->iota,t,xh->ve[i-1],Qh));
+
+  Q2(bpar,gpar,xn,un);
+
+}
+
+void pstep(
+
+	   VEC *xh,
+	   VEC *p,
+	   VEC *xn,
+	   VEC *pn,
+	   VEC *uh,
+	   struct BP *bpar,
+	   struct GP *gpar,
+	   struct DP *dpar,
+	   double Uh,
+	   double Ph,
+	   double t
+	   
+	   )
+{
+
+  for (int i=1;i<pn->dim;i++)
+    pn->ve[i]=p->ve[i-1]*exp(-(k/2)*zstar(dpar->beta,dpar->gamma,gpar->kappa,dpar->iota,t,xh->ve[i-1],Uh)) - wstar(dpar->gamma,Ph,uh->ve[i-1],xh->ve[i-1],t);
+
+  Q2(bpar,gpar,xn,pn);
 
 }
 
@@ -1730,3 +1972,58 @@ void ustep(zstar,dparams,g,gparams,b,bparams,xh,u,xn,Qh,un,t)
 
   printf("e\n");
   */
+
+
+/*void pop(
+
+	 void *gparams,
+	 void *bparams,
+	 void *dparams,
+	 MAT *x,
+	 MAT *u
+
+	 )
+{
+
+  VEC *xh; VEC *uh; VEC *xn; VEC *un;
+  int J1 = x->n+1;
+  xh = v_get(J1); uh = v_get(J1);
+  xn = v_get(J1); un = v_get(J1);
+
+  VEC *tmp1; VEC *tmp2;
+  tmp1 = v_get(x->n);
+  tmp2 = v_get(x->n);
+
+  for (int j=1;j<x->n;j++) 
+    x->me[0][j] = h*j;
+
+  VEC *Qi;
+  Qi = v_get(x->m);
+ 
+  set_row(u,0,initial(gparams,bparams,dparams,get_row(x,0,tmp1)));
+ 
+  Qi->ve[0] = Q(get_row(x,0,tmp1),get_row(u,0,tmp2));
+
+  for (int i=1;i<x->m;i++)
+    {
+
+      xhstep(g,gparams,get_row(x,i-1,tmp1),xh);
+      uhstep(zstar,dparams,g,gparams,b,bparams,get_row(x,i-1,tmp1),xh,get_row(u,i-1,tmp2),uh,Qi->ve[i-1],0.);
+
+      double Qh = Q(xh,uh);
+
+      xstep(g,gparams,get_row(x,i-1,tmp1),xh,xn);
+      ustep(zstar,dparams,g,gparams,b,bparams,xh,get_row(u,i-1,tmp1),xn,Qh,un,0.);
+
+      Qi->ve[i] = Q(xn,un);
+
+      int idx = idxselect(gparams,xn);
+
+      set_row(x,i,idxremove(xn,tmp1,idx));
+      set_row(u,i,idxremove(un,tmp1,idx));
+
+      //printf("%f\n",Qi->ve[i]);
+
+    }
+
+    }*/
