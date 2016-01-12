@@ -1,4 +1,4 @@
-cflags = -g -c
+cflags = -g -c -fstack-protector-all
 objects1 = copy.o err.o matrixio.o memory.o vecop.o matop.o pxop.o \
 	submat.o init.o otherio.o machine.o matlab.o ivecop.o version.o \
 	meminfo.o memstat.o
