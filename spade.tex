@@ -98,7 +98,7 @@ where $w(x)$ is the weight of a fish of size $x$, given by
 \begin{equation}
   w(x)=w_1 x^{w_2}.
 \end{equation}
-This completes the specification of a simple fishery system. The biological component of this system is a slight variant of that analysed by \citet{Murphy1983} - simpler in that growth and births are not density dependent, but more complex in that growth is von Bertalanffy rather than linear in size. Another way to think of it is as the simplest modification of the first model in \citet{Gurtin1978} needed to handle size-dependent growth.\\
+This completes the specification of a simple fishery system. The biological component of this system is a slight variant of that analysed by \citet{Murphy1983} - simpler in that growth and births are not density dependent, but more complex in that growth is size-dependent (von Bertalanffy). Another way to think of it is as the simplest modification of the first model in \citet{Gurtin1978} needed to handle size-dependent growth.\\
 
 \clearpage
 \section{Numerical solution}
@@ -187,7 +187,7 @@ where $x_k$ is the size of the individual and $a_k$ is the age, and an objective
   &\phantom{H_4(\theta)H_4(\theta)} \left( \frac{ {x_1}_i + e^{-\kappa t_i}{x_2}_i + \omega  e^{-2\kappa t_i} - \omega e^{-\kappa t_i}}{e^{-2\kappa t_i}+1} - {x_1}_i \right)^2
   \end{split}
 \end{equation}
-where $t_i$ is the time at liberty, ${x_1}_i$ is the size at tag, and ${x_2}_i$ is the size at recapture. The final objective function is a weighted sum of these four components, $H(\theta) = \xi_1 H_1(\theta) +\xi_2 H_2(\theta) +\xi_3 H_3(\theta) + \xi_4 H_4(\theta)$. We discuss how the $\xi_i$ are chosen later.
+where $t_i$ is the time at liberty, ${x_1}_i$ is the size at tag, and ${x_2}_i$ is the size at recapture. %The final objective function is a weighted sum of these four components, $H(\theta) = \xi_1 H_1(\theta) +\xi_2 H_2(\theta) +\xi_3 H_3(\theta) + \xi_4 H_4(\theta)$. We discuss how the $\xi_i$ are chosen later.
 
 The catch objective function is just the time integral of the square of the difference between observed and predicted catches. The size-structure objective function is a sum over temporally distinct data events of the Kullback-Liebler divergence of the predicted size-structure from the observed size structure, the latter being a measure of the information lost when the predicted size-structure is used to approximate the observed \citep{Kullback1951}. The size-age objective function is the sum of the squared vertical distances from the size-age data point to the predicted size-at-age curve. The tag-recapture objective function is the sum of the squared distances from the tag-recapture size-at-tag, size-at-recapture data point to the closest point on the predicted curve for that particular time-at-liberty (equivalently this is the shortest distance from the data point triple (size-at-tag, size-at-recapture, time-at-liberty) to the predicted 2D surface). The size-age objective function is a least squares metric, whereas the tag-recapture objective function is a total least squares metric. Ideally size-age should be total least squares as well, but this is not available analytically.  
 
@@ -201,7 +201,7 @@ So, rather than ``discretising-then-differentiating'', we obtain the gradient of
 The total differentials of the catch and size-structure objective functions are
 \begin{equation}
   \begin{split}    
-    \frac{d H_1(\theta)}{d\theta}&=G_1(\theta)=\int_0^T 2\left(\int_0^\omega s(x)w(x)f_\theta(t;\theta)u(x,t;\theta)\,dx - c(t)\right)\\
+    \frac{d H_1(\theta)}{d\theta}&=G_1(\theta)=\int_0^T 2\left(\int_0^\omega s(x)w(x)f(t;\theta)u(x,t;\theta)\,dx - c(t)\right)\\
     &\phantom{=\int_0^T 2\left(\int_0^\omega s(x)w(x)f_\theta(t;\theta)\right)}\left(\int_0^\omega s(x)w(x)f_\theta(t;\theta)u(x,t;\theta) + s(x)w(x)f(t;\theta)p(x,t;\theta)\,dx\right)\,dt
   \end{split}
 \end{equation}
@@ -415,23 +415,31 @@ and
   \frac{d G_1}{d f} = \int_0^\omega -l(x) \frac{ \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right) B - \int_0^\omega A(x) \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B}  \,dx
 \end{equation}
 \subsection{Optimisation algorithm}
-Basically we use a BFGS method, but with a twist. One of these parameters is not like the others.
+The optimisation algorithm is essentially a BFGS (Broyden-Fletcher-Goldfarb-Shanno) method, but treated as a bi-level optimisation where $\iota$ is solved in the inner loop. This is because $\iota$ is a `nuisance parameter', in the following senses: \emph{i}) it is not of great interest directly, \emph{ii}) it is found through a different objective function to the other parameters, and \emph{iii}) that objective function could in principle be minimised to arbitrary precision (e.g. by taking $\iota$ to be a vector of spline coefficients) without over-parameterising the objective functions of interest. Therefore we let $\tilde{\theta}$ be the \emph{non-}$\iota$ components of $\theta$, so that $\theta = \langle\tilde{\theta},\iota\rangle$. Also let the main objective function be a weighted sum of the three `interesting' objective functions: $H_*(\theta) = \xi_2 H_2(\theta) +\xi_3 H_3(\theta) + \xi_4 H_4(\theta)$. We discuss how the $\xi_i$ are chosen later.
+
+Then we have the derivative of the main objective function, 
+\begin{equation}
+  \nabla H_*(\tilde{\theta};\iota) \equiv \langle \xi_2 \frac{d H_2}{d \alpha_1}, \xi_2 \frac{d H_2}{d \alpha_2}, \xi_2 \frac{d H_2}{d \beta}, \xi_2 \frac{d H_2}{d \gamma}, \xi_2 \frac{d H_2}{d \kappa} + \xi_3 \frac{d H_3}{d \kappa} + \xi_4 \frac{d H_4}{d \kappa}, \xi_2 \frac{d H_2}{d \omega} + \xi_3 \frac{d H_3}{d \omega} + \xi_4 \frac{d H_4}{d \omega}\rangle
+\end{equation}
 
 \begin{algorithm}
   \caption{Optimisation algorithm}\label{alg:opt}
   \begin{algorithmic}
-    \State $B_0 \gets I$
-    \While{$|| \nabla H(\theta_k) || < \epsilon$}
-    \State $\mathbf{q}_k \gets - B_k \nabla H(\theta_k)$
+    \State $B_0 \gets I$, $\tilde{\theta}_0 \gets \tilde{\theta}_\text{ini}$, $k \gets 0$
+    \State $\iota \gets \argmin_\iota H_1(\iota;\tilde{\theta}_{0})$
+    \While{$|| \nabla H_*(\tilde{\theta}_k;\iota) || < \epsilon$}
+    \State $\mathbf{q}_k \gets - B_k \nabla H_*(\tilde{\theta}_k;\iota)$
     \State Find $\zeta_k$ that satisfies \ref{eq:w1} and \ref{eq:w2}
     \State $\mathbf{s}_k \gets \zeta_k \mathbf{q}_k$
-    \State $\theta_{k+1} \gets \theta_k + \mathbf{s}_k$
-    \State $\mathbf{y}_k \gets \nabla H(\theta_{k+1}) - \nabla H(\theta_k)$
-%    \If{k=1}
-%    \State $\zeta_k \gets 1/ || \nabla H(\theta_k)
+    \State $\tilde{\theta}_{k+1} \gets \tilde{\theta}_k + \mathbf{s}_k$
+    \State $\mathbf{y}_k \gets \nabla H_*(\tilde{\theta}_{k+1};\iota) - \nabla H_*(\tilde{\theta}_k;\iota)$
     \State $\rho_k \gets (\mathbf{s_k}' \mathbf{y}_k)^{-1}$
     \State $B_{k+1} \gets (I - \rho_k \mathbf{s}_k \mathbf{y}_k') B_k (I - \rho_k \mathbf{y}_k' \mathbf{s}_k) + \rho_k \mathbf{s}_k\mathbf{s}_k'$
+    \State $k \gets k+1$
+    \State $\iota \gets \argmin_\iota H_1(\iota;\tilde{\theta}_{k})$
     \EndWhile
+%    \If{k=1}
+%    \State $\zeta_k \gets 1/ || \nabla H(\theta_k)
   \end{algorithmic}
 \end{algorithm}
 
@@ -442,6 +450,31 @@ Wolf conditions:
     \nabla H(\theta_{k+1})' &\mathbf{q}_k \geq c_2 \nabla H(\theta_k)' \mathbf{q}_k\label{eq:w2}
   \end{align}
 \end{subequations}
+
+\section{Application}
+\begin{table}
+  \centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+Process & Symbol & Units & Value\\
+\hline
+\multirow{2}{*}{Birth}
+ & $\alpha_1$  & $\text{cm}^{-1}\text{yr}^{-1}$  & \\
+ & $\alpha_2$  & $\text{cm}^{-1}\text{yr}^{-1}$  & \\
+\hline
+\multirow{2}{*}{Growth}
+ & $\kappa$   & $\text{yr}^{-1}$  & \\
+ & $\omega$ & $\text{cm}$ & \\
+\hline
+\multirow{2}{*}{Death}
+ & $\beta$  & $\text{yr}^{-1}$ & \\
+ & $\gamma$  & $\text{fish}^{-1}\text{yr}^{-1}$  & \\
+\hline 
+\end{tabular}
+\caption{Active parameters}
+\label{tbl:active}
+\end{table}
+
 
 \clearpage
 \begin{appendices}  
