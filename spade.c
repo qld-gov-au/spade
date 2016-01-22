@@ -37,11 +37,11 @@ double w(double x) { return eta1*pow(x,eta2); }
 double s(double x)
 {
 
-  if (x<25)
-    return 0;
+  //  if (x<25)
+  //return 0;
 
-  if(x>150)
-    return 0;
+  //if(x>150)
+  // return 0;
   
   return exp(-pow(x-phi*iota1,2.)/(2*iota2*pow(phi,2.)));
 }
@@ -58,8 +58,8 @@ VEC *secondmodeld(VEC *, void *, VEC *);
 double thirdmodel(VEC *, void *);
 VEC *thirdmodeld(VEC *, void *, VEC *);
 
-double themodeli(double, void *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,MAT *,MAT *,IVEC *);
-double themodelid(double,void *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,MAT *,MAT *,IVEC *);
+double themodeli(void *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,MAT *,MAT *,IVEC *);
+double themodelid(void *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,MAT *,MAT *,IVEC *);
 double zstar(double,double,double,double,double,double,double); 
 double wstar(double,double,double,double,double);
 double Q(VEC *,VEC *);
@@ -344,40 +344,22 @@ int main(int argc, char *argv[])
   h = 173./400.0;
   k = .025;
 
-  //VEC *z = v_get(2);
-  //z->ve[0] = gp.kappa;
-  //z->ve[1] = gp.omega;
-
   cat = v_get(961);
   eff = v_get(961);
 
   for (int i=0;i<Nce;i++)
     {
       int idxr = floor((ti[i]+k/2)/k);
-      //int idxa = floor(ti[i]/k);
-      //int idxr2 = floor((ti[i]+(k/4))/(k/2));
       cat->ve[idxr] += (ct[i]/k)/1e3;
-      eff->ve[idxr] += 1.0/k; //(k/2);
+      eff->ve[idxr] += 1.0/k;
     }
 
-  //  cat = v_get(481);
-  //  eff = v_get(481);
+  free(ct);
+  free(ti);
 
-  //v_output(eff);
-  //exit(1);  
-
-  /*
-  printf("\n");
-  for (int i=0;i<=480;i++)
-    printf("%.1f\n",tmi.eff->ve[i]);
-  printf("e");
-  */
-
-  double iota = 1.0;
+  double iota = 6.8;
 
   qn1d(iota);
-
-  //printf("%f %f\n",fa,fad);
 
   return(0);
 
@@ -411,35 +393,106 @@ double qn1d(
   tmi.I = (int)24/k;
   tmi.J = 400;
 
-  MAT *x;
-  MAT *u;
+  //double newiota = iota;
+  //double eps = 1e-4;
 
-  int LI = 2*tmi.I + 1;
-  int J = tmi.J+1;
+  // for (int i=0;i<200;i++)
+  //{
 
-  x = m_get(LI,J);
-  u = m_get(LI,J);
+  printf("\n");
 
-  MAT *xh; MAT *uh; MAT *xn; MAT *un;
-
-  xh = m_get(LI,J+1);
-  uh = m_get(LI,J+1);
-  xn = m_get(LI,J+1);
-  un = m_get(LI,J+1);
-
-  VEC *Ui = v_get(LI);
-  VEC *Uh = v_get(LI);
-  IVEC *idxi = iv_get(LI-1);
-
-  double newiota = iota;
-  double eps = 100;
-
-  for (int i=0;i<20;i++)
+  for (int j=1301;j<1500;j++)
     {
 
-      iota = newiota;
+      MAT *x;
+      MAT *u;
 
-      double fa = themodeli(iota,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+      int LI = 2*tmi.I + 1;
+      int J = tmi.J+1;
+
+      x = m_get(LI,J);
+      u = m_get(LI,J);
+
+      MAT *xh; MAT *uh; MAT *xn; MAT *un;
+
+      xh = m_get(LI,J+1);
+      uh = m_get(LI,J+1);
+      xn = m_get(LI,J+1);
+      un = m_get(LI,J+1);
+
+      VEC *Ui = v_get(LI);
+      VEC *Uh = v_get(LI);
+      IVEC *idxi = iv_get(LI-1);
+
+      double newi = j*5/100.0;
+
+      tmi.dp.iota = 200.0;
+      
+      double fa = themodeli((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+      double fad = themodelid((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+
+      printf("%f %f %f\n",newi,fa,fad);
+
+      //fa = themodeli(6.8,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+      //fad = themodelid(6.8,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+      
+      //printf("%f %f\n",fa,fad);
+      /*
+      if (fabs(fad) < eps)
+      	break;
+      else
+      	newiota = iota - 5e-6 * fad;
+      */
+      //printf("%d %f %f %f %f\n",i,newiota,iota,fa,fad);
+      
+      //      printf("%g %g\n",newi,fad);      
+
+      M_FREE(x);
+      M_FREE(u);
+      M_FREE(xh);
+      M_FREE(uh);
+      M_FREE(xn);
+      M_FREE(un);
+      V_FREE(Ui);
+      V_FREE(Uh);
+      IV_FREE(idxi);
+
+      //exit(1);
+
+
+    }
+
+  printf("e");
+      
+ 
+      /*
+
+      double fa = themodeli(3.4,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+
+      for (int j=-2;j<10;j++) 
+	{
+	  double delta = exp(-(double)j);
+	  double f1 = themodeli(3.4+delta,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+	  double ng = (f1 - fa) / (delta);
+
+	  printf("%g %g\n",delta,ng);
+	}
+      */
+      //      
+
+      //printf("%f %f\n",fa,fad);
+      
+
+      /*
+
+
+      */
+
+
+      //    }
+
+  return iota;
+
       /*
       printf("\n");
             for (int j=0;j<100;j++) 
@@ -450,44 +503,8 @@ double qn1d(
       */
       /*      printf("\n");
      
-      for (int j=300;j<400;j++) 
-	{
-	  double newi = j*5/1000.0;
-	  double f1 = themodeli(newi,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
-	  printf("%g %g\n",newi,f1/1e11);
-	}
-      printf("e");
-
-      exit(1);
       
       */            
-
-      for (int j=-2;j<10;j++) 
-	{
-	  double delta = exp(-(double)j);
-	  double f1 = themodeli(iota+delta,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
-	  double ng = (f1 - fa) / (delta);
-
-	  printf("%g %g\n",delta,ng);
-	}
-      
-      double fad = themodelid(iota,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
-
-      printf("%g %g\n",fa,fad);
-
-      exit(1);
-
-      if (fabs(fad) < eps)
-	break;
-      else
-	newiota = iota - 1e-19 * fad;
-
-      double ng=0;
-      printf("%d %f %f %f %f %f\n",i,newiota,iota,fa,fad,ng);
-
-    }
-
-  return iota;
 
 }
   
@@ -1597,7 +1614,6 @@ double b(
       
 double themodeli(
 
-		 double iota,
 		 void *stuff,
 		 MAT *x,
 		 MAT *u,
@@ -1658,7 +1674,7 @@ double themodeli(
       
       VEC * ctm = v_get(x->n+1);
       for (int j=0;j<x->n+1;j++)
-	ctm->ve[j] = s(xn_tmp->ve[j])*iota*e(k*(i-tmi.I))*w(xn_tmp->ve[j])*un_tmp->ve[j];
+	ctm->ve[j] = s(xn_tmp->ve[j])*tmi.dp.iota*e(k*(i-tmi.I))*w(xn_tmp->ve[j])*un_tmp->ve[j];
       C->ve[i] = Q(xn_tmp,ctm)/1e3;
       V_FREE(ctm);
       
@@ -1669,12 +1685,12 @@ double themodeli(
       set_row(u,i,idxremove(un_tmp,tmp1,idx));
 
     }
-      
-  /*  printf("\n");
-  for (int i=0;i<x->m;i++)
-    printf("%f\n",Qi->ve[i]);
+  /*        
+  printf("\n");
+  for (int i=tmi.I;i<x->m;i++)
+    printf("%f\n",C->ve[i]);
   printf("e\n");
-  exit(1);*/
+  //exit(1);*/
   /*
   for (int i=tmi.I;i<x->m;i++)
     printf("%f\n",c(k*(i-tmi.I)));
@@ -1687,17 +1703,20 @@ double themodeli(
   VEC *chat = v_get(x->m); 
   VEC *ttmp = v_get(x->m);
 
+  VEC *xtmp = v_get(x->n);
+
   for (int i=tmi.I;i<x->m;i++) {
     for (int j=0;j<x->n;j++)
-      chattmp->ve[j] = s(x->me[i][j])*w(x->me[i][j])*iota*e(k*(i-tmi.I))*u->me[i][j];
+      chattmp->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*u->me[i][j];
 
-    chat->ve[i] = pow(Q(get_row(x,i,VNULL),chattmp)/1e3-c(k*(i-(tmi.I))),2.0);
+    chat->ve[i] = pow(Q(get_row(x,i,xtmp),chattmp)/1e3-c(k*(i-(tmi.I))),2.0);
     ttmp->ve[i] = k*(i-tmi.I);
 
   }
 
   double rt = Q(ttmp,chat);
 
+  V_FREE(xtmp);
   V_FREE(xn_tmp); 
   V_FREE(un_tmp); 
   V_FREE(xh_tmp); 
@@ -1715,7 +1734,6 @@ double themodeli(
 
 double themodelid(
 
-		 double iota,
 		 void *stuff,
 		 MAT *x,
 		 MAT *u,
@@ -1731,7 +1749,6 @@ double themodelid(
 {
   struct TMI tmi;
   tmi = * (struct TMI *) stuff;
-  tmi.dp.iota = iota;
 
   MAT *p = m_get(x->m,x->n);
 
@@ -1754,7 +1771,7 @@ double themodelid(
   
   Pi->ve[0] = Q(get_row(x,0,xtmp),get_row(p,0,ptmp));
 
-  for (int i=1;i<x->n;i++)
+  for (int i=1;i<x->m;i++)
     { 
 
       double t = k*(i-tmi.I-1);
@@ -1773,13 +1790,12 @@ double themodelid(
       set_row(p,i,spn);
 
     }
-
-  /*          
-  printf("\n");
+   
+  /*  printf("\n");
   for (int j=0;j<300;j++)
     {
-      printf("%f %f\n",x->me[2*tmi.I][j],p->me[2*tmi.I][j]); //s(x->me[tmi.I+2][j])*w(x->me[tmi.I+2][j])*iota*e(2*k)*); //-tmi.I+4][i]);
-      //printf("%f %f\n",x->me[x->m-1][i],s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*e(k*(x->m-9-(tmi.I+1)))*u->me[x->m-1][i] + s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*iota*e(k*(x->m-9-(tmi.I+1)))*p->me[x->m-1][i]);
+      printf("%f %f\n",x->me[x->m-1][j],p->me[x->m-1][j]); //s(x->me[tmi.I+2][j])*w(x->me[tmi.I+2][j])*tmi.dp.iota*e(2*k)*); //-tmi.I+4][i]);
+      //printf("%f %f\n",x->me[x->m-1][i],s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*e(k*(x->m-9-(tmi.I+1)))*u->me[x->m-1][i] + s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*tmi.dp.iota*e(k*(x->m-9-(tmi.I+1)))*p->me[x->m-1][i]);
     }
   printf("e\n");
   exit(1);
@@ -1807,13 +1823,13 @@ double themodelid(
   for (int i=tmi.I;i<x->m;i++) {
     for (int j=0;j<x->n;j++)
       {
-	chattmp->ve[j] = s(x->me[i][j])*w(x->me[i][j])*iota*e(k*(i-tmi.I))*u->me[i][j];
-	chattmp2->ve[j] = s(x->me[i][j])*w(x->me[i][j])*e(k*(i-tmi.I))*u->me[i][j] + s(x->me[i][j])*w(x->me[i][j])*iota*e(k*(i-tmi.I))*p->me[i][j];
+	chattmp->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*u->me[i][j];
+	chattmp2->ve[j] = s(x->me[i][j])*w(x->me[i][j])*e(k*(i-tmi.I))*u->me[i][j] + s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*p->me[i][j];
       }
 
-    double swieu = Q(get_row(x,i,VNULL),chattmp)/1e3;
+    double swieu = Q(get_row(x,i,xtmp),chattmp)/1e3;
 
-    chat->ve[i] = 2*(swieu-c(k*(i-tmi.I)))*Q(get_row(x,i,VNULL),chattmp2)/1e3;
+    chat->ve[i] = 2*(swieu-c(k*(i-tmi.I)))*Q(get_row(x,i,xtmp),chattmp2)/1e3;
     ttmp->ve[i] = k*(i-tmi.I);
 
   }
@@ -1834,6 +1850,7 @@ double themodelid(
   V_FREE(ph);
   V_FREE(pn);
   V_FREE(spn);
+  V_FREE(Pi);
 
   /*
   M_FREE(x);
@@ -1868,7 +1885,7 @@ void phstep(
 {
 
   for (int j=1;j<ph->dim;j++)
-    ph->ve[j] = p->ve[j-1]*exp(-(k/2)*zstar(dpar->beta,dpar->gamma,gpar->kappa,dpar->iota,t,x->ve[j-1],U)) - exp(-(k/2)*zstar(dpar->beta,dpar->gamma,gpar->kappa,dpar->iota,t,x->ve[j-1],U))*(k/2)*(s(x->ve[j-1])*e(t)+dpar->gamma*P)*u->ve[j-1]*exp(-(k/4)*zstar(dpar->beta,dpar->gamma,gpar->kappa,dpar->iota,t,x->ve[j-1],U));
+    ph->ve[j] = p->ve[j-1]*exp(-(k/2)*zstar(dpar->beta,dpar->gamma,gpar->kappa,dpar->iota,t,x->ve[j-1],U)) - exp(-(k/2)*zstar(dpar->beta,dpar->gamma,gpar->kappa,dpar->iota,t,x->ve[j-1],U))*(k/2)*(s(x->ve[j-1])*e(t)+dpar->gamma*P)*u->ve[j-1];//*exp(-(k/4)*zstar(dpar->beta,dpar->gamma,gpar->kappa,dpar->iota,t,x->ve[j-1],U));
 
   Q2(bpar,gpar,xh,ph);
 
@@ -1918,6 +1935,9 @@ void pstep(
 
   Q2(bpar,gpar,xn,pn);
 
+  V_FREE(xhh);
+  V_FREE(uhh);
+
 }
 
 double zstar(
@@ -1934,6 +1954,7 @@ double zstar(
 { /* death function: beta + gamma U + s(x)f(t) - kappa */
 
   return beta + gamma*U + s(x)*iota*e(t) - kappa;
+
 }
 
 double e(double t)
@@ -1943,7 +1964,7 @@ double e(double t)
     return eff->ve[0];
   else
     {
-      int idx = floor((t + (k/2))/k);//  (k/4))/(k/2));
+      int idx = floor((t + (k/2) - 1e-12)/k); // better to use double epsilon?
       return eff->ve[idx];
     }
 }
