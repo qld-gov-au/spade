@@ -396,13 +396,13 @@ double qn1d(
   double newiota = iota;
   double eps = 1e-4;
 
-  for (int i=0;i<200;i++)
-  {
-
-  //  printf("\n");
-
-  //  for (int j=1301;j<1500;j++)
+  //for (int i=0;i<200;i++)
   //{
+
+  printf("\n");
+
+  for (int j=20;j<100;j+=2)
+  {
 
       MAT *x;
       MAT *u;
@@ -424,39 +424,43 @@ double qn1d(
       VEC *Uh = v_get(LI);
       IVEC *idxi = iv_get(LI-1);
 
-      //    double newi = 140.4; //j*5/100.0;
-      iota = newiota;
-      tmi.dp.iota = iota;
+      double newi = j/20.0;
+      //      iota = newiota;
+      tmi.dp.iota = newi;
       
       double fa = themodeli((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
-      /*
+      double fad = themodelid((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+
+      //      tmi.dp.iota = newi+exp(-10.0);
+      //double f1 = themodeli((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+      printf("%f %f\n",newi,fad); //(f1-fa)/exp(-10.0));
+
+      /*      
       for (int j=-2;j<10;j++)
 	{
 	  double delta = exp(-(double)j);
-	  tmi.dp.iota = newi+delta;
-	  double f1 = themodeli((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+	  tmi.dp.iota = 2.5+delta;
 	  double ng = (f1 - fa) / (delta);
 
 	  printf("%g %g\n",delta,ng);
 	}
       */
-      double fad = themodelid((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
 
-      //printf("%f %f %f\n",newi,fa,fad);
+      //      printf("%f %f %f\n",2.5,fa,fad);
       //exit(1);
 
       //fa = themodeli(6.8,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
       //fad = themodelid(6.8,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
       
       //printf("%f %f\n",fa,fad);
-      
+      /*
       if (fabs(fad) < eps)
       	break;
       else
       	newiota = iota - 5e-4 * fad;
       
       printf("%d %f %f %f %f\n",i,newiota,iota,fa,fad);
-      
+      */
       //      printf("%g %g\n",newi,fad);      
 
       M_FREE(x);
@@ -474,9 +478,9 @@ double qn1d(
 
   }
 
-      //  printf("e");
+       printf("e");
       
- 
+       exit(1);
       /*
 
       double fa = themodeli(3.4,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
@@ -1813,7 +1817,7 @@ double themodelid(
       double Ph = Q(xhtmp,ph);
 
       for (int j=1;j<=x->n;j++)
-	pn->ve[j] = ptmp->ve[j-1]*exp(-k*zstar(bb,gg,kk,ii,t,xhtmp->ve[j],Uh->ve[i-1])) - exp(-k*zstar(bb,gg,kk,ii,t,xhtmp->ve[j],Uh->ve[i-1]))*k*(s(xhtmp->ve[j])*e(th)+gg*Ph)*uhtmp->ve[j]*exp(-(k/2)*zstar(bb,gg,kk,ii,thh,xhh->ve[j],Uhh));
+	pn->ve[j] = ptmp->ve[j-1]*exp(-k*zstar(bb,gg,kk,ii,th,xhtmp->ve[j],Uh->ve[i-1])) - exp(-k*zstar(bb,gg,kk,ii,th,xhtmp->ve[j],Uh->ve[i-1]))*k*(s(xhtmp->ve[j])*e(th)+gg*Ph)*uhtmp->ve[j]*exp((k/2)*zstar(bb,gg,kk,ii,thh,xhh->ve[j],Uhh));
 
       Q2(&tmi.bp,&tmi.gp,xntmp,pn);
       Pi->ve[i] = Q(xntmp,pn);
