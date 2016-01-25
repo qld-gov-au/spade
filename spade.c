@@ -69,8 +69,8 @@ void xhstep(struct GP *,VEC *,VEC *);
 void xstep(struct GP *,VEC *,VEC *,VEC *);
 void uhstep(VEC *,VEC *,VEC *,VEC *,struct BP *,struct GP *,struct DP *,double,double);
 void ustep(VEC *,VEC *,VEC *,VEC *, struct BP *,struct GP *,struct DP *,double,double);
-void phstep(VEC *,VEC *,VEC *,VEC *,VEC *,struct BP *,struct GP *,struct DP *,double,double,double);
-void pstep(VEC *,VEC *,VEC *,VEC *,VEC *,VEC *,VEC *,VEC *,struct BP *,struct GP *,struct DP *,double,double,double,double,double,double);
+//void phstep(VEC *,VEC *,VEC *,VEC *,VEC *,struct BP *,struct GP *,struct DP *,double,double,double);
+//void pstep(VEC *,VEC *,VEC *,VEC *,VEC *,VEC *,VEC *,VEC *,struct BP *,struct GP *,struct DP *,double,double,double,double,double,double);
 VEC *initial(struct GP *,struct BP *,struct DP *,VEC *,VEC *);
 double idxselect(double,VEC *);
 VEC *idxremove(VEC *,VEC *,int);
@@ -393,16 +393,16 @@ double qn1d(
   tmi.I = (int)24/k;
   tmi.J = 400;
 
-  //double newiota = iota;
-  //double eps = 1e-4;
+  double newiota = iota;
+  double eps = 1e-4;
 
-  // for (int i=0;i<200;i++)
+  for (int i=0;i<200;i++)
+  {
+
+  //  printf("\n");
+
+  //  for (int j=1301;j<1500;j++)
   //{
-
-  printf("\n");
-
-  for (int j=1301;j<1500;j++)
-    {
 
       MAT *x;
       MAT *u;
@@ -424,26 +424,38 @@ double qn1d(
       VEC *Uh = v_get(LI);
       IVEC *idxi = iv_get(LI-1);
 
-      double newi = j*5/100.0;
-
-      tmi.dp.iota = 200.0;
+      //    double newi = 140.4; //j*5/100.0;
+      iota = newiota;
+      tmi.dp.iota = iota;
       
       double fa = themodeli((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+      /*
+      for (int j=-2;j<10;j++)
+	{
+	  double delta = exp(-(double)j);
+	  tmi.dp.iota = newi+delta;
+	  double f1 = themodeli((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+	  double ng = (f1 - fa) / (delta);
+
+	  printf("%g %g\n",delta,ng);
+	}
+      */
       double fad = themodelid((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
 
-      printf("%f %f %f\n",newi,fa,fad);
+      //printf("%f %f %f\n",newi,fa,fad);
+      //exit(1);
 
       //fa = themodeli(6.8,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
       //fad = themodelid(6.8,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
       
       //printf("%f %f\n",fa,fad);
-      /*
+      
       if (fabs(fad) < eps)
       	break;
       else
-      	newiota = iota - 5e-6 * fad;
-      */
-      //printf("%d %f %f %f %f\n",i,newiota,iota,fa,fad);
+      	newiota = iota - 5e-4 * fad;
+      
+      printf("%d %f %f %f %f\n",i,newiota,iota,fa,fad);
       
       //      printf("%g %g\n",newi,fad);      
 
@@ -460,23 +472,15 @@ double qn1d(
       //exit(1);
 
 
-    }
+  }
 
-  printf("e");
+      //  printf("e");
       
  
       /*
 
       double fa = themodeli(3.4,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
 
-      for (int j=-2;j<10;j++) 
-	{
-	  double delta = exp(-(double)j);
-	  double f1 = themodeli(3.4+delta,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
-	  double ng = (f1 - fa) / (delta);
-
-	  printf("%g %g\n",delta,ng);
-	}
       */
       //      
 
@@ -1761,10 +1765,19 @@ double themodelid(
   uhtmp = v_get(x->n+1);
   ptmp = v_get(x->n);
 
+  VEC *xhh; VEC *uhh;
+  xhh = v_get(x->n+1);
+  uhh = v_get(x->n+1);
+
   VEC *ph; VEC *pn; VEC *spn;
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
   spn = v_get(x->n);
+
+  double gg = tmi.dp.gamma;
+  double bb = tmi.dp.beta;
+  double ii = tmi.dp.iota;
+  double kk = tmi.gp.kappa;
 
   VEC *Pi;
   Pi = v_get(x->m);
@@ -1778,13 +1791,32 @@ double themodelid(
       double th = k*(i-tmi.I-.5);
       double thh = k*(i-tmi.I-.75);
 
-      phstep(get_row(x,i-1,xtmp),get_row(xh,i-1,xhtmp),get_row(u,i-1,utmp),get_row(p,i-1,ptmp),ph,&tmi.bp,&tmi.gp,&tmi.dp,Ui->ve[i-1],Pi->ve[i-1],t);
+      get_row(x,i-1,xtmp);
+      get_row(p,i-1,ptmp);
+      get_row(xh,i-1,xhtmp);
+      get_row(uh,i-1,uhtmp);
+      get_row(xn,i-1,xntmp);
 
-      double Ph = Q(get_row(xh,i-1,xhtmp),ph);
+      for (int j=1;j<=x->n;j++)
+	{
+	  xhh->ve[j] = xtmp->ve[j-1] + (k/4)*g(&tmi.gp,xtmp->ve[j-1]);
+	  uhh->ve[j] = utmp->ve[j-1]*exp(-(k/4)*zstar(bb,gg,kk,ii,t,xtmp->ve[j-1],Ui->ve[i-1]));
+	}
 
-      pstep(get_row(x,i-1,xtmp),get_row(xh,i-1,xhtmp),get_row(xn,i-1,xntmp),get_row(u,i-1,utmp),get_row(uh,i-1,uhtmp),get_row(p,i-1,ptmp),ph,pn,&tmi.bp,&tmi.gp,&tmi.dp,Ui->ve[i-1],Uh->ve[i-1],Ph,th,thh,t);
+      Q2(&tmi.bp,&tmi.gp,xhh,uhh);
+      double Uhh = Q(xhh,uhh);
 
-      Pi->ve[i] = Q(get_row(xn,i-1,xntmp),pn);
+      for (int j=1;j<=x->n;j++)
+	ph->ve[j] = ptmp->ve[j-1]*exp(-(k/2)*zstar(bb,gg,kk,ii,t,xtmp->ve[j-1],Ui->ve[i-1])) - exp(-(k/2)*zstar(bb,gg,kk,ii,t,xtmp->ve[j-1],Ui->ve[i-1]))*(k/2)*(s(xtmp->ve[j-1])*e(t)+gg*Pi->ve[i-1])*utmp->ve[j-1];
+	 
+      Q2(&tmi.bp,&tmi.gp,xhtmp,ph);
+      double Ph = Q(xhtmp,ph);
+
+      for (int j=1;j<=x->n;j++)
+	pn->ve[j] = ptmp->ve[j-1]*exp(-k*zstar(bb,gg,kk,ii,t,xhtmp->ve[j],Uh->ve[i-1])) - exp(-k*zstar(bb,gg,kk,ii,t,xhtmp->ve[j],Uh->ve[i-1]))*k*(s(xhtmp->ve[j])*e(th)+gg*Ph)*uhtmp->ve[j]*exp(-(k/2)*zstar(bb,gg,kk,ii,thh,xhh->ve[j],Uhh));
+
+      Q2(&tmi.bp,&tmi.gp,xntmp,pn);
+      Pi->ve[i] = Q(xntmp,pn);
 
       idxremove(pn,spn,idxi->ive[i-1]); 
       set_row(p,i,spn);
@@ -1851,21 +1883,14 @@ double themodelid(
   V_FREE(pn);
   V_FREE(spn);
   V_FREE(Pi);
-
-  /*
-  M_FREE(x);
-  M_FREE(u);
-  M_FREE(xh);
-  M_FREE(uh);
-  V_FREE(Ui);
-  M_FREE(xn);
-  IV_FREE(idxi);
-  */
+  V_FREE(xhh);
+  V_FREE(uhh);
 
   return rt;
 
 }
 
+/*
 void phstep(
 
 	    VEC *x,
@@ -1890,6 +1915,8 @@ void phstep(
   Q2(bpar,gpar,xh,ph);
 
 }
+
+
 
 void pstep(
 
@@ -1939,6 +1966,7 @@ void pstep(
   V_FREE(uhh);
 
 }
+*/
 
 double zstar(
 
