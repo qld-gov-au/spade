@@ -58,8 +58,8 @@ VEC *secondmodeld(VEC *, void *, VEC *);
 double thirdmodel(VEC *, void *);
 VEC *thirdmodeld(VEC *, void *, VEC *);
 
-double themodeli(void *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,MAT *,MAT *,IVEC *);
-double themodelid(void *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,MAT *,MAT *,IVEC *);
+double themodeli(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+double themodelid(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double zstar(double,double,double,double,double,double,double); 
 double wstar(double,double,double,double,double);
 double Q(VEC *,VEC *);
@@ -401,7 +401,7 @@ double qn1d(
 
   printf("\n");
 
-  for (int j=20;j<100;j+=2)
+  for (int j=20;j<=54;j+=2)
   {
 
       MAT *x;
@@ -413,29 +413,30 @@ double qn1d(
       x = m_get(LI,J);
       u = m_get(LI,J);
 
-      MAT *xh; MAT *uh; MAT *xn; MAT *un;
+      MAT *xh; MAT *uh; MAT *xn; MAT *xhh;
 
       xh = m_get(LI,J+1);
       uh = m_get(LI,J+1);
       xn = m_get(LI,J+1);
-      un = m_get(LI,J+1);
+      xhh = m_get(LI,J+1);
 
       VEC *Ui = v_get(LI);
       VEC *Uh = v_get(LI);
+      VEC *Uhh = v_get(LI);
       IVEC *idxi = iv_get(LI-1);
 
       double newi = j/20.0;
       //      iota = newiota;
       tmi.dp.iota = newi;
       
-      double fa = themodeli((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
-      double fad = themodelid((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+      double fa = themodeli((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+      //      double fad = themodelid((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
 
-      //      tmi.dp.iota = newi+exp(-10.0);
-      //double f1 = themodeli((void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
-      printf("%f %f\n",newi,fad); //(f1-fa)/exp(-10.0));
+      tmi.dp.iota = newi+exp(-10.0);
+      double f1 = themodeli((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+      printf("%f %f\n",newi,(f1-fa)/exp(-10.0));
 
-      /*      
+      /*            
       for (int j=-2;j<10;j++)
 	{
 	  double delta = exp(-(double)j);
@@ -466,11 +467,95 @@ double qn1d(
       M_FREE(x);
       M_FREE(u);
       M_FREE(xh);
+      M_FREE(xhh);
       M_FREE(uh);
       M_FREE(xn);
-      M_FREE(un);
       V_FREE(Ui);
       V_FREE(Uh);
+      V_FREE(Uhh);
+      IV_FREE(idxi);
+
+      //exit(1);
+
+
+  }
+
+  printf("e\n");
+
+  printf("\n");
+
+  for (int j=20;j<=54;j+=2)
+  {
+
+      MAT *x;
+      MAT *u;
+
+      int LI = 2*tmi.I + 1;
+      int J = tmi.J+1;
+
+      x = m_get(LI,J);
+      u = m_get(LI,J);
+
+      MAT *xh; MAT *uh; MAT *xn; MAT *xhh;
+
+      xh = m_get(LI,J+1);
+      uh = m_get(LI,J+1);
+      xn = m_get(LI,J+1);
+      xhh = m_get(LI,J+1);
+
+      VEC *Ui = v_get(LI);
+      VEC *Uh = v_get(LI);
+      VEC *Uhh = v_get(LI);
+      IVEC *idxi = iv_get(LI-1);
+
+      double newi = j/20.0;
+      //      iota = newiota;
+      tmi.dp.iota = newi;
+      
+      double fa = themodeli((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+      double fad = themodelid((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+
+      //      tmi.dp.iota = newi+exp(-10.0);
+      //double f1 = themodeli((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+      printf("%f %f\n",newi,fad); //(f1-fa)/exp(-10.0));
+
+      /*            
+      for (int j=-2;j<10;j++)
+	{
+	  double delta = exp(-(double)j);
+	  tmi.dp.iota = 2.5+delta;
+	  double ng = (f1 - fa) / (delta);
+
+	  printf("%g %g\n",delta,ng);
+	}
+      */
+
+      //      printf("%f %f %f\n",2.5,fa,fad);
+      //exit(1);
+
+      //fa = themodeli(6.8,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+      //fad = themodelid(6.8,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
+      
+      //printf("%f %f\n",fa,fad);
+      /*
+      if (fabs(fad) < eps)
+      	break;
+      else
+      	newiota = iota - 5e-4 * fad;
+      
+      printf("%d %f %f %f %f\n",i,newiota,iota,fa,fad);
+      */
+      //      printf("%g %g\n",newi,fad);      
+
+      M_FREE(x);
+      M_FREE(u);
+      M_FREE(xh);
+      M_FREE(xhh);
+      M_FREE(uh);
+      M_FREE(xn);
+      V_FREE(Ui);
+      V_FREE(Uh);
+      V_FREE(Uhh);
       IV_FREE(idxi);
 
       //exit(1);
@@ -479,6 +564,10 @@ double qn1d(
   }
 
        printf("e");
+
+
+
+
       
        exit(1);
       /*
@@ -1625,12 +1714,13 @@ double themodeli(
 		 void *stuff,
 		 MAT *x,
 		 MAT *u,
+		 MAT *xhh,
 		 MAT *xh,
-		 MAT *uh,
-		 VEC *Qi,
-		 VEC *Uh,
 		 MAT *xn,
-		 MAT *un,
+		 MAT *uh,
+		 VEC *Ui,
+		 VEC *Uh,
+		 VEC *Uhh,
 		 IVEC *idxi
 
 		 )
@@ -1638,59 +1728,80 @@ double themodeli(
   struct TMI tmi;
 
   tmi = * (struct TMI *) stuff;
-  VEC *xn_tmp; VEC *un_tmp; VEC *xh_tmp; VEC *uh_tmp;
-  int J1 = x->n+1;
-  xn_tmp = v_get(J1); un_tmp = v_get(J1);
-  xh_tmp = v_get(J1); uh_tmp = v_get(J1);
-
+  VEC *xnt; VEC *un; 
+  VEC *xht; VEC *uht;
+  VEC *xhht; VEC *uhh;
+  VEC *xt; VEC *ut;
+  xnt = v_get(x->n+1);  un = v_get(x->n+1);
+  xht = v_get(x->n+1);  uht = v_get(x->n+1);
+  xhht = v_get(x->n+1); uhh = v_get(x->n+1);
+  xt = v_get(x->n);      ut = v_get(x->n);
   VEC *C = v_get(x->m);
-
-  VEC *tmp1; VEC *tmp2;
-  tmp1 = v_get(x->n);
-  tmp2 = v_get(x->n);
 
   for (int j=1;j<x->n;j++) 
     x->me[0][j] = h*j;
  
-  set_row(u,0,initial((void *)&tmi.gp,(void *)&tmi.bp,(void *)&tmi.dp,get_row(x,0,tmp1),tmp2));
+  set_row(u,0,initial((void *)&tmi.gp,(void *)&tmi.bp,(void *)&tmi.dp,get_row(x,0,xt),ut));
  
-  Qi->ve[0] = Q(get_row(x,0,tmp1),get_row(u,0,tmp2));
+  Ui->ve[0] = Q(xt,ut);
+
+  double gg = tmi.dp.gamma;
+  double bb = tmi.dp.beta;
+  double ii = tmi.dp.iota;
+  double kk = tmi.gp.kappa;
 
   for (int i=1;i<x->m;i++)
     {
 
-      xhstep(&tmi.gp,get_row(x,i-1,tmp1),xh_tmp);
-      uhstep(get_row(x,i-1,tmp1),xh_tmp,get_row(u,i-1,tmp2),uh_tmp,&tmi.bp,&tmi.gp,&tmi.dp,Qi->ve[i-1],k*(i-tmi.I));
+      double t = k*(i-tmi.I-1);
+      double th = k*(i-tmi.I-.5);
+      double thh = k*(i-tmi.I-.75);
 
-      //double tt = k*(i-(tmi.I+1));
-      //printf("%f ",e(tt));
+      get_row(x,i-1,xt);
+      get_row(u,i-1,ut);
 
-      double Qh = Q(xh_tmp,uh_tmp);
+      for (int j=1;j<=x->n;j++)
+	{
+	  xhht->ve[j] = xt->ve[j-1] + (k/4)*g(&tmi.gp,xt->ve[j-1]);
+	  uhh->ve[j] = ut->ve[j-1]*exp(-(k/4)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1]));
+	}
 
-      Uh->ve[i] = Qh;
+      Q2(&tmi.bp,&tmi.gp,xhht,uhh);
+      Uhh->ve[i-1] = Q(xhht,uhh);
+      set_row(xhh,i-1,xhht);
 
-      set_row(xh,i-1,xh_tmp);
-      set_row(uh,i-1,uh_tmp);
+      for (int j=1;j<=x->n;j++)
+	{
+	  xht->ve[j] = xt->ve[j-1] + (k/2)*g(&tmi.gp,xhht->ve[j]);
+	  uht->ve[j] = ut->ve[j-1]*exp(-(k/2)*zstar(bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1]));
+	}
 
-      xstep(&tmi.gp,get_row(x,i-1,tmp1),xh_tmp,xn_tmp);
-      set_row(xn,i-1,xn_tmp);
-      ustep(xh_tmp,get_row(u,i-1,tmp1),xn_tmp,un_tmp,&tmi.bp,&tmi.gp,&tmi.dp,Qi->ve[i-1],k*(i-tmi.I+.5));
+      Q2(&tmi.bp,&tmi.gp,xht,uht);
+      Uh->ve[i-1] = Q(xht,uht);
+      set_row(xh,i-1,xht);
+      set_row(uh,i-1,uht);
 
-      set_row(un,i-1,un_tmp);
+      for (int j=1;j<=x->n;j++)
+	{
+	  xnt->ve[j] = xt->ve[j-1] + k*g(&tmi.gp,xht->ve[j]);
+	  un->ve[j] = ut->ve[j-1]*exp(-k*zstar(bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1]));
+	}
 
-      Qi->ve[i] = Q(xn_tmp,un_tmp);
+      Q2(&tmi.bp,&tmi.gp,xnt,un);
+      Ui->ve[i] = Q(xnt,un);
+      set_row(xn,i-1,xnt);
       
       VEC * ctm = v_get(x->n+1);
-      for (int j=0;j<x->n+1;j++)
-	ctm->ve[j] = s(xn_tmp->ve[j])*tmi.dp.iota*e(k*(i-tmi.I))*w(xn_tmp->ve[j])*un_tmp->ve[j];
-      C->ve[i] = Q(xn_tmp,ctm)/1e3;
+      for (int j=0;j<=x->n;j++)
+	ctm->ve[j] = s(xnt->ve[j])*tmi.dp.iota*e(k*(i-tmi.I))*w(xnt->ve[j])*un->ve[j];
+      C->ve[i] = Q(xnt,ctm)/1e3;
       V_FREE(ctm);
       
-      int idx = idxselect(tmi.gp.omega,xn_tmp);
+      int idx = idxselect(tmi.gp.omega,xnt);
       idxi->ive[i-1] = idx;
 
-      set_row(x,i,idxremove(xn_tmp,tmp1,idx));
-      set_row(u,i,idxremove(un_tmp,tmp1,idx));
+      set_row(x,i,idxremove(xnt,xt,idx));
+      set_row(u,i,idxremove(un,ut,idx));
 
     }
   /*        
@@ -1711,27 +1822,27 @@ double themodeli(
   VEC *chat = v_get(x->m); 
   VEC *ttmp = v_get(x->m);
 
-  VEC *xtmp = v_get(x->n);
-
   for (int i=tmi.I;i<x->m;i++) {
     for (int j=0;j<x->n;j++)
       chattmp->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*u->me[i][j];
 
-    chat->ve[i] = pow(Q(get_row(x,i,xtmp),chattmp)/1e3-c(k*(i-(tmi.I))),2.0);
+    chat->ve[i] = pow(Q(get_row(x,i,xt),chattmp)/1e3-c(k*(i-(tmi.I))),2.0);
     ttmp->ve[i] = k*(i-tmi.I);
 
   }
 
   double rt = Q(ttmp,chat);
 
-  V_FREE(xtmp);
-  V_FREE(xn_tmp); 
-  V_FREE(un_tmp); 
-  V_FREE(xh_tmp); 
-  V_FREE(uh_tmp);
+  V_FREE(xt);
+  V_FREE(xnt); 
+  V_FREE(un); 
+  V_FREE(xht); 
+  V_FREE(uht);
+  V_FREE(xhht); 
+  V_FREE(uhh);
   V_FREE(C);
-  V_FREE(tmp1); 
-  V_FREE(tmp2);
+  V_FREE(xt); 
+  V_FREE(ut);
   V_FREE(chattmp);
   V_FREE(chat);
   V_FREE(ttmp);
@@ -1745,12 +1856,13 @@ double themodelid(
 		 void *stuff,
 		 MAT *x,
 		 MAT *u,
+		 MAT *xhh,
 		 MAT *xh,
+		 MAT *xn,
 		 MAT *uh,
 		 VEC *Ui,
 		 VEC *Uh,
-		 MAT *xn,
-		 MAT *un,
+		 VEC *Uhh,
 		 IVEC *idxi
 
 		 )
@@ -1760,24 +1872,22 @@ double themodelid(
 
   MAT *p = m_get(x->m,x->n);
 
-  VEC *xtmp; VEC *xhtmp; VEC *xntmp; 
-  VEC *utmp; VEC *uhtmp; VEC *ptmp;
-  xtmp = v_get(x->n);
-  xhtmp = v_get(x->n+1);
-  xntmp = v_get(x->n+1);
-  utmp = v_get(x->n);
-  uhtmp = v_get(x->n+1);
-  ptmp = v_get(x->n);
+  VEC *xt; VEC *xht; VEC *xnt; 
+  VEC *ut; VEC *uht; VEC *pt;
+  xt = v_get(x->n);
+  xht = v_get(x->n+1);
+  xnt = v_get(x->n+1);
+  ut = v_get(x->n);
+  uht = v_get(x->n+1);
+  pt = v_get(x->n);
 
-  VEC *xhh; VEC *uhh;
-  xhh = v_get(x->n+1);
-  uhh = v_get(x->n+1);
+  VEC *xhht; 
+  xhht = v_get(x->n+1);
 
-  VEC *ph; VEC *pn; VEC *spn;
+  VEC *ph; VEC *pn;
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
-  spn = v_get(x->n);
-
+ 
   double gg = tmi.dp.gamma;
   double bb = tmi.dp.beta;
   double ii = tmi.dp.iota;
@@ -1786,7 +1896,7 @@ double themodelid(
   VEC *Pi;
   Pi = v_get(x->m);
   
-  Pi->ve[0] = Q(get_row(x,0,xtmp),get_row(p,0,ptmp));
+  Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
 
   for (int i=1;i<x->m;i++)
     { 
@@ -1795,35 +1905,27 @@ double themodelid(
       double th = k*(i-tmi.I-.5);
       double thh = k*(i-tmi.I-.75);
 
-      get_row(x,i-1,xtmp);
-      get_row(p,i-1,ptmp);
-      get_row(xh,i-1,xhtmp);
-      get_row(uh,i-1,uhtmp);
-      get_row(xn,i-1,xntmp);
+      get_row(x,i-1,xt);
+      get_row(p,i-1,pt);
+      get_row(xh,i-1,xht);
+      get_row(xhh,i-1,xhht);
+      get_row(uh,i-1,uht);
+      get_row(xn,i-1,xnt);
 
       for (int j=1;j<=x->n;j++)
-	{
-	  xhh->ve[j] = xtmp->ve[j-1] + (k/4)*g(&tmi.gp,xtmp->ve[j-1]);
-	  uhh->ve[j] = utmp->ve[j-1]*exp(-(k/4)*zstar(bb,gg,kk,ii,t,xtmp->ve[j-1],Ui->ve[i-1]));
-	}
-
-      Q2(&tmi.bp,&tmi.gp,xhh,uhh);
-      double Uhh = Q(xhh,uhh);
-
-      for (int j=1;j<=x->n;j++)
-	ph->ve[j] = ptmp->ve[j-1]*exp(-(k/2)*zstar(bb,gg,kk,ii,t,xtmp->ve[j-1],Ui->ve[i-1])) - exp(-(k/2)*zstar(bb,gg,kk,ii,t,xtmp->ve[j-1],Ui->ve[i-1]))*(k/2)*(s(xtmp->ve[j-1])*e(t)+gg*Pi->ve[i-1])*utmp->ve[j-1];
+	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1])) - exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1]))*(k/2)*(s(xt->ve[j-1])*e(t)+gg*Pi->ve[i-1])*ut->ve[j-1];
 	 
-      Q2(&tmi.bp,&tmi.gp,xhtmp,ph);
-      double Ph = Q(xhtmp,ph);
+      Q2(&tmi.bp,&tmi.gp,xht,ph);
+      double Ph = Q(xht,ph);
 
       for (int j=1;j<=x->n;j++)
-	pn->ve[j] = ptmp->ve[j-1]*exp(-k*zstar(bb,gg,kk,ii,th,xhtmp->ve[j],Uh->ve[i-1])) - exp(-k*zstar(bb,gg,kk,ii,th,xhtmp->ve[j],Uh->ve[i-1]))*k*(s(xhtmp->ve[j])*e(th)+gg*Ph)*uhtmp->ve[j]*exp((k/2)*zstar(bb,gg,kk,ii,thh,xhh->ve[j],Uhh));
+	pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1])) - exp(-k*zstar(bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1]))*k*(s(xht->ve[j])*e(th)+gg*Ph)*uht->ve[j]*exp((k/2)*zstar(bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1]));
 
-      Q2(&tmi.bp,&tmi.gp,xntmp,pn);
-      Pi->ve[i] = Q(xntmp,pn);
+      Q2(&tmi.bp,&tmi.gp,xnt,pn);
+      Pi->ve[i] = Q(xnt,pn);
 
-      idxremove(pn,spn,idxi->ive[i-1]); 
-      set_row(p,i,spn);
+      idxremove(pn,pt,idxi->ive[i-1]); 
+      set_row(p,i,pt);
 
     }
    
@@ -1863,9 +1965,9 @@ double themodelid(
 	chattmp2->ve[j] = s(x->me[i][j])*w(x->me[i][j])*e(k*(i-tmi.I))*u->me[i][j] + s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*p->me[i][j];
       }
 
-    double swieu = Q(get_row(x,i,xtmp),chattmp)/1e3;
+    double swieu = Q(get_row(x,i,xt),chattmp)/1e3;
 
-    chat->ve[i] = 2*(swieu-c(k*(i-tmi.I)))*Q(get_row(x,i,xtmp),chattmp2)/1e3;
+    chat->ve[i] = 2*(swieu-c(k*(i-tmi.I)))*Q(get_row(x,i,xt),chattmp2)/1e3;
     ttmp->ve[i] = k*(i-tmi.I);
 
   }
@@ -1873,22 +1975,20 @@ double themodelid(
   double rt = Q(ttmp,chat);
 
   M_FREE(p);
-  V_FREE(xtmp); 
-  V_FREE(xhtmp);
-  V_FREE(xntmp); 
-  V_FREE(utmp); 
-  V_FREE(uhtmp);
-  V_FREE(ptmp);
+  V_FREE(xt); 
+  V_FREE(xht);
+  V_FREE(xnt); 
+  V_FREE(ut); 
+  V_FREE(uht);
+  V_FREE(pt);
   V_FREE(chattmp);
   V_FREE(chattmp2);
   V_FREE(chat);
   V_FREE(ttmp);
   V_FREE(ph);
   V_FREE(pn);
-  V_FREE(spn);
   V_FREE(Pi);
-  V_FREE(xhh);
-  V_FREE(uhh);
+  V_FREE(xhht);
 
   return rt;
 
