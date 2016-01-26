@@ -357,7 +357,7 @@ int main(int argc, char *argv[])
   free(ct);
   free(ti);
 
-  double iota = 6.8;
+  double iota = 1.1;
 
   qn1d(iota);
 
@@ -396,13 +396,12 @@ double qn1d(
   double newiota = iota;
   double eps = 1e-4;
 
-  //for (int i=0;i<200;i++)
-  //{
-
-  printf("\n");
-
-  for (int j=20;j<=54;j+=2)
+  for (int i=0;i<200;i++)
   {
+
+    //  printf("\n");
+    // for (int j=20;j<=54;j+=2)
+    // {
 
       MAT *x;
       MAT *u;
@@ -425,16 +424,16 @@ double qn1d(
       VEC *Uhh = v_get(LI);
       IVEC *idxi = iv_get(LI-1);
 
-      double newi = j/20.0;
-      //      iota = newiota;
-      tmi.dp.iota = newi;
+      //      double newi = j/20.0;
+      iota = newiota;
+      tmi.dp.iota = iota;
       
       double fa = themodeli((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
-      //      double fad = themodelid((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+      double fad = themodelid((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
 
-      tmi.dp.iota = newi+exp(-10.0);
-      double f1 = themodeli((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
-      printf("%f %f\n",newi,(f1-fa)/exp(-10.0));
+      //      tmi.dp.iota = newi+exp(-10.0);
+      //double f1 = themodeli((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+      //printf("%f %f\n",newi,(f1-fa)/exp(-10.0));
 
       /*            
       for (int j=-2;j<10;j++)
@@ -446,22 +445,19 @@ double qn1d(
 	  printf("%g %g\n",delta,ng);
 	}
       */
-
       //      printf("%f %f %f\n",2.5,fa,fad);
       //exit(1);
-
       //fa = themodeli(6.8,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
       //fad = themodelid(6.8,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
-      
       //printf("%f %f\n",fa,fad);
-      /*
+      
       if (fabs(fad) < eps)
       	break;
       else
-      	newiota = iota - 5e-4 * fad;
+      	newiota = iota - 4e-6 * fad;
       
       printf("%d %f %f %f %f\n",i,newiota,iota,fa,fad);
-      */
+      
       //      printf("%g %g\n",newi,fad);      
 
       M_FREE(x);
@@ -477,9 +473,9 @@ double qn1d(
 
       //exit(1);
 
-
   }
 
+  /*
   printf("e\n");
 
   printf("\n");
@@ -546,7 +542,7 @@ double qn1d(
       printf("%d %f %f %f %f\n",i,newiota,iota,fa,fad);
       */
       //      printf("%g %g\n",newi,fad);      
-
+  /*
       M_FREE(x);
       M_FREE(u);
       M_FREE(xh);
@@ -564,44 +560,10 @@ double qn1d(
   }
 
        printf("e");
-
-
-
-
-      
-       exit(1);
-      /*
-
-      double fa = themodeli(3.4,(void *)&tmi,x,u,xh,uh,Ui,Uh,xn,un,idxi);
-
-      */
-      //      
-
-      //printf("%f %f\n",fa,fad);
-      
-
-      /*
-
-
-      */
-
-
-      //    }
+  */
 
   return iota;
 
-      /*
-      printf("\n");
-            for (int j=0;j<100;j++) 
-	{
-	  double newi = j*5/1000.0;
-	  printf("%g\n",newi);
-	}
-      */
-      /*      printf("\n");
-     
-      
-      */            
 
 }
   
