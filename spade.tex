@@ -132,31 +132,28 @@ and therefore can be represented by
 \begin{equation}\label{eq:2.5}
   r(t;t^*,x^*)=u(x^*,t^*)\exp\left(-\int_{t^*}^{t}z^*(x(\tau;t^*,x^*),U,t)\,d\tau\right).
 \end{equation}
-The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.1}. We use a slightly simplified version of the second order numerical scheme of \citet{Angulo2014}, given in Algorithm \ref{alg:base} and \ref{alg:half}. %where we have to compute approximations at time level $t^{n+1/2}$ 
+The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.1}. We use a slightly modified version of the second order numerical scheme of \citet{Angulo2014}, given in Algorithm \ref{alg:base}.
 \begin{algorithm}
-  \caption{Base algorithm}\label{alg:base}
+  \caption{Numerical solution algorithm}\label{alg:base}
   \begin{algorithmic}
     \State $X_0^{n+1} \gets 0$
     \State $X_{j+1}^{n+1} \gets X_j^n + k g(X_{j+1}^{n+1/2}), 0 \leq j \leq J$
     \State $U_{j+1}^{n+1} \gets U_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right), 0 \leq j \leq J$
-    \State $U_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},\mathbf{U}^{n+1}) / g(X_{0}^{n+1})$
-  \end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-  \caption{Half step}\label{alg:half}
-  \begin{algorithmic}
+    \State $U_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{U}^{n+1})) / g(X_{0}^{n+1})$
     \State $X_0^{n+1/2} \gets 0$
-    \State $X_{j+1}^{n+1/2} \gets X_j^n + k/2 g(X_{j}^{n}), 0 \leq j \leq J$
-    \State $U_{j+1}^{n+1/2} \gets U_j^n \exp\left(-k/2 z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right), 0 \leq j \leq J$
-    \State $U_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}) / g(X_{0}^{n+1/2})$
+    \State $X_{j+1}^{n+1/2} \gets X_j^n + (k/2) g(X_{j+1}^{n+1/4}), 0 \leq j \leq J$
+    \State $U_{j+1}^{n+1/2} \gets U_j^n \exp\left(-(k/2) z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right), 0 \leq j \leq J$
+    \State $U_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{U}^{n+1/2})) / g(X_{0}^{n+1/2})$
+    \State $X_{j+1}^{n+1/4} \gets X_j^n + (k/4) g(X_{j}^{n}), 0 \leq j \leq J$
+    \State $U_{j+1}^{n+1/4} \gets U_j^n \exp\left(-(k/4) z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right), 0 \leq j \leq J$
+    \State $U_0^{n+1/4} \gets \mathcal{Q}(\mathbf{X}^{n+1/4},b(\mathbf{U}^{n+1/4})) / g(X_{0}^{n+1/4})$
   \end{algorithmic}
 \end{algorithm}
-We use an adaptive mesh that keeps the number of nodes along the size dimension constant as the algorithm steps forward: at time $t^{n+1}$ we remove the grid node $X_l^{n+1}$ that satisfies
+Following \citet{Angulo2014} we use an adaptive mesh that keeps the number of nodes along the size dimension constant as the algorithm steps forward: at time $t^{n+1}$ we remove the grid node $X_l^{n+1}$ that satisfies
 \begin{equation}
   |X_{l+1}^{n+1} - X_{l-1}^{n+1}| = \text{min}_{1\leq j\leq J+1} |X_{j+1}^{n+1} - X_{j-1}^{n+1}|
 \end{equation}
-See \citet{Angulo2014} for convergence analysis and further numerical experiments. 
+See \citet{Angulo2014} for convergence analysis and numerical experiments. 
 
 %The R code for the scheme, implemented for the particular model outlined in section \ref{sec:model}, is given in Appendix \ref{app:ns}.
 
@@ -276,42 +273,16 @@ and
   m(x,P(t),u(x,t),t)= \left(s(x)e(t)+\gamma P(t)\right) u(x,t).
 \end{equation}
 
-%\beta+\gamma U(\tau)+s(x(\tau;t^*,x^*))\iota e(\tau)-\kappa
-
-%    &\begin{cases}
-%       \gamma P(t) u(x(t;t^*,x^*),t;\theta) &\frac{d F}{d \alpha_1}\\
-%       \gamma P(t) u(x(t;t^*,x^*),t;\theta) &\frac{d F}{d \alpha_2}\\
-%       \left(1+\gamma P(t)\right) u(x(t;t^*,x^*),t;\theta) &\frac{d F}{d \beta}\\
-%       \left(U(t)+\gamma P(t)\right) u(x(t;t^*,x^*),t;\theta) &\frac{d F}{d \gamma}\\
-%       \left(\gamma P(t) - 1\right) u(x(t;t^*,x^*),t;\theta) - (\omega-x)u_x(x(t;t^*,x^*),t;\theta) &\frac{d F}{d \kappa}\\
-%       \gamma P(t) u(x(t;t^*,x^*),t;\theta) - \kappa u_x(x(t;t^*,x^*),t;\theta) &\frac{d F}{d \omega}\\
-% &\frac{d F}{d \iota}
-
 This is implemented with Algorithm \ref{alg:sens}. 
 \begin{algorithm}
-  \caption{Sensitivity PDE algorithm}\label{alg:sens}
+  \caption{Sensitivity PDE numerical solution algorithm}\label{alg:sens}
   \begin{algorithmic}
-    \State $X_{j+1}^{n+1/8} \gets X_j^n + (k/8) g(X_j^n)$
-    \State $U_{j+1}^{n+1/8} \gets U_j^n \exp\left(-(k/8) z^*(X_j^n,\mathcal{Q}(\mathbf{X}^n,\mathbf{U}^n))\right)$
-    \State $X_{j+1}^{n+1/4} \gets X_j^n + (k/4) g(X_j^n)$
-    \State $U_{j+1}^{n+1/4} \gets U_j^n \exp\left(-(k/4) z^*(X_j^n,\mathcal{Q}(\mathbf{X}^n,\mathbf{U}^n))\right)$
-    \State $P_{j+1}^{n+1/4} \gets P_j^n \exp\left(-(k/4)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)-\exp\left(-(k/4)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)\times$\\ \hspace{1cm} $(k/4)\left(s(X_j^n)e(t^n)+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n$
-    \State $X_{j+1}^{n+3/8} \gets X_j^n + (3k/8) g(X_j^n)$
-    \State $U_{j+1}^{n+3/8} \gets U_j^n \exp\left(-(3k/8) z^*(X_j^n,\mathcal{Q}(\mathbf{X}^n,\mathbf{U}^n))\right)$
-    \State $X_{j+1}^{n+1/2} \gets X_j^n + (k/2) g(X_j^n)$
-    \State $U_{j+1}^{n+1/2} \gets U_j^n \exp\left(-(k/2) z^*(X_j^n,\mathcal{Q}(\mathbf{X}^n,\mathbf{U}^n))\right)$
-    \State $P_{j+1}^{n+1/2} \gets P_j^n \exp\left(-(k/2)z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right)-$\\ \hspace{1cm} $\exp\left(-(k/2)z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right)\times$\\ \hspace{1cm} $(k/2)\left(s(X_{j+1}^{n+1/4})e(t^{n+1/4})+\gamma\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{P}^{n+1/4})\right)U_{j+1}^{n+1/4}$\\ \hspace{1cm} $ \exp\left(-(k/4)z^*(X_{j+1}^{n+1/8},\mathcal{Q}(\mathbf{X}^{n+1/8},\mathbf{U}^{n+1/8}),t^{n+1/8})\right)$
-    \State $X_{j+1}^{n+6/8} \gets X_j^n + (6k/8) g(X_j^n)$
-    \State $U_{j+1}^{n+6/8} \gets U_j^n \exp\left(-(6k/8) z^*(X_j^n,\mathcal{Q}(\mathbf{X}^n,\mathbf{U}^n))\right)$
-    \State $P_{j+1}^{n+1} \gets P_j^n \exp\left(-k z^*(X_{j}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)-$\\ \hspace{1cm}$\exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)\times$\\ \hspace{1cm}$\left[(k/2)\left(s(X_{j+1}^{n+1/4})e(t^{n+1/4})+\gamma \mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{P}^{n+1/4})\right)U_{j+1}^{n+1/4}\times\right.$\\ \hspace{1cm}$\left.\exp\left((k/4)z^*(X_{j+1}^{n+1/8},\mathcal{Q}(\mathbf{X}^{n+1/8},\mathbf{U}^{n+1/8}),t^{n+1/8})\right)\right.\times$\\ \hspace{1cm}$\left.(k/2)\left(s(X_{j+1}^{n+3/4})e(t^{n+3/4})+\gamma \mathcal{Q}(\mathbf{X}^{n+3/4},\mathbf{P}^{n+3/4})\right)U_{j+1}^{n+3/4}\times\right.$\\ \hspace{1cm}$\left.\exp\left(-(3k/4) z^*(X_{j+1}^{n+3/8},\mathcal{Q}(\mathbf{X}^{n+3/8},\mathbf{U}^{n+3/8}),t^{n+3/8})\right)\right]$
+    \State $P_{j+1}^{n+1/2} \gets P_j^n \exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)-\exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)\times$\\ \hspace{1cm} $(k/2)\left(s(X_j^n)e(t^n)+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n$
+    \State $P_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{P}^{n+1/2})) / g(X_0^{n+1/2})$
+    \State $P_{j+1}^{n+1} \gets P_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)-$\\ \hspace{1cm} $\exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)\times$\\ \hspace{1cm} $k\left(s(X_{j+1}^{n+1/2})e(t^{n+1/2})+\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_{j+1}^{n+1/2}\times$\\ \hspace{1cm} $ \exp\left((k/2)z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right)$
+    \State $P_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{P}^{n+1})) / g(X_0^{n+1})$
   \end{algorithmic}
 \end{algorithm}
-
-% \State $X_0^{n+1} \gets 0$
-
-% + k z^*(X_{j}^{n+3/2},\mathcal{Q}(\mathbf{X}^{n+3/2},\mathbf{U}^{n+3/2}),t^{n+3/2})\right),$\\ \hspace{1cm}$0 \leq j \leq J$
-%    \State $P_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},\mathbf{P}^{n+1}) / g(X_{0}^{n+1})$
-
 
 \subsection{Initial state}
 If we assume that we have a complete fishing history, and that the initial state should therefore be unfished equilibrium, then it is possible to derive the starting condition analytically. 

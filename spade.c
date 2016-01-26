@@ -34,30 +34,16 @@ double eta1=1.703205e-5;
 double eta2=2.9526;
 
 double w(double x) { return eta1*pow(x,eta2); }
-double s(double x)
-{
-
-  //  if (x<25)
-  //return 0;
-
-  //if(x>150)
-  // return 0;
-  
-  return exp(-pow(x-phi*iota1,2.)/(2*iota2*pow(phi,2.)));
-}
-
+double s(double x) { return exp(-pow(x-phi*iota1,2.)/(2*iota2*pow(phi,2.))); }
 double g(struct GP *,const double);
 double b(struct BP *,const double);
-
 double qn1d(double);
-
 double firstmodel(VEC *, void *);
 VEC *firstmodeld(VEC *, void *, VEC *);
 double secondmodel(VEC *, void *);
 VEC *secondmodeld(VEC *, void *, VEC *);
 double thirdmodel(VEC *, void *);
 VEC *thirdmodeld(VEC *, void *, VEC *);
-
 double themodeli(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double themodelid(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double zstar(double,double,double,double,double,double,double); 
@@ -69,12 +55,9 @@ void xhstep(struct GP *,VEC *,VEC *);
 void xstep(struct GP *,VEC *,VEC *,VEC *);
 void uhstep(VEC *,VEC *,VEC *,VEC *,struct BP *,struct GP *,struct DP *,double,double);
 void ustep(VEC *,VEC *,VEC *,VEC *, struct BP *,struct GP *,struct DP *,double,double);
-//void phstep(VEC *,VEC *,VEC *,VEC *,VEC *,struct BP *,struct GP *,struct DP *,double,double,double);
-//void pstep(VEC *,VEC *,VEC *,VEC *,VEC *,VEC *,VEC *,VEC *,struct BP *,struct GP *,struct DP *,double,double,double,double,double,double);
 VEC *initial(struct GP *,struct BP *,struct DP *,VEC *,VEC *);
 double idxselect(double,VEC *);
 VEC *idxremove(VEC *,VEC *,int);
-//void pop(double (*)(void *,double),void *,double (*)(void *,double),void *,double (*)(void *,double),void *,MAT *,MAT *);
 double e(double);
 double c(double);
 VEC *kullback(VEC *,VEC *);
