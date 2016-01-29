@@ -108,7 +108,7 @@ Equation \ref{eq:1} is a nonlinear hyperbolic partial differential equation with
 \end{equation}
 so that \ref{eq:1.1} has the form
 \begin{equation}\label{eq:2}
-  u_t(x,t) + g(x)u_x(x,t) = -z(x,U,t)u(x,t).
+  u_t(x,t) + g(x)u_x(x,t) = -z^*(x,U,t)u(x,t).
 \end{equation}
 Now denote by $x(t;t^*,x^*)$ the characteristic curve of Equation \ref{eq:2} that takes the value $x^*$ at time $t^*$, which is the solution to the following initial value problem
 \begin{equation}\label{eq:2.2}
@@ -241,19 +241,19 @@ Substituting in the birth, growth and death functions, we get the following PDEs
   \frac{d F}{d \gamma} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \left(U+ \gamma P\right)u = 0 \\
   \frac{d F}{d \kappa} &= p_t + (\omega-x)u_x + \kappa(\omega-x)p_x - \kappa p - u + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u = 0 \\
   \frac{d F}{d \omega} &= p_t + \kappa u_x + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u = 0 \\  
-  \frac{d F}{d \iota} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \left(s(x)e(t)+\gamma P\right) u = 0 \\
+  \frac{d F}{d \iota} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \left(s(x)e(t)+\gamma P\right) u = 0 
   \end{align}
 \end{subequations}  
 The boundary conditions for each case are given by
 \begin{subequations}
   \begin{align}
-    \kappa\omega p &= \int_0^\omega x u(x,t) + \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \kappa\omega p &= \int_0^\omega x^2 u(x,t) + \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \kappa\omega p &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \kappa\omega p &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \omega u + \kappa\omega p &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \kappa u + \kappa\omega p &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \kappa\omega p &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx  \\
+    \kappa\omega p(0,t) &= \int_0^\omega x u(x,t) + \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
+    \kappa\omega p(0,t) &= \int_0^\omega x^2 u(x,t) + \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
+    \kappa\omega p(0,t) &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
+    \kappa\omega p(0,t) &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
+    \omega u(0,t) + \kappa\omega p(0,t) &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
+    \kappa u(0,t) + \kappa\omega p(0,t) &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
+    \kappa\omega p(0,t) &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx  
   \end{align}
 \end{subequations}
 These PDEs can be reduced to coupled ODE problems along characteristics in a manner analogous to the original PDE case. For all derivatives the size ODE (Equation \ref{eq:2.2}) remains unchanged, and the (sensitivity) population ODE for $\iota$ is
@@ -335,11 +335,12 @@ Then let $Z=\beta + \gamma\bar{U}+\kappa$ so that
 \end{equation}
 The real solution of this is
 \begin{equation}
-  Z = \frac{ \sqrt[3]{\zeta+27 \alpha_1 \kappa^2 \omega+54 \alpha_2 \kappa^2 \omega^2}}{3 \sqrt[3]{2}}-\frac{\sqrt[3]{2}(-3 \alpha_1 \kappa \omega-3 \kappa^2)}{3\sqrt[3]{\zeta+27 \alpha_1 \kappa^2 \omega+54 \alpha_2 \kappa^2 \omega^2}}
+  Z = \frac{ \sqrt[3]{9 \alpha_1 \kappa^2 \omega+18 \alpha_2 \kappa^2 \omega^2+\kappa\zeta}}{3 \sqrt[3]{\frac23}} +  
+  \frac{\sqrt[3]{\frac23}\,\kappa (\alpha_1  \omega+\kappa)}{\sqrt[3]{9 \alpha_1 \kappa^2 \omega+18 \alpha_2 \kappa^2 \omega^2+\kappa\zeta}}
 \end{equation}  
 where
 \begin{equation}
-\zeta=\sqrt{(27 \alpha_1 \kappa^2 \omega+54 \alpha_2 \kappa^2 \omega^2)^2+4 (-3 \alpha_1 \kappa \omega-3 \kappa^2)^3}.
+\zeta= \sqrt{ 81 \kappa^2 \omega^2 (\alpha_1+2 \alpha_2 \omega)^2 - 12\kappa( \alpha_1  \omega+ \kappa)^3}.
 \end{equation}  
 
 The size structure at equilibrium is given by
@@ -405,7 +406,7 @@ The optimisation algorithm is essentially a BFGS (Broyden-Fletcher-Goldfarb-Shan
 
 Then we have the derivative of the main objective function, 
 \begin{equation}
-  \nabla H_*(\tilde{\theta};\iota) \equiv \langle \xi_2 \frac{d H_2}{d \alpha_1}, \xi_2 \frac{d H_2}{d \alpha_2}, \xi_2 \frac{d H_2}{d \beta}, \xi_2 \frac{d H_2}{d \gamma}, \xi_2 \frac{d H_2}{d \kappa} + \xi_3 \frac{d H_3}{d \kappa} + \xi_4 \frac{d H_4}{d \kappa}, \xi_2 \frac{d H_2}{d \omega} + \xi_3 \frac{d H_3}{d \omega} + \xi_4 \frac{d H_4}{d \omega}\rangle
+  \nabla H_*(\tilde{\theta};\iota) \equiv \left\langle \xi_2 \frac{d H_2}{d \alpha_1}, \xi_2 \frac{d H_2}{d \alpha_2}, \xi_2 \frac{d H_2}{d \beta}, \xi_2 \frac{d H_2}{d \gamma}, \xi_2 \frac{d H_2}{d \kappa} + \xi_3 \frac{d H_3}{d \kappa} + \xi_4 \frac{d H_4}{d \kappa}, \xi_2 \frac{d H_2}{d \omega} + \xi_3 \frac{d H_3}{d \omega} + \xi_4 \frac{d H_4}{d \omega}\right\rangle
 \end{equation}
 
 \begin{algorithm}
@@ -598,7 +599,7 @@ which can be written as
 \end{split}\end{equation}
 where
 \begin{equation}\begin{split}
-Z_{\alpha_1}= &\frac{\kappa^2 \omega\,(3\zeta -6(\kappa+\alpha_1 \omega)^2 + 27\kappa\omega( \alpha_1  + 2 \alpha_2 \omega)}
+Z_{\alpha_1}= &\frac{\kappa^2 \omega\,(3\zeta -6(\kappa+\alpha_1 \omega)^2 + 27\kappa\omega( \alpha_1  + 2 \alpha_2 \omega))}
 {\zeta\, (9 \alpha_1 \kappa^2 \omega + 18 \alpha_2 \kappa^2 \omega^2 + \kappa \zeta)^{2/3}}\left(
 \frac1{2^{1/3}3^{2/3}}-\right.\\
 &\left. \frac{(2/3)^{1/3} \kappa ( \kappa + \alpha_1\omega)}{(9 \alpha_1 \kappa^2 \omega + 18 \alpha_2 \kappa^2 \omega^2 + \kappa \zeta)^{2/3}}\right)+\frac{(2/3)^{1/3}\kappa\omega}{(9 \alpha_1 \kappa^2 \omega + 18 \alpha_2 \kappa^2 \omega^2 + \kappa \zeta)^{1/3}}.
