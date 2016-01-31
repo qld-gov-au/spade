@@ -56,6 +56,7 @@ double G1_beta(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC
 double G1_gamma(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double G2_kappa(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double G2_omega(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+double G2_beta(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double zstar(double,double,double,double,double,double,double); 
 double wstar(double,double,double,double,double);
 double Q(VEC *,VEC *);
@@ -562,10 +563,10 @@ double qn1d(
   //double Ga1 = G1_alpha1((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
   double Ga2 = 0; //G1_alpha2((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
   //double Gb = G1_beta((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
-  //  double Gg = G1_gamma((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
-  double Gk = G2_kappa((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+  //double Gg = G1_gamma((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+  //double Gk = G2_kappa((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
   //double Gw = G2_omega((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-  //double Gb = G2_beta((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+  double Gb = G2_beta((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
 
   double ng = 0;      
   for (int j=-1;j>-25;j--)
@@ -573,9 +574,9 @@ double qn1d(
 	  double delta = exp((double)j);
 	  //tmi.dp.iota = iota + delta;
 	  //tmi.gp.omega = 173 + delta;
-	  //tmi.dp.beta = 1 + delta;
+	  tmi.dp.beta = 1 + delta;
 	  //tmi.bp.alpha1 = 0.005 + delta;
-	  tmi.gp.kappa = .1 + delta;
+	  //tmi.gp.kappa = .1 + delta;
 	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
 	  double h2_d = H2((void *)&tmi,x,u);
           //double h1_d = H1((void *)&tmi,x,u);
@@ -583,7 +584,7 @@ double qn1d(
 	  printf("%g %g\n",delta,ng);
     }
 
-  printf("%f %f %f\n",Gk,Gk - ng, (Gk-ng)/ng);
+  printf("%f %f %f\n",Gb,Gb-ng,(Gb-ng)/ng);
   exit(1);
   //  printf("%d %g %g %g %g\n",0,alpha,iota,G,H);
 
@@ -3013,6 +3014,159 @@ double G2_kappa(
 
       get_row(un,i-1,unt);
       Q2_kappa(&tmi.bp,&tmi.gp,xnt,unt,pn);
+      Pi->ve[i] = Q(xnt,pn);
+
+      idxremove(pn,pt,idxi->ive[i-1]); 
+      set_row(p,i,pt);
+
+    }
+   
+  /*  printf("\n");
+  for (int j=0;j<300;j++)
+    {
+      printf("%f %f\n",x->me[x->m-1][j],p->me[x->m-1][j]); //s(x->me[tmi.I+2][j])*w(x->me[tmi.I+2][j])*tmi.dp.iota*e(2*k)*); //-tmi.I+4][i]);
+      //printf("%f %f\n",x->me[x->m-1][i],s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*e(k*(x->m-9-(tmi.I+1)))*u->me[x->m-1][i] + s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*tmi.dp.iota*e(k*(x->m-9-(tmi.I+1)))*p->me[x->m-1][i]);
+    }
+  printf("e\n");
+  exit(1);
+  */
+
+  /*
+  VEC *xxx = v_get(x->m);
+  for (int j=0;j<x->m;j++)
+    xxx->ve[j] = x->me[x->m-1][j];
+
+  VEC *yyy = v_get(x->m);
+  for (int j=0;j<x->m;j++)
+    yyy->ve[j] = s(x->me[x->m-59][j])*w(x->me[x->m-59][j])*e(k*(x->m-59-(tmi.I+1)))*u->me[x->m-59][j] + s(x->me[x->m-59][j])*w(x->me[x->m-59][j])*iota*e(k*(x->m-59-(tmi.I+1)))*p->me[x->m-59][j];
+
+  printf("%f\n",Q(xxx,yyy));
+
+  exit(1);  
+  */
+
+  VEC *chattmp = v_get(x->n);
+  VEC *chattmp2 = v_get(x->n);
+  VEC *chat = v_get(x->m); 
+  VEC *ttmp = v_get(x->m);
+
+  for (int i=tmi.I;i<x->m;i++) {
+    for (int j=0;j<x->n;j++)
+      {
+	chattmp->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*u->me[i][j];
+	chattmp2->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*p->me[i][j];
+      }
+
+    double swieu = Q(get_row(x,i,xt),chattmp)/1e3;
+
+    chat->ve[i] = 2*(swieu-c(k*(i-tmi.I)))*Q(get_row(x,i,xt),chattmp2)/1e3;
+    ttmp->ve[i] = k*(i-tmi.I);
+
+  }
+
+  double rt = Q(ttmp,chat);
+
+  M_FREE(p);
+  V_FREE(xt); 
+  V_FREE(xht);
+  V_FREE(xnt); 
+  V_FREE(ut); 
+  V_FREE(uht);
+  V_FREE(pt);
+  V_FREE(chattmp);
+  V_FREE(chattmp2);
+  V_FREE(chat);
+  V_FREE(ttmp);
+  V_FREE(ph);
+  V_FREE(pn);
+  V_FREE(Pi);
+  V_FREE(xhht);
+
+  return rt;
+
+}
+
+
+
+double G2_beta(
+
+		 void *stuff,
+		 MAT *x,
+		 MAT *u,
+		 MAT *xhh,
+		 MAT *xh,
+		 MAT *xn,
+		 MAT *uh,
+		 VEC *Ui,
+		 VEC *Uh,
+		 VEC *Uhh,
+		 IVEC *idxi
+
+		 )
+{
+  struct TMI tmi;
+  tmi = * (struct TMI *) stuff;
+
+  MAT *p = m_get(x->m,x->n);
+
+  VEC *xt; VEC *xht; VEC *xnt; 
+  VEC *ut; VEC *uht; VEC *pt; VEC *unt;
+  xt = v_get(x->n);
+  xht = v_get(x->n+1);
+  xnt = v_get(x->n+1);
+  ut = v_get(x->n);
+  uht = v_get(x->n+1);
+  unt = v_get(x->n+1);
+  pt = v_get(x->n);
+
+  VEC *xhht; 
+  xhht = v_get(x->n+1);
+
+  VEC *ph; VEC *pn;
+  ph = v_get(x->n+1);
+  pn = v_get(x->n+1);
+ 
+  double gg = tmi.dp.gamma;
+  double bb = tmi.dp.beta;
+  double ii = tmi.dp.iota;
+  double kk = tmi.gp.kappa;
+
+  VEC *Pi;
+  Pi = v_get(x->m);
+
+  get_row(x,0,xt);
+  ini_beta((void *)&tmi.gp,(void *)&tmi.bp,(void *)&tmi.dp,xt,pt);
+  set_row(p,0,pt);
+  
+  Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
+
+  for (int i=1;i<x->m;i++)
+    { 
+
+      double t = k*(i-tmi.I-1);
+      double th = k*(i-tmi.I-.5);
+      double thh = k*(i-tmi.I-.75);
+
+      get_row(x,i-1,xt);
+      get_row(p,i-1,pt);
+      get_row(xh,i-1,xht);
+      get_row(xhh,i-1,xhht);
+      get_row(uh,i-1,uht);
+      get_row(xn,i-1,xnt);
+
+      for (int j=1;j<=x->n;j++)
+	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1])) - exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1]))*(k/2)*(1+gg*Pi->ve[i-1])*ut->ve[j-1];
+	
+      Q2(&tmi.bp,&tmi.gp,xht,ph);
+      double Ph = Q(xht,ph);
+
+      for (int j=1;j<=x->n;j++)
+	{
+	  double b = k*(1+gg*Ph)*uht->ve[j];
+	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1])) - b*exp((k/2)*zstar(bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1])-k*zstar(bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1]));
+	}
+
+      Q2(&tmi.bp,&tmi.gp,xnt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
       idxremove(pn,pt,idxi->ive[i-1]); 

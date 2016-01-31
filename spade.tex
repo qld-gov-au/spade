@@ -134,7 +134,7 @@ and therefore can be represented by
 \end{equation}
 The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.1}. We use a slightly modified version of the second order numerical scheme of \citet{Angulo2014}, given in Algorithm \ref{alg:base}.
 \begin{algorithm}
-  \caption{Numerical solution algorithm}\label{alg:base}
+  \caption{Model PDE numerical solution}\label{alg:base}
   \begin{algorithmic}
     \State $X_0^{n+1} \gets 0$
     \State $X_{j+1}^{n+1} \gets X_j^n + k g(X_{j+1}^{n+1/2}), 0 \leq j \leq J$
@@ -275,7 +275,7 @@ and
 
 This is implemented with Algorithm \ref{alg:sens}. 
 \begin{algorithm}
-  \caption{Sensitivity PDE numerical solution algorithm}\label{alg:sens}
+  \caption{Sensitivity PDE numerical solution}\label{alg:sens}
   \begin{algorithmic}
     \State $P_{j+1}^{n+1/2} \gets P_j^n \exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)-\exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)\times$\\ \hspace{1cm} $(k/2)\left(s(X_j^n)e(t^n)+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n$
     \State $P_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{P}^{n+1/2})) / g(X_0^{n+1/2})$
