@@ -46,7 +46,7 @@ double secondmodel(VEC *, void *);
 VEC *secondmodeld(VEC *, void *, VEC *);
 double thirdmodel(VEC *, void *);
 VEC *thirdmodeld(VEC *, void *, VEC *);
-MAT *solve(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+void solve(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double H1(void *,MAT *,MAT *);
 double H2(void *,MAT *,MAT *); 
 double G1_iota(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
@@ -549,33 +549,38 @@ double qn1d(
 
   double alpha = 1e-16;
   tmi.dp.iota = iota;
-
-  tmi.bp.alpha1 = 0.003;
-  tmi.bp.alpha2 = 0.001;
+  //tmi.bp.alpha1 = 0.005;
+  //tmi.bp.alpha2 = 0.003;
   tmi.dp.beta = 1;
   tmi.dp.gamma = 1e-9;
-    
-  u = solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-  double h1 = H1((void *)&tmi,x,u);
+  tmi.gp.omega = 173;    
+
+  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+  //double h1 = H1((void *)&tmi,x,u);
   double h2 = H2((void *)&tmi,x,u);
   double G = 0; //G1_iota((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
   //double Ga1 = G1_alpha1((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
   double Ga2 = 0; //G1_alpha2((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
   //double Gb = G1_beta((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
   //  double Gg = G1_gamma((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
-  double Gk = 0; //G2_kappa((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+  double Gk = G2_kappa((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+  //double Gw = G2_omega((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+  //double Gb = G2_beta((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
 
   double ng = 0;      
-  for (int j=-5;j>-30;j--)
+  for (int j=-1;j>-25;j--)
     {
 	  double delta = exp((double)j);
-	  //	  tmi.dp.gamma = 1e-9 + delta;
-	  //	  tmi.dp.beta = 1 + delta;
-	  //	  tmi.bp.alpha2 = 0.001 + delta;
+	  //tmi.dp.iota = iota + delta;
+	  //tmi.gp.omega = 173 + delta;
+	  //tmi.dp.beta = 1 + delta;
+	  //tmi.bp.alpha1 = 0.005 + delta;
 	  tmi.gp.kappa = .1 + delta;
-          double h2_d = H2((void *)&tmi,x,u);
+	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+	  double h2_d = H2((void *)&tmi,x,u);
+          //double h1_d = H1((void *)&tmi,x,u);
 	  ng = (h2_d-h2)/delta;
-	  printf("%g %f\n",delta,ng);
+	  printf("%g %g\n",delta,ng);
     }
 
   printf("%f %f %f\n",Gk,Gk - ng, (Gk-ng)/ng);
@@ -593,7 +598,7 @@ double qn1d(
       
       //      double Hd = H1((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
 
-      u = solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+      solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
       double Hd = H1((void *)&tmi,x,u);
 
       double Gd = G1_iota((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
@@ -1167,6 +1172,13 @@ VEC *get_obs(
 
   double hw = linbin(dt,y,zx,bw);
 
+  /*
+  printf("\n");
+  for (int j=0;j<y->dim;j++)
+    printf("%f\n",y->ve[j]);
+  printf("e\n");
+  */
+
   VEC *zetal = v_get(NdnF/2);
   zetal = kde(y,zetal,hw);
 
@@ -1597,6 +1609,16 @@ VEC *kde(
       zim->ve[i] = fac * kim->ve[i];
     }
 
+  printf("\n");
+  for (int j=0;j<zim->dim;j++)
+    printf("%f\n",zy->ve[j]);
+  printf("e\n");
+
+  for (int j=0;j<zim->dim;j++)
+    printf("%f\n",zim->ve[j]);
+  printf("e\n");
+  exit(1);
+
   ifft(zy,zim);
 
   for (int i=0;i<zy->dim;i++)
@@ -1888,7 +1910,7 @@ double b(
   return params->alpha1*x + params->alpha2*pow(x,2.);
 }
       
-MAT *solve(
+void solve(
 
 		 void *stuff,
 		 MAT *x,
@@ -1993,20 +2015,19 @@ MAT *solve(
 
     }
 
-  /*     
+  /*  
   printf("\n");
   for (int i=tmi.I-50;i<x->m;i++) //(tmi.I+(int)1./.025);i++)
-    printf("%f\n",C->ve[i]); //C->ve[i]);
+    printf("%f\n",Ui->ve[i]); //C->ve[i]); //C->ve[i]);
   printf("e\n");
-  //exit(1);//
-  
+  exit(1);//*/
   /*
   for (int i=tmi.I-50;i<x->m;i++) //(tmi.I+(int)1./.025);i++)
     printf("%f\n",c(k*(i-tmi.I)));
   printf("e\n");
   
   exit(1);
-  */  
+  */
 
   V_FREE(xt);
   V_FREE(xnt); 
@@ -2019,7 +2040,7 @@ MAT *solve(
   V_FREE(xt); 
   V_FREE(ut);
 
-  return u;
+  //return 0;
 
 }
 
@@ -2081,14 +2102,32 @@ double H2(
       VEC *xt = v_get(x->n);
       get_row(x,lfS.t_id[lfi],xt);      
       VEC *ut = v_get(x->n);
-      get_row(x,lfS.t_id[lfi],ut);      
+      get_row(u,lfS.t_id[lfi],ut);      
 
       VEC *dt = v_get(lfS.t_sz[lfi]);
 
       for (int j=0;j<dt->dim;j++)
 	dt->ve[j] = lfS.lf[lfi][j];
 
-      VEC *l = get_obs(dt,xt,1024);
+      double bw = get_bw(dt);
+      VEC *l = v_get(xt->dim);
+
+      // kde with normal kernel
+      for (int j=0;j<xt->dim;j++)
+        for (int jj=0;jj<dt->dim;jj++)
+	  l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
+
+      double ql = Q(xt,l);
+      for (int j=0;j<xt->dim;j++)
+	l->ve[j] = l->ve[j]/ql;
+
+      /*      
+      printf("\n");
+      for (int j=0;j<xt->dim;j++)
+	printf("%f\n",l->ve[j]);
+      printf("e\n");
+      exit(1);
+      */
 
       VEC *su = v_get(x->n);
 
@@ -2104,8 +2143,8 @@ double H2(
 
       VEC *lv = v_get(x->n);
 
-      for (int j=0;j<x->n;j++)
-	if (l->ve[j]==0)
+      for (int j=0;j<xt->dim;j++)
+	if (l->ve[j]==0 || v->ve[j]==0)
 	  {
 	    lv->ve[j] = 0;
 	  }
@@ -2113,6 +2152,14 @@ double H2(
 	  {
 	    lv->ve[j] = l->ve[j]*log(l->ve[j]/v->ve[j]);
 	  }
+
+      /*
+      printf("\n");
+      for (int j=0;j<xt->dim;j++)
+	printf("%f\n",lv->ve[j]);
+      printf("e\n");
+      exit(1);
+      */
 
       h2 += Q(xt,lv);
 
