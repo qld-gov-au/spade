@@ -49,15 +49,16 @@ VEC *thirdmodeld(VEC *, void *, VEC *);
 void solve(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double H1(void *,MAT *,MAT *);
 double H2(void *,MAT *,MAT *); 
-double G1_iota(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
-double G1_alpha1(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
-double G1_alpha2(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
-double G1_beta(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
-double G1_gamma(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
-double G2_kappa(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
-double G2_omega(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
-double G2_beta(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
-double zstar(double,double,double,double,double,double,double); 
+double G1(void *,MAT *,MAT *);
+double G2(void *,MAT *,MAT *,MAT *);
+double solve_p_iota(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+void solve_p_alpha1(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+double solve_p_alpha2(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+void solve_p_beta(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+double solve_p_gamma(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+double solve_p_kappa(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+double solve_p_omega(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+double zstar(double,double,double,double,double,double,double);
 double wstar(double,double,double,double,double);
 double Q(VEC *,VEC *);
 double Qn(VEC *,VEC *,int);
@@ -97,6 +98,7 @@ int roots(VEC *,VEC *);
 VEC *numgrad(double (*)(VEC *,void *),void *,VEC *,double);
 
 double h,k;
+int Y;
 
 VEC *cat_abs;
 VEC *eff_abs;
@@ -121,6 +123,7 @@ int main(int argc, char *argv[])
 
   h = 173./400.0;
   k = 0.025;
+  Y = 24;
 
   if (argc < 2)
     {
@@ -204,19 +207,19 @@ int main(int argc, char *argv[])
 	  VEC *lfv = v_get(Nlf);
 	  VEC *tlv = v_get(Nlf);
 	  VEC *ilv = v_get(Nlf);
-	  VEC *cnt = v_get((int)24/k);
+	  VEC *cnt = v_get((int)2*Y/k);
 
 	  for (int i=0;i<Nlf;i++)
 	    {
 	      lfv->ve[i] = (double)ln[i];
 	      //	      tlv->ve[i] = (double)tl[i];
-	      ilv->ve[i] = floor((tl[i]+k/2)/k);
-	      cnt->ve[(int)floor((tl[i]+k/2)/k)] += 1;
+	      ilv->ve[i] = (int)(Y/k + floor((tl[i]+k/2)/k));
+	      cnt->ve[(int)(Y/k + floor((tl[i]+k/2)/k))] += 1;
 	    }
 
 	  lfS.n = 0;
 	  for (int i=0;i<cnt->dim;i++)	   
-	    if (cnt->ve[i] > 50)
+	    if (cnt->ve[i] > 100)
 	      lfS.n += 1;
 
 	  lfS.lf = (double **) calloc(lfS.n,sizeof(double *));
@@ -226,7 +229,7 @@ int main(int argc, char *argv[])
 	  int kk=0;
 	  for (int i=0;i<cnt->dim;i++)
 	    {
-	      if (cnt->ve[i] > 50)
+	      if (cnt->ve[i] > 100)
 		{
 
 		  lfS.t_id[kk] = i;
@@ -533,6 +536,8 @@ double qn1d(
   x = m_get(LI,J);
   u = m_get(LI,J);
 
+  MAT *p = m_get(x->m,x->n);
+
   MAT *xh; MAT *uh; MAT *xn; MAT *xhh; MAT *un;
 
   xh = m_get(LI,J+1);
@@ -560,22 +565,23 @@ double qn1d(
   //double h1 = H1((void *)&tmi,x,u);
   double h2 = H2((void *)&tmi,x,u);
   double G = 0; //G1_iota((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
-  //double Ga1 = G1_alpha1((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+  solve_p_alpha1((void *)&tmi,p,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
   double Ga2 = 0; //G1_alpha2((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
   //double Gb = G1_beta((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
   //double Gg = G1_gamma((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
   //double Gk = G2_kappa((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
   //double Gw = G2_omega((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-  double Gb = G2_beta((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+  //  solve_p_beta((void *)&tmi,p,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+  double g2 = G2((void *)&tmi,p,x,u);
 
   double ng = 0;      
-  for (int j=-1;j>-25;j--)
+  for (int j=-5;j>-25;j--)
     {
 	  double delta = exp((double)j);
 	  //tmi.dp.iota = iota + delta;
 	  //tmi.gp.omega = 173 + delta;
-	  tmi.dp.beta = 1 + delta;
-	  //tmi.bp.alpha1 = 0.005 + delta;
+	  //tmi.dp.beta = 1 + delta;
+	  tmi.bp.alpha1 = 0.005 + delta;
 	  //tmi.gp.kappa = .1 + delta;
 	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
 	  double h2_d = H2((void *)&tmi,x,u);
@@ -584,7 +590,7 @@ double qn1d(
 	  printf("%g %g\n",delta,ng);
     }
 
-  printf("%f %f %f\n",Gb,Gb-ng,(Gb-ng)/ng);
+  printf("%g %g %g\n",g2,g2-ng,(g2-ng)/ng);
   exit(1);
   //  printf("%d %g %g %g %g\n",0,alpha,iota,G,H);
 
@@ -602,7 +608,7 @@ double qn1d(
       solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
       double Hd = H1((void *)&tmi,x,u);
 
-      double Gd = G1_iota((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+      double Gd = 0; //G1_iota((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
 
       //      printf("%f %f\n",fa,fad);
       //exit(1); 
@@ -2120,15 +2126,7 @@ double H2(
 
       double ql = Q(xt,l);
       for (int j=0;j<xt->dim;j++)
-	l->ve[j] = l->ve[j]/ql;
-
-      /*      
-      printf("\n");
-      for (int j=0;j<xt->dim;j++)
-	printf("%f\n",l->ve[j]);
-      printf("e\n");
-      exit(1);
-      */
+	l->ve[j] = l->ve[j]/ql;      
 
       VEC *su = v_get(x->n);
 
@@ -2141,6 +2139,19 @@ double H2(
 
       for (int j=0;j<x->n;j++)
 	v->ve[j] = su->ve[j]/qs;
+
+      /*           
+      printf("\n");
+      for (int j=0;j<xt->dim;j++)
+	printf("%f\n",l->ve[j]);
+      printf("e\n");
+
+      for (int j=0;j<xt->dim;j++)
+	printf("%f\n",v->ve[j]);
+      printf("e\n");
+
+      exit(1);
+      */
 
       VEC *lv = v_get(x->n);
 
@@ -2167,6 +2178,103 @@ double H2(
     }
 
   return h2;
+
+}
+
+
+double G2(
+
+		 void *stuff,
+		 MAT *p,
+		 MAT *x,
+		 MAT *u
+	
+		 )
+{
+
+  struct TMI tmi;
+  tmi = * (struct TMI *) stuff;
+  double g2 = 0;
+
+  for (int lfi=0;lfi<lfS.n;lfi++)
+    {
+
+      VEC *xt = v_get(x->n);
+      get_row(x,lfS.t_id[lfi],xt);      
+      VEC *ut = v_get(x->n);
+      get_row(u,lfS.t_id[lfi],ut);      
+      VEC *pt = v_get(x->n);
+      get_row(p,lfS.t_id[lfi],pt);      
+
+      VEC *dt = v_get(lfS.t_sz[lfi]);
+
+      for (int j=0;j<dt->dim;j++)
+	dt->ve[j] = lfS.lf[lfi][j];
+
+      double bw = get_bw(dt);
+      VEC *l = v_get(xt->dim);
+
+      // kde with normal kernel
+      for (int j=0;j<xt->dim;j++)
+        for (int jj=0;jj<dt->dim;jj++)
+	  l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
+
+      double ql = Q(xt,l);
+      for (int j=0;j<xt->dim;j++)
+	l->ve[j] = l->ve[j]/ql;      
+
+      VEC *sp = v_get(x->n);
+
+      for (int j=0;j<x->n;j++)
+	sp->ve[j] = s(xt->ve[j])*pt->ve[j];
+
+      double spq = Q(xt,sp);
+
+      VEC *su = v_get(x->n);
+
+      for (int j=0;j<x->n;j++)
+	su->ve[j] = s(xt->ve[j])*ut->ve[j];
+
+      double suq = Q(xt,su);
+
+      VEC *spluh = v_get(x->n);
+
+      for (int j=0;j<x->n;j++)
+	if (ut->ve[j]==0)
+	  spluh->ve[j] = 0;
+	else
+	  spluh->ve[j] = (ut->ve[j]*spq - pt->ve[j]*suq) / ut->ve[j]*suq;
+      /*      
+      printf("\n");
+      for (int j=0;j<xt->dim;j++)
+	printf("%f\n",l->ve[j]);
+      printf("e\n");
+
+      for (int j=0;j<xt->dim;j++)
+	printf("%f\n",spluh->ve[j]);
+      printf("e\n");
+
+      exit(1);
+      */
+
+      VEC *fluh = v_get(x->n);
+
+      for (int j=0;j<xt->dim;j++)
+	fluh->ve[j] = l->ve[j]*spluh->ve[j];
+
+      /*
+      printf("\n");
+      for (int j=0;j<xt->dim;j++)
+	printf("%f\n",lv->ve[j]);
+      printf("e\n");
+      exit(1);
+      */
+
+      g2 += Q(xt,fluh);
+
+    }
+
+  return g2;
 
 }
 
@@ -2316,9 +2424,10 @@ double G1_iota(
 
 }
 
-double G1_alpha1(
+void solve_p_alpha1(
 
 		 void *stuff,
+		 MAT *p,
 		 MAT *x,
 		 MAT *u,
 		 MAT *xhh,
@@ -2335,8 +2444,6 @@ double G1_alpha1(
 {
   struct TMI tmi;
   tmi = * (struct TMI *) stuff;
-
-  MAT *p = m_get(x->m,x->n);
 
   VEC *xt; VEC *xht; VEC *xnt; 
   VEC *ut; VEC *uht; VEC *pt; VEC *unt;
@@ -2428,44 +2535,16 @@ double G1_alpha1(
   exit(1);  
   */
 
-  VEC *chattmp = v_get(x->n);
-  VEC *chattmp2 = v_get(x->n);
-  VEC *chat = v_get(x->m); 
-  VEC *ttmp = v_get(x->m);
-
-  for (int i=tmi.I;i<x->m;i++) {
-    for (int j=0;j<x->n;j++)
-      {
-	chattmp->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*u->me[i][j];
-	chattmp2->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*p->me[i][j];
-      }
-
-    double swieu = Q(get_row(x,i,xt),chattmp)/1e3;
-
-    chat->ve[i] = 2*(swieu-c(k*(i-tmi.I)))*Q(get_row(x,i,xt),chattmp2)/1e3;
-    ttmp->ve[i] = k*(i-tmi.I);
-
-  }
-
-  double rt = Q(ttmp,chat);
-
-  M_FREE(p);
   V_FREE(xt); 
   V_FREE(xht);
   V_FREE(xnt); 
   V_FREE(ut); 
   V_FREE(uht);
   V_FREE(pt);
-  V_FREE(chattmp);
-  V_FREE(chattmp2);
-  V_FREE(chat);
-  V_FREE(ttmp);
   V_FREE(ph);
   V_FREE(pn);
   V_FREE(Pi);
   V_FREE(xhht);
-
-  return rt;
 
 }
 
@@ -3088,9 +3167,10 @@ double G2_kappa(
 
 
 
-double G2_beta(
+void solve_p_beta(
 
 		 void *stuff,
+		 MAT *p,
 		 MAT *x,
 		 MAT *u,
 		 MAT *xhh,
@@ -3106,8 +3186,6 @@ double G2_beta(
 {
   struct TMI tmi;
   tmi = * (struct TMI *) stuff;
-
-  MAT *p = m_get(x->m,x->n);
 
   VEC *xt; VEC *xht; VEC *xnt; 
   VEC *ut; VEC *uht; VEC *pt; VEC *unt;
@@ -3173,6 +3251,13 @@ double G2_beta(
       set_row(p,i,pt);
 
     }
+
+  printf("\n");
+  for (int i=tmi.I-50;i<x->m;i++) //(tmi.I+(int)1./.025);i++)
+    printf("%f\n",Pi->ve[i]); //C->ve[i]); //C->ve[i]);
+  printf("e\n");
+  exit(1);//*/
+
    
   /*  printf("\n");
   for (int j=0;j<300;j++)
@@ -3198,46 +3283,19 @@ double G2_beta(
   exit(1);  
   */
 
-  VEC *chattmp = v_get(x->n);
-  VEC *chattmp2 = v_get(x->n);
-  VEC *chat = v_get(x->m); 
-  VEC *ttmp = v_get(x->m);
-
-  for (int i=tmi.I;i<x->m;i++) {
-    for (int j=0;j<x->n;j++)
-      {
-	chattmp->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*u->me[i][j];
-	chattmp2->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*p->me[i][j];
-      }
-
-    double swieu = Q(get_row(x,i,xt),chattmp)/1e3;
-
-    chat->ve[i] = 2*(swieu-c(k*(i-tmi.I)))*Q(get_row(x,i,xt),chattmp2)/1e3;
-    ttmp->ve[i] = k*(i-tmi.I);
-
-  }
-
-  double rt = Q(ttmp,chat);
-
-  M_FREE(p);
   V_FREE(xt); 
   V_FREE(xht);
   V_FREE(xnt); 
   V_FREE(ut); 
   V_FREE(uht);
   V_FREE(pt);
-  V_FREE(chattmp);
-  V_FREE(chattmp2);
-  V_FREE(chat);
-  V_FREE(ttmp);
   V_FREE(ph);
   V_FREE(pn);
   V_FREE(Pi);
   V_FREE(xhht);
 
-  return rt;
-
 }
+
 
 
 double zstar(

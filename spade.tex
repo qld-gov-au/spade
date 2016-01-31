@@ -204,7 +204,7 @@ The total differentials of the catch and size-structure objective functions are
 \end{equation}
 and 
 \begin{equation}
-  \frac{d H_2(\theta)}{d\theta} = \sum_j \int_0^\omega l_j(x)\frac{u(x,t_j;\theta)\int_0^\omega p(x,t_j;\theta)\,dx - p(x,t_j;\theta) \int_0^\omega u(x,t_j;\theta)\,dx }{u(x,t_j;\theta) \int_0^\omega u(x,t_j;\theta)\,dx}\,dx
+  \frac{d H_2(\theta)}{d\theta} = \sum_j \int_0^\omega l_j(x)\frac{u(x,t_j;\theta)\int_0^\omega s(x)p(x,t_j;\theta)\,dx - p(x,t_j;\theta) \int_0^\omega s(x)u(x,t_j;\theta)\,dx }{u(x,t_j;\theta) \int_0^\omega s(x)u(x,t_j;\theta)\,dx}\,dx
 \end{equation}
 where $p(x,t;\theta)=u_\theta(x,t;\theta)$ is obtained by solving the sensitivity PDE 
 \begin{equation}
