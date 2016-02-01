@@ -56,7 +56,7 @@ void solve_p_alpha1(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *
 double solve_p_alpha2(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 void solve_p_beta(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double solve_p_gamma(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
-double solve_p_kappa(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+void solve_p_kappa(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double solve_p_omega(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double zstar(double,double,double,double,double,double,double);
 double wstar(double,double,double,double,double);
@@ -111,7 +111,8 @@ int main(int argc, char *argv[])
 {
  
   feenableexcept(FE_DIVBYZERO); 
-  feenableexcept(FE_INVALID); // | FE_OVERFLOW);
+  feenableexcept(FE_INVALID); 
+  feenableexcept(FE_OVERFLOW);
   //feenableexcept(FE_UNDERFLOW);
   //FE_ALL_EXCEPT & ~FE_INEXACT);
 
@@ -124,6 +125,10 @@ int main(int argc, char *argv[])
   h = 173./400.0;
   k = 0.025;
   Y = 24;
+
+  struct GP gp;
+  struct DP dp;
+  struct BP bp;
 
   if (argc < 2)
     {
@@ -138,7 +143,7 @@ int main(int argc, char *argv[])
 
   for (int i = 1; i < argc; i++) { 
     if (i != argc) {      // Check that we haven't finished parsing already
-      if (!strcmp(argv[i], "-ce")) 
+      if (!strcmp(argv[i], "-fn")) 
 	{
 
 	  if (i+1 == argc)
@@ -147,8 +152,12 @@ int main(int argc, char *argv[])
 	      exit(0);
 	    }
 
+	  char buffer[30];
+
+	  sprintf(buffer,"%s-ce.dat",argv[i+1]);
+
 	  FILE *fp1;
-	  fp1 = fopen(argv[i+1],"r");
+	  fp1 = fopen(buffer,"r");
 	  fscanf(fp1,"%d",&Nce);
 	  ct = (float *) calloc(Nce,sizeof(float));
 	  ti = (float *) calloc(Nce,sizeof(float));
@@ -179,30 +188,19 @@ int main(int argc, char *argv[])
 
 	  fclose(fp1);
 
-	  i += 1;
+	  sprintf(buffer,"%s-lf.dat",argv[i+1]);
 
-	}
-      else if (!strcmp(argv[i], "-lf"))
-	{
+	  fp1 = fopen(buffer,"r");
 
-	  if (i+1 == argc)
-	    {
-	      printf("\n no file specified\n");
-	      exit(0);
-	    }
-
-	  FILE *fp2;
-	  fp2 = fopen(argv[i+1],"r");
-
-	  fscanf(fp2,"%d",&Nlf);
+	  fscanf(fp1,"%d",&Nlf);
 
 	  ln = (float *) calloc(Nlf,sizeof(float));
 	  tl = (float *) calloc(Nlf,sizeof(float));
 
 	  for (int i=0;i<Nlf;i++)
-	    fscanf(fp2,"%f %f", &ln[i],&tl[i]);
+	    fscanf(fp1,"%f %f", &ln[i],&tl[i]);
 
-	  fclose(fp2);
+	  fclose(fp1);
 
 	  VEC *lfv = v_get(Nlf);
 	  VEC *tlv = v_get(Nlf);
@@ -248,6 +246,38 @@ int main(int argc, char *argv[])
 
 		}
 	    }
+
+	  float kappa,omega,beta,gamma,alpha1,alpha2,kread,iota;
+	  sscanf(argv[i+2],"%f",&kappa);
+	  sscanf(argv[i+3],"%f",&omega);
+	  sscanf(argv[i+4],"%f",&beta);
+	  sscanf(argv[i+5],"%f",&gamma);
+	  sscanf(argv[i+6],"%f",&alpha1);
+	  sscanf(argv[i+7],"%f",&alpha2);
+	  sscanf(argv[i+8],"%f",&iota);
+
+	  gp.kappa=kappa;
+	  gp.omega=omega;
+
+	  dp.beta=beta;
+	  dp.gamma=gamma;
+	  dp.iota=iota;
+
+	  bp.alpha1=alpha1;
+	  bp.alpha2=alpha2;
+
+	  i += 8;
+
+	}
+      else if (!strcmp(argv[i], "-lf"))
+	{
+
+	  if (i+1 == argc)
+	    {
+	      printf("\n no file specified\n");
+	      exit(0);
+	    }
+
 
 	  i += 1;
 
@@ -430,6 +460,7 @@ int main(int argc, char *argv[])
 
 	  exit(0);
 	}
+      /*
       else
 	{
 	  printf("\n");
@@ -439,7 +470,7 @@ int main(int argc, char *argv[])
 	  printf("	Other arguments:\n");
 	  printf("			-ce   [no default] catch effort data file\n");
 	  exit(0);
-	}
+	  }*/
     }
 
   }
@@ -453,71 +484,9 @@ int main(int argc, char *argv[])
   printf("e");
   exit(1);
   */
-  double iota = 2.80522e-5; //1./45000; //15.669;
-
-  printf("%f\n",qn1d(iota));
-
-  return(0);
-
-}  
 
 
-  /*
-  for (int i=0;i<tt->dim;i++)
-    tt->ve[i] = i*cek;
-
-  double bw = .1; //get_bw(eff);
-
-  double from = tt->ve[0] - 3*bw;
-  double to = tt->ve[tt->dim-1] + 3*bw;
-  double lo = from - 4*bw;
-  double up = to + 4*bw;
-  
-  double step = (up-lo) / (double)tt->dim;
-  double hw = bw / step;
-
-  VEC *zx = v_get(N);
-  for (int i=0;i<zx->dim;i++)
-    zx->ve[i] = from + i*step*2;
-
-  VEC *zetal = v_get(N);
-  zetal = kde(v_resize(eff,eff->dim-1),zetal,hw);
-  
-  VEC *obs = v_get(tt->dim);  
-  obs = regrid(zx,tt,zetal,obs);
-  */
-  /*double qobs = Q(tt,obs);
-  for (int i=0;i<obs->dim;i++)
-    obs->ve[i]=obs->ve[i]/qobs;
-
-  printf("\n");
-  for (int i=0;i<zetal->dim;i++)
-    printf("%f %f\n",tt->ve[i],obs->ve[i]);
-  printf("e");
-  exit(1);
-
-  */
-
-
-double qn1d(
-
-	    double iota
-
-	    )
-{
-
-  struct GP gp;
-  gp.kappa=.1;
-  gp.omega=173;
-
-  struct BP bp;
-  bp.alpha1 = .005;
-  bp.alpha2 = .003;
-
-  struct DP dp;
-  dp.beta = 1;
-  dp.gamma = 1e-9;
-  dp.iota = iota;
+  //double iota = 2.80522e-5; //1./45000; //15.669;
 
   struct TMI tmi;
   tmi.gp = gp;
@@ -554,35 +523,116 @@ double qn1d(
   double eps = 1e-4;
 
   double alpha = 1e-16;
-  tmi.dp.iota = iota;
+  //  tmi.dp.iota = iota;
   //tmi.bp.alpha1 = 0.005;
   //tmi.bp.alpha2 = 0.003;
-  tmi.dp.beta = 1;
-  tmi.dp.gamma = 1e-9;
-  tmi.gp.omega = 173;    
+  //tmi.dp.beta = 1;
+  // tmi.dp.gamma = 1e-9;
+  //tmi.gp.omega = 173;    
 
   solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+
+#ifdef DEBUG
+    
+  VEC *ctt = v_get(x->n);
+  VEC *xt = v_get(x->n);
+
+  FILE *p1 = fopen("plot1.txt","w");
+
+  for (int i=0;i<x->m;i++)
+    {
+
+      xt = get_row(x,i,xt);
+      for (int j=0;j<x->n;j++)
+	ctt->ve[j] = s(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*w(x->me[i][j])*u->me[i][j];
+      fprintf(p1,"%f %f\n",k*(i-tmi.I),Q(xt,ctt)/1e3);
+
+    }
+
+  fclose(p1);
+
+  FILE *p2 = fopen("plot2.txt","w");
+
+  for (int i=0;i<x->m;i++) 
+    fprintf(p2,"%f %f\n",k*(i-tmi.I),c(k*(i-tmi.I)));
+
+  fclose(p2);
+
+  system("./plo > plotc.pdf");
+
+  p1 = fopen("plot1.txt","w");
+
+  for (int i=tmi.I;i<tmi.I+(int)1/k;i++)
+    {
+
+      xt = get_row(x,i,xt);
+      for (int j=0;j<x->n;j++)
+	ctt->ve[j] = s(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*w(x->me[i][j])*u->me[i][j];
+      fprintf(p1,"%f %f\n",k*(i-tmi.I),Q(xt,ctt)/1e3);
+
+    }
+
+  V_FREE(ctt);
+  V_FREE(xt);
+
+  fclose(p1);
+
+  p2 = fopen("plot2.txt","w");
+
+  for (int i=tmi.I;i<tmi.I+(int)1/k;i++) 
+    fprintf(p2,"%f %f\n",k*(i-tmi.I),c(k*(i-tmi.I)));
+
+  fclose(p2);
+
+  system("./plo > plotc2.pdf");
+
+  p1 = fopen("plot.txt","w");
+
+  for (int i=0;i<x->m;i++)
+    fprintf(p1,"%f %f\n",k*(i-tmi.I),Ui->ve[i]);
+
+  fclose(p1);
+
+  system("./plo1 > plotU.pdf");
+
+#endif
+  
   //double h1 = H1((void *)&tmi,x,u);
   double h2 = H2((void *)&tmi,x,u);
-  double G = 0; //G1_iota((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
-  solve_p_alpha1((void *)&tmi,p,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-  double Ga2 = 0; //G1_alpha2((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-  //double Gb = G1_beta((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
-  //double Gg = G1_gamma((void *)&tmi,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
-  //double Gk = G2_kappa((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-  //double Gw = G2_omega((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-  //  solve_p_beta((void *)&tmi,p,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+  solve_p_kappa((void *)&tmi,p,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+
+#ifdef DEBUG
+    
+  VEC *pt = v_get(x->n);
+
+  p1 = fopen("plot.txt","w");
+
+  for (int i=0;i<x->m;i++)
+    {
+      xt = get_row(x,i,xt);
+      pt = get_row(p,i,pt);
+      fprintf(p1,"%f %f\n",k*(i-tmi.I),Q(xt,pt));
+    }
+
+  fclose(p1);
+
+  system("./plo1p > plotP.pdf");
+
+#endif
+
   double g2 = G2((void *)&tmi,p,x,u);
 
+  exit(1);
+
   double ng = 0;      
-  for (int j=-5;j>-25;j--)
+  for (int j=-3;j>-25;j--)
     {
 	  double delta = exp((double)j);
 	  //tmi.dp.iota = iota + delta;
 	  //tmi.gp.omega = 173 + delta;
-	  //tmi.dp.beta = 1 + delta;
-	  tmi.bp.alpha1 = 0.005 + delta;
-	  //tmi.gp.kappa = .1 + delta;
+	  //	  tmi.dp.beta = 1 + delta;
+	  //tmi.bp.alpha1 = 0.005 + delta;
+	  tmi.gp.kappa = .1 + delta;
 	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
 	  double h2_d = H2((void *)&tmi,x,u);
           //double h1_d = H1((void *)&tmi,x,u);
@@ -592,10 +642,10 @@ double qn1d(
 
   printf("%g %g %g\n",g2,g2-ng,(g2-ng)/ng);
   exit(1);
-  //  printf("%d %g %g %g %g\n",0,alpha,iota,G,H);
 
   double H=0;
-
+  double iota =0;
+  double G=0;
   for (int i=1;i<200;i++)
     {
       
@@ -625,8 +675,6 @@ double qn1d(
       
   }
 
-
-
   M_FREE(x);
   M_FREE(u);
   M_FREE(xh);
@@ -638,9 +686,9 @@ double qn1d(
   V_FREE(Uhh);
   IV_FREE(idxi);
 
-  return iota;
+  return(0);
 
-}
+}  
   
 double bfgsrun(
 
@@ -2001,19 +2049,7 @@ void solve(
       Ui->ve[i] = Q(xnt,unt);
       set_row(xn,i-1,xnt);
       set_row(un,i-1,unt);
-      
-      VEC * ctm = v_get(x->n+1);
-      for (int j=0;j<=x->n;j++)
-	ctm->ve[j] = s(xnt->ve[j])*tmi.dp.iota*e(k*(i-tmi.I))*w(xnt->ve[j])*unt->ve[j];
-      C->ve[i] = Q(xnt,ctm)/1e3;
-      V_FREE(ctm);
-
-      VEC * eb = v_get(x->n+1);
-      for (int j=0;j<=x->n;j++)
-	eb->ve[j] = w(xnt->ve[j])*unt->ve[j]; //*s(xnt->ve[j]);
-      EB->ve[i] = Q(xnt,eb)/1e3;
-      V_FREE(eb);
-      
+            
       int idx = idxselect(tmi.gp.omega,xnt);
       idxi->ive[i-1] = idx;
 
@@ -2021,20 +2057,6 @@ void solve(
       set_row(u,i,idxremove(unt,ut,idx));
 
     }
-
-  /*  
-  printf("\n");
-  for (int i=tmi.I-50;i<x->m;i++) //(tmi.I+(int)1./.025);i++)
-    printf("%f\n",Ui->ve[i]); //C->ve[i]); //C->ve[i]);
-  printf("e\n");
-  exit(1);//*/
-  /*
-  for (int i=tmi.I-50;i<x->m;i++) //(tmi.I+(int)1./.025);i++)
-    printf("%f\n",c(k*(i-tmi.I)));
-  printf("e\n");
-  
-  exit(1);
-  */
 
   V_FREE(xt);
   V_FREE(xnt); 
@@ -2140,18 +2162,29 @@ double H2(
       for (int j=0;j<x->n;j++)
 	v->ve[j] = su->ve[j]/qs;
 
-      /*           
-      printf("\n");
-      for (int j=0;j<xt->dim;j++)
-	printf("%f\n",l->ve[j]);
-      printf("e\n");
+#ifdef DEBUG
 
-      for (int j=0;j<xt->dim;j++)
-	printf("%f\n",v->ve[j]);
-      printf("e\n");
+      FILE *p1 = fopen("plot1.txt","w");
 
-      exit(1);
-      */
+      for (int j=0;j<x->n;j++)
+	fprintf(p1,"%f %f\n",xt->ve[j],l->ve[j]); 
+
+      fclose(p1);
+
+      FILE *p2 = fopen("plot2.txt","w");
+
+      for (int j=0;j<x->n;j++)
+	fprintf(p2,"%f %f\n",xt->ve[j],v->ve[j]); 
+
+      fclose(p2);
+
+      char buffer[100];
+
+      sprintf(buffer,"./plo > plotl%.3f.pdf",k*(lfS.t_id[lfi] - tmi.I));
+
+      system(buffer); //"./plo > plotl.pdf");
+
+#endif
 
       VEC *lv = v_get(x->n);
 
@@ -2244,6 +2277,33 @@ double G2(
 	  spluh->ve[j] = 0;
 	else
 	  spluh->ve[j] = (ut->ve[j]*spq - pt->ve[j]*suq) / ut->ve[j]*suq;
+
+
+#ifdef DEBUG
+
+      FILE *p1 = fopen("plot1.txt","w");
+
+      for (int j=0;j<x->n;j++)
+	fprintf(p1,"%f %f\n",xt->ve[j],ut->ve[j]); 
+
+      fclose(p1);
+
+      FILE *p2 = fopen("plot2.txt","w");
+
+      for (int j=0;j<x->n;j++)
+	fprintf(p2,"%f %f\n",xt->ve[j],pt->ve[j]); //spluh->ve[j]); 
+
+      fclose(p2);
+
+      char buffer[100];
+
+      sprintf(buffer,"./plo > plotgl%.3f.pdf",k*(lfS.t_id[lfi] - tmi.I));
+
+      system(buffer); //"./plo > plotl.pdf");
+
+#endif
+
+
       /*      
       printf("\n");
       for (int j=0;j<xt->dim;j++)
@@ -3005,9 +3065,10 @@ double G1_gamma(
 
 }
 
-double G2_kappa(
+void solve_p_kappa(
 
 		 void *stuff,
+		 MAT *p,
 		 MAT *x,
 		 MAT *u,
 		 MAT *xhh,
@@ -3024,8 +3085,6 @@ double G2_kappa(
 {
   struct TMI tmi;
   tmi = * (struct TMI *) stuff;
-
-  MAT *p = m_get(x->m,x->n);
 
   VEC *xt; VEC *xht; VEC *xnt; 
   VEC *ut; VEC *uht; VEC *pt; VEC *unt;
@@ -3099,69 +3158,17 @@ double G2_kappa(
       set_row(p,i,pt);
 
     }
-   
-  /*  printf("\n");
-  for (int j=0;j<300;j++)
-    {
-      printf("%f %f\n",x->me[x->m-1][j],p->me[x->m-1][j]); //s(x->me[tmi.I+2][j])*w(x->me[tmi.I+2][j])*tmi.dp.iota*e(2*k)*); //-tmi.I+4][i]);
-      //printf("%f %f\n",x->me[x->m-1][i],s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*e(k*(x->m-9-(tmi.I+1)))*u->me[x->m-1][i] + s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*tmi.dp.iota*e(k*(x->m-9-(tmi.I+1)))*p->me[x->m-1][i]);
-    }
-  printf("e\n");
-  exit(1);
-  */
 
-  /*
-  VEC *xxx = v_get(x->m);
-  for (int j=0;j<x->m;j++)
-    xxx->ve[j] = x->me[x->m-1][j];
-
-  VEC *yyy = v_get(x->m);
-  for (int j=0;j<x->m;j++)
-    yyy->ve[j] = s(x->me[x->m-59][j])*w(x->me[x->m-59][j])*e(k*(x->m-59-(tmi.I+1)))*u->me[x->m-59][j] + s(x->me[x->m-59][j])*w(x->me[x->m-59][j])*iota*e(k*(x->m-59-(tmi.I+1)))*p->me[x->m-59][j];
-
-  printf("%f\n",Q(xxx,yyy));
-
-  exit(1);  
-  */
-
-  VEC *chattmp = v_get(x->n);
-  VEC *chattmp2 = v_get(x->n);
-  VEC *chat = v_get(x->m); 
-  VEC *ttmp = v_get(x->m);
-
-  for (int i=tmi.I;i<x->m;i++) {
-    for (int j=0;j<x->n;j++)
-      {
-	chattmp->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*u->me[i][j];
-	chattmp2->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*p->me[i][j];
-      }
-
-    double swieu = Q(get_row(x,i,xt),chattmp)/1e3;
-
-    chat->ve[i] = 2*(swieu-c(k*(i-tmi.I)))*Q(get_row(x,i,xt),chattmp2)/1e3;
-    ttmp->ve[i] = k*(i-tmi.I);
-
-  }
-
-  double rt = Q(ttmp,chat);
-
-  M_FREE(p);
   V_FREE(xt); 
   V_FREE(xht);
   V_FREE(xnt); 
   V_FREE(ut); 
   V_FREE(uht);
   V_FREE(pt);
-  V_FREE(chattmp);
-  V_FREE(chattmp2);
-  V_FREE(chat);
-  V_FREE(ttmp);
   V_FREE(ph);
   V_FREE(pn);
   V_FREE(Pi);
   V_FREE(xhht);
-
-  return rt;
 
 }
 
