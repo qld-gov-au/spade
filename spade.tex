@@ -161,7 +161,7 @@ See \citet{Angulo2014} for convergence analysis and numerical experiments.
 \section{Parameter Estimation}
 The model is calibrated against four kinds of data: catch data (total removals from the fishery), size-structure data, size-age structure data, and tag-recapture data. The (dis-)agreement between the model predictions and these data sets is measured by so-called objective functions. Parameter estimation is the process of finding the values of the model parameters that optimise this agreement. Optimisation is a hard problem in general, and optimisation routines that make use of the gradient of the objective function (with respect to the model parameters) are usually significantly more efficient. Another important consideration is the initial condition - both the initial state of the model and initial guesses for parameter values. Finally we describe the optimisation algorithm itself.
 \subsection{Objective functions}
-Let the observed catch at time $t$ be $c(t)$, let the observed effort at time $t$ be $e(t)$, let the observed size-structure data at time $t_j$ be represented by the function $l_j(x)$, and let $\theta=\{\alpha_1,\alpha_2,\beta,\gamma,\kappa,\omega,\iota\}$. Then we have an objective function for catch
+Let the observed catch rate at time $t$ be $c(t)$, let the observed effort rate at time $t$ be $e(t)$, let the observed size-structure at time $t_j$ be represented by the function $l_j(x)$, and let $\theta=\{\alpha_1,\alpha_2,\beta,\gamma,\kappa,\omega,\iota\}$. Then we have an objective function for catch
 \begin{equation}
   H_1(\theta) = \int_0^T \left(c(t) - \int_0^\omega s(x)w(x)f(t;\theta)u(x,t;\theta)\,dx\right)^2 \,dt,
 \end{equation}

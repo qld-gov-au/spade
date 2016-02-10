@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 
 	  int N = (int)24/k;
 
-	  cat = v_get(4*N+1);
+	  cat = v_get(N+1);
 	  eff = v_get(4*N+1);
 
 	  double cek = k/4;
@@ -485,7 +485,6 @@ int main(int argc, char *argv[])
   exit(1);
   */
 
-
   //double iota = 2.80522e-5; //1./45000; //15.669;
 
   struct TMI tmi;
@@ -523,11 +522,11 @@ int main(int argc, char *argv[])
   double eps = 1e-4;
 
   double alpha = 1e-16;
-  //  tmi.dp.iota = iota;
+  //tmi.dp.iota = iota;
   //tmi.bp.alpha1 = 0.005;
   //tmi.bp.alpha2 = 0.003;
   //tmi.dp.beta = 1;
-  // tmi.dp.gamma = 1e-9;
+  //tmi.dp.gamma = 1e-9;
   //tmi.gp.omega = 173;    
 
   solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
@@ -595,10 +594,73 @@ int main(int argc, char *argv[])
 
   system("./plo1 > plotU.pdf");
 
+  p2 = fopen("plot.txt","w");
+
+  int i=0;
+
+  for (int j=0;j<x->n-1;j++)
+    {
+      double xx = (x->me[0][j] + x->me[0][j+1])/2;
+      double u_x = (u->me[0][j+1] - u->me[0][j])/(x->me[0][j+1]-x->me[0][j]);
+      fprintf(p2,"%f %f\n",xx,u_x);
+    }
+
+  fclose(p2);  
+
+  system("./plo1_nr > plotu_x_ini.pdf");
+
+  p2 = fopen("plot.txt","w");
+
+  i=1000;
+
+  for (int j=0;j<x->n-1;j++)
+    {
+      double xx = (x->me[i][j] + x->me[i][j+1])/2;
+      double u_x = (u->me[i][j+1] - u->me[i][j])/(x->me[i][j+1]-x->me[i][j]);
+      fprintf(p2,"%f %f\n",xx,u_x);
+    }
+
+  fclose(p2);  
+
+  system("./plo1_nr > plotu_x_1000.pdf");
+
+  FILE *blergh = fopen("plotblergh.txt","w");
+
+  i=1000;
+
+  for (int j=0;j<x->n-1;j++)
+    {
+      double d_u = (u->me[i][j+1] - u->me[i][j]);
+      fprintf(blergh,"%d %f\n",j,d_u);
+    }
+
+  fclose(blergh);  
+
+  system("./pb > plotd_u.pdf");
+
+  blergh = fopen("plotblergh.txt","w");
+
+  i=1000;
+
+  for (int j=0;j<x->n-1;j++)
+    {
+      double d_x = x->me[i][j+1]-x->me[i][j];
+      fprintf(blergh,"%d %f\n",j,d_x);
+    }
+
+  fclose(blergh);  
+
+  system("./pb > plotd_x.pdf");
+
 #endif
   
-  //double h1 = H1((void *)&tmi,x,u);
+  //  double h1 = H1((void *)&tmi,x,u);
+  //printf("%f\n",h1);
+
   double h2 = H2((void *)&tmi,x,u);
+
+  printf("%f\n",h2);
+
   solve_p_kappa((void *)&tmi,p,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
 
 #ifdef DEBUG
@@ -616,13 +678,11 @@ int main(int argc, char *argv[])
 
   fclose(p1);
 
-  system("./plo1p > plotP.pdf");
+  system("./plo1pk > plotPk.pdf");
 
 #endif
 
   double g2 = G2((void *)&tmi,p,x,u);
-
-  exit(1);
 
   double ng = 0;      
   for (int j=-3;j>-25;j--)
@@ -1908,10 +1968,10 @@ VEC *ini_kappa(
   double in = 9*a1*k*k*w + 18*a2*k*k*w*w + k*zeta;
   double Z = pow(in,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a1*w+k) / pow(in,1./3);
 
-  double Zk =  6*k*(a1*w*zeta+2*a2*w*w*zeta-(2*k+a1*w)*pow(k+a1*w,2.)+9*k*w*w*pow(a1+2*a2*w,2.) ) / (zeta*pow(9*a1*k*k*w+18*a2*k*k*w*w+k*zeta,2./3)) * (1./(pow(2.,1/3.)*pow(3.,2/3.)) - pow(2/3.,1/3.)*k*(k+a1*w) / pow(9*a1*k*k*w+18*a2*k*k*w*w+k*zeta,2./3) ) + pow(2/3.,1/3.)*(2*k+a1*w) / pow(9*a1*k*k*w+18*a2*k*k*w*w+k*zeta,1./3) ;
+  double Zk =  6*k*(a1*w*zeta+2*a2*w*w*zeta-(2*k+a1*w)*pow(k+a1*w,2.)+9*k*w*w*pow(a1+2*a2*w,2.) ) / (zeta*pow(9*a1*k*k*w+18*a2*k*k*w*w+k*zeta,2./3)) * ( 1./(pow(2.,1/3.)*pow(3.,2/3.)) - pow(2/3.,1/3.)*k*(k+a1*w) / pow(9*a1*k*k*w+18*a2*k*k*w*w+k*zeta,2./3) ) + pow(2/3.,1/3.)*(2*k+a1*w) / pow(9*a1*k*k*w+18*a2*k*k*w*w+k*zeta,1./3) ;
 
   for (int j=0;j<x->dim;j++)
-    p->ve[j] = -pow(1-x->ve[j]/w,Z/k - 2.) * ( Zk/(g*Z) *( (a1 + (2*a2*k*w/(Z+k))) * ( (b+k)/Z + log(1-x->ve[j]/w) * (Z-b-k)/k ) - 2*a2*k*w*(Z-b-k)/pow(Z+k,2.) ) + ((Z-b-k)/(g*Z*(Z+k))) * (2*a2*w + 2*a2*k*w/(Z+k)) - (a1 + 2*a2*k*w/(Z+k)) * (1/(g*Z) + log(1-x->ve[j]/w) * (Z-b-k)/(k*k)) ); 
+    p->ve[j] = pow(1-x->ve[j]/w,Z/k - 2.) * ( Zk/(g*Z) *( (a1 + (2*a2*k*w/(Z+k))) * ( (b+k)/Z + log(1-x->ve[j]/w) * (Z-b-k)/k ) - 2*a2*k*w*(Z-b-k)/pow(Z+k,2.) ) + ((Z-b-k)/(g*Z*(Z+k))) * (2*a2*w + 2*a2*k*w/(Z+k)) - (a1 + 2*a2*k*w/(Z+k)) * (1/(g*Z) + log(1-x->ve[j]/w) * (Z-b-k)/(g*k*k)) ); 
 
 }
 
@@ -2139,6 +2199,9 @@ double H2(
 	dt->ve[j] = lfS.lf[lfi][j];
 
       double bw = get_bw(dt);
+
+      //      printf("%f\n",bw);
+
       VEC *l = v_get(xt->dim);
 
       // kde with normal kernel
@@ -2284,14 +2347,14 @@ double G2(
       FILE *p1 = fopen("plot1.txt","w");
 
       for (int j=0;j<x->n;j++)
-	fprintf(p1,"%f %f\n",xt->ve[j],ut->ve[j]); 
+	fprintf(p1,"%f %f\n",xt->ve[j],l->ve[j]); 
 
       fclose(p1);
 
       FILE *p2 = fopen("plot2.txt","w");
 
       for (int j=0;j<x->n;j++)
-	fprintf(p2,"%f %f\n",xt->ve[j],pt->ve[j]); //spluh->ve[j]); 
+	fprintf(p2,"%f %f\n",xt->ve[j],spluh->ve[j]); //spluh->ve[j]); 
 
       fclose(p2);
 
@@ -2337,6 +2400,8 @@ double G2(
   return g2;
 
 }
+
+
 
 double G1_iota(
 
@@ -3117,6 +3182,19 @@ void solve_p_kappa(
   
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
 
+#ifdef DEBUG
+
+  FILE *p2 = fopen("plot.txt","w");
+
+  for (int j=0;j<x->n;j++) 
+    fprintf(p2,"%f %f\n",xt->ve[j],pt->ve[j]);
+
+  fclose(p2);
+
+  system("./plo1-nr > plotp_k_ini.pdf");
+
+#endif
+
   for (int i=1;i<x->m;i++)
     { 
 
@@ -3131,18 +3209,19 @@ void solve_p_kappa(
       get_row(uh,i-1,uht);
       get_row(xn,i-1,xnt);
 
+
       int j=1;
-      ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1])) - exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1]))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j-1] + (tmi.gp.omega - xt->ve[j-1])*(ut->ve[j]-ut->ve[j-1])/h );
+      ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1])) - exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1]))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j-1] + (tmi.gp.omega - xt->ve[j-1])*(ut->ve[j]-ut->ve[j-1])/(xt->ve[j]-xt->ve[j-1]) );
 
       for (int j=2;j<=x->n;j++)
-	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1])) - exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1]))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j-1] + (tmi.gp.omega - xt->ve[j-1])* ( (ut->ve[j]-ut->ve[j-1])/(2*h) + (ut->ve[j-1]-ut->ve[j-2])/(2*h) ) );
+	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1])) - exp(-(k/2)*zstar(bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1]))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j-1] + (tmi.gp.omega - xt->ve[j-1])*.5*( (ut->ve[j]-ut->ve[j-1])/(xt->ve[j]-xt->ve[j-1]) + (ut->ve[j-1]-ut->ve[j-2])/(xt->ve[j-1]-xt->ve[j-2]) ) );
 	
       Q2_kappa(&tmi.bp,&tmi.gp,xht,uht,ph);
       double Ph = Q(xht,ph);
 
       for (int j=1;j<x->n;j++)
 	{
-	  double b = k*( (gg*Ph-1)*uht->ve[j] + (tmi.gp.omega - xht->ve[j])* ( (uht->ve[j]-uht->ve[j-1])/(2*h) + (uht->ve[j+1]-uht->ve[j])/(2*h) ) );
+	  double b = k*( (gg*Ph-1)*uht->ve[j] + (tmi.gp.omega - xht->ve[j])*.5*( (uht->ve[j]-uht->ve[j-1])/(xht->ve[j]-xht->ve[j-1]) + (uht->ve[j+1]-uht->ve[j])/(xht->ve[j+1]-xht->ve[j]) ) );
 	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1])) - b*exp((k/2)*zstar(bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1])-k*zstar(bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1]));
 	}
 
@@ -3157,7 +3236,32 @@ void solve_p_kappa(
       idxremove(pn,pt,idxi->ive[i-1]); 
       set_row(p,i,pt);
 
+
     }
+
+#ifdef DEBUG
+
+  p2 = fopen("plot.txt","w");
+
+  int i=100;
+  for (int j=0;j<x->n;j++) 
+    fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
+
+  fclose(p2);
+
+  system("./plo1_nr > plotp_k_100.pdf");
+
+  p2 = fopen("plot.txt","w");
+
+  i=1000;
+  for (int j=0;j<x->n;j++) 
+    fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
+
+  fclose(p2);
+
+  system("./plo1_nr > plotp_k_1000.pdf");
+
+#endif
 
   V_FREE(xt); 
   V_FREE(xht);
@@ -3492,11 +3596,9 @@ void Q2_kappa(
   for (int j=1;j<x->dim-1;j++) 
     rt = rt + (b(bpar,x->ve[j])*p->ve[j] + b(bpar,x->ve[j+1])*p->ve[j+1]) * (x->ve[j+1]-x->ve[j]);
 
-  p->ve[0] = rt / (2*g(gpar,0.) + x->ve[0]*b(bpar,x->ve[0]) - x->ve[1]*b(bpar,x->ve[0])) - gpar->omega*u->ve[0]; 
+  p->ve[0] = (rt - 2*gpar->omega*u->ve[0]) / (2*g(gpar,0.) + x->ve[0]*b(bpar,x->ve[0]) - x->ve[1]*b(bpar,x->ve[0])); 
 
 }
-
-
 
 void xhstep(
 
