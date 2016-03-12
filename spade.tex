@@ -67,7 +67,7 @@ Population dynamics are based on the McKendrick partial differential equation \c
 \begin{align}
 \frac{\partial u(x,t)}{\partial t} + \frac{\partial [g(x)u(x,t)]}{\partial x} &=
 -z(x,U(t),t)u(x,t) \label{eq:1.1}\\
-g(0)u(0,t) &=  \int_0^{\omega} b(x) u(x,t)\,dx\label{eq:1.2}\\ 
+g(0)u(0,t) &=  \int_0^{\omega} b(x,t) u(x,t)\,dx\label{eq:1.2}\\ 
 U(t) &= \int_0^{\omega} u(x,t)\, dx
 \end{align}
 \end{subequations}
@@ -75,7 +75,7 @@ where $x$ is the size of the individual, $\omega$ is the maximum size, and $b$, 
 \begin{subequations}
   \begin{align}
     g(x) &= \kappa (\omega - x)\label{seq:2b}\\
-    b(x) &= \alpha_1 x + \alpha_2 x^2 \label{seq:2c},
+    b(x,t) &= \left(\alpha_1 x + \alpha_2 x^2\right) \exp\left(\psi \cos(t-\phi)\right)/ 2\pi I_0(\psi)    \label{seq:2c},
   \end{align}
 \end{subequations}
 while the mortality process is given by 
@@ -167,11 +167,11 @@ Let the observed catch rate at time $t$ be $c(t)$, let the observed effort rate 
 \end{equation}
 and an objective function for size-structure data,
 \begin{equation}
-  H_2(\theta) = \sum_j \int_0^\omega l_j(x)\log\frac{l_j(x)}{v(x,t_j;\theta)}\,dx
+  H_2(\theta) = \sum_j \int_0^\omega l_j'(x)-s(x)f(t;\theta)u(x,t;\theta)\,dx
 \end{equation}
 where 
 \begin{equation}
-   v(x,t_j;\theta) = \frac{s(x)u(x,t_j;\theta)}{\int s(x)u(x,t_j;\theta)\,dx },
+   l_j'(x) = \frac{c(t)}{\int_0^\omega l_j(x)w(x)\,dx}l_j(x)% \frac{s(x)u(x,t_j;\theta)}{\int s(x)u(x,t_j;\theta)\,dx },
 \end{equation}
 an objective function for size-age data,
 \begin{equation}
@@ -298,9 +298,10 @@ and
 The model PDE (Equation \ref{eq:1}) is then integrated along the size dimension three times, the second and third time having been first multiplied by $x$ and $x^2$ respectively, producing three ODEs.\footnote{This reduction depends on a technical assumption that the initial data $u(x,0)$ has compact support so that $u(x,t)=0$ for sufficiently large $x$. This is obviously biologically realistic.} Details are contained in Appendix \ref{app:eq}. Eventually we obtain the system
 \begin{subequations}
   \begin{align*}
-    \dot{U} &= -(\beta+\gamma U) U + \alpha_1 V + \alpha_2 W\\
-    \dot{V} &= -(\beta+\gamma U)V + \kappa \omega U - \kappa V\\
-    \dot{W} &= -(\beta+\gamma U)W + 2\kappa\omega V - 2\kappa W
+    \frac{dU}{dt} &= -(\beta+\gamma U) U + \left(\alpha_1 V + \alpha_2 W\right)\frac{e^{\psi \cos(\theta-\phi)}}{2\pi I_0(\psi)}\\
+    \frac{d V}{d t} &= -(\beta+\gamma U)V + \kappa \omega U - \kappa V\\
+    \frac{d W}{d t} &= -(\beta+\gamma U)W + 2\kappa\omega V - 2\kappa W\\
+    \frac{d \theta}{d t} &= 1
   \end{align*}
 \end{subequations}
 so that at equilibrium we have
