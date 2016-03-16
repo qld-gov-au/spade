@@ -48,7 +48,9 @@ void solve(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IV
 double H1(void *,MAT *,MAT *);
 double H2(void *,MAT *,MAT *); 
 double G1(void *,MAT *,MAT *,MAT *);
+double G1_ni(void *,MAT *,MAT *,MAT *);
 double G2(void *,MAT *,MAT *,MAT *);
+double G2_ni(void *,MAT *,MAT *,MAT *);
 
 void solve_p_alpha1(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 void solve_p_alpha2(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
@@ -212,7 +214,7 @@ int main(int argc, char *argv[])
 	  for (int i=0;i<Nlf;i++)
 	    {
 	      lfv->ve[i] = (double)ln[i];
-	      //	      tlv->ve[i] = (double)tl[i];
+	      // tlv->ve[i] = (double)tl[i];
 	      ilv->ve[i] = (int)(Y/k + floor((tl[i]+k/2)/k));
 	      cnt->ve[(int)(Y/k + floor((tl[i]+k/2)/k))] += 1;
 	    }
@@ -536,6 +538,8 @@ int main(int argc, char *argv[])
   double g2i = G2((void *)&tmi,p_i,x,u);
   printf("\ng2i: %f\n",g2i);
 
+  //exit(1);
+
   //  if (G1CHECK) {
 
   printf("\nChecking d H2 / d iota \n\n");
@@ -558,13 +562,8 @@ int main(int argc, char *argv[])
   printf("%g %g %g\n",g2i,g2i-ng,(g2i-ng)/ng);
 
   //  tmi.bp.alpha2 = alpha2_save;
-
   //  }
-
-  exit(1);
-
-
-
+  //exit(1);
 
   if (BLAH) {
     
@@ -716,7 +715,7 @@ int main(int argc, char *argv[])
 
   }
 
-  double g1a1 = G1((void *)&tmi,p_a1,x,u);
+  double g1a1 = G1_ni((void *)&tmi,p_a1,x,u);
   printf("\ng1a1: %f\n",g1a1);
 
   double h1;
@@ -743,7 +742,7 @@ int main(int argc, char *argv[])
 
   }
 
-  double g1a2 = G1((void *)&tmi,p_a2,x,u);
+  double g1a2 = G1_ni((void *)&tmi,p_a2,x,u);
   printf("\ng1a2: %f\n",g1a2);
 
   if (G1CHECK) {
@@ -769,7 +768,7 @@ int main(int argc, char *argv[])
 
   }
 
-  double g1b = G1((void *)&tmi,p_b,x,u);
+  double g1b = G1_ni((void *)&tmi,p_b,x,u);
   printf("\ng1b: %f\n",g1b);
 
   if (G1CHECK) {
@@ -795,7 +794,7 @@ int main(int argc, char *argv[])
 
   }
 
-  double g1g = G1((void *)&tmi,p_g,x,u);
+  double g1g = G1_ni((void *)&tmi,p_g,x,u);
   printf("\ng1g: %f\n",g1g);
 
   if (G1CHECK) {
@@ -824,11 +823,10 @@ int main(int argc, char *argv[])
   //double g1k = G1((void *)&tmi,p_k,x,u);
   //double g1w = G1((void *)&tmi,p_w,x,u);
 
-   h2 = H2((void *)&tmi,x,u);
+  h2 = H2((void *)&tmi,x,u);
   printf("\nh2: %f\n",h2);
 
-
-  double g2a1 = G2((void *)&tmi,p_a1,x,u);
+  double g2a1 = G2_ni((void *)&tmi,p_a1,x,u);
   printf("\ng2a1: %f\n",g2a1);
 
   if (G2CHECK) {
@@ -858,7 +856,7 @@ int main(int argc, char *argv[])
 
 
 
-  double g2a2 = G2((void *)&tmi,p_a2,x,u);
+  double g2a2 = G2_ni((void *)&tmi,p_a2,x,u);
   printf("\ng2a2: %f\n",g2a2);
 
   if (G2CHECK) {
@@ -887,7 +885,7 @@ int main(int argc, char *argv[])
 
 
 
-  double g2b = G2((void *)&tmi,p_b,x,u);
+  double g2b = G2_ni((void *)&tmi,p_b,x,u);
   printf("\ng2b: %f\n",g2b);
 
   if (G2CHECK) {
@@ -915,7 +913,7 @@ int main(int argc, char *argv[])
 
 
 
-  double g2g = G2((void *)&tmi,p_g,x,u);
+  double g2g = G2_ni((void *)&tmi,p_g,x,u);
   printf("\ng2g: %f\n",g2g);
 
   if (G2CHECK) {
@@ -942,7 +940,7 @@ int main(int argc, char *argv[])
   }
 
 
-  double g2k = G2((void *)&tmi,p_k,x,u);
+  double g2k = G2_ni((void *)&tmi,p_k,x,u);
   printf("\ng2k: %f\n",g2k);
 
   if (G2CHECK) {
@@ -970,7 +968,7 @@ int main(int argc, char *argv[])
 
 
 
-  double g2w = G2((void *)&tmi,p_w,x,u);
+  double g2w = G2_ni((void *)&tmi,p_w,x,u);
   printf("\ng2w: %f\n",g2w);
 
   if (G2CHECK) {
@@ -1005,7 +1003,7 @@ int main(int argc, char *argv[])
   }
 
 
-
+  exit(1);
 
 
 
@@ -2566,21 +2564,20 @@ double H2(
         for (int jj=0;jj<dt->dim;jj++)
 	  l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-      double ql = Q(xt,l);
-      for (int j=0;j<xt->dim;j++)
-	l->ve[j] = l->ve[j]/ql;      
+      //double ql = Q(xt,l);
+      //for (int j=0;j<xt->dim;j++)
+      //l->ve[j] = l->ve[j]/ql;      
 
-      VEC *su = v_get(x->n);
+      VEC *qesu = v_get(x->n);   
 
       for (int j=0;j<x->n;j++)
-	su->ve[j] = s(xt->ve[j])*ut->ve[j];
+	qesu->ve[j] = tmi.dp.iota*e(lfS.t_id[lfi])*s(xt->ve[j])*ut->ve[j];
 
       VEC *v = v_get(x->n);
 
-      double qs = Q(xt,su);
-
-      for (int j=0;j<x->n;j++)
-	v->ve[j] = su->ve[j]/qs;
+      //double qs = Q(xt,su);
+      //for (int j=0;j<x->n;j++)
+      //v->ve[j] = su->ve[j]/qs;
 
       if (BLAH) {
 
@@ -2594,7 +2591,7 @@ double H2(
       FILE *p2 = fopen("plot2.txt","w");
 
       for (int j=0;j<x->n;j++)
-	fprintf(p2,"%f %f\n",xt->ve[j],v->ve[j]); 
+	fprintf(p2,"%f %f\n",xt->ve[j],qesu->ve[j]); 
 
       fclose(p2);
 
@@ -2606,17 +2603,16 @@ double H2(
 
       }
 
-      VEC *lv = v_get(x->n);
+      VEC *lw = v_get(x->n);
+      for (int j=0;j<xt->dim;j++)
+	lw->ve[j]=l->ve[j]*w(xt->ve[j]);
+
+      double al = 1e3*c(k*(lfS.t_id[lfi] - tmi.I)) / Q(xt,lw);
+
+      VEC *ld = v_get(x->n);
 
       for (int j=0;j<xt->dim;j++)
-	if (l->ve[j]==0 || v->ve[j]==0)
-	  {
-	    lv->ve[j] = 0;
-	  }
-	else
-	  {
-	    lv->ve[j] = l->ve[j]*log(l->ve[j]/v->ve[j]);
-	  }
+        ld->ve[j] = pow(qesu->ve[j] - al*l->ve[j],2.);
 
       /*
       printf("\n");
@@ -2626,7 +2622,7 @@ double H2(
       exit(1);
       */
 
-      h2 += Q(xt,lv);
+      h2 += Q(xt,ld);
 
     }
 
@@ -2680,6 +2676,58 @@ double G1(
 
 }
 
+
+
+double G1_ni(
+
+		 void *stuff,
+		 MAT *p,
+		 MAT *x,
+		 MAT *u
+	
+		 )
+{
+
+  struct TMI tmi;
+  tmi = * (struct TMI *) stuff;
+
+  VEC *chattmp = v_get(x->n);
+  VEC *chattmp2 = v_get(x->n);
+  VEC *chat = v_get(x->m); 
+  VEC *ttmp = v_get(x->m);
+  VEC *xt = v_get(x->n);
+
+  for (int i=tmi.I;i<x->m;i++) {
+    for (int j=0;j<x->n;j++)
+      {
+	chattmp->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*u->me[i][j];
+	chattmp2->ve[j] = s(x->me[i][j])*w(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*p->me[i][j];
+      }
+
+    double swieu = Q(get_row(x,i,xt),chattmp)/1e3;
+
+    chat->ve[i] = 2*(swieu-c(k*(i-tmi.I)))*Q(get_row(x,i,xt),chattmp2)/1e3;
+    ttmp->ve[i] = k*(i-tmi.I);
+
+  }
+
+  double rt = Q(ttmp,chat);
+
+  V_FREE(chattmp);
+  V_FREE(chattmp2);
+  V_FREE(chat);
+  V_FREE(ttmp);
+  V_FREE(xt);
+
+  return rt;
+
+}
+
+
+
+
+
+
 double G2(
 
 		 void *stuff,
@@ -2703,6 +2751,73 @@ double G2(
       get_row(u,lfS.t_id[lfi],ut);      
       VEC *pt = v_get(x->n);
       get_row(p,lfS.t_id[lfi],pt);      
+
+      VEC *dt = v_get(lfS.t_sz[lfi]);
+
+      for (int j=0;j<dt->dim;j++)
+	dt->ve[j] = lfS.lf[lfi][j];
+
+      double bw = get_bw(dt);
+
+      VEC *l = v_get(xt->dim);
+
+      // kde with normal kernel
+      for (int j=0;j<xt->dim;j++)
+        for (int jj=0;jj<dt->dim;jj++)
+	  l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
+
+      VEC *qesu = v_get(x->n);   
+
+      for (int j=0;j<x->n;j++)
+	qesu->ve[j] = tmi.dp.iota*e(lfS.t_id[lfi])*s(xt->ve[j])*ut->ve[j];
+
+      VEC *v = v_get(x->n);
+
+      VEC *lw = v_get(x->n);
+      for (int j=0;j<xt->dim;j++)
+	lw->ve[j]=l->ve[j]*w(xt->ve[j]);
+
+      double al = 1e3*c(k*(lfS.t_id[lfi] - tmi.I)) / Q(xt,lw);
+
+      VEC *lp = v_get(x->n);
+
+      for (int j=0;j<xt->dim;j++)
+        lp->ve[j] = 2*(qesu->ve[j] - al*l->ve[j])*(e(lfS.t_id[lfi])*s(xt->ve[j])*ut->ve[j] + s(xt->ve[j])*tmi.dp.iota*e(lfS.t_id[lfi])*pt->ve[j]);
+
+
+      if (BLAH) {
+
+	/*
+      FILE *p1 = fopen("plot1.txt","w");
+
+      for (int j=0;j<x->n;j++)
+	fprintf(p1,"%f %f\n",xt->ve[j],l->ve[j]); 
+
+      fclose(p1);
+	*/
+      FILE *p2 = fopen("plot2.txt","w");
+
+      for (int j=0;j<x->n;j++)
+	fprintf(p2,"%f %f\n",xt->ve[j],lp->ve[j]); //spluh->ve[j]); 
+
+      fclose(p2);
+
+      char buffer[100];
+
+      sprintf(buffer,"./plo > plotgl%.3f.pdf",k*(lfS.t_id[lfi] - tmi.I));
+
+      system(buffer); //"./plo > plotl.pdf");
+
+      }
+
+      g2 += Q(xt,lp);
+
+      /*
+
+      VEC *xt = v_get(x->n);
+      get_row(x,lfS.t_id[lfi],xt);      
+      VEC *ut = v_get(x->n);
+      get_row(u,lfS.t_id[lfi],ut);      
 
       VEC *dt = v_get(lfS.t_sz[lfi]);
 
@@ -2744,30 +2859,7 @@ double G2(
 	  spluh->ve[j] = (ut->ve[j]*spq - pt->ve[j]*suq) / ut->ve[j]*suq;
 
 
-      if (BLAH) {
-
-      FILE *p1 = fopen("plot1.txt","w");
-
-      for (int j=0;j<x->n;j++)
-	fprintf(p1,"%f %f\n",xt->ve[j],l->ve[j]); 
-
-      fclose(p1);
-
-      FILE *p2 = fopen("plot2.txt","w");
-
-      for (int j=0;j<x->n;j++)
-	fprintf(p2,"%f %f\n",xt->ve[j],spluh->ve[j]); //spluh->ve[j]); 
-
-      fclose(p2);
-
-      char buffer[100];
-
-      sprintf(buffer,"./plo > plotgl%.3f.pdf",k*(lfS.t_id[lfi] - tmi.I));
-
-      system(buffer); //"./plo > plotl.pdf");
-
-      }
-
+      */
 
       /*      
       printf("\n");
@@ -2781,12 +2873,12 @@ double G2(
 
       exit(1);
       */
-
+      /*
       VEC *fluh = v_get(x->n);
 
       for (int j=0;j<xt->dim;j++)
 	fluh->ve[j] = l->ve[j]*spluh->ve[j];
-
+      */
       /*
       printf("\n");
       for (int j=0;j<xt->dim;j++)
@@ -2795,13 +2887,183 @@ double G2(
       exit(1);
       */
 
-      g2 += Q(xt,fluh);
+      //g2 += Q(xt,fluh);
 
     }
 
   return g2;
 
 }
+
+
+double G2_ni(
+
+		 void *stuff,
+		 MAT *p,
+		 MAT *x,
+		 MAT *u
+	
+		 )
+{
+
+  struct TMI tmi;
+  tmi = * (struct TMI *) stuff;
+  double g2 = 0;
+
+  for (int lfi=0;lfi<lfS.n;lfi++)
+    {
+
+      VEC *xt = v_get(x->n);
+      get_row(x,lfS.t_id[lfi],xt);      
+      VEC *ut = v_get(x->n);
+      get_row(u,lfS.t_id[lfi],ut);      
+      VEC *pt = v_get(x->n);
+      get_row(p,lfS.t_id[lfi],pt);      
+
+      VEC *dt = v_get(lfS.t_sz[lfi]);
+
+      for (int j=0;j<dt->dim;j++)
+	dt->ve[j] = lfS.lf[lfi][j];
+
+      double bw = get_bw(dt);
+
+      VEC *l = v_get(xt->dim);
+
+      // kde with normal kernel
+      for (int j=0;j<xt->dim;j++)
+        for (int jj=0;jj<dt->dim;jj++)
+	  l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
+
+      VEC *qesu = v_get(x->n);   
+
+      for (int j=0;j<x->n;j++)
+	qesu->ve[j] = tmi.dp.iota*e(lfS.t_id[lfi])*s(xt->ve[j])*ut->ve[j];
+
+      VEC *v = v_get(x->n);
+
+      VEC *lw = v_get(x->n);
+      for (int j=0;j<xt->dim;j++)
+	lw->ve[j]=l->ve[j]*w(xt->ve[j]);
+
+      double al = 1e3*c(k*(lfS.t_id[lfi] - tmi.I)) / Q(xt,lw);
+
+      VEC *lp = v_get(x->n);
+
+      for (int j=0;j<xt->dim;j++)
+        lp->ve[j] = 2*(qesu->ve[j] - al*l->ve[j])*(s(xt->ve[j])*tmi.dp.iota*e(lfS.t_id[lfi])*pt->ve[j]);
+
+
+      if (BLAH) {
+
+	/*
+      FILE *p1 = fopen("plot1.txt","w");
+
+      for (int j=0;j<x->n;j++)
+	fprintf(p1,"%f %f\n",xt->ve[j],l->ve[j]); 
+
+      fclose(p1);
+	*/
+      FILE *p2 = fopen("plot2.txt","w");
+
+      for (int j=0;j<x->n;j++)
+	fprintf(p2,"%f %f\n",xt->ve[j],lp->ve[j]); //spluh->ve[j]); 
+
+      fclose(p2);
+
+      char buffer[100];
+
+      sprintf(buffer,"./plo > plotgl%.3f.pdf",k*(lfS.t_id[lfi] - tmi.I));
+
+      system(buffer); //"./plo > plotl.pdf");
+
+      }
+
+      g2 += Q(xt,lp);
+
+      /*
+
+      VEC *xt = v_get(x->n);
+      get_row(x,lfS.t_id[lfi],xt);      
+      VEC *ut = v_get(x->n);
+      get_row(u,lfS.t_id[lfi],ut);      
+
+      VEC *dt = v_get(lfS.t_sz[lfi]);
+
+      for (int j=0;j<dt->dim;j++)
+	dt->ve[j] = lfS.lf[lfi][j];
+
+      double bw = get_bw(dt);
+      VEC *l = v_get(xt->dim);
+
+      // kde with normal kernel
+      for (int j=0;j<xt->dim;j++)
+        for (int jj=0;jj<dt->dim;jj++)
+	  l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
+
+      double ql = Q(xt,l);
+      for (int j=0;j<xt->dim;j++)
+	l->ve[j] = l->ve[j]/ql;      
+
+      VEC *sp = v_get(x->n);
+
+      for (int j=0;j<x->n;j++)
+	sp->ve[j] = s(xt->ve[j])*pt->ve[j];
+
+      double spq = Q(xt,sp);
+
+      VEC *su = v_get(x->n);
+
+      for (int j=0;j<x->n;j++)
+	su->ve[j] = s(xt->ve[j])*ut->ve[j];
+
+      double suq = Q(xt,su);
+
+      VEC *spluh = v_get(x->n);
+
+      for (int j=0;j<x->n;j++)
+	if (ut->ve[j]==0)
+	  spluh->ve[j] = 0;
+	else
+	  spluh->ve[j] = (ut->ve[j]*spq - pt->ve[j]*suq) / ut->ve[j]*suq;
+
+
+      */
+
+      /*      
+      printf("\n");
+      for (int j=0;j<xt->dim;j++)
+	printf("%f\n",l->ve[j]);
+      printf("e\n");
+
+      for (int j=0;j<xt->dim;j++)
+	printf("%f\n",spluh->ve[j]);
+      printf("e\n");
+
+      exit(1);
+      */
+      /*
+      VEC *fluh = v_get(x->n);
+
+      for (int j=0;j<xt->dim;j++)
+	fluh->ve[j] = l->ve[j]*spluh->ve[j];
+      */
+      /*
+      printf("\n");
+      for (int j=0;j<xt->dim;j++)
+	printf("%f\n",lv->ve[j]);
+      printf("e\n");
+      exit(1);
+      */
+
+      //g2 += Q(xt,fluh);
+
+    }
+
+  return g2;
+
+}
+
+
 
 void solve_p_iota(
 
