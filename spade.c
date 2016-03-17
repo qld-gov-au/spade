@@ -2,7 +2,7 @@
 // Stock assessment using PArtial Differential Equations
 // Alex Campbell 'ghostofsandy' 2015
 
-#define BLAH 1
+#define BLAH 0
 #define G1CHECK 1
 #define G2CHECK 1
 
@@ -47,6 +47,7 @@ VEC *thirdmodeld(VEC *, void *, VEC *);
 void solve(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double H(void *,MAT *,MAT *);
 double G(void *,MAT *,MAT *,MAT *);
+double G_ni(void *,MAT *,MAT *,MAT *);
 
 double H1(void *,MAT *,MAT *);
 double H2(void *,MAT *,MAT *); 
@@ -537,36 +538,6 @@ int main(int argc, char *argv[])
   solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
   double h = H((void *)&tmi,x,u);
   printf("\nh: %f\n",h);
-  solve_p_iota((void *)&tmi,p_i,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
-  double gi = G((void *)&tmi,p_i,x,u);
-  printf("\ngi: %f\n",gi);
-
-  double h2=0;
-
-  //exit(1);
-  //  if (G1CHECK) {
-
-  printf("\nChecking d H2 / d iota \n\n");
-
-  double ng = 0;     
-  double iota_save = tmi.dp.iota;
-
-  for (int j=-8;j>-25;j--)
-    {
-	  double delta = exp((double)j);
-	  tmi.dp.iota = iota_save + delta;
-	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-	  double h2_d = H2((void *)&tmi,x,u);
-	  ng = (h2_d-h2)/delta;
-	  printf("%g %g\n",delta,ng);
-    }
-
-  printf("%g %g %g\n",gi,gi-ng,(gi-ng)/ng);
-
-  tmi.dp.iota = iota_save;
-
-  //  }
-  //exit(1);
 
   if (BLAH) {
     
@@ -691,55 +662,75 @@ int main(int argc, char *argv[])
 
   }
 
-  double h1 = H1((void *)&tmi,x,u);
-  printf("\nh1: %f\n",h1);
-  double g1i = G1((void *)&tmi,p_i,x,u);
-  printf("\ng1i: %f\n",g1i);
+  solve_p_iota((void *)&tmi,p_i,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+  double gi = G((void *)&tmi,p_i,x,u);
+  printf("\ngi: %f\n",gi);
 
-  printf("\nChecking H1 derivative for iota\n\n");
+  printf("\nChecking G def d H / d iota \n\n");
 
-  ng = 0;     
-  iota_save = tmi.dp.iota;
-  for (int j=-5;j>-25;j--)
+  double ng = 0;     
+  double iota_save = tmi.dp.iota;
+
+  for (int j=-8;j>-15;j--)
     {
 	  double delta = exp((double)j);
 	  tmi.dp.iota = iota_save + delta;
 	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-	  double h1_d = H1((void *)&tmi,x,u);
-	  ng = (h1_d-h1)/delta;
+	  double h_d = H((void *)&tmi,x,u);
+	  ng = (h_d-h)/delta;
 	  printf("%g %g\n",delta,ng);
     }
 
-  printf("%g %g %g\n",g1i,g1i-ng,(g1i-ng)/ng);
+  printf("%g %g %g\n",gi,gi-ng,(gi-ng)/ng);
 
   tmi.dp.iota = iota_save;
 
+  printf("\nChecking G def d H / d alpha1 \n\n");
+
   solve_p_alpha1((void *)&tmi,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
 
-  double g1a1 = G1_ni((void *)&tmi,p_a1,x,u);
-  printf("\ng1i: %f\n",g1a1);
-
-  printf("\nChecking H1 derivative for alpha1\n\n");
+  double ga1 = G_ni((void *)&tmi,p_a1,x,u);
+  printf("\nga1: %f\n",ga1);
 
   ng = 0;     
   double alpha1_save = tmi.bp.alpha1;
-  for (int j=-5;j>-25;j--)
+  for (int j=-5;j>-15;j--)
     {
 	  double delta = exp((double)j);
 	  tmi.bp.alpha1 = alpha1_save + delta;
 	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-	  double h1_d = H1((void *)&tmi,x,u);
-	  ng = (h1_d-h1)/delta;
+	  double h_d = H((void *)&tmi,x,u);
+	  ng = (h_d-h)/delta;
 	  printf("%g %g\n",delta,ng);
     }
 
-  printf("%g %g %g\n",g1a1,g1a1-ng,(g1a1-ng)/ng);
+  printf("%g %g %g\n",ga1,ga1-ng,(ga1-ng)/ng);
 
   tmi.bp.alpha1 = alpha1_save;
 
-  exit(1);
+  printf("\nChecking G def d H / d alpha2 \n\n");
 
   solve_p_alpha2((void *)&tmi,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+
+  double ga2 = G_ni((void *)&tmi,p_a2,x,u);
+  printf("\nga2: %f\n",ga2);
+
+  ng = 0;     
+  double alpha2_save = tmi.bp.alpha2;
+  for (int j=-5;j>-15;j--)
+    {
+	  double delta = exp((double)j);
+	  tmi.bp.alpha2 = alpha2_save + delta;
+	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+	  double h_d = H((void *)&tmi,x,u);
+	  ng = (h_d-h)/delta;
+	  printf("%g %g\n",delta,ng);
+    }
+
+  printf("%g %g %g\n",ga2,ga2-ng,(ga2-ng)/ng);
+
+  tmi.bp.alpha2 = alpha2_save;
+
   solve_p_beta  ((void *)&tmi,p_b ,x,u,xhh,xh,xn,uh,   Ui,Uh,Uhh,idxi);
   solve_p_gamma ((void *)&tmi,p_g ,x,u,xhh,xh,xn,uh,   Ui,Uh,Uhh,idxi);
   solve_p_kappa ((void *)&tmi,p_k ,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
@@ -765,66 +756,12 @@ int main(int argc, char *argv[])
 
   }
 
-  g1a1 = G1_ni((void *)&tmi,p_a1,x,u);
-  printf("\ng1a1: %f\n",g1a1);
+  double gb = G_ni((void *)&tmi,p_b,x,u);
+  printf("\ngb: %f\n",gb);
 
   if (G1CHECK) {
 
-  printf("\nChecking H1 derivative for alpha1\n\n");
-
-  double ng = 0;     
-  double alpha1_save = tmi.bp.alpha1;
-  h1=0;
-  for (int j=-5;j>-25;j--)
-    {
-	  double delta = exp((double)j);
-	  tmi.bp.alpha1 = alpha1_save + delta;
-	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-	  double h1_d = H1((void *)&tmi,x,u);
-	  ng = (h1_d-h1)/delta;
-	  printf("%g %g\n",delta,ng);
-    }
-
-  printf("%g %g %g\n",g1a1,g1a1-ng,(g1a1-ng)/ng);
-
-  tmi.bp.alpha1 = alpha1_save;
-
-  }
-
-  exit(1);
-
-  double g1a2 = G1_ni((void *)&tmi,p_a2,x,u);
-  printf("\ng1a2: %f\n",g1a2);
-
-  if (G1CHECK) {
-
-  printf("\nChecking H1 derivative for alpha2\n\n");
-
-  double ng = 0;     
-  double alpha2_save = tmi.bp.alpha2;
-
-  for (int j=-5;j>-15;j--)
-    {
-	  double delta = exp((double)j);
-	  tmi.bp.alpha2 = alpha2_save + delta;
-	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-	  double h1_d = H1((void *)&tmi,x,u);
-	  ng = (h1_d-h1)/delta;
-	  printf("%g %g\n",delta,ng);
-    }
-
-  printf("%g %g %g\n",g1a2,g1a2-ng,(g1a2-ng)/ng);
-
-  tmi.bp.alpha2 = alpha2_save;
-
-  }
-
-  double g1b = G1_ni((void *)&tmi,p_b,x,u);
-  printf("\ng1b: %f\n",g1b);
-
-  if (G1CHECK) {
-
-  printf("\nChecking H1 derivative for beta\n\n");
+  printf("\nChecking H derivative for beta\n\n");
 
   double ng = 0;
   double beta_save = tmi.dp.beta;
@@ -834,45 +771,98 @@ int main(int argc, char *argv[])
 	  double delta = exp((double)j);
 	  tmi.dp.beta = beta_save + delta;
 	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-	  double h1_d = H1((void *)&tmi,x,u);
-	  ng = (h1_d-h1)/delta;
+	  double h_d = H((void *)&tmi,x,u);
+	  ng = (h_d-h)/delta;
 	  printf("%g %g\n",delta,ng);
     }
 
-  printf("%g %g %g\n",g1b,g1b-ng,(g1b-ng)/ng);
+  printf("%g %g %g\n",gb,gb-ng,(gb-ng)/ng);
 
   tmi.dp.beta = beta_save;
 
   }
 
-  double g1g = G1_ni((void *)&tmi,p_g,x,u);
-  printf("\ng1g: %f\n",g1g);
+  double gg = G_ni((void *)&tmi,p_g,x,u);
+  printf("\ngg: %f\n",gg);
 
   if (G1CHECK) {
 
-  printf("\nChecking H1 derivative for gamma\n\n");
+  printf("\nChecking H derivative for gamma\n\n");
 
   double ng = 0;
   double gamma_save = tmi.dp.gamma;
 
-  for (int j=-8;j>-20;j--)
+  for (int j=-8;j>-30;j--)
     {
 	  double delta = exp((double)j);
 	  tmi.dp.gamma = gamma_save + delta;
 	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
-	  double h1_d = H1((void *)&tmi,x,u);
-	  ng = (h1_d-h1)/delta;
+	  double h_d = H((void *)&tmi,x,u);
+	  ng = (h_d-h)/delta;
 	  printf("%g %g\n",delta,ng);
     }
 
-  printf("%g %g %g\n",g1g,g1g-ng,(g1g-ng)/ng);
+  printf("%g %g %g\n",gg,gg-ng,(gg-ng)/ng);
 
   tmi.dp.gamma = gamma_save;
 
   }
 
-  //double g1k = G1((void *)&tmi,p_k,x,u);
-  //double g1w = G1((void *)&tmi,p_w,x,u);
+  double gk = G_ni((void *)&tmi,p_k,x,u);
+  printf("\ngk: %f\n",gk);
+
+  if (G1CHECK) {
+
+  printf("\nChecking H derivative for kappa\n\n");
+
+  double ng = 0;
+  double kappa_save = tmi.gp.kappa;
+
+  for (int j=-1;j>-10;j--)
+    {
+	  double delta = exp((double)j);
+	  tmi.gp.kappa = kappa_save + delta;
+	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+	  double h_d = H((void *)&tmi,x,u);
+	  ng = (h_d-h)/delta;
+	  printf("%g %g\n",delta,ng);
+    }
+
+  printf("%g %g %g\n",gk,gk-ng,(gk-ng)/ng);
+
+  tmi.gp.kappa = kappa_save;
+
+  }
+
+  double gw = G_ni((void *)&tmi,p_w,x,u);
+  printf("\ngw: %f\n",gw);
+
+  if (G1CHECK) {
+
+  printf("\nChecking H derivative for omega\n\n");
+
+  double ng = 0;
+  double omega_save = tmi.gp.omega;
+
+  for (int j=-1;j>-10;j--)
+    {
+	  double delta = exp((double)j);
+	  tmi.gp.omega = omega_save + delta;
+	  solve((void *)&tmi,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+	  double h_d = H((void *)&tmi,x,u);
+	  ng = (h_d-h)/delta;
+	  printf("%g %g\n",delta,ng);
+    }
+
+  printf("%g %g %g\n",gw,gw-ng,(gw-ng)/ng);
+
+  tmi.gp.omega = omega_save;
+
+  }
+
+  exit(1);
+
+  /*
 
   h2 = H2((void *)&tmi,x,u);
   printf("\nh2: %f\n",h2);
@@ -1056,7 +1046,7 @@ int main(int argc, char *argv[])
 
   exit(1);
 
-
+  */
 
   /*
 
@@ -2694,9 +2684,9 @@ double H(
 double G(
 
 		 void *stuff,
+		 MAT *p,
 		 MAT *x,
-		 MAT *u,
-		 MAT *p
+		 MAT *u
 	
 		 )
 {
@@ -2773,7 +2763,12 @@ double G(
 	  VEC *ld = v_get(x->n);
 
 	  for (int j=0;j<xt->dim;j++)
-	    ld->ve[j] = pv->ve[j]*(v->ve[j] - al*l->ve[j]) / fabs(v->ve[j] - al*l->ve[j]);
+	    if (v->ve[j] < al*l->ve[j])
+	      ld->ve[j] = -pv->ve[j];
+	    else
+	      ld->ve[j] = pv->ve[j];
+
+	  //	    ld->ve[j] = pv->ve[j]*(v->ve[j] - al*l->ve[j]) / fabs(v->ve[j] - al*l->ve[j]);
 
 	  ht->ve[i] = Q(xt,ld);
 
@@ -2782,8 +2777,150 @@ double G(
 
 	} 
       else 
+	{ 
+          //printf("%d\n",i);
+          //printf("%f\n",Q(xt,pt));
+          //printf("%f\n",Q(xt,v));
+          //printf("%f\n",c(k*(i-tmi.I)));
+        
+	  if (Q(xt,v)<1e3*c(k*(i-tmi.I)))
+	    ht->ve[i] = -Q(xt,pv);//*(Q(xt,v)-1e3*c(k*(i - tmi.I)))/fabs(Q(xt,v)-1e3*c(k*(i - tmi.I)));
+	  else
+	    ht->ve[i]=Q(xt,pv);
+	}
+
+      tt->ve[i] = k*(i-tmi.I);
+
+    }
+
+
+  if (BLAH) {
+
+    FILE *p1 = fopen("plot.txt","w");
+
+    for (int i=tmi.I;i<x->m;i++)
+      fprintf(p1,"%f %f\n",tt->ve[i],ht->ve[i]);
+
+    fclose(p1);
+
+    char buffer[100];
+
+    sprintf(buffer,"./plo1 > plotht.pdf");
+
+    system(buffer);
+
+  }
+
+  return Q(tt,ht);
+
+}
+
+double G_ni(
+
+		 void *stuff,
+		 MAT *p,
+		 MAT *x,
+		 MAT *u
+	
+		 )
+{
+
+  struct TMI tmi;
+  tmi = * (struct TMI *) stuff;
+
+  int lfi=0;
+
+  VEC *ht = v_get(x->m);
+  VEC *tt = v_get(x->m);
+
+  for (int i=tmi.I;i<x->m;i++)
+    {
+
+      VEC *xt = v_get(x->n);
+      get_row(x,i,xt);      
+      VEC *ut = v_get(x->n);
+      get_row(u,i,ut);      
+      VEC *pt = v_get(x->n);
+      get_row(p,i,pt); 
+
+      VEC *v = v_get(x->n);
+      VEC *pv = v_get(x->n);
+
+      for (int j=0;j<x->n;j++) 
 	{
-	  ht->ve[i] = Q(xt,pt)*(Q(xt,v)-1e3*c(k*(i - tmi.I)))/fabs(Q(xt,v)-1e3*c(k*(i - tmi.I)));
+	  pv->ve[j] = tmi.dp.iota*e(k*(i-tmi.I))*s(xt->ve[j])*w(xt->ve[j])*pt->ve[j];
+	  v->ve[j] = tmi.dp.iota*e(k*(i-tmi.I))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+	}
+
+      if(lfS.t_id[lfi]==i) 
+	{
+      
+	  VEC *dt = v_get(lfS.t_sz[lfi]);
+
+	  for (int j=0;j<dt->dim;j++)
+	    dt->ve[j] = lfS.lf[lfi][j];
+
+	  double bw = get_bw(dt);
+
+	  VEC *l = v_get(xt->dim);
+
+	  for (int j=0;j<xt->dim;j++)
+	    for (int jj=0;jj<dt->dim;jj++)
+	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
+
+	  double al = 1e3*c(k*(i - tmi.I)) / Q(xt,l);
+
+	  if (BLAH) {
+
+	    FILE *p1 = fopen("plot1.txt","w");
+
+	    for (int j=0;j<x->n;j++)
+	      fprintf(p1,"%f %f\n",xt->ve[j],al*l->ve[j]);
+
+	    fclose(p1);
+
+	    FILE *p2 = fopen("plot2.txt","w");
+
+	    for (int j=0;j<x->n;j++)
+	      fprintf(p2,"%f %f\n",xt->ve[j],pv->ve[j]);
+
+	    fclose(p2);
+
+	    char buffer[100];
+
+	    sprintf(buffer,"./plo > plotl%.3f.pdf",k*(lfS.t_id[lfi] - tmi.I));
+
+	    system(buffer); 
+
+	  }
+
+	  VEC *ld = v_get(x->n);
+
+	  for (int j=0;j<xt->dim;j++)
+	    if (v->ve[j] < al*l->ve[j])
+	      ld->ve[j] = -pv->ve[j];
+	    else
+	      ld->ve[j] = pv->ve[j];
+
+	  //	    ld->ve[j] = pv->ve[j]*(v->ve[j] - al*l->ve[j]) / fabs(v->ve[j] - al*l->ve[j]);
+
+	  ht->ve[i] = Q(xt,ld);
+
+          if (lfi<lfS.n)
+	    lfi += 1;
+
+	} 
+      else 
+	{ 
+          //printf("%d\n",i);
+          //printf("%f\n",Q(xt,pt));
+          //printf("%f\n",Q(xt,v));
+          //printf("%f\n",c(k*(i-tmi.I)));
+        
+	  if (Q(xt,v)<1e3*c(k*(i-tmi.I)))
+	    ht->ve[i] = -Q(xt,pv);//*(Q(xt,v)-1e3*c(k*(i - tmi.I)))/fabs(Q(xt,v)-1e3*c(k*(i - tmi.I)));
+	  else
+	    ht->ve[i]=Q(xt,pv);
 	}
 
       tt->ve[i] = k*(i-tmi.I);

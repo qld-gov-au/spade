@@ -75,7 +75,7 @@ where $x$ is the size of the individual, $\omega$ is the maximum size, and $b$, 
 \begin{subequations}
   \begin{align}
     g(x) &= \kappa (\omega - x)\label{seq:2b}\\
-    b(x,t) &= \left(\alpha_1 x + \alpha_2 x^2\right) \exp\left(\psi \cos(t-\phi)\right)/ 2\pi I_0(\psi)    \label{seq:2c},
+    b(x,t) &= \left(\alpha_1 x + \alpha_2 x^2\right)\label{seq:2c},%\exp\left(\psi \cos(t-\phi)\right)/ 2\pi I_0(\psi)
   \end{align}
 \end{subequations}
 while the mortality process is given by 
@@ -159,67 +159,28 @@ See \citet{Angulo2014} for convergence analysis and numerical experiments.
 
 \clearpage
 \section{Parameter Estimation}
-The model is calibrated against four kinds of data: catch data (total removals from the fishery), size-structure data, size-age structure data, and tag-recapture data. The (dis-)agreement between the model predictions and these data sets is measured by so-called objective functions. Parameter estimation is the process of finding the values of the model parameters that optimise this agreement. Optimisation is a hard problem in general, and optimisation routines that make use of the gradient of the objective function (with respect to the model parameters) are usually significantly more efficient. Another important consideration is the initial condition - both the initial state of the model and initial guesses for parameter values. Finally we describe the optimisation algorithm itself.
-\subsection{Objective functions}
-Let the observed catch rate at time $t$ be $c(t)$, let the observed effort rate at time $t$ be $e(t)$, let the observed size-structure at time $t_j$ be represented by the function $l_j(x)$, and let $\theta=\{\alpha_1,\alpha_2,\beta,\gamma,\kappa,\omega,\iota\}$. Then we have an objective function for catch
+The model is calibrated against fishery catch-at-size data. This comes from two sources: commercial catch data (a scalar time series representing removals from the population), and scientific monitoring program data on the size structure of the commercial catch. These are combined to produce the `observation': $c(x,t)$, the catch rate (in kilograms per centimetre) at time $t$. It is this observation to which the model is fit:
 \begin{equation}
-  H_1(\theta) = \int_0^T \left(c(t) - \int_0^\omega s(x)w(x)f(t;\theta)u(x,t;\theta)\,dx\right)^2 \,dt,
+H(\theta) = \int_0^T \int_0^\omega |s(x)w(x)f(t;\theta)u(x,t;\theta) - c(x,t)| \,dx\,dt
 \end{equation}
-and an objective function for size-structure data,
+Optimisation is a hard problem in general, and optimisation routines that make use of the gradient of the objective function (with respect to the model parameters) are usually significantly more efficient. The gradient is given by
 \begin{equation}
-  H_2(\theta) = \sum_j \int_0^\omega l_j'(x)-s(x)f(t;\theta)u(x,t;\theta)\,dx
+%\frac{d H(\theta)}{d\theta}=
+\int_0^T \int_0^\omega
+\begin{cases}
+-s(x)w(x)f_\theta(t;\theta)u(x,t;\theta) - s(x)w(x)f(t;\theta)p(x,t;\theta), &  s(x)w(x)f(t;\theta)u(x,t;\theta) < c(x,t)\\
+s(x)w(x)f_\theta(t;\theta)u(x,t;\theta) + s(x)w(x)f(t;\theta)p(x,t;\theta), & s(x)w(x)f(t;\theta)u(x,t;\theta)>c(x,t) 
+\end{cases}\,dx\,dt
 \end{equation}
-where 
-\begin{equation}
-   l_j'(x) = \frac{c(t)}{\int_0^\omega l_j(x)w(x)\,dx}l_j(x)% \frac{s(x)u(x,t_j;\theta)}{\int s(x)u(x,t_j;\theta)\,dx },
-\end{equation}
-an objective function for size-age data,
-\begin{equation}
-  H_3(\theta) = \sum_k \left(x_k - \omega\left(1-\exp(-\kappa a_k)\right)\right)^2,
-\end{equation}
-where $x_k$ is the size of the individual and $a_k$ is the age, and an objective function for tag-recapture data,
-\begin{equation}
-  \begin{split}
-  H_4(\theta) &= \sum_i \left( \frac{e^{-\kappa t_i}( {x_1}_i + e^{-\kappa t_i}{x_2}_i + \omega e^{-2\kappa t_i} - \omega e^{-\kappa t_i})}{e^{-2\kappa t_i}+1} - {x_2}_i + \omega (1-e^{-\kappa t_i}) \right)^2 + \\
-  &\phantom{H_4(\theta)H_4(\theta)} \left( \frac{ {x_1}_i + e^{-\kappa t_i}{x_2}_i + \omega  e^{-2\kappa t_i} - \omega e^{-\kappa t_i}}{e^{-2\kappa t_i}+1} - {x_1}_i \right)^2
-  \end{split}
-\end{equation}
-where $t_i$ is the time at liberty, ${x_1}_i$ is the size at tag, and ${x_2}_i$ is the size at recapture. %The final objective function is a weighted sum of these four components, $H(\theta) = \xi_1 H_1(\theta) +\xi_2 H_2(\theta) +\xi_3 H_3(\theta) + \xi_4 H_4(\theta)$. We discuss how the $\xi_i$ are chosen later.
-
-The catch objective function is just the time integral of the square of the difference between observed and predicted catches. The size-structure objective function is a sum over temporally distinct data events of the Kullback-Liebler divergence of the predicted size-structure from the observed size structure, the latter being a measure of the information lost when the predicted size-structure is used to approximate the observed \citep{Kullback1951}. The size-age objective function is the sum of the squared vertical distances from the size-age data point to the predicted size-at-age curve. The tag-recapture objective function is the sum of the squared distances from the tag-recapture size-at-tag, size-at-recapture data point to the closest point on the predicted curve for that particular time-at-liberty (equivalently this is the shortest distance from the data point triple (size-at-tag, size-at-recapture, time-at-liberty) to the predicted 2D surface). The size-age objective function is a least squares metric, whereas the tag-recapture objective function is a total least squares metric. Ideally size-age should be total least squares as well, but this is not available analytically.  
-
-Note that we have not attempted to construct a statistical error model and neither of these objective functions are likelihoods; we will return to this in section \ref{sec:dis}.
-
-\subsection{Gradients}
-If it is not obvious how to obtain the gradient analytically, one can use an optimisation algorithm that builds up a numerical approximation of it via finite differences, however finite difference approximation is often poor and can lead to instability in the algorithm. Often a better way to proceed is to use automatic differentiation: once the numerical solution has been applied to the model and source code produced, the code can be viewed as a sequence of compositions of elementary functions, and differentiation is then achieved by clever use of the chain rule \citep{Griewank1989}. \citet{Fournier2012} is an optimisation tool that uses this technique to compute gradients for a Quasi-Newton optimisation algorithm, and is widely used in stock assessment. However a disadvantage of this ``discretise-then-differentiate'' approach is that the differentiation is applied not only to the model, but to the discretisation itself. This causes problems for numerical solutions that are in some way parameter-dependent, such as those that use an adaptive mesh (\citeauthor{Griewank1989}, \citeyear{Griewank1989}, p. 15; \citeauthor{Eberhard1999}, \citeyear{Eberhard1999}). In our case the adaptivity of the mesh keeps the the storage requirements of the algorithm linear in the temporal period of the model, rather than growing with its square, and keeps long simulation runs - of the order needed to achieve equilibrium for a long-lived species followed by many decades of fishing - feasible. Thus we consider this feature important to retain. 
-
-So, rather than ``discretising-then-differentiating'', we obtain the gradient of the objective function by ``differentiating-then-discretising''. That is, rather than beginning by generating a finite-dimensional approximation, we implicitly differentiate the infinite-dimensional model PDE first, and then apply a numerical solution. More accurately, we start by finding the total derivative of the objective function, and this turns out to require a solution to the PDE resulting from an implicit differentiation of the model PDE. This new PDE is known as the \emph{sensitivity} PDE and this approach is widely used in computational physics \citep{Borggaard1997,Li2004}. %,Stanley2002}. 
-
-The total differentials of the catch and size-structure objective functions are
-\begin{equation}
-  \begin{split}    
-    \frac{d H_1(\theta)}{d\theta}&=G_1(\theta)=\int_0^T 2\left(\int_0^\omega s(x)w(x)f(t;\theta)u(x,t;\theta)\,dx - c(t)\right)\\
-    &\phantom{=\int_0^T 2\left(\int_0^\omega s(x)w(x)f_\theta(t;\theta)\right)}\left(\int_0^\omega s(x)w(x)f_\theta(t;\theta)u(x,t;\theta) + s(x)w(x)f(t;\theta)p(x,t;\theta)\,dx\right)\,dt
-  \end{split}
-\end{equation}
-and 
-\begin{equation}
-  \frac{d H_2(\theta)}{d\theta} = \sum_j \int_0^\omega l_j(x)\frac{u(x,t_j;\theta)\int_0^\omega s(x)p(x,t_j;\theta)\,dx - p(x,t_j;\theta) \int_0^\omega s(x)u(x,t_j;\theta)\,dx }{u(x,t_j;\theta) \int_0^\omega s(x)u(x,t_j;\theta)\,dx}\,dx
-\end{equation}
-where $p(x,t;\theta)=u_\theta(x,t;\theta)$ is obtained by solving the sensitivity PDE 
+and where $p(x,t;\theta)=u_\theta(x,t;\theta)$ is obtained by solving the sensitivity-PDE \citep{Borggaard1997,Li2004}. %,Stanley2002}.
 \begin{equation}
   \frac{d F}{d\theta} = F_\theta + F_u p + F_{u_t} p_t + F_{u_x} p_x = 0
 \end{equation}
 with
 \begin{equation}
   F=u_t + \left[g(x;\theta)u\right]_x + z(x,U,t;\theta)u = 0,
-\end{equation}.  
-
-%with boundary condition
-%\begin{equation}
-%  g(0;\theta)u(0,t)=\int_0^\omega b(x;\theta) u(x,t)\,dx
-%\end{equation}
-The sensitivity PDE is given by
+\end{equation}
+so that the sensitivity PDE is given by
 \begin{equation}
   p_t + g_\theta u_x + g p_x + g_x p + {g_x}_\theta u + z p + \left(z_\theta + z_U P\right)u = 0
 \end{equation}
@@ -298,10 +259,10 @@ and
 The model PDE (Equation \ref{eq:1}) is then integrated along the size dimension three times, the second and third time having been first multiplied by $x$ and $x^2$ respectively, producing three ODEs.\footnote{This reduction depends on a technical assumption that the initial data $u(x,0)$ has compact support so that $u(x,t)=0$ for sufficiently large $x$. This is obviously biologically realistic.} Details are contained in Appendix \ref{app:eq}. Eventually we obtain the system
 \begin{subequations}
   \begin{align*}
-    \frac{dU}{dt} &= -(\beta+\gamma U) U + \left(\alpha_1 V + \alpha_2 W\right)\frac{e^{\psi \cos(\theta-\phi)}}{2\pi I_0(\psi)}\\
+    \frac{dU}{dt} &= -(\beta+\gamma U) U + \alpha_1 V + \alpha_2 W\\%\frac{e^{\psi \cos(\theta-\phi)}}{2\pi I_0(\psi)}\\
     \frac{d V}{d t} &= -(\beta+\gamma U)V + \kappa \omega U - \kappa V\\
     \frac{d W}{d t} &= -(\beta+\gamma U)W + 2\kappa\omega V - 2\kappa W\\
-    \frac{d \theta}{d t} &= 1
+    %\frac{d \theta}{d t} &= 1
   \end{align*}
 \end{subequations}
 so that at equilibrium we have
@@ -462,7 +423,6 @@ Process & Symbol & Units & Value\\
 \caption{Active parameters}
 \label{tbl:active}
 \end{table}
-
 
 \clearpage
 \begin{appendices}  
