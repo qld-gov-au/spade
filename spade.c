@@ -3,8 +3,7 @@
 // Alex Campbell 'ghostofsandy' 2015
 
 #define BLAH 0
-#define G1CHECK 1
-#define G2CHECK 1
+#define GCHECK 0
 
 #include <fenv.h>
 #include <sys/time.h>
@@ -25,7 +24,22 @@ struct SMS { VEC *length; VEC *age; };
 struct TMS { VEC *xt; VEC *xr; VEC *tl; };
 struct TMI { struct DP dp; struct GP gp; struct BP bp; int I,J; };
 
+VEC *cat_abs;
+VEC *eff_abs;
+VEC *cat;
+VEC *eff;
+
 struct LF { double **lf; int n; int *t_id; int *t_sz; };
+
+struct TM { 
+  VEC *cat; 
+  VEC *eff;
+  double **lf; int n; int *t_id; int *t_sz;
+  struct DP dp; 
+  struct GP gp; 
+  struct BP bp; 
+  int I,J; 
+};
 
 double iota1=5.2;
 double iota2=0.619;
@@ -48,6 +62,9 @@ void solve(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IV
 double H(void *,MAT *,MAT *);
 double G(void *,MAT *,MAT *,MAT *);
 double G_ni(void *,MAT *,MAT *,MAT *);
+
+double themodel(VEC *,void *);
+VEC *themodeld(VEC *,void *,VEC *);
 
 double H1(void *,MAT *,MAT *);
 double H2(void *,MAT *,MAT *); 
@@ -87,6 +104,10 @@ double idxselect(double,VEC *);
 VEC *idxremove(VEC *,VEC *,int);
 double e(double);
 double c(double);
+
+double _e(void *,double);
+double _c(void *,double);
+
 VEC *kullback(VEC *,VEC *);
 VEC *kde(VEC *,VEC *,double);
 VEC *regrid(VEC *,VEC *,VEC *,VEC *);
@@ -108,12 +129,7 @@ VEC *numgrad(double (*)(VEC *,void *),void *,VEC *,double);
 double h,k;
 int Y;
 
-VEC *cat_abs;
-VEC *eff_abs;
-VEC *cat;
-VEC *eff;
-
-struct LF lfS;
+//struct LF lfS;
 
 int main(int argc, char *argv[])
 {
@@ -121,8 +137,6 @@ int main(int argc, char *argv[])
   feenableexcept(FE_DIVBYZERO); 
   feenableexcept(FE_INVALID); 
   feenableexcept(FE_OVERFLOW);
-  //feenableexcept(FE_UNDERFLOW);
-  //FE_ALL_EXCEPT & ~FE_INEXACT);
 
   float *ct; 
   float *ti; 
@@ -175,8 +189,13 @@ int main(int argc, char *argv[])
 
 	  int N = (int)24/k;
 
+	  struct TM tmt;
+
 	  cat = v_get(N+1);
 	  eff = v_get(4*N+1);
+
+          tmt.cat = v_get(N+1);
+          tmt.eff = v_get(4*N+1);
 
 	  double cek = k/4;
 
@@ -231,6 +250,8 @@ int main(int argc, char *argv[])
 	  lfS.lf = (double **) calloc(lfS.n,sizeof(double *));
 	  lfS.t_id = (int *) calloc(lfS.n,sizeof(int));
 	  lfS.t_sz = (int *) calloc(lfS.n,sizeof(int));
+
+          tmt.lf = (double **) calloc(lfS.n,sizeof(double *));
 
 	  int kk=0;
 	  for (int i=0;i<cnt->dim;i++)
@@ -495,7 +516,7 @@ int main(int argc, char *argv[])
 
   //double iota = 2.80522e-5; //1./45000; //15.669;
 
-  struct TMI tmi;
+  struct TM tmi;
   tmi.gp = gp;
   tmi.dp = dp;
   tmi.bp = bp;
@@ -662,13 +683,14 @@ int main(int argc, char *argv[])
 
   }
 
+  if (GCHECK) {
+  printf("\nChecking G def d H / d iota \n\n");
+
   solve_p_iota((void *)&tmi,p_i,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
   double gi = G((void *)&tmi,p_i,x,u);
   printf("\ngi: %f\n",gi);
 
-  printf("\nChecking G def d H / d iota \n\n");
-
-  double ng = 0;     
+  double ng;     
   double iota_save = tmi.dp.iota;
 
   for (int j=-8;j>-15;j--)
@@ -684,7 +706,7 @@ int main(int argc, char *argv[])
   printf("%g %g %g\n",gi,gi-ng,(gi-ng)/ng);
 
   tmi.dp.iota = iota_save;
-
+  
   printf("\nChecking G def d H / d alpha1 \n\n");
 
   solve_p_alpha1((void *)&tmi,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
@@ -715,7 +737,6 @@ int main(int argc, char *argv[])
   double ga2 = G_ni((void *)&tmi,p_a2,x,u);
   printf("\nga2: %f\n",ga2);
 
-  ng = 0;     
   double alpha2_save = tmi.bp.alpha2;
   for (int j=-5;j>-15;j--)
     {
@@ -738,7 +759,7 @@ int main(int argc, char *argv[])
 
   if (BLAH) {
     
-  VEC *pt = v_get(x->n);
+    VEC *pt = v_get(x->n);
   VEC *xt = v_get(x->n);
 
   FILE *p1 = fopen("plot.txt","w");
@@ -759,11 +780,9 @@ int main(int argc, char *argv[])
   double gb = G_ni((void *)&tmi,p_b,x,u);
   printf("\ngb: %f\n",gb);
 
-  if (G1CHECK) {
-
   printf("\nChecking H derivative for beta\n\n");
 
-  double ng = 0;
+  ng = 0;
   double beta_save = tmi.dp.beta;
 
   for (int j=-1;j>-12;j--)
@@ -780,16 +799,11 @@ int main(int argc, char *argv[])
 
   tmi.dp.beta = beta_save;
 
-  }
-
   double gg = G_ni((void *)&tmi,p_g,x,u);
   printf("\ngg: %f\n",gg);
 
-  if (G1CHECK) {
-
   printf("\nChecking H derivative for gamma\n\n");
 
-  double ng = 0;
   double gamma_save = tmi.dp.gamma;
 
   for (int j=-8;j>-30;j--)
@@ -806,16 +820,11 @@ int main(int argc, char *argv[])
 
   tmi.dp.gamma = gamma_save;
 
-  }
-
   double gk = G_ni((void *)&tmi,p_k,x,u);
   printf("\ngk: %f\n",gk);
 
-  if (G1CHECK) {
-
   printf("\nChecking H derivative for kappa\n\n");
 
-  double ng = 0;
   double kappa_save = tmi.gp.kappa;
 
   for (int j=-1;j>-10;j--)
@@ -832,16 +841,11 @@ int main(int argc, char *argv[])
 
   tmi.gp.kappa = kappa_save;
 
-  }
-
   double gw = G_ni((void *)&tmi,p_w,x,u);
   printf("\ngw: %f\n",gw);
 
-  if (G1CHECK) {
-
   printf("\nChecking H derivative for omega\n\n");
 
-  double ng = 0;
   double omega_save = tmi.gp.omega;
 
   for (int j=-1;j>-10;j--)
@@ -860,7 +864,14 @@ int main(int argc, char *argv[])
 
   }
 
-  exit(1);
+
+  //       double (*model)(VEC *,void *),
+  //       VEC * (*modeld)(VEC *,void *,VEC *),
+  //	       VEC *x,
+  //	       void *stuff
+
+
+
 
   /*
 
@@ -1210,14 +1221,6 @@ double bfgsrun(
     }
 
 }
-
-  //tmi.dp.iota = iota;
-  //tmi.bp.alpha1 = 0.005;
-  //tmi.bp.alpha2 = 0.003;
-  //tmi.dp.beta = 1;
-  //tmi.dp.gamma = 1e-9;
-  //tmi.gp.omega = 173;    
-
 
 int linesearch(
 
@@ -1824,6 +1827,22 @@ VEC *secondmodeld(
   grad->ve[1] = rt2/sms.length->dim;
 
   return grad;
+
+}
+
+double themodel(
+
+		  VEC *x,
+		  void *stuff
+
+		  )
+{
+
+  struct TM tm;
+
+  tm = * (struct TM *) stuff;
+
+  return 0;
 
 }
 
