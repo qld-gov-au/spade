@@ -91,10 +91,8 @@ double idxselect(double,VEC *);
 VEC *idxremove(VEC *,VEC *,int);
 double e(double);
 double c(double);
-
-double _e(void *,double);
-double _c(void *,double);
-
+double _e(VEC *,double,double,double);
+double _c(VEC *,double,double);
 VEC *kullback(VEC *,VEC *);
 VEC *kde(VEC *,VEC *,double);
 VEC *regrid(VEC *,VEC *,VEC *,VEC *);
@@ -120,7 +118,7 @@ VEC *numgrad(double (*)(VEC *,void *),void *,VEC *,double);
 double h,k;
 int Y;
 
-//struct LF lfS;
+struct LF lfS;
 
 int main(int argc, char *argv[])
 {
@@ -196,13 +194,12 @@ int main(int argc, char *argv[])
 	      int idxr2 = floor((ti[i]+k/2)/k);
 	      cat->ve[idxr2] += (ct[i]/k)/1e3;
 	      eff->ve[idxr] += 1.0/cek;
+	      tmt.cat->ve[idxr2] += (ct[i]/k)/1e3;
+	      tmt.eff->ve[idxr] += 1.0/cek;
 	    }
   
 	  free(ct);
 	  free(ti);
-
-	  //	  for (int i=2;i<eff->dim;i++)
-	  //eff->ve[i] = (eff->ve[i-2]+eff->ve[i-1]+eff->ve[i])/3.;
 
 	  fclose(fp1);
 
@@ -221,14 +218,12 @@ int main(int argc, char *argv[])
 	  fclose(fp1);
 
 	  VEC *lfv = v_get(Nlf);
-	  VEC *tlv = v_get(Nlf);
 	  VEC *ilv = v_get(Nlf);
 	  VEC *cnt = v_get((int)2*Y/k);
 
 	  for (int i=0;i<Nlf;i++)
 	    {
 	      lfv->ve[i] = (double)ln[i];
-	      // tlv->ve[i] = (double)tl[i];
 	      ilv->ve[i] = (int)(Y/k + floor((tl[i]+k/2)/k));
 	      cnt->ve[(int)(Y/k + floor((tl[i]+k/2)/k))] += 1;
 	    }
@@ -288,226 +283,16 @@ int main(int argc, char *argv[])
 
 	  i += 8;
 
-	}
-      else if (!strcmp(argv[i], "-lf"))
-	{
-
-	  if (i+1 == argc)
-	    {
-	      printf("\n no file specified\n");
-	      exit(0);
-	    }
-
-
-	  i += 1;
-
-	}
-      else if (!strcmp(argv[i], "-testx"))
-	{
-
-	  float kappa,omega,kread;
-	  int J;
-	  sscanf(argv[i+1],"%f",&kappa);
-	  sscanf(argv[i+2],"%f",&omega);
-	  sscanf(argv[i+3],"%d",&J);
-	  sscanf(argv[i+4],"%f",&kread);
-
-	  struct GP gp;
-	  gp.kappa=kappa;
-	  gp.omega=omega;
-
-	  h = omega/J;
-	  k = kread;
-
-	  VEC *xtest = v_get(J+1);
-	  VEC *xtesth = v_get(J+2);
-	  VEC *xtestn = v_get(J+2);
-
-	  for (int j=1;j<xtest->dim;j++)
-	    xtest->ve[j] = h*j;
-
-	  xhstep(&gp,xtest,xtesth);
-	  xstep(&gp,xtest,xtesth,xtestn);
-
-	  for (int j=0;j<xtestn->dim;j++)
-	    printf("%f ",xtestn->ve[j]);
-
-	  exit(0);
-	}
-      else if (!strcmp(argv[i], "-testu"))
-	{
-
-	  float kappa,omega,beta,gamma,alpha1,alpha2,kread,iota;
-	  int J;
-	  sscanf(argv[i+1],"%f",&kappa);
-	  sscanf(argv[i+2],"%f",&omega);
-	  sscanf(argv[i+3],"%f",&beta);
-	  sscanf(argv[i+4],"%f",&gamma);
-	  sscanf(argv[i+5],"%f",&alpha1);
-	  sscanf(argv[i+6],"%f",&alpha2);
-	  sscanf(argv[i+7],"%f",&iota);
-	  sscanf(argv[i+8],"%d",&J);
-	  sscanf(argv[i+9],"%f",&kread);
-
-	  struct GP gp;
-	  gp.kappa=kappa;
-	  gp.omega=omega;
-
-	  struct DP dp;
-	  dp.beta=beta;
-	  dp.gamma=gamma;
-	  dp.iota=iota;
-
-	  struct BP bp;
-	  bp.alpha1=alpha1;
-	  bp.alpha2=alpha2;
-
-	  h = omega/J;
-	  k = kread;
-
-	  cat = v_get(1);
-	  eff = v_get(1);
-
-	  VEC *xtest = v_get(J+1);
-	  VEC *xtesth = v_get(J+2);
-	  VEC *xtestn = v_get(J+2);
-	  VEC *utest = v_get(J+1);
-	  VEC *utesth = v_get(J+2);
-	  VEC *utestn = v_get(J+2);
-
-	  for (int j=1;j<xtest->dim;j++)
-	    xtest->ve[j] = h*j;
-
-	  utest = initial(&gp,&bp,&dp,xtest,utest);
-
-	  xhstep(&gp,xtest,xtesth);
-	  uhstep(xtest,xtesth,utest,utesth,&bp,&gp,&dp,Q(xtest,utest),k/2);
-
-	  xstep(&gp,xtest,xtesth,xtestn);
-	  ustep(xtesth,utest,xtestn,utestn,&bp,&gp,&dp,Q(xtesth,utesth),k);
-
-	  for (int j=0;j<utestn->dim;j++)
-	    printf("%f ",utestn->ve[j]);
-
-	  exit(0);
-	}
-      else if (!strcmp(argv[i], "-testl"))
-	{
-
-	  float kappa,omega,beta,gamma,alpha1,alpha2,kread,iota;
-	  int J,I;
-	  sscanf(argv[i+1],"%f",&kappa);
-	  sscanf(argv[i+2],"%f",&omega);
-	  sscanf(argv[i+3],"%f",&beta);
-	  sscanf(argv[i+4],"%f",&gamma);
-	  sscanf(argv[i+5],"%f",&alpha1);
-	  sscanf(argv[i+6],"%f",&alpha2);
-	  sscanf(argv[i+7],"%f",&iota);
-	  sscanf(argv[i+8],"%d",&J);
-	  sscanf(argv[i+9],"%f",&kread);
-	  sscanf(argv[i+8],"%d",&I);
-
-	  struct GP gp;
-	  gp.kappa=kappa;
-	  gp.omega=omega;
-
-	  struct DP dp;
-	  dp.beta=beta;
-	  dp.gamma=gamma;
-	  dp.iota=iota;
-
-	  struct BP bp;
-	  bp.alpha1=alpha1;
-	  bp.alpha2=alpha2;
-
-	  h = omega/J;
-	  k = kread;
-
-	  cat = v_get(1);
-	  eff = v_get(1);
-
-	  MAT *x = m_get(I+1,J+1);
-	  MAT *u = m_get(I+1,J+1);
-
-	  VEC *Qi = v_get(I+1);
-	  VEC *xn_tmp; VEC *un_tmp; VEC *xh_tmp; VEC *uh_tmp;
-	  int J1 = x->n+1;
-	  xn_tmp = v_get(J1); un_tmp = v_get(J1);
-	  xh_tmp = v_get(J1); uh_tmp = v_get(J1);
-
-	  //	  VEC *C = v_get(x->m);
-
-	  VEC *tmp1; VEC *tmp2;
-	  tmp1 = v_get(x->n);
-	  tmp2 = v_get(x->n);
-
-	  for (int j=1;j<x->n;j++) 
-	    x->me[0][j] = h*j;
- 
-	  set_row(u,0,initial(&gp,&bp,&dp,get_row(x,0,tmp1),tmp2));
- 
-	  Qi->ve[0] = Q(get_row(x,0,tmp1),get_row(u,0,tmp2));
-
-	  for (int i=1;i<x->m;i++)
-	    {
-
-	      xhstep(&gp,get_row(x,i-1,tmp1),xh_tmp);
-	      uhstep(get_row(x,i-1,tmp1),xh_tmp,get_row(u,i-1,tmp2),uh_tmp,&bp,&gp,&dp,Qi->ve[i-1],k*(i-1));
-
-	      double Qh = Q(xh_tmp,uh_tmp);
-
-	      xstep(&gp,get_row(x,i-1,tmp1),xh_tmp,xn_tmp);
-	      ustep(xh_tmp,get_row(u,i-1,tmp1),xn_tmp,un_tmp,&bp,&gp,&dp,Qi->ve[i-1],k*(i-.5));
-
-	      Qi->ve[i] = Q(xn_tmp,un_tmp);
-      
-	      int idx = idxselect(gp.omega,xn_tmp);
-
-	      set_row(x,i,idxremove(xn_tmp,tmp1,idx));
-	      set_row(u,i,idxremove(un_tmp,tmp1,idx));
-
-	    }
-
-	  /*      VEC * ctm = v_get(x->n+1);
-      for (int j=0;j<x->n+1;j++)
-	ctm->ve[j] = s(xn_tmp->ve[j])*iota*e(k*(i-I))*w(xn_tmp->ve[j])*un_tmp->ve[j];
-      C->ve[i] = Q(xn_tmp,ctm)/1e5;
-      V_FREE(ctm);
-	  */
-
-	  for (int j=0;j<u->n;j++)
-	    printf("%f ",u->me[I][j]);
-
-	  exit(0);
-	}
-      /*
+	} 
       else
 	{
-	  printf("\n");
-	  printf("	proper usage requires at least one filename specified\n");
-	  printf("		e.g. spade -ce ce.dat or ... \n");
-	  printf("\n");
-	  printf("	Other arguments:\n");
-	  printf("			-ce   [no default] catch effort data file\n");
-	  exit(0);
-	  }*/
+	  printf("problem\n");
+          exit(1);
+	}
     }
-
   }
 
-  //  int N = 1024;
-
-  /*
-  printf("\n");
-  for (int i=0;i<((int)1./cek);i++)
-    printf("%f\n",eff->ve[i]);
-  printf("e");
-  exit(1);
-  */
-
-  //double iota = 2.80522e-5; //1./45000; //15.669;
-
-  struct TM tmi;
+  struct TMI tmi;
   tmi.gp = gp;
   tmi.dp = dp;
   tmi.bp = bp;
@@ -3618,6 +3403,44 @@ double zstar(
 
   return beta + gamma*U + s(x)*iota*e(t) - kappa;
 
+}
+
+double _e(
+
+	  VEC * ef,
+	  double r,
+	  double t,
+	  double e_pre
+
+	  )
+{
+
+  if (t<0)
+    return e_pre;
+  else
+    {
+      double cek = r/4;
+      int idx = floor((t + (cek/2) - 1e-12)/cek); // better to use double epsilon?
+      return ef->ve[idx];
+    }
+}
+
+double _c(
+
+	  VEC * ca,
+	  double r,
+	  double t
+
+	  )
+{
+
+  if (t<0)
+    return 0;
+  else
+    {
+      int idx = floor((t + (r/2) - 1e-12)/r); // better to use double epsilon?
+      return ca->ve[idx];
+    }
 }
 
 double e(double t)
