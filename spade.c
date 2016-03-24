@@ -39,7 +39,38 @@ struct TM {
   struct GP gp; 
   struct BP bp; 
   int I,J; 
+  int r;
+  double e_pre;
 };
+
+struct DATA {
+  VEC *eff;
+  double **lf; 
+  int n; 
+  int *t_id; 
+  int *t_sz;
+  double e_pre;
+  double omega;
+  int I,J;
+  int k;
+};
+
+struct PARAMETERS {
+  double alpha1;
+  double alpha2;
+  double beta;
+  double gamma;
+  double kappa;
+  double iota;
+}
+
+struct STUFF {
+  struct DATA data;
+  struct PARMETERS par;
+};
+
+//struct control {
+//};
 
 double iota1=5.2;
 double iota2=0.619;
@@ -59,11 +90,12 @@ VEC *secondmodeld(VEC *, void *, VEC *);
 double thirdmodel(VEC *, void *);
 VEC *thirdmodeld(VEC *, void *, VEC *);
 void solve(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
+void _solve(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 double H(void *,MAT *,MAT *);
 double G(void *,MAT *,MAT *,MAT *);
 double G_ni(void *,MAT *,MAT *,MAT *);
-double themodel(VEC *,void *);
-VEC *themodeld(VEC *,void *,VEC *);
+//double themodel(VEC *,void *);
+VEC *themodeld(VEC *,void *,VEC *,double *);
 void solve_p_alpha1(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 void solve_p_alpha2(void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 void solve_p_beta  (void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
@@ -73,6 +105,7 @@ void solve_p_omega (void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *
 void solve_p_iota  (void *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *);
 
 double zstar(double,double,double,double,double,double,double);
+double _zstar(void *,double,double,double);
 double wstar(double,double,double,double,double);
 double Q(VEC *,VEC *);
 double Qn(VEC *,VEC *,int);
@@ -102,11 +135,15 @@ VEC *get_obs(VEC *,VEC *,int);
 
 /* Optimisation routine */
 int linesearch(VEC *,VEC *,double,double,double *,double,double,double,double,VEC *,VEC *,double *,double (*)(VEC *,void *),VEC * (*)(VEC *,void *,VEC *),void *);
+int _linesearch(VEC *,VEC *,double,double,double *,double,double,double,double,VEC *,VEC *,double *,VEC * (*)(VEC *,void *,VEC *),void *);
 MAT *UpdateHessian(MAT*, VEC*,VEC*);
 double bfgsrun(double (*)(VEC *,void *),VEC * (*)(VEC *,void *,VEC *),VEC *,void *);
+double _bfgsrun(VEC * (*)(VEC *,void *,VEC *),VEC *,void *);
 double pickAlphaWithinInterval(double,double,double,double,double,double,double,double);
 int bracketingPhase(VEC *,VEC *,double,double,double *,double,double,double,double,VEC *,VEC *,double *,double *,double *,double *,double *,double *,double *,double (*)(VEC *,void *),VEC *(*)(VEC *,void *,VEC *),void *);
 int sectioningPhase(VEC *,VEC *,VEC *,VEC *,double (*)(VEC *,void *),VEC *(*)(VEC *,void *,VEC *),void *,double *,double *,double,double,double,double,double,double,double,double,double,double,double);
+int _bracketingPhase(VEC *,VEC *,double,double,double *,double,double,double,double,VEC *,VEC *,double *,double *,double *,double *,double *,double *,double *,VEC *(*)(VEC *,void *,VEC *),void *);
+int _sectioningPhase(VEC *,VEC *,VEC *,VEC *,VEC *(*)(VEC *,void *,VEC *),void *,double *,double *,double,double,double,double,double,double,double,double,double,double,double);
 void interpolatingCubic(double,double,double,double,double,double,VEC *);
 double globalMinimizerOfPolyInInterval(double,double,VEC *);
 double polyval(VEC *, double);
@@ -140,6 +177,8 @@ int main(int argc, char *argv[])
   struct GP gp;
   struct DP dp;
   struct BP bp;
+
+  struct TM tmt;
 
   if (argc < 2)
     {
@@ -177,8 +216,6 @@ int main(int argc, char *argv[])
 	    fscanf(fp1,"%f %f", &ct[i],&ti[i]);
 
 	  int N = (int)24/k;
-
-	  struct TM tmt;
 
 	  cat = v_get(N+1);
 	  eff = v_get(4*N+1);
@@ -237,7 +274,10 @@ int main(int argc, char *argv[])
 	  lfS.t_id = (int *) calloc(lfS.n,sizeof(int));
 	  lfS.t_sz = (int *) calloc(lfS.n,sizeof(int));
 
-          tmt.lf = (double **) calloc(lfS.n,sizeof(double *));
+          tmt.n = lfS.n;
+          tmt.lf = (double **) calloc(tmt.n,sizeof(double *));
+	  tmt.t_id = (int *) calloc(tmt.n,sizeof(int));
+	  tmt.t_sz = (int *) calloc(tmt.n,sizeof(int));
 
 	  int kk=0;
 	  for (int i=0;i<cnt->dim;i++)
@@ -249,11 +289,16 @@ int main(int argc, char *argv[])
 		  lfS.t_sz[kk] = cnt->ve[i];		
 		  lfS.lf[kk] = calloc(lfS.t_sz[kk],sizeof(double));
 
+		  tmt.t_id[kk] = i;
+		  tmt.t_sz[kk] = cnt->ve[i];		
+		  tmt.lf[kk] = calloc(tmt.t_sz[kk],sizeof(double));
+
 		  int jj=0;
 		  for (int j=0;j<Nlf;j++)
 		    if (ilv->ve[j]==i)
 		      {
 			lfS.lf[kk][jj] = lfv->ve[j];
+			tmt.lf[kk][jj] = lfv->ve[j];
 			jj += 1;
 		      }
 
@@ -291,6 +336,511 @@ int main(int argc, char *argv[])
 	}
     }
   }
+
+  tmt.gp = gp;
+  tmt.dp = dp;
+  tmt.bp = bp;
+  tmt.I = (int)24/k;
+  tmt.J = 400;
+  tmt.r = k;
+  tmt.e_pre = 5;
+
+  //       double (*model)(VEC *,void *),
+  //       VEC * (*modeld)(VEC *,void *,VEC *),
+  //	       VEC *x,
+  //	       void *stuff
+
+  exit(1);
+
+}
+
+VEC *themodeld(
+
+		  VEC *z,
+		  void *dataptr,
+		  VEC *grad,
+		  double *f
+
+		  )
+{
+
+  struct PARAMETERS par;
+
+  par.alpha1 = z->ve[1];
+  par.alpha2 = z->ve[2];
+  par.beta = z->ve[3];  
+  par.gamma = z->ve[4];
+  par.kappa = z->ve[5];
+  par.iota = z->ve[6]; 
+
+  struct DATA data = * (struct DATA *) dataptr;
+
+  int I = 2*data.I + 1;
+  int J = data.J+1;
+
+  MAT *x = m_get(I,J);
+  MAT *u = m_get(I,J);
+  MAT *xh = m_get(I,J+1);
+  MAT *uh = m_get(I,J+1);
+  MAT *xn = m_get(I,J+1);
+  MAT *xhh = m_get(I,J+1);
+  MAT *un = m_get(I,J+1);
+  VEC *Ui = v_get(I);
+  VEC *Uh = v_get(I);
+  VEC *Uhh = v_get(I);
+  IVEC *idxi = iv_get(I-1);
+
+  struct STUFF stuff;
+
+  stuff.data = data;
+  stuff.par = par;
+
+  _solve((void *)&par,(void *)&data,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+  &f = H((void *)&tmi,x,u);
+
+  MAT *p_a1 = m_get(x->m,x->n);
+  solve_p_alpha1((void *)&tmi,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+  grad->ve[1] = G_ni((void *)&tmi,p_a1,x,u);
+
+  MAT *p_a2 = m_get(x->m,x->n);
+  solve_p_alpha2((void *)&tmi,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+  grad->ve[2] = G_ni((void *)&tmi,p_a2,x,u);
+
+  MAT *p_b = m_get(x->m,x->n);
+  solve_p_beta  ((void *)&tmi,p_b ,x,u,xhh,xh,xn,uh,   Ui,Uh,Uhh,idxi);
+  grad->ve[3]= G_ni((void *)&tmi,p_b,x,u);
+
+  MAT *p_g = m_get(x->m,x->n);
+  solve_p_gamma ((void *)&tmi,p_g ,x,u,xhh,xh,xn,uh,   Ui,Uh,Uhh,idxi);
+  grad->ve[4] = G_ni((void *)&tmi,p_g,x,u);
+
+  MAT *p_k = m_get(x->m,x->n);
+  solve_p_kappa ((void *)&tmi,p_k ,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+  grad->ve[5] = G_ni((void *)&tmi,p_k,x,u);
+
+  //p_w = m_get(x->m,x->n);
+  //solve_p_omega ((void *)&tmi,p_w ,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+
+  MAT *p_i = m_get(x->m,x->n);
+  solve_p_iota((void *)&tmi,p_i,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi);
+  grad->ve[6] = G((void *)&tmi,p_i,x,u);
+
+  return grad;
+
+}
+
+
+double _bfgsrun(
+
+	       VEC * (*modeld)(VEC *,void *,VEC *),
+	       VEC *x,
+	       void *stuff
+
+	       )	       
+{
+
+  VEC *oldx = v_get(x->dim);
+  VEC *oldgrad = v_get(x->dim);
+  VEC *x_new = v_get(x->dim);
+  VEC *delta_x = v_get(x->dim);
+  VEC *delta_grad = v_get(x->dim);
+  MAT *H = m_get(x->dim,x->dim);
+  VEC *grad = v_get(x->dim);
+  double f;
+  int stop,iter;
+
+  stop=0; iter=0;
+
+  m_ident(H);
+
+  grad = (*modeld)(x,stuff,grad,&f); 
+
+  while (stop==0)
+    {
+      iter=iter+1;
+      if (iter == 150)
+	break;
+
+      VEC *dir = v_get(x->dim);
+      mv_mlt(H,grad,dir);
+      sv_mlt(-1.0,dir,dir);
+
+      double dirD = in_prod(grad,dir);
+
+      if (1) 
+	{
+	  int nzero = 0;
+	  for (int i=0;i<x->dim;i++)
+	    if (grad->ve[i]==0)
+	      nzero++;
+	  //v_output(x);
+          printf("f %f\n",f);
+	  if ((nzero>=(int)(1.0*x->dim)) || (dirD > -1e-15))
+	    {
+	      stop=1;
+	      break;
+	    }
+	}
+
+      double alpha=1.0;
+      if (iter ==1)
+	{
+	  alpha = 1.0 / v_norm_inf(grad);
+	  if (alpha>1.0) alpha = 1.0;
+	}
+
+      oldx = v_copy(x,oldx);
+      oldgrad = v_copy(grad,oldgrad);
+
+      double rho=1e-2;
+      double sigma = 0.1;
+      double TolFun = 1e-11;
+      double fminimum = -1e+10;
+      double f_new = f;
+
+      _linesearch(x,dir,f,dirD,&alpha,rho,sigma,TolFun,fminimum,grad,x_new,&f_new,modeld,stuff);
+
+      f = f_new;
+      sv_mlt(alpha,dir,delta_x);
+      v_add(x,delta_x,x);
+      v_sub(grad,oldgrad,delta_grad);
+
+      H = UpdateHessian(H,delta_x,delta_grad);
+
+    }
+
+}
+
+int _linesearch(
+
+	       VEC *x,
+	       VEC *dir,
+	       double f,
+	       double dirD,
+	       double *alpha,
+	       double rho,
+	       double sigma,
+	       double TolFun,
+	       double fminimum,
+	       VEC *grad,
+	       VEC *x_new,
+	       double *f_new,
+	       VEC *(*modeld)(VEC *,void *,VEC *,double *),
+	       void *stuff
+
+	       )
+{
+  if (dirD * 0 != 0)
+    return 1;
+
+  double a,b,f_a,fPrime_a,f_b,fPrime_b;
+  int flag = _bracketingPhase(x,dir,f,dirD,alpha,rho,sigma,TolFun,fminimum,grad,x_new,&a,&b,&f_a,&fPrime_a,&f_b,&fPrime_b,f_new,modeld,stuff);
+
+  if (flag==2) 
+    {
+      int flag2 = _sectioningPhase(x,dir,grad,x_new,modeld,stuff,f_new,alpha,f,dirD,a,b,f_a,fPrime_a,f_b,fPrime_b,rho,sigma,TolFun);
+      return flag2;
+    }
+  else
+    return flag;
+
+}
+
+int _bracketingPhase(
+
+		    VEC *xInitial,
+		    VEC *dir,
+		    double fInitial,
+		    double fPrimeInitial,
+		    double *alpha,
+		    double rho,
+		    double sigma,
+		    double TolFun,
+		    double fminimum,
+		    VEC *grad,
+		    VEC *x_new,
+		    double *a,
+		    double *b,
+		    double *f_a,
+		    double *fPrime_a,
+		    double *f_b,
+		    double *fPrime_b,
+		    double *f_new,
+		    VEC *(*modeld)(VEC *,void *,VEC *,double *),
+		    void *stuff
+
+		    )
+
+{ /* Fletcher, R. 1987 Practical methods of optimization. 2nd Edition. Page 34 */
+  double tau1 = 9.0;
+  double f_alpha = fInitial;
+  double fPrime_alpha = fPrimeInitial;
+  double alphaMax = (fminimum - fInitial)/(rho*fPrimeInitial);
+  int iter=0;
+  int iterMax=1000;
+  double alphaPrev=0.0;
+
+  while (iter < iterMax)
+    {
+
+      iter++;
+      double fPrev = f_alpha;
+      double fPrimePrev = fPrime_alpha;
+
+      VEC *dirtmp = v_get(xInitial->dim);
+      sv_mlt(*alpha,dir,dirtmp);
+      v_add(xInitial,dirtmp,x_new);
+
+      double alphaold = *alpha;
+      int negflag = 0;
+      while (x_new->ve[0] < 0 || x_new->ve[1] < 0)
+	{
+          alphaold = *alpha;
+          *alpha = .67*(*alpha); 
+	  sv_mlt(*alpha,dir,dirtmp);
+	  v_add(xInitial,dirtmp,x_new);
+	  negflag=1;
+	}
+
+      if (negflag)
+	alphaMax = alphaold;
+
+      grad = (*modeld)(x_new,stuff,grad,&f_alpha); 
+      *f_new = f_alpha;
+      fPrime_alpha = in_prod(grad,dir);
+
+      if (f_alpha < fminimum)
+	return 1;
+
+      if ((f_alpha > fInitial + (*alpha)*rho*fPrimeInitial) || (f_alpha >= fPrev))
+	{
+	  *a = alphaPrev; *b = *alpha;
+	  *f_a = fPrev; *fPrime_a = fPrimePrev;
+	  *f_b = f_alpha; *fPrime_b = fPrime_alpha;
+	  return 2;
+	}
+
+      if (fabs(fPrime_alpha) <= -sigma*fPrimeInitial)
+	return 0;
+
+      //Bracket located - case 2
+      if (fPrime_alpha >= 0)
+	{ 
+	  *a = *alpha; *b = alphaPrev;
+	  *f_a = f_alpha; *fPrime_a = fPrime_alpha;
+	  *f_b = fPrev; *fPrime_b = fPrimePrev;
+	  return 2;
+	}
+
+      if (2.0 * (*alpha) - alphaPrev < alphaMax) 
+	{
+	  double brcktEndPntA = 2*(*alpha) -alphaPrev;
+	  double brcktEndPntB = min(alphaMax,(*alpha)+tau1*((*alpha)-alphaPrev));
+	  double alphaNew = pickAlphaWithinInterval(brcktEndPntA,brcktEndPntB,alphaPrev,(*alpha),fPrev,fPrimePrev,f_alpha,fPrime_alpha);
+	  alphaPrev = (*alpha);
+	  (*alpha) = alphaNew;
+	}
+      else
+	(*alpha) = alphaMax;
+    }
+}
+
+int _sectioningPhase(
+
+		    VEC *xInitial,
+		    VEC *dir,
+		    VEC *grad,
+		    VEC *x_new,
+		    VEC *(*modeld)(VEC *,void *,VEC *),
+		    void *stuff,
+		    double *f_new,
+		    double *alpha,
+		    double fInitial,
+		    double fPrimeInitial,
+		    double a,
+		    double b,
+		    double f_a,
+		    double fPrime_a,
+		    double f_b,
+		    double fPrime_b,
+		    double rho,
+		    double sigma,
+		    double TolFun
+
+		    )
+{/* Fletcher, R. 1987 Practical methods of optimization. 2nd Edition. Page 35 */
+  double eps = 1e-16;
+  double tau2 = min(0.1,sigma);
+  double tau3 = 0.5;
+  double tol = TolFun/1000;
+
+  int iter = 0;
+  int iterMax = 100;
+  while (iter < iterMax)
+    {
+      iter = iter + 1;
+
+      double brcktEndpntA = a + tau2*(b - a); 
+      double brcktEndpntB = b - tau3*(b - a);
+
+      (*alpha) = pickAlphaWithinInterval(brcktEndpntA,brcktEndpntB,a,b,f_a,fPrime_a,f_b,fPrime_b);  
+
+      VEC *dirtmp = v_get(xInitial->dim);
+      sv_mlt(*alpha,dir,dirtmp);
+      v_add(xInitial,dirtmp,x_new);
+
+      double f_alpha;
+      grad = (*modeld)(x_new,stuff,grad,&f_alpha);
+      *f_new = f_alpha;
+
+      double fPrime_alpha = in_prod(grad,dir);
+
+      if (fabs( ((*alpha) - a)*fPrime_a ) <= tol)
+	return -2; 
+
+      double aPrev = a; double bPrev = b; double f_aPrev = f_a; double f_bPrev = f_b; 
+      double fPrime_aPrev = fPrime_a; double fPrime_bPrev = fPrime_b;
+      if ((f_alpha > (fInitial + (*alpha)*rho*fPrimeInitial)) || (f_alpha >= f_a))
+	{
+	  a = aPrev; b = (*alpha);
+	  f_a = f_aPrev; f_b = f_alpha;
+	  fPrime_a = fPrime_aPrev; fPrime_b = fPrime_alpha;
+	}
+      else 
+	{
+  
+	  if (fabs(fPrime_alpha) <= -sigma*fPrimeInitial)
+	    return 0;	// Acceptable point found
+	  a = (*alpha); f_a = f_alpha; fPrime_a = fPrime_alpha;
+	  if ((b - a)*fPrime_alpha >= 0)
+	    {
+	      b = aPrev; f_b = f_aPrev; fPrime_b = fPrime_aPrev;
+	    }
+	  else
+	    {
+	      b = bPrev; f_b = f_bPrev; fPrime_b = fPrime_bPrev;
+	    }
+	}
+
+      // Check if roundoff errors are stalling convergence
+      if (fabs(b-a) < eps)
+	return -2;	// No acceptable point could be found
+
+
+    }
+
+  // We reach this point if and only if maxFunEvals was reached
+  return -1;
+}
+
+
+
+
+
+double bfgsrun(
+
+	       double (*model)(VEC *,void *),
+	       VEC * (*modeld)(VEC *,void *,VEC *),
+	       VEC *x,
+	       void *stuff
+
+	       )	       
+{
+
+  VEC *oldx = v_get(x->dim);
+  VEC *oldgrad = v_get(x->dim);
+  VEC *x_new = v_get(x->dim);
+  VEC *delta_x = v_get(x->dim);
+  VEC *delta_grad = v_get(x->dim);
+  MAT *H = m_get(x->dim,x->dim);
+  VEC *grad = v_get(x->dim);
+  double f;
+  int stop,iter;
+
+  stop=0; iter=0;
+
+  m_ident(H);
+
+  f = (*model)(x,stuff);
+
+  grad = (*modeld)(x,stuff,grad); 
+
+  /*
+  v_output(grad);
+  VEC * ngrad = v_get(x->dim);
+  //ngrad = numgrad(model,stuff,0.001);
+  //v_output(ngrad);
+  printf("\n");
+  for (int i=0;i<100;i++) 
+    {
+      double eps = exp(-(double)i);
+      ngrad = numgrad(model,stuff,x,eps);
+
+      printf("%g %g\n",eps,ngrad->ve[1]);
+    }      
+  printf("e\n");
+  exit(1);
+  */
+
+  while (stop==0)
+    {
+      iter=iter+1;
+      if (iter == 150)
+	break;
+
+      VEC *dir = v_get(x->dim);
+      mv_mlt(H,grad,dir);
+      sv_mlt(-1.0,dir,dir);
+
+      double dirD = in_prod(grad,dir);
+
+      if (1) 
+	{
+	  int nzero = 0;
+	  for (int i=0;i<x->dim;i++)
+	    if (grad->ve[i]==0)
+	      nzero++;
+	  v_output(x);
+          //v_output(grad);
+          printf("f %f\n",f);
+	  if ((nzero>=(int)(1.0*x->dim)) || (dirD > -1e-15))
+	    {
+	      stop=1;
+	      break;
+	    }
+	}
+
+      double alpha=1.0;
+      if (iter ==1)
+	{
+	  alpha = 1.0 / v_norm_inf(grad);
+	  if (alpha>1.0) alpha = 1.0;
+	}
+
+      oldx = v_copy(x,oldx);
+      oldgrad = v_copy(grad,oldgrad);
+
+      double rho=1e-2;
+      double sigma = 0.1;
+      double TolFun = 1e-11;
+      double fminimum = -1e+10;
+      double f_new = f;
+
+      linesearch(x,dir,f,dirD,&alpha,rho,sigma,TolFun,fminimum,grad,x_new,&f_new,model,modeld,stuff);
+
+      f = f_new;
+      sv_mlt(alpha,dir,delta_x);
+      v_add(x,delta_x,x);
+      v_sub(grad,oldgrad,delta_grad);
+
+      H = UpdateHessian(H,delta_x,delta_grad);
+
+    }
+
+}
+
+
+/*
 
   struct TMI tmi;
   tmi.gp = gp;
@@ -640,11 +1190,6 @@ int main(int argc, char *argv[])
 
   }
 
-  //       double (*model)(VEC *,void *),
-  //       VEC * (*modeld)(VEC *,void *,VEC *),
-  //	       VEC *x,
-  //	       void *stuff
-
 
   M_FREE(p_a1);
   M_FREE(p_a2);
@@ -667,353 +1212,9 @@ int main(int argc, char *argv[])
   return(0);
 
 }  
+*/
   
-double bfgsrun(
 
-	       double (*model)(VEC *,void *),
-	       VEC * (*modeld)(VEC *,void *,VEC *),
-	       VEC *x,
-	       void *stuff
-
-	       )	       
-{
-
-  VEC *oldx = v_get(x->dim);
-  VEC *oldgrad = v_get(x->dim);
-  VEC *x_new = v_get(x->dim);
-  VEC *delta_x = v_get(x->dim);
-  VEC *delta_grad = v_get(x->dim);
-  MAT *H = m_get(x->dim,x->dim);
-  VEC *grad = v_get(x->dim);
-  double f;
-  int stop,iter;
-
-  stop=0; iter=0;
-
-  m_ident(H);
-
-  f = (*model)(x,stuff);
-
-  grad = (*modeld)(x,stuff,grad); 
-
-  /*
-  v_output(grad);
-  VEC * ngrad = v_get(x->dim);
-  //ngrad = numgrad(model,stuff,0.001);
-  //v_output(ngrad);
-  printf("\n");
-  for (int i=0;i<100;i++) 
-    {
-      double eps = exp(-(double)i);
-      ngrad = numgrad(model,stuff,x,eps);
-
-      printf("%g %g\n",eps,ngrad->ve[1]);
-    }      
-  printf("e\n");
-  exit(1);
-  */
-
-  while (stop==0)
-    {
-      iter=iter+1;
-      if (iter == 150)
-	break;
-
-      VEC *dir = v_get(x->dim);
-      mv_mlt(H,grad,dir);
-      sv_mlt(-1.0,dir,dir);
-
-      double dirD = in_prod(grad,dir);
-
-      if (1) 
-	{
-	  int nzero = 0;
-	  for (int i=0;i<x->dim;i++)
-	    if (grad->ve[i]==0)
-	      nzero++;
-	  v_output(x);
-          //v_output(grad);
-          printf("f %f\n",f);
-	  if ((nzero>=(int)(1.0*x->dim)) || (dirD > -1e-15))
-	    {
-	      stop=1;
-	      break;
-	    }
-	}
-
-      double alpha=1.0;
-      if (iter ==1)
-	{
-	  alpha = 1.0 / v_norm_inf(grad);
-	  if (alpha>1.0) alpha = 1.0;
-	}
-
-      oldx = v_copy(x,oldx);
-      oldgrad = v_copy(grad,oldgrad);
-
-      double rho=1e-2;
-      double sigma = 0.1;
-      double TolFun = 1e-11;
-      double fminimum = -1e+10;
-      double f_new = f;
-
-      linesearch(x,dir,f,dirD,&alpha,rho,sigma,TolFun,fminimum,grad,x_new,&f_new,model,modeld,stuff);
-
-      f = f_new;
-      sv_mlt(alpha,dir,delta_x);
-      v_add(x,delta_x,x);
-      v_sub(grad,oldgrad,delta_grad);
-
-      H = UpdateHessian(H,delta_x,delta_grad);
-
-    }
-
-}
-
-int linesearch(
-
-	       VEC *x,
-	       VEC *dir,
-	       double f,
-	       double dirD,
-	       double *alpha,
-	       double rho,
-	       double sigma,
-	       double TolFun,
-	       double fminimum,
-	       VEC *grad,
-	       VEC *x_new,
-	       double *f_new,
-	       double (*model)(VEC *,void *),
-	       VEC *(*modeld)(VEC *,void *,VEC *),
-	       void *stuff
-
-	       )
-{
-  if (dirD * 0 != 0)
-    return 1;
-
-  double a,b,f_a,fPrime_a,f_b,fPrime_b;
-  int flag = bracketingPhase(x,dir,f,dirD,alpha,rho,sigma,TolFun,fminimum,grad,x_new,&a,&b,&f_a,&fPrime_a,&f_b,&fPrime_b,f_new,model,modeld,stuff);
-
-  //printf("linesearch, bracketing flag = %d\n",flag);
-
-  if (flag==2) 
-    {
-      int flag2 = sectioningPhase(x,dir,grad,x_new,model,modeld,stuff,f_new,alpha,f,dirD,a,b,f_a,fPrime_a,f_b,fPrime_b,rho,sigma,TolFun);
-      //printf("linesearch, sectioning flag = %d\n",flag2);
-      return flag2;
-    }
-  else
-    return flag;
-
-    //sectioningPhase(x,dir,f,dirD,a,b,f_a,fPrime_a,f_b,rho,sigma,TolFun,grad,x_new,f_new,alpha,gp,xx,obs);
-
-}
-
-int bracketingPhase(
-
-		    VEC *xInitial,
-		    VEC *dir,
-		    double fInitial,
-		    double fPrimeInitial,
-		    double *alpha,
-		    double rho,
-		    double sigma,
-		    double TolFun,
-		    double fminimum,
-		    VEC *grad,
-		    VEC *x_new,
-		    double *a,
-		    double *b,
-		    double *f_a,
-		    double *fPrime_a,
-		    double *f_b,
-		    double *fPrime_b,
-		    double *f_new,
-		    double (*model)(VEC *,void *),
-		    VEC *(*modeld)(VEC *,void *,VEC *),
-		    void *stuff
-
-		    )
-
-{ /* Fletcher, R. 1987 Practical methods of optimization. 2nd Edition. Page 34 */
-  double tau1 = 9.0;
-  double f_alpha = fInitial;
-  double fPrime_alpha = fPrimeInitial;
-  double alphaMax = (fminimum - fInitial)/(rho*fPrimeInitial);
-  int iter=0;
-  int iterMax=1000;
-  double alphaPrev=0.0;
-
-  while (iter < iterMax)
-    {
-
-      iter++;
-      double fPrev = f_alpha;
-      double fPrimePrev = fPrime_alpha;
-
-      //printf("%d %f\n",iter,f_alpha);
-
-      VEC *dirtmp = v_get(xInitial->dim);
-      sv_mlt(*alpha,dir,dirtmp);
-      v_add(xInitial,dirtmp,x_new);
-
-      double alphaold = *alpha;
-      int negflag = 0;
-      while (x_new->ve[0] < 0 || x_new->ve[1] < 0)
-	{
-          alphaold = *alpha;
-          *alpha = .67*(*alpha); 
-	  sv_mlt(*alpha,dir,dirtmp);
-	  v_add(xInitial,dirtmp,x_new);
-	  negflag=1;
-	}
-
-      if (negflag)
-	alphaMax = alphaold;
-
-      f_alpha = (*model)(x_new,stuff);
-      *f_new = f_alpha;
-      grad = (*modeld)(x_new,stuff,grad); 
-      fPrime_alpha = in_prod(grad,dir);
-
-      if (f_alpha < fminimum)
-	return 1;
-
-      // Bracket located - case 1
-      if ((f_alpha > fInitial + (*alpha)*rho*fPrimeInitial) || (f_alpha >= fPrev))
-	{
-	  *a = alphaPrev; *b = *alpha;
-	  *f_a = fPrev; *fPrime_a = fPrimePrev;
-	  *f_b = f_alpha; *fPrime_b = fPrime_alpha;
-	  return 2;
-	}
-
-      if (fabs(fPrime_alpha) <= -sigma*fPrimeInitial)
-	return 0;
-
-      //Bracket located - case 2
-      if (fPrime_alpha >= 0)
-	{ 
-	  *a = *alpha; *b = alphaPrev;
-	  *f_a = f_alpha; *fPrime_a = fPrime_alpha;
-	  *f_b = fPrev; *fPrime_b = fPrimePrev;
-	  return 2;
-	}
-
-      if (2.0 * (*alpha) - alphaPrev < alphaMax) 
-	{
-	  double brcktEndPntA = 2*(*alpha) -alphaPrev;
-	  double brcktEndPntB = min(alphaMax,(*alpha)+tau1*((*alpha)-alphaPrev));
-	  double alphaNew = pickAlphaWithinInterval(brcktEndPntA,brcktEndPntB,alphaPrev,(*alpha),fPrev,fPrimePrev,f_alpha,fPrime_alpha);
-	  alphaPrev = (*alpha);
-	  (*alpha) = alphaNew;
-	}
-      else
-	(*alpha) = alphaMax;
-    }
-}
-
-int sectioningPhase(
-
-		    VEC *xInitial,
-		    VEC *dir,
-		    VEC *grad,
-		    VEC *x_new,
-		    double (*model)(VEC *,void *),
-		    VEC *(*modeld)(VEC *,void *,VEC *),
-		    void *stuff,
-		    double *f_new,
-		    double *alpha,
-		    double fInitial,
-		    double fPrimeInitial,
-		    double a,
-		    double b,
-		    double f_a,
-		    double fPrime_a,
-		    double f_b,
-		    double fPrime_b,
-		    double rho,
-		    double sigma,
-		    double TolFun
-
-		    )
-{/* Fletcher, R. 1987 Practical methods of optimization. 2nd Edition. Page 35 */
-  double eps = 1e-16;
-  double tau2 = min(0.1,sigma);
-  double tau3 = 0.5;
-  double tol = TolFun/1000;
-
-  int iter = 0;
-  int iterMax = 100;
-  while (iter < iterMax)
-    {
-      // printf("%d ",iter);
-      iter = iter + 1;
-
-      // Pick alpha in reduced bracket
-      double brcktEndpntA = a + tau2*(b - a); 
-      double brcktEndpntB = b - tau3*(b - a);
-
-      // Find global minimizer in bracket [brcktEndpntA,brcktEndpntB] of 3rd-degree 
-      // polynomial that interpolates f() and f'() at "a" and at "b".
-      (*alpha) = pickAlphaWithinInterval(brcktEndpntA,brcktEndpntB,a,b,f_a,fPrime_a,f_b,fPrime_b);  
-
-      // Evaluate f(alpha) and f'(alpha)
-      VEC *dirtmp = v_get(xInitial->dim);
-      sv_mlt(*alpha,dir,dirtmp);
-      v_add(xInitial,dirtmp,x_new);
-
-      double f_alpha = (*model)(x_new,stuff);
-
-      *f_new = f_alpha;
-      grad = (*modeld)(x_new,stuff,grad);
-
-      double fPrime_alpha = in_prod(grad,dir);
-
-      // Check if roundoff errors are stalling convergence.
-      // Here the magnitude of a first order estimation on the
-      // change in the objective is checked. The value of tol 
-      // was chosen empirically through experimentation.
-      if (fabs( ((*alpha) - a)*fPrime_a ) <= tol)
-	return -2;  // No acceptable point could be found
-
-      // Update bracket
-      double aPrev = a; double bPrev = b; double f_aPrev = f_a; double f_bPrev = f_b; 
-      double fPrime_aPrev = fPrime_a; double fPrime_bPrev = fPrime_b;
-      if ((f_alpha > (fInitial + (*alpha)*rho*fPrimeInitial)) || (f_alpha >= f_a))
-	{
-	  a = aPrev; b = (*alpha);
-	  f_a = f_aPrev; f_b = f_alpha;
-	  fPrime_a = fPrime_aPrev; fPrime_b = fPrime_alpha;
-	}
-      else 
-	{
-  
-	  if (fabs(fPrime_alpha) <= -sigma*fPrimeInitial)
-	    return 0;	// Acceptable point found
-	  a = (*alpha); f_a = f_alpha; fPrime_a = fPrime_alpha;
-	  if ((b - a)*fPrime_alpha >= 0)
-	    {
-	      b = aPrev; f_b = f_aPrev; fPrime_b = fPrime_aPrev;
-	    }
-	  else
-	    {
-	      b = bPrev; f_b = f_bPrev; fPrime_b = fPrime_bPrev;
-	    }
-	}
-
-      // Check if roundoff errors are stalling convergence
-      if (fabs(b-a) < eps)
-	return -2;	// No acceptable point could be found
-
-
-    }
-
-  // We reach this point if and only if maxFunEvals was reached
-  return -1;
-}
 
 double pickAlphaWithinInterval(
 
@@ -1375,22 +1576,6 @@ VEC *secondmodeld(
   grad->ve[1] = rt2/sms.length->dim;
 
   return grad;
-
-}
-
-double themodel(
-
-		  VEC *x,
-		  void *stuff
-
-		  )
-{
-
-  struct TM tm;
-
-  tm = * (struct TM *) stuff;
-
-  return 0;
 
 }
 
@@ -3242,7 +3427,6 @@ if (BLAH) {
 
 }
 
-
 void solve_p_omega(
 
 		 void *stuff,
@@ -3403,26 +3587,6 @@ double zstar(
 
   return beta + gamma*U + s(x)*iota*e(t) - kappa;
 
-}
-
-double _e(
-
-	  VEC * ef,
-	  double r,
-	  double t,
-	  double e_pre
-
-	  )
-{
-
-  if (t<0)
-    return e_pre;
-  else
-    {
-      double cek = r/4;
-      int idx = floor((t + (cek/2) - 1e-12)/cek); // better to use double epsilon?
-      return ef->ve[idx];
-    }
 }
 
 double _c(
@@ -3646,3 +3810,167 @@ void Q2_omega(
 
 
 
+double _zstar(
+
+	      void * stuff,
+	      double t,
+	      double x,
+	      double U
+
+	     )
+{ /* death function: beta + gamma U + s(x)f(t) - kappa */
+
+  struct TM tm;
+
+  tm = * (struct TM *) stuff;
+
+  double b = tm.dp.beta;
+  double g = tm.dp.gamma;
+  double i = tm.dp.iota;
+  double k = tm.gp.kappa;
+  double r = tm.r;
+  double ep = tm.e_pre;
+
+  return b + g*U + s(x)*i*_e(tm.eff,r,t,ep) - k;
+
+}
+
+double _e(
+
+	  VEC * ef,
+	  double r,
+	  double t,
+	  double e_pre
+
+	  )
+{
+
+  if (t<0)
+    return e_pre;
+  else
+    {
+      double cek = r/4;
+      int idx = floor((t + (cek/2) - 1e-12)/cek); // better to use double epsilon?
+      return ef->ve[idx];
+    }
+}
+
+
+
+void _solve(
+
+		 void *parptr,
+		 void *dataptr,
+		 MAT *x,
+		 MAT *u,
+		 MAT *xhh,
+		 MAT *xh,
+		 MAT *xn,
+		 MAT *uh,
+		 MAT *un,
+		 VEC *Ui,
+		 VEC *Uh,
+		 VEC *Uhh,
+		 IVEC *idxi
+
+		 )
+{
+
+  struct PARAMETERS par = * (struct PARAMETERS *) parptr;
+  struct DATA data = * (struct DATA *) dataptr;
+
+  struct TMI tmi;
+
+  tmi.bp.alpha1 = par.alpha1;
+  tmi.bp.alpha2 = par.alpha2;
+  tmi.dp.beta = par.beta;
+  tmi.dp.gamma = par.gamma;
+  tmi.dp.iota = par.iota;
+  tmi.gp.kappa = par.kappa;
+  tmi.gp.omega = data.omega;
+
+  double k = data.k;
+
+  VEC *xnt; VEC *unt; 
+  VEC *xht; VEC *uht;
+  VEC *xhht; VEC *uhh;
+  VEC *xt; VEC *ut;
+
+  xnt = v_get(x->n+1);  unt = v_get(x->n+1);
+  xht = v_get(x->n+1);  uht = v_get(x->n+1);
+  xhht = v_get(x->n+1); uhh = v_get(x->n+1);
+  xt = v_get(x->n);     ut = v_get(x->n);
+
+  for (int j=1;j<x->n;j++) 
+    x->me[0][j] = h*j;
+ 
+  set_row(u,0,initial((void *)&tmi.gp,(void *)&tmi.bp,(void *)&tmi.dp,get_row(x,0,xt),ut));
+ 
+  Ui->ve[0] = Q(xt,ut);
+
+  double gg = tmi.dp.gamma;
+  double bb = tmi.dp.beta;
+  double ii = tmi.dp.iota;
+  double kk = tmi.gp.kappa;
+
+  for (int i=1;i<x->m;i++)
+    {
+
+      double t = k*(i-tmi.I-1);
+      double th = k*(i-tmi.I-.5);
+      double thh = k*(i-tmi.I-.75);
+
+      get_row(x,i-1,xt);
+      get_row(u,i-1,ut);
+
+      for (int j=1;j<=x->n;j++)
+	{
+	  xhht->ve[j] = xt->ve[j-1] + (k/4)*g(&tmi.gp,xt->ve[j-1]);
+	  uhh->ve[j] = ut->ve[j-1]*exp(-(k/4)*_zstar(&tmi,t,xt->ve[j-1],Ui->ve[i-1]));
+	}
+
+      Q2(&tmi.bp,&tmi.gp,xhht,uhh);
+      Uhh->ve[i-1] = Q(xhht,uhh);
+      set_row(xhh,i-1,xhht);
+
+      for (int j=1;j<=x->n;j++)
+	{
+	  xht->ve[j] = xt->ve[j-1] + (k/2)*g(&tmi.gp,xhht->ve[j]);
+	  uht->ve[j] = ut->ve[j-1]*exp(-(k/2)*_zstar(&tmi,thh,xhht->ve[j],Uhh->ve[i-1]));
+	}
+
+      Q2(&tmi.bp,&tmi.gp,xht,uht);
+      Uh->ve[i-1] = Q(xht,uht);
+      set_row(xh,i-1,xht);
+      set_row(uh,i-1,uht);
+
+      for (int j=1;j<=x->n;j++)
+	{
+	  xnt->ve[j] = xt->ve[j-1] + k*g(&tmi.gp,xht->ve[j]);
+	  unt->ve[j] = ut->ve[j-1]*exp(-k*_zstar(&tmi,th,xht->ve[j],Uh->ve[i-1]));
+	}
+
+      Q2(&tmi.bp,&tmi.gp,xnt,unt);
+      Ui->ve[i] = Q(xnt,unt);
+      set_row(xn,i-1,xnt);
+      set_row(un,i-1,unt);
+            
+      int idx = idxselect(tmi.gp.omega,xnt);
+      idxi->ive[i-1] = idx;
+
+      set_row(x,i,idxremove(xnt,xt,idx));
+      set_row(u,i,idxremove(unt,ut,idx));
+
+    }
+
+  V_FREE(xt);
+  V_FREE(xnt); 
+  V_FREE(unt); 
+  V_FREE(xht); 
+  V_FREE(uht);
+  V_FREE(xhht); 
+  V_FREE(uhh);
+  V_FREE(xt); 
+  V_FREE(ut);
+
+}

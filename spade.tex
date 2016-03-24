@@ -17,7 +17,7 @@
 
 \DeclareMathOperator*{\argmin}{argmin}
 
-\title{The continuum approach to fishery stock assessment}
+\title{Density-dependent growth effects on productivity and capacity: the case of Australian barramundi \emph{Lates calcarifer}}
 \author{
   Alexander Campbell\\
   Queensland Department of Agriculture and Fisheries\\
@@ -52,6 +52,8 @@
 \maketitle
 
 \section{Introduction}
+what would a fishery model look like in this formalism?
+
 Providing there is sufficient information available to calibrate them, population models that explicitly represent the size of the individual are significantly more realistic than those that lump this dimension into one or a few state variables. This enhanced realism is particularly important for populations which experience a forcing that acts along the dimension, for example a time-dependent mortality process that varies as a function of size. `Size' is being used as a shorthand for any physiologically important dimension, for example age, length, weight, body mass etc. These models are commonly referred to as physiologically structured population models \citep{Metz2014}. 
 
 % - but .. profound (cite van Sickle) 
@@ -92,7 +94,7 @@ and $f(t)$ is fishing mortality,
 \end{equation}
 where $\iota$ is the catchability and $e(t)$ is the observed effort. The fishing process produces a catch,
 \begin{equation}
-  c(t) = \int_0^\omega s(x)f(t)u(x,t)w(x)\,d\xi
+  c(x,t) = w(x)s(x)f(t)u(x,t)
 \end{equation}
 where $w(x)$ is the weight of a fish of size $x$, given by
 \begin{equation}
@@ -159,20 +161,21 @@ See \citet{Angulo2014} for convergence analysis and numerical experiments.
 
 \clearpage
 \section{Parameter Estimation}
-The model is calibrated against fishery catch-at-size data. This comes from two sources: commercial catch data (a scalar time series representing removals from the population), and scientific monitoring program data on the size structure of the commercial catch. These are combined to produce the `observation': $c(x,t)$, the catch rate (in kilograms per centimetre) at time $t$. It is this observation to which the model is fit:
+The model is calibrated against fishery catch-at-size data. This comes from two sources: commercial catch data (a scalar time series representing removals from the population), and scientific monitoring program data on the size structure of the commercial catch. These are combined to produce the `observation', $c(x,t)$: the catch rate (in kilograms per centimetre) at time $t$ and size $x$. It is this observation to which the model is fit:
 \begin{equation}
-H(\theta) = \int_0^T \int_0^\omega |s(x)w(x)f(t;\theta)u(x,t;\theta) - c(x,t)| \,dx\,dt
+H(\theta) = \int_0^T \int_0^\omega |s(x)w(x)f(t)u(x,t) - c(x,t)| \,dx\,dt
 \end{equation}
-Optimisation is a hard problem in general, and optimisation routines that make use of the gradient of the objective function (with respect to the model parameters) are usually significantly more efficient. The gradient is given by
+Optimisation is a hard problem in general, and optimisation routines that make use of the gradient of the objective function (with respect to the model parameters) are usually significantly more efficient. The gradient of $H$ with respect to $\theta$ is given by
 \begin{equation}
 %\frac{d H(\theta)}{d\theta}=
 \int_0^T \int_0^\omega
+\left(s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)\right)\times 
 \begin{cases}
--s(x)w(x)f_\theta(t;\theta)u(x,t;\theta) - s(x)w(x)f(t;\theta)p(x,t;\theta), &  s(x)w(x)f(t;\theta)u(x,t;\theta) < c(x,t)\\
-s(x)w(x)f_\theta(t;\theta)u(x,t;\theta) + s(x)w(x)f(t;\theta)p(x,t;\theta), & s(x)w(x)f(t;\theta)u(x,t;\theta)>c(x,t) 
+-1, &  s(x)w(x)f(t)u(x,t) < c(x,t)\\
+\phantom{-}1, & s(x)w(x)f(t)u(x,t)>c(x,t) 
 \end{cases}\,dx\,dt
 \end{equation}
-and where $p(x,t;\theta)=u_\theta(x,t;\theta)$ is obtained by solving the sensitivity-PDE \citep{Borggaard1997,Li2004}. %,Stanley2002}.
+where $p(x,t)=u_\theta(x,t)$ are solutions of the the sensitivity-PDE \citep{Borggaard1997,Li2004}: %,Stanley2002}.
 \begin{equation}
   \frac{d F}{d\theta} = F_\theta + F_u p + F_{u_t} p_t + F_{u_x} p_x = 0
 \end{equation}
@@ -193,7 +196,7 @@ with boundary condition
   g(0;\theta)_\theta u(0,t;\theta) + g(0;\theta) p(0,t;\theta) = \int_0^\omega b_\theta(x;\theta)u(x,t;\theta) + b(x;\theta)p(x,t;\theta) \,dx .
 \end{equation}
 
-Substituting in the birth, growth and death functions, we get the following PDEs
+Substituting in the birth, growth and death functions, we get the following sensitivity PDEs
 \begin{subequations}
   \begin{align}
   \frac{d F}{d \alpha_1} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u = 0\\
@@ -217,7 +220,7 @@ The boundary conditions for each case are given by
     \kappa\omega p(0,t) &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx  
   \end{align}
 \end{subequations}
-These PDEs can be reduced to coupled ODE problems along characteristics in a manner analogous to the original PDE case. For all derivatives the size ODE (Equation \ref{eq:2.2}) remains unchanged, and the (sensitivity) population ODE for $\iota$ is
+These PDEs can be reduced to coupled ODE problems along characteristics in a manner analogous to the original PDE case. For all derivatives the size ODE (Equation \ref{eq:2.2}) remains unchanged. For $\iota$ the `population' ODE is
 \begin{equation}
   \begin{split}
     q(t&;t^*,x^*)=p(x^*,t^*)\exp\left(-\int_{t^*}^t z^*(x(\tau;x^*,t^*),U(\tau),\tau)\,d\tau\right) -\\
@@ -236,7 +239,7 @@ and
 
 This is implemented with Algorithm \ref{alg:sens}. 
 \begin{algorithm}
-  \caption{Sensitivity PDE numerical solution}\label{alg:sens}
+  \caption{Sensitivity PDE numerical solution for $\iota$}\label{alg:sens}
   \begin{algorithmic}
     \State $P_{j+1}^{n+1/2} \gets P_j^n \exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)-\exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)\times$\\ \hspace{1cm} $(k/2)\left(s(X_j^n)e(t^n)+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n$
     \State $P_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{P}^{n+1/2})) / g(X_0^{n+1/2})$
@@ -244,6 +247,7 @@ This is implemented with Algorithm \ref{alg:sens}.
     \State $P_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{P}^{n+1})) / g(X_0^{n+1})$
   \end{algorithmic}
 \end{algorithm}
+Sensitivity PDE solutions for the other parameters follow analagously.
 
 \subsection{Initial state}
 If we assume that we have a complete fishing history, and that the initial state should therefore be unfished equilibrium, then it is possible to derive the starting condition analytically. 
@@ -287,14 +291,15 @@ Then let $Z=\beta + \gamma\bar{U}+\kappa$ so that
 \begin{equation}\label{eqn:Z}
   \begin{split}
    (Z-\kappa) \frac{Z-\beta-\kappa}{\gamma} &= \frac{\alpha_1 \kappa\omega (Z-\beta-\kappa)}{\gamma Z} + \frac{\alpha_2 2 \kappa\omega \frac{\kappa\omega(Z-\beta-\kappa)}{\gamma Z}}{Z+\kappa}\\
-    \frac{Z-\kappa}{\gamma} &= \frac{\alpha_1 \kappa\omega}{\gamma Z} + \frac{\alpha_2 2 \kappa\omega \frac{\kappa\omega}{\gamma Z}}{Z+\kappa}\\
-    Z^2-\kappa Z - \alpha_1 \kappa\omega &= \frac{\alpha_2 2 \kappa\omega \kappa\omega}{Z+\kappa}\\
-    \left(Z+\kappa\right)\left(Z^2-\kappa Z - \alpha_1 \kappa\omega\right) &= \alpha_2 2 \kappa\omega \kappa\omega\\
-    Z^3 - \kappa Z^2 - \alpha_1\kappa\omega Z + \kappa Z^2 - \kappa^2 Z - \alpha_1 \kappa^2 \omega &= \alpha_2 2 \kappa\omega \kappa\omega\\
-    Z^3 - \alpha_1\kappa\omega Z - \kappa^2 Z - \alpha_1 \kappa^2 \omega &= \alpha_2 2 \kappa\omega \kappa\omega\\
+%    \frac{Z-\kappa}{\gamma} &= \frac{\alpha_1 \kappa\omega}{\gamma Z} + \frac{\alpha_2 2 \kappa\omega \frac{\kappa\omega}{\gamma Z}}{Z+\kappa}\\
+%    Z^2-\kappa Z - \alpha_1 \kappa\omega &= \frac{\alpha_2 2 \kappa\omega \kappa\omega}{Z+\kappa}\\
+%    \left(Z+\kappa\right)\left(Z^2-\kappa Z - \alpha_1 \kappa\omega\right) &= \alpha_2 2 \kappa\omega \kappa\omega\\
+%    Z^3 - \kappa Z^2 - \alpha_1\kappa\omega Z + \kappa Z^2 - \kappa^2 Z - \alpha_1 \kappa^2 \omega &= \alpha_2 2 \kappa\omega \kappa\omega\\
+%    Z^3 - \alpha_1\kappa\omega Z - \kappa^2 Z - \alpha_1 \kappa^2 \omega &= \alpha_2 2 \kappa\omega \kappa\omega\\
     Z^3 - \kappa(\alpha_1\omega+\kappa)Z - \kappa\omega (\alpha_1\kappa + 2 \alpha_2\kappa\omega) &= 0
   \end{split}
 \end{equation}
+
 The real solution of this is
 \begin{equation}
   Z = \frac{ \sqrt[3]{9 \alpha_1 \kappa^2 \omega+18 \alpha_2 \kappa^2 \omega^2+\kappa\zeta}}{3 \sqrt[3]{\frac23}} +  
@@ -309,12 +314,12 @@ The size structure at equilibrium is given by
 \begin{equation}
   \begin{split}
   u(x) &= \frac{g(0)u(0)}{g(x)} \exp\left(- \int_0^x \frac{ z(\lambda,U) } {g(\lambda)}\,d\lambda\right)\\
-  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( -\int_0^x \frac{\beta + \gamma \bar{U}}{\kappa(\omega-\lambda)}\,d\lambda\right)\\
-  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \left.\frac{(\beta + \gamma\bar{U})\log(\kappa(\omega-\lambda))}{\kappa}\right|_0^x\right)\\
-  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa(\omega-x)) - \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa\omega)\right)\\
-  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
-  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
-  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}(\omega-x)^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}}\omega^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( -\int_0^x \frac{\beta + \gamma \bar{U}}{\kappa(\omega-\lambda)}\,d\lambda\right)\\
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \left.\frac{(\beta + \gamma\bar{U})\log(\kappa(\omega-\lambda))}{\kappa}\right|_0^x\right)\\
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa(\omega-x)) - \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa\omega)\right)\\
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+%  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+%  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}(\omega-x)^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}}\omega^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
   &= \frac{\left(\alpha_1 \bar{V} + \alpha_2 \bar{W}\right) (\omega-x)^{(\beta+\gamma\bar{U})/\kappa-1}}{\kappa \omega^{(\beta+\gamma\bar{U})/\kappa}}
   \end{split} 
 \end{equation}
