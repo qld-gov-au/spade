@@ -72,7 +72,7 @@ Population dynamics are based on the McKendrick partial differential equation \c
 \begin{align}
 \frac{\partial u(x,t)}{\partial t} + \frac{\partial [g(x)u(x,t)]}{\partial x} &=
 -z(x,U(t),t)u(x,t) \label{eq:1.1}\\
-g(0)u(0,t) &=  \int_0^{\omega} b(x,t) u(x,t)\,dx\label{eq:1.2}\\ 
+g(0)u(0,t) &=  \int_0^{\omega} b(x) u(x,t)\,dx\label{eq:1.2}\\ 
 U(t) &= \int_0^{\omega} u(x,t)\, dx
 \end{align}
 \end{subequations}
@@ -80,7 +80,7 @@ where $x$ is the size of the individual, $\omega$ is the maximum size, and $b$, 
 \begin{subequations}
   \begin{align}
     g(x) &= \kappa (\omega - x)\label{seq:2b}\\
-    b(x,t) &= \left(\alpha_1 x + \alpha_2 x^2\right)\label{seq:2c},%\exp\left(\psi \cos(t-\phi)\right)/ 2\pi I_0(\psi)
+    b(x) &= \left(\alpha_1 x + \alpha_2 x^2\right)\label{seq:2c},%\exp\left(\psi \cos(t-\phi)\right)/ 2\pi I_0(\psi)
   \end{align}
 \end{subequations}
 while the mortality process is given by 
