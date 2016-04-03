@@ -5,20 +5,18 @@
 \usepackage{amsmath,amssymb}
 \usepackage{mathtools}
 \usepackage{multirow}
-\usepackage{Sweave}
 \usepackage{float,endfloat}
-\usepackage{upgreek}
-\usepackage{epigraph}
 \usepackage{appendix}
 \usepackage{graphicx}
-\usepackage{lscape}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 
 \DeclareMathOperator*{\argmin}{argmin}
 
-\title{Plasticity and stock assessment:\\
-the partial differential approach}
+\title{Stock assessment using the\\ McKendrick-Gurtin-MacCamy-Murphy\\ partial differential equation}
+
+%Plasticity and stock assessment:\\
+%the partial differential approach}
 %Mckendrick style fishery models and application to density-dependent growth ...
 %Density-dependent growth effects on productivity and capacity: the case of Australian barramundi \emph{Lates calcarifer}}
 \author{
@@ -49,12 +47,29 @@ the partial differential approach}
 \floatname{derivation}{Derivation}
 %\DeclareDelayedFloat{derivation}{Derivations}
 
-\setlength{\epigraphwidth}{8cm}
-
 \begin{document}
 \maketitle
 
+\begin{abstract}
+In 1926 Anderson Gray McKendrick introduced an equation that describes the death process, in continuous-time, of an age-structured population.  In this article we trace the way this fundamental equation has been extended and generalised in the intervening years into a form which encapsulates much of what we call modern stock assessment.  In a sense it is the prototypical stock assessment model - at least for species with an extended breeding period - of which all matrix-based approaches are an approximation.  We introduce numerical and analytical solutions to the equation that turn this elegant mathematical framework into a practical modelling tool, and demonstrate this using an Australian barramundi (\emph{Lates calcarifer}) fishery.  
+
+%We explore the insights this framework provides on many of the problems facing modern stock assessment, including growth plasticity.
+\end{abstract}
+
+%, that is to say, into a tool which can be used to inform fishery management.
+%. We discuss how this framework is best suited to dealing with many of the challenges that still face stock assessment, such as plasticity, 
+
+
+%Given that the final mathematical form of this model was attained more than thirty years ago, we speculate that two key technical issues have been preventing its 
+
+%the reason for its absence from the fishery modelling literature is because of a requirement for numerical solutions. 
+
+%Given that this kind of model has been well known in ecology for the last thirty years, we speculate that the reason for its absence from the fishery modelling literature is because of the necessetya
+%\end{abstract}
+  
+
 \section{Introduction}
+
 what would a fishery model look like in this formalism?
 
 Providing there is sufficient information available to calibrate them, population models that explicitly represent the size of the individual are significantly more realistic than those that lump this dimension into one or a few state variables. This enhanced realism is particularly important for populations which experience a forcing that acts along the dimension, for example a time-dependent mortality process that varies as a function of size. `Size' is being used as a shorthand for any physiologically important dimension, for example age, length, weight, body mass etc. These models are commonly referred to as physiologically structured population models \citep{Metz2014}. 
@@ -65,7 +80,46 @@ Here we present a size structured population model wherein the population is sub
 The approach is demonstrated by fitting the model to data from a barramundi fishery in Queensland, Australia.
 
 \clearpage
-\section{The model}\label{sec:model}
+\section{From Malthus to Murphy}\label{sec:model}
+The simplest population model follows the Malthusian principle 
+\begin{equation}
+\dot{N} = \alpha N
+\end{equation}
+which implies exponential growth and is clearly inappropriate for real world populations that must compete for resources.  \citet{Verhulst1845,Verhulst1847} understood that the growth rate should depend on total population size and achieved this in the simplest possible way,
+\begin{equation}
+\dot{N} = (\alpha_0-\beta_0 N)N
+\end{equation}
+so that the rate of increase decreases as the population grows, and can be negative for large $N$. This model can be solved exactly,
+\begin{equation}
+N(t) = \frac{ \zeta}{1 + \left( \frac{\zeta}{N(0)}-1\right)e^{-\alpha_0 t}}
+\end{equation}
+describing the evolution of a population towards the stable equilibrium point $\zeta=\alpha_0/\beta_0$.
+
+A limitation of the Verhulstian model is that it does not consider the age of the population.  The first explicit reference to age in a differential equation was given by \citet{McKendrick1926}\footnote{\citet{Lotka1925} clearly understood the concept and many of the consequences but did not write down the equation from which they flow. In ecology it is often referred to as the \citet{vonFoerster1959} equation.}, 
+\begin{equation}
+\frac{\partial n(a,t)}{\partial t} + \frac{\partial n(a,t)}{\partial a} = -\mu(a,t) n(a,t)
+\end{equation}
+where $n(a,t)$ is the number of individuals of age $a$ at time $t$, and $\mu$ is rate at which they die per unit of population. 
+
+This equation requires a boundary condition on $n(a,t)$ in both $t$ and $a$. The initial condition,
+\begin{equation}
+n(a,0) = f(a)
+\end{equation}
+says that the population has a given initial age distribution. The other boundary condition is the renewal equation, aka the birth rate
+\begin{equation}
+n(0,t) = \int_a b(a)n(a,t)\,da
+\end{equation}
+where $b(a)$ is the birth rate at age $a$.  Note that this is an unusual boundary condition for a PDE in that it is prescribed but must be computed from the population at time t.
+
+However the McKendrick model has the same problem as Malthus - the death process is not dependent on the population.  Clearly a Verhulstian effect is needed.  \citet{Sinko1967} give a rigorous derivation of the McKendrick model.. and they explain its relationship to the Verhulst model by integrating equation \ref{eq:1} over age and then setting $\mu$ to .. but they do not actually write down the PDE with population dependence inside it, nor do they seem to realise such a model is a different class from \ref{eq:1} and that the existence and uniqueness proof given in \citet{Sinko1968}.  This was done by \citet{Gurtin1974},
+\begin{equation}
+\frac{\partial n(a,t)}{\partial t} + \frac{\partial n(a,t)}{\partial a} = -\mu(a,N,t) n(a,t)
+\end{equation}
+
+
+
+Very sensible to have an age dependent death rate.
+
 Population dynamics are based on the McKendrick partial differential equation \citep{McKendrick1926}, generalised to accommodate density dependence \citep{Gurtin1974} and size structured dynamics \citep{Murphy1983}, and with a time-dependent mortality function:
 \begin{subequations}
 \label{eq:1}
