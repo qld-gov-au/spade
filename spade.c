@@ -50,6 +50,7 @@ void solve(VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVE
 double H(MAT *,MAT *,struct DATA *,double);
 double G(MAT *,MAT *,MAT *,struct DATA *,double);
 double G_ni(MAT*,MAT *,MAT *,struct DATA *,double);
+double G_w(MAT*,MAT *,MAT *,struct DATA *,double);
 VEC *VMGMM(VEC *,struct DATA *,VEC *,double *);
 void solve_p_alpha1(VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,double,int);
 void solve_p_alpha2(VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,double,int);
@@ -312,10 +313,10 @@ VEC *VMGMM(
 
   solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
 
-  /*
   VEC *ctt = v_get(x->n);
   VEC *xt = v_get(x->n);
 
+  /*
   FILE *p1 = fopen("plot1.txt","w");
 
   for (int i=0;i<x->m;i++)
@@ -323,8 +324,8 @@ VEC *VMGMM(
 
       xt = get_row(x,i,xt);
       for (int j=0;j<x->n;j++)
-	ctt->ve[j] = s(x->me[i][j])*tmi.dp.iota*e(k*(i-tmi.I))*w(x->me[i][j])*u->me[i][j];
-      fprintf(p1,"%f %f\n",k*(i-tmi.I),Q(xt,ctt)/1e3);
+	ctt->ve[j] = s(x->me[i][j])*theta->ve[6]*e(dataptr->eff,dataptr->k,dataptr->k*(i-dataptr->S),dataptr->e_pre)*w(x->me[i][j])*u->me[i][j];
+      fprintf(p1,"%f %f\n",dataptr->k*(i-dataptr->S),Q(xt,ctt)/1e3);
 
     }
 
@@ -333,18 +334,43 @@ VEC *VMGMM(
   FILE *p2 = fopen("plot2.txt","w");
 
   for (int i=0;i<x->m;i++) 
-    fprintf(p2,"%f %f\n",k*(i-tmi.I),c(k*(i-tmi.I)));
+    fprintf(p2,"%f %f\n",dataptr->k*(i-dataptr->S),c(dataptr->cat,dataptr->k,dataptr->k*(i-dataptr->S)));
 
   fclose(p2);
 
   system("./plo > plotc.pdf");
+
+  exit(1);
   */
 
-  *f = H(x,u,dataptr,theta->ve[6]);
+  //*f = H(x,u,dataptr,theta->ve[6]);
+  double h = H(x,u,dataptr,theta->ve[6]);
 
   MAT *p_a1 = m_get(x->m,x->n);
   solve_p_alpha1(theta,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
   grad->ve[0] = G_ni(p_a1,x,u,dataptr,theta->ve[6]);
+
+  printf("\nChecking G def d H / d alpha1 \n\n");
+  printf("\nga1: %f\n",grad->ve[0]);
+
+  double ng = 0;     
+  double alpha1_save = theta->ve[0];
+  for (int j=-5;j>-15;j--)
+    {
+	  double delta = exp((double)j);
+	  theta->ve[0] = alpha1_save + delta;
+
+	  solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
+
+	  double h_d = H(x,u,dataptr,theta->ve[6]);
+	  ng = (h_d-h)/delta;
+	  printf("%g %g\n",delta,ng);
+    }
+
+  printf("%g %g %g\n",grad->ve[0],grad->ve[0]-ng,(grad->ve[0]-ng)/ng);
+  theta->ve[0] = alpha1_save;
+
+  exit(1);
 
   MAT *p_a2 = m_get(x->m,x->n);
   solve_p_alpha2(theta,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
@@ -362,8 +388,9 @@ VEC *VMGMM(
   solve_p_kappa (theta,p_k ,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
   grad->ve[4] = G_ni(p_k,x,u,dataptr,theta->ve[6]);
 
-  //p_w = m_get(x->m,x->n);
-  //solve_p_omega ((void *)&tmi,p_w ,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi);
+  MAT *p_w = m_get(x->m,x->n);
+  solve_p_omega (theta,p_w ,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
+  grad->ve[5] = G_ni(p_w,x,u,dataptr,theta->ve[6]);
 
   MAT *p_i = m_get(x->m,x->n);
   solve_p_iota(theta,p_i,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
@@ -1756,6 +1783,142 @@ double G_ni(
 
 }
 
+/*
+double G_w(
+
+	    MAT *p,
+	    MAT *x,
+	    MAT *u,
+	    struct DATA *data,
+	    double iota
+
+	    )
+{
+
+  int S = data->S;
+  double k = data->k;
+
+  int lfi=0;
+
+  VEC *ht = v_get(x->m);
+  VEC *tt = v_get(x->m);
+
+  for (int i=S;i<x->m;i++)
+    {
+
+      VEC *xt = v_get(x->n);
+      get_row(x,i,xt);      
+      VEC *ut = v_get(x->n);
+      get_row(u,i,ut);      
+      VEC *pt = v_get(x->n);
+      get_row(p,i,pt); 
+
+      VEC *v = v_get(x->n);
+      VEC *pv = v_get(x->n);
+
+      for (int j=0;j<x->n;j++) 
+	{
+	  pv->ve[j] = iota*e(data->eff,k,k*(i-S),data->e_pre)*s(xt->ve[j])*w(xt->ve[j])*pt->ve[j];
+	  v->ve[j] = iota*e(data->eff,k,k*(i-S),data->e_pre)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+	}
+
+      if(data->t_id[lfi]==i) 
+	{
+      
+	  VEC *dt = v_get(data->t_sz[lfi]);
+
+	  for (int j=0;j<dt->dim;j++)
+	    dt->ve[j] = data->lf[lfi][j];
+
+	  double bw = get_bw(dt);
+
+	  VEC *l = v_get(xt->dim);
+
+	  for (int j=0;j<xt->dim;j++)
+	    for (int jj=0;jj<dt->dim;jj++)
+	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
+
+	  double al = 1e3*c(data->eff,k,k*(i - S)) / Q(xt,l);
+
+	  if (BLAH) {
+
+	    FILE *p1 = fopen("plot1.txt","w");
+
+	    for (int j=0;j<x->n;j++)
+	      fprintf(p1,"%f %f\n",xt->ve[j],al*l->ve[j]);
+
+	    fclose(p1);
+
+	    FILE *p2 = fopen("plot2.txt","w");
+
+	    for (int j=0;j<x->n;j++)
+	      fprintf(p2,"%f %f\n",xt->ve[j],pv->ve[j]);
+
+	    fclose(p2);
+
+	    char buffer[100];
+
+	    sprintf(buffer,"./plo > plotl%.3f.pdf",k*(data->t_id[lfi] - S));
+
+	    system(buffer); 
+
+	  }
+
+	  VEC *ld = v_get(x->n);
+
+	  for (int j=0;j<xt->dim;j++)
+	    if (v->ve[j] < al*l->ve[j])
+	      ld->ve[j] = -pv->ve[j];
+	    else
+	      ld->ve[j] = pv->ve[j];
+
+	  // ld->ve[j] = pv->ve[j]*(v->ve[j] - al*l->ve[j]) / fabs(v->ve[j] - al*l->ve[j]);
+
+	  ht->ve[i] = Q(xt,ld);
+
+          if (lfi<data->n)
+	    lfi += 1;
+
+	} 
+      else 
+	{ 
+          //printf("%d\n",i);
+          //printf("%f\n",Q(xt,pt));
+          //printf("%f\n",Q(xt,v));
+          //printf("%f\n",c(k*(i-tmi.I)));
+        
+	  if (Q(xt,v)<1e3*c(data->cat,k,k*(i-S)))
+	    ht->ve[i] = -Q(xt,pv);//*(Q(xt,v)-1e3*c(k*(i - tmi.I)))/fabs(Q(xt,v)-1e3*c(k*(i - tmi.I)));
+	  else
+	    ht->ve[i]=Q(xt,pv);
+	}
+
+      tt->ve[i] = k*(i-S);
+
+    }
+
+
+  if (BLAH) {
+
+    FILE *p1 = fopen("plot.txt","w");
+
+    for (int i=S;i<x->m;i++)
+      fprintf(p1,"%f %f\n",tt->ve[i],ht->ve[i]);
+
+    fclose(p1);
+
+    char buffer[100];
+
+    sprintf(buffer,"./plo1 > plotht.pdf");
+
+    system(buffer);
+
+  }
+
+  return Q(tt,ht);
+
+  }*/
+
 void solve(
 
 		 VEC *theta,
@@ -1803,8 +1966,7 @@ void solve(
   double ww = theta->ve[5];
   double ii = theta->ve[6];
 
-
-  printf("\n");
+  //  printf("\n");
 
   for (int i=1;i<x->m;i++)
     {
@@ -1854,11 +2016,11 @@ void solve(
       set_row(x,i,idxremove(xnt,xt,idx));
       set_row(u,i,idxremove(unt,ut,idx));
 
-      printf("%f\n",Ui->ve[i]);
+      //      printf("%f\n",Ui->ve[i]);
 
     }
 
-  exit(1);
+  //exit(1);
 
   V_FREE(xt);
   V_FREE(xnt); 
