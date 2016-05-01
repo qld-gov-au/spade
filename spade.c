@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
   data.S = N;
   data.J = J;
   data.k = k;
-  data.e_pre = 5;
+  data.e_pre = 0;
 
   VEC *theta = v_get(7);
 
@@ -352,6 +352,7 @@ VEC *VMGMM(
 
   printf("\nChecking G def d H / d alpha1 \n\n");
   printf("\nga1: %f\n",grad->ve[0]);
+
 
   double ng = 0;     
   double alpha1_save = theta->ve[0];
@@ -1702,7 +1703,7 @@ double G_ni(
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-	  double al = 1e3*c(data->eff,k,k*(i - S)) / Q(xt,l);
+	  double al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
 	  if (BLAH) {
 
@@ -1981,7 +1982,7 @@ void solve(
       for (int j=1;j<=x->n;j++)
 	{
 	  xhht->ve[j] = xt->ve[j-1] + (k/4)*g(kk,ww,xt->ve[j-1]);
-	  uhh->ve[j] = ut->ve[j-1]*exp(-(k/4)*zstar(eff,bb,gg,ii,kk,t,xt->ve[j-1],Ui->ve[i-1],k,ep));
+	  uhh->ve[j] = ut->ve[j-1]*exp(-(k/4)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,ep));
 	}
 
       Q2(a1,a2,kk,ww,xhht,uhh);
@@ -1991,7 +1992,7 @@ void solve(
       for (int j=1;j<=x->n;j++)
 	{
 	  xht->ve[j] = xt->ve[j-1] + (k/2)*g(kk,ww,xhht->ve[j]);
-	  uht->ve[j] = ut->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,ii,kk,thh,xhht->ve[j],Uhh->ve[i-1],k,ep));
+	  uht->ve[j] = ut->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k,ep));
 	}
 
       Q2(a1,a2,kk,ww,xht,uht);
@@ -2002,7 +2003,7 @@ void solve(
       for (int j=1;j<=x->n;j++)
 	{
 	  xnt->ve[j] = xt->ve[j-1] + k*g(kk,ww,xht->ve[j]);
-	  unt->ve[j] = ut->ve[j-1]*exp(-k*zstar(eff,bb,gg,ii,kk,th,xht->ve[j],Uh->ve[i-1],k,ep));
+	  unt->ve[j] = ut->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,ep));
 	}
 
       Q2(a1,a2,kk,ww,xnt,unt);
@@ -2105,6 +2106,8 @@ void solve_p_alpha1(
 
  }
 
+  //FILE *ft = fopen("bug_new.dat","w");
+
   for (int i=1;i<x->m;i++)
     { 
 
@@ -2137,11 +2140,16 @@ void solve_p_alpha1(
       Q2_alpha1(a1,a2,kk,ww,xnt,unt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
+      //      for (int j=0;j<=x->n;j++)
+      //fprintf(ft,"%f ",pn->ve[j]);
+      //fprintf(ft,"\n");
+
       idxremove(pn,pt,idxi->ive[i-1]); 
       set_row(p,i,pt);
 
     }
-   
+  //  fclose(ft);
+  //exit(1);   
   /*  printf("\n");
   for (int j=0;j<300;j++)
     {
@@ -3193,8 +3201,8 @@ double zstar(
 	      VEC *eff,
 	      double b,
 	      double g,
-	      double i,
 	      double k,
+	      double i,
 	      double t,
 	      double x,
 	      double U,
