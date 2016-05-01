@@ -350,29 +350,6 @@ VEC *VMGMM(
   solve_p_alpha1(theta,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
   grad->ve[0] = G_ni(p_a1,x,u,dataptr,theta->ve[6]);
 
-  printf("\nChecking G def d H / d alpha1 \n\n");
-  printf("\nga1: %f\n",grad->ve[0]);
-
-
-  double ng = 0;     
-  double alpha1_save = theta->ve[0];
-  for (int j=-5;j>-15;j--)
-    {
-	  double delta = exp((double)j);
-	  theta->ve[0] = alpha1_save + delta;
-
-	  solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
-
-	  double h_d = H(x,u,dataptr,theta->ve[6]);
-	  ng = (h_d-h)/delta;
-	  printf("%g %g\n",delta,ng);
-    }
-
-  printf("%g %g %g\n",grad->ve[0],grad->ve[0]-ng,(grad->ve[0]-ng)/ng);
-  theta->ve[0] = alpha1_save;
-
-  exit(1);
-
   MAT *p_a2 = m_get(x->m,x->n);
   solve_p_alpha2(theta,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
   grad->ve[1] = G_ni(p_a2,x,u,dataptr,theta->ve[6]); 
@@ -396,6 +373,26 @@ VEC *VMGMM(
   MAT *p_i = m_get(x->m,x->n);
   solve_p_iota(theta,p_i,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
   grad->ve[6] = G(p_i,x,u,dataptr,theta->ve[6]);
+
+  printf("\nChecking G def d H / d iota \n\n");
+  printf("\ng: %f\n",grad->ve[6]);
+
+  double ng = 0;     
+  double save = theta->ve[6];
+  for (int j=-1;j>-15;j--)
+    {
+	  double delta = exp((double)j);
+	  theta->ve[6] = save + delta;
+
+	  solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
+
+	  double h_d = H(x,u,dataptr,theta->ve[6]);
+	  ng = (h_d-h)/delta;
+	  printf("%g %g\n",delta,ng);
+    }
+
+  printf("%g %g %g\n",grad->ve[6],grad->ve[6]-ng,(grad->ve[6]-ng)/ng);
+  exit(1);
 
   M_FREE(x);
 
@@ -2933,14 +2930,14 @@ void solve_p_iota(
       get_row(xn,i-1,xnt);
 
       for (int j=1;j<=x->n;j++)
-	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,ep)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,ep))*(k/2)*(s(xt->ve[j-1])*e(eff,t,k,ep)+gg*Pi->ve[i-1])*ut->ve[j-1];
+	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,ep)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,ep))*(k/2)*(s(xt->ve[j-1])*e(eff,k,t,ep)+gg*Pi->ve[i-1])*ut->ve[j-1];
 	 
       Q2(a1,a2,kk,ww,xht,ph);
       double Ph = Q(xht,ph);
 
       for (int j=1;j<=x->n;j++)
 	{
-	  double b = k*(s(xht->ve[j])*e(eff,th,k,ep)+gg*Ph)*uht->ve[j];
+	  double b = k*(s(xht->ve[j])*e(eff,k,th,ep)+gg*Ph)*uht->ve[j];
 	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,ep)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k,ep)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,ep));
 	}
 
