@@ -402,28 +402,6 @@ VEC *VMGMM(
 
   return grad;
 
-  /*
-  printf("\nChecking G def d H / d iota \n\n");
-  printf("\ng: %f\n",grad->ve[6]);
-
-  double ng = 0;     
-  double save = theta->ve[6];
-  for (int j=-1;j>-15;j--)
-    {
-	  double delta = exp((double)j);
-	  theta->ve[6] = save + delta;
-
-	  solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
-
-	  double h_d = H(x,u,dataptr,theta->ve[6]);
-	  ng = (h_d-h)/delta;
-	  printf("%g %g\n",delta,ng);
-    }
-
-  printf("%g %g %g\n",grad->ve[6],grad->ve[6]-ng,(grad->ve[6]-ng)/ng);
-  exit(1);
-  */
-
 }
 
 double _bfgs(
@@ -440,20 +418,84 @@ double _bfgs(
   VEC *x_new = v_get(x->dim);
   VEC *delta_x = v_get(x->dim);
   VEC *delta_grad = v_get(x->dim);
-  MAT *H = m_get(x->dim,x->dim);
   VEC *grad = v_get(x->dim);
   double f;
   int stop,iter;
 
+  MAT *H = m_get(x->dim,x->dim);
   stop=0; iter=0;
 
   m_ident(H);
 
-  //v_output(x);
-
+  v_output(x);
   grad = (*model)(x,dataptr,grad,&f); 
+  v_output(grad);
 
-  //v_output(grad);
+  /*
+  VEC *nx = v_get(x->dim);
+
+  VEC *sd = v_get(x->dim);
+  mv_mlt(HH,grad,sd);
+  sv_mlt(-1.0/v_norm2(sd),sd,sd);
+
+  v_output(sd);
+
+  v_add(x,sv_mlt(9.99e-7,sd,VNULL),nx);
+
+  VEC *grad2 = v_get(x->dim);
+  double f2=0;
+
+  v_output(nx);
+  grad2 = (*model)(nx,dataptr,grad2,&f2);
+  v_output(grad2);
+
+  double dg = in_prod(grad2,sd);
+
+  printf("dg: %g\n",dg);
+
+  printf("\nChecking G def d H / d alpha1 \n\n");
+  printf("\ng: %f\n",grad2->ve[3]);
+
+  int I = dataptr->I+1;
+  int J = dataptr->J+1;
+  MAT *xx = m_get(I,J);
+  MAT *u = m_get(I,J);
+  MAT *xh = m_get(I,J+1);
+  MAT *uh = m_get(I,J+1);
+  MAT *xn = m_get(I,J+1);
+  MAT *xhh = m_get(I,J+1);
+  MAT *un = m_get(I,J+1);
+  VEC *Ui = v_get(I);
+  VEC *Uh = v_get(I);
+  VEC *Uhh = v_get(I);
+  IVEC *idxi = iv_get(I-1);
+
+  solve(nx,xx,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
+
+  double h = H(xx,u,dataptr,nx->ve[6]);
+
+  printf("h=%g\n",h);
+
+  double ng = 0;     
+  double save = nx->ve[3];
+  for (int j=-8;j>-35;j--)
+    {
+	  double delta = exp((double)j);
+	  nx->ve[3] = save + delta;
+
+	  solve(nx,xx,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
+
+	  double h_d = H(xx,u,dataptr,nx->ve[6]);
+	  ng = (h_d-h)/delta;
+	  printf("%g %g\n",delta,ng);
+    }
+
+  printf("%g %g %g\n",grad2->ve[3],grad2->ve[3]-ng,(grad2->ve[3]-ng)/ng);
+  exit(1);
+
+  */
+
+  //  MAT *H = m_get(x->dim,x->dim);
 
   while (stop==0)
     {
@@ -467,19 +509,26 @@ double _bfgs(
 
       //v_output(dir);
       double dirD = in_prod(grad,dir);
-      //printf("dirD: %f\n",dirD);
+      printf("dirD: %f\n",dirD);
       
-      int rt = mthls( model,x,f,grad,dir,1e-8,1e-4,0.9,DBL_EPSILON,1e-20,1e20,20,dataptr);
+      v_copy(x,oldx);
+      v_copy(grad,oldgrad);
 
-      exit(1);
-		      //_linesearch(x,dir,f,dirD,&alpha,rho,sigma,TolFun,fminimum,grad,x_new,&f_new,model,dataptr);
-      /*
-      f = f_new;
-      sv_mlt(alpha,dir,delta_x);
-      v_add(x,delta_x,x);
+      int rt = mthls( model,x,f,grad,dir,1e-8,1e-4,0.9,DBL_EPSILON,1e-20,1e20,30,dataptr);
+
+      printf("%d ",rt);
+
+      v_output(x); 
+      v_output(grad);
+
+      v_sub(x,oldx,delta_x);
       v_sub(grad,oldgrad,delta_grad);
-      */
+
+      //      grad = (*model)(x,dataptr,grad,&f);
+      
       H = UpdateHessian(H,delta_x,delta_grad);
+
+      m_output(H);
 
     }
 }
@@ -503,7 +552,6 @@ int mthls(
 	  )
 {
   
-
   int xtrapf = 4;
   int info = 0;
   int infoc = 1;
@@ -592,53 +640,55 @@ int mthls(
 
       //A modified function is used to predict the step only if we have not obtained a step for which the modified function has a nonpositive function value and nonnegative derivative, and if a lower function value has been obtained but the decrease is not sufficient.
 
-         if (stage1 && f <= fx && f > ftest1) 
-	   {
+      if (stage1 && f <= fx && f > ftest1)
+	{
 
-	     //Define the modified function and derivative values.
+	  // Define the modified function and derivative values.
 
-	     double fm = f - stp*dgtest;
-	     double fxm = fx - stx*dgtest;
-	     double fym = fy - sty*dgtest;
-	     double dgm = dg - dgtest;
-	     double dgxm = dgx - dgtest;
-	     double dgym = dgy - dgtest;
+	  double fm = f - stp*dgtest;
+	  double fxm = fx - stx*dgtest;
+	  double fym = fy - sty*dgtest;
+	  double dgm = dg - dgtest;
+	  double dgxm = dgx - dgtest;
+	  double dgym = dgy - dgtest;
  
-	     //Call cstep to update the interval of uncertainty and to compute the new step.
-	     infoc = cstep(&stx,&fxm,&dgxm,&sty,&fym,&dgym,&stp,fm,dgm,&brackt,stmin,stmax);
+	  // Call cstep to update the interval of uncertainty and to compute the new step.
+	  infoc = cstep(&stx,&fxm,&dgxm,&sty,&fym,&dgym,&stp,fm,dgm,&brackt,stmin,stmax);
 
-	     // Reset the function and gradient values for f.
+	  // Reset the function and gradient values for f.
 
-	     fx = fxm + stx*dgtest;
-	     fy = fym + sty*dgtest;
-	     dgx = dgxm + dgtest;
-	     dgy = dgym + dgtest;
+	  fx = fxm + stx*dgtest;
+	  fy = fym + sty*dgtest;
+	  dgx = dgxm + dgtest;
+	  dgy = dgym + dgtest;
 
-	   }
-	 else
-	   {
-	     infoc = cstep(&stx,&fx,&dgx,&sty,&fy,&dgy,&stp,f,dg,&brackt,stmin,stmax);
-	   }
+	}
+      else
+	{
+	  infoc = cstep(&stx,&fx,&dgx,&sty,&fy,&dgy,&stp,f,dg,&brackt,stmin,stmax);
+	}
 
-	 // Force a sufficient decrease in the size of the interval of uncertainty
+      // Force a sufficient decrease in the size of the interval of uncertainty
 
-	 if (brackt) 
-	   {
+      if (brackt)
+	{
 
-	     if (fabs(sty-stx) >= .66*width1)
-	       stp = stx + .5*(sty - stx);
-	     width1 = width;
-	     width = fabs(sty-stx);
-	   }
+	  if (fabs(sty-stx) >= .66*width1)
+	    stp = stx + .5*(sty - stx);
+	  width1 = width;
+	  width = fabs(sty-stx);
+	}
 
-	 //	 printf("%g\n",stp);
+      printf("%g\n",f);
+    }
 
-    }    
 
-
-  return 0;
+	 //	 printf("%d %g %g %g %g %g %d\n",info,stx,stp,sty,f,dg,infoc);
+	 //printf("%g ",f);
 
 }
+
+		      //_linesearch(x,dir,f,dirD,&alpha,rho,sigma,TolFun,fminimum,grad,x_new,&f_new,model,dataptr);
 
 	/*
       if (1) 
@@ -745,7 +795,7 @@ int cstep(
       double r = p/q;
       double stpc = (*stx) + r*((*stp) - (*stx));
       double stpq = (*stx) + (((*dx)/(((*fx)-fp)/((*stp)-(*stx))+(*dx)))/2)*((*stp) - (*stx));
-      if (abs(stpc-(*stx)) < abs(stpq-(*stx)))
+      if (fabs(stpc-(*stx)) < fabs(stpq-(*stx)))
 	stpf = stpc;
       else
 	stpf = stpc + (stpq - stpc)/2;
@@ -778,7 +828,7 @@ int cstep(
 
       double stpc = (*stp) + r*((*stx) - (*stp));
       double stpq = (*stp) + (dp/(dp-(*dx)))*((*stx) - (*stp));
-      if (abs(stpc-(*stp)) > abs(stpq-(*stp)))
+      if (fabs(stpc-(*stp)) > fabs(stpq-(*stp)))
 	stpf = stpc;
       else
 	stpf = stpq;
@@ -803,7 +853,7 @@ int cstep(
 
       // The case gamma = 0 only arises if the cubic does not tend to infinity in the direction of the step.
 
-      gamma = ss*sqrt(pow(theta/ss,2.) - ((*dx)/ss)*(dp/ss));
+      gamma = ss*sqrt(max(0.,pow(theta/ss,2.) - (*dx/ss)*(dp/ss)));
 
       if ((*stp) > (*stx)) 
 	gamma = -gamma;
@@ -823,12 +873,12 @@ int cstep(
 
       stpq = (*stp) + (dp/(dp-(*dx)))*((*stx) - (*stp));
       if (*brackt)
-	if (abs((*stp)-stpc) < abs((*stp)-stpq))
+	if (fabs((*stp)-stpc) < fabs((*stp)-stpq))
 	  stpf = stpc;
 	else
 	  stpf = stpq;           
       else
-	if (abs((*stp)-stpc) > abs((*stp)-stpq))
+	if (fabs((*stp)-stpc) > fabs((*stp)-stpq))
 	  stpf = stpc;
 	else
 	  stpf = stpq;
