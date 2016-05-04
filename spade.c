@@ -97,11 +97,17 @@ double globalMinimizerOfPolyInInterval(double,double,VEC *);
 double polyval(VEC *, double);
 int roots(VEC *,VEC *);
 
+// More-Thuente line search
+int mthls(VEC *(*f)(VEC *,struct DATA *,VEC *,double *),VEC *,double,VEC *,VEC *,double,double,double,double,double,double,int,struct DATA *);
+int cstep(double*,double*,double*,double*,double*,double*,double*,double,double,int*,double,double);
+
 /* helper / tester */
 VEC *numgrad(double (*)(VEC *,void *),void *,VEC *,double);
 
 double h;
 int J;
+
+double gtol = 0.9;
 
 int main(int argc, char *argv[])
 {
@@ -313,8 +319,8 @@ VEC *VMGMM(
 
   solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
 
-  VEC *ctt = v_get(x->n);
-  VEC *xt = v_get(x->n);
+  //  VEC *ctt = v_get(x->n);
+  //  VEC *xt = v_get(x->n);
 
   /*
   FILE *p1 = fopen("plot1.txt","w");
@@ -343,8 +349,7 @@ VEC *VMGMM(
   exit(1);
   */
 
-  //*f = H(x,u,dataptr,theta->ve[6]);
-  double h = H(x,u,dataptr,theta->ve[6]);
+  *f = H(x,u,dataptr,theta->ve[6]);
 
   MAT *p_a1 = m_get(x->m,x->n);
   solve_p_alpha1(theta,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
@@ -374,6 +379,30 @@ VEC *VMGMM(
   solve_p_iota(theta,p_i,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->e_pre,dataptr->S);
   grad->ve[6] = G(p_i,x,u,dataptr,theta->ve[6]);
 
+  M_FREE(p_a1);
+  M_FREE(p_a2);
+  M_FREE(p_b);
+  M_FREE(p_g);
+  M_FREE(p_k);
+  M_FREE(p_w);
+  M_FREE(p_i);
+  M_FREE(x);
+  M_FREE(u);
+  M_FREE(xh);
+  M_FREE(uh);
+  M_FREE(xn);
+  M_FREE(xhh);
+  M_FREE(un);
+  V_FREE(Ui);
+  V_FREE(Uh);
+  V_FREE(Uhh);
+  IV_FREE(idxi);
+  //V_FREE(ctt);
+  //V_FREE(xt);
+
+  return grad;
+
+  /*
   printf("\nChecking G def d H / d iota \n\n");
   printf("\ng: %f\n",grad->ve[6]);
 
@@ -393,10 +422,7 @@ VEC *VMGMM(
 
   printf("%g %g %g\n",grad->ve[6],grad->ve[6]-ng,(grad->ve[6]-ng)/ng);
   exit(1);
-
-  M_FREE(x);
-
-  return grad;
+  */
 
 }
 
@@ -423,7 +449,11 @@ double _bfgs(
 
   m_ident(H);
 
+  //v_output(x);
+
   grad = (*model)(x,dataptr,grad,&f); 
+
+  //v_output(grad);
 
   while (stop==0)
     {
@@ -433,10 +463,184 @@ double _bfgs(
 
       VEC *dir = v_get(x->dim);
       mv_mlt(H,grad,dir);
-      sv_mlt(-1.0,dir,dir);
+      sv_mlt(-1.0/v_norm2(dir),dir,dir);
 
+      //v_output(dir);
       double dirD = in_prod(grad,dir);
+      //printf("dirD: %f\n",dirD);
+      
+      int rt = mthls( model,x,f,grad,dir,1e-8,1e-4,0.9,DBL_EPSILON,1e-20,1e20,20,dataptr);
 
+      exit(1);
+		      //_linesearch(x,dir,f,dirD,&alpha,rho,sigma,TolFun,fminimum,grad,x_new,&f_new,model,dataptr);
+      /*
+      f = f_new;
+      sv_mlt(alpha,dir,delta_x);
+      v_add(x,delta_x,x);
+      v_sub(grad,oldgrad,delta_grad);
+      */
+      H = UpdateHessian(H,delta_x,delta_grad);
+
+    }
+}
+
+int mthls(
+
+	  VEC *(*fcn)(VEC *,struct DATA *,VEC *,double *),
+	  VEC *x,
+	  double f,
+	  VEC *gr,
+	  VEC *sd,
+	  double stp,
+	  double ftol,
+	  double gtol,
+	  double xtol,
+	  double stpmin,
+	  double stpmax,
+	  int maxfev,
+	  struct DATA *d
+
+	  )
+{
+  
+
+  int xtrapf = 4;
+  int info = 0;
+  int infoc = 1;
+  double dginit = in_prod(gr,sd); // g's must be < 0 (initial gradient in search direction must be descent)
+  int brackt = 0;
+  int stage1 = 1;
+  int nfev = 0;
+  double finit = f;
+  double dgtest = ftol*dginit;
+  double width = stpmax - stpmin;
+  double width1 = 2*width;
+  VEC *wa = v_get(x->dim);
+  v_copy(x,wa);
+
+  double stx = 0;
+  double fx = finit;
+  double dgx = dginit;
+  double sty = 0;
+  double fy = finit;
+  double dgy = dginit;
+
+  while (1) 
+    {
+
+      //Set the minimum and maximum steps to correspond
+      // to the present interval of uncertainty.
+
+      double stmin,stmax;
+
+      if (brackt)
+	{
+	  stmin = min(stx,sty);
+	  stmax = max(stx,sty);
+	}
+      else
+	{
+	  stmin = stx;
+	  stmax = stp + xtrapf*(stp - stx);
+	}
+
+      // Force the step to be within the bounds stpmax and stpmin.
+
+      stp = max(stp,stpmin);
+      stp = min(stp,stpmax);
+
+      // If an unusual termination is to occur then let stp be the lowest point obtained so far.
+
+      if ((brackt && (stp <= stmin || stp >= stmax)) || nfev >= maxfev-1 || infoc == 0 || (brackt && stmax-stmin <= xtol*stmax))
+	stp = stx;
+
+      // Evaluate the funtion and gradient at stp and compute the directional derivative
+
+      v_add(wa,sv_mlt(stp,sd,VNULL),x);
+      gr = (*fcn)(x,d,gr,&f);
+      nfev += 1;
+      double dg = in_prod(gr,sd);
+      double ftest1 = finit + stp*dgtest;
+
+      // Test for convergence.
+
+      if ((brackt && (stp <= stmin || stp >= stmax)) || infoc == 0)
+	info = 6;
+
+      if (stp == stpmax && f <= ftest1 && dg <= dgtest)
+	info = 5;
+
+      if (stp == stpmin && (f > ftest1 || dg >= dgtest))
+	info = 4;
+
+      if (nfev >= maxfev)
+	info = 3;
+
+      if (brackt && stmax - stmin <= xtol*stmax)
+	info = 2;
+
+      if (f <= ftest1 && fabs(dg) <= gtol*(-dginit))
+	info = 1;
+
+      if (info != 0)
+	return info;
+
+      // In the first stage we seek a step for which the modified function has a nonpositive value and nonnegative derivative.
+
+      if (stage1 && f <= ftest1 && dg >= min(ftol,gtol)*dginit)
+	stage1 = 0;
+
+      //A modified function is used to predict the step only if we have not obtained a step for which the modified function has a nonpositive function value and nonnegative derivative, and if a lower function value has been obtained but the decrease is not sufficient.
+
+         if (stage1 && f <= fx && f > ftest1) 
+	   {
+
+	     //Define the modified function and derivative values.
+
+	     double fm = f - stp*dgtest;
+	     double fxm = fx - stx*dgtest;
+	     double fym = fy - sty*dgtest;
+	     double dgm = dg - dgtest;
+	     double dgxm = dgx - dgtest;
+	     double dgym = dgy - dgtest;
+ 
+	     //Call cstep to update the interval of uncertainty and to compute the new step.
+	     infoc = cstep(&stx,&fxm,&dgxm,&sty,&fym,&dgym,&stp,fm,dgm,&brackt,stmin,stmax);
+
+	     // Reset the function and gradient values for f.
+
+	     fx = fxm + stx*dgtest;
+	     fy = fym + sty*dgtest;
+	     dgx = dgxm + dgtest;
+	     dgy = dgym + dgtest;
+
+	   }
+	 else
+	   {
+	     infoc = cstep(&stx,&fx,&dgx,&sty,&fy,&dgy,&stp,f,dg,&brackt,stmin,stmax);
+	   }
+
+	 // Force a sufficient decrease in the size of the interval of uncertainty
+
+	 if (brackt) 
+	   {
+
+	     if (fabs(sty-stx) >= .66*width1)
+	       stp = stx + .5*(sty - stx);
+	     width1 = width;
+	     width = fabs(sty-stx);
+	   }
+
+	 //	 printf("%g\n",stp);
+
+    }    
+
+
+  return 0;
+
+}
+
+	/*
       if (1) 
 	{
 	  int nzero = 0;
@@ -444,13 +648,13 @@ double _bfgs(
 	    if (grad->ve[i]==0)
 	      nzero++;
 	  //v_output(x);
-          printf("f %f\n",f);
+          //printf("f %f\n",f);
 	  if ((nzero>=(int)(1.0*x->dim)) || (dirD > -1e-15))
 	    {
 	      stop=1;
 	      break;
 	    }
-	}
+	    }
 
       double alpha=1.0;
       if (iter ==1)
@@ -461,23 +665,246 @@ double _bfgs(
 
       oldx = v_copy(x,oldx);
       oldgrad = v_copy(grad,oldgrad);
+      //      printf("\n");
+      //for (int ii=0;ii<200;ii++)
+      //{
+      /*
+      double alp = 1.2505e-6; //9.99e-7 + 185*1.e-11/2;
 
-      double rho=1e-2;
+	  VEC *dirtmp = v_get(x->dim);
+	  VEC *x_new = v_get(x->dim);
+
+	  sv_mlt(alp,dir,dirtmp);
+	  v_add(x,dirtmp,x_new);
+
+	  grad = (*model)(x_new,dataptr,grad,&f);
+
+	  printf("%g %f %f\n",alp,f,in_prod(grad,dir));
+	  //}
+	  
+	  exit(1);
+
+      double rho=1e-1;
       double sigma = 0.1;
       double TolFun = 1e-11;
-      double fminimum = -1e+10;
+      double fminimum = 1e6;
       double f_new = f;
+      */
 
-      _linesearch(x,dir,f,dirD,&alpha,rho,sigma,TolFun,fminimum,grad,x_new,&f_new,model,dataptr);
 
-      f = f_new;
-      sv_mlt(alpha,dir,delta_x);
-      v_add(x,delta_x,x);
-      v_sub(grad,oldgrad,delta_grad);
+int cstep(
 
-      H = UpdateHessian(H,delta_x,delta_grad);
+	  double *stx,
+	  double *fx,
+	  double *dx,
+	  double *sty,
+	  double *fy,
+	  double *dy,
+	  double *stp,
+	  double fp,
+	  double dp,
+	  int *brackt,
+	  double stpmin,
+	  double stpmax
 
+	  )
+{
+
+  int info = 0;
+
+  // Determine if the derivatives have opposite sign.
+
+  double sgnd = dp*((*dx)/fabs((*dx)));
+
+  // First case. A higher function value.
+  // The minimum is bracketed. If the cubic step is closer to stx than the quadratic step, the cubic step is taken, else the average of the cubic and quadratic steps is taken.
+
+  int bound;
+  double theta;
+  double ss;
+  double gamma;
+  double stpf;
+
+  if (fp > (*fx)) 
+    {
+
+      info = 1;
+      bound = 1;
+      theta = 3*((*fx) - fp)/((*stp) - (*stx)) + (*dx) + dp;
+      VEC *tmp = v_get(3);
+      tmp->ve[0] = theta;
+      tmp->ve[1] = (*dx);
+      tmp->ve[2] = dp;
+      ss = v_norm_inf(tmp);
+      gamma = ss*sqrt(pow(theta/ss,2.) - ((*dx)/ss)*(dp/ss));
+      if ((*stp) < (*stx)) 
+	gamma = -gamma;
+
+      double p = (gamma - (*dx)) + theta;
+      double q = ((gamma - (*dx)) + gamma) + dp;
+      double r = p/q;
+      double stpc = (*stx) + r*((*stp) - (*stx));
+      double stpq = (*stx) + (((*dx)/(((*fx)-fp)/((*stp)-(*stx))+(*dx)))/2)*((*stp) - (*stx));
+      if (abs(stpc-(*stx)) < abs(stpq-(*stx)))
+	stpf = stpc;
+      else
+	stpf = stpc + (stpq - stpc)/2;
+         
+      *brackt = 1;
+
+    } 
+
+  // Second case. A lower function value and derivatives of opposite sign. The minimum is bracketed. If the cubic step is closer to stx than the quadratic (secant) step, the cubic step is taken, else the quadratic step is taken.
+
+  else if (sgnd < 0.0) 
+    {
+      info = 2;
+      bound = 0;
+
+      theta = 3*((*fx) - fp)/((*stp) - (*stx)) + (*dx) + dp;
+      VEC *tmp = v_get(3);
+      tmp->ve[0] = theta;
+      tmp->ve[1] = (*dx);
+      tmp->ve[2] = dp;
+      ss = v_norm_inf(tmp);
+      gamma = ss*sqrt(pow(theta/ss,2.) - ((*dx)/ss)*(dp/ss));
+
+      if ((*stp) > (*stx)) 
+	gamma = -gamma;
+         
+      double p = (gamma - dp) + theta;
+      double q = ((gamma - dp) + gamma) + (*dx);
+      double r = p/q;
+
+      double stpc = (*stp) + r*((*stx) - (*stp));
+      double stpq = (*stp) + (dp/(dp-(*dx)))*((*stx) - (*stp));
+      if (abs(stpc-(*stp)) > abs(stpq-(*stp)))
+	stpf = stpc;
+      else
+	stpf = stpq;
+         
+      *brackt = 1;
     }
+
+  // Third case. A lower function value, derivatives of the same sign, and the magnitude of the derivative decreases. The cubic step is only used if the cubic tends to infinity in the direction of the step or if the minimum of the cubic is beyond stp. Otherwise the cubic step is defined to be either stpmin or stpmax. The quadratic (secant) step is also computed and if the minimum is bracketed then the the step closest to stx is taken, else the step farthest away is taken.
+
+  else if (fabs(dp) < fabs(*dx)) 
+    {
+
+      info = 3;
+      bound = 1;
+
+      theta = 3*((*fx) - fp)/((*stp) - (*stx)) + (*dx) + dp;
+      VEC *tmp = v_get(3);
+      tmp->ve[0] = theta;
+      tmp->ve[1] = (*dx);
+      tmp->ve[2] = dp;
+      ss = v_norm_inf(tmp);
+
+      // The case gamma = 0 only arises if the cubic does not tend to infinity in the direction of the step.
+
+      gamma = ss*sqrt(pow(theta/ss,2.) - ((*dx)/ss)*(dp/ss));
+
+      if ((*stp) > (*stx)) 
+	gamma = -gamma;
+         
+      double p = (gamma - dp) + theta;
+      double q = (gamma + ((*dx) - dp)) + gamma;
+      double r = p/q;
+
+      double stpc,stpq;
+
+      if (r < 0.0 && gamma != 0.0)
+	stpc = (*stp) + r*((*stx) - (*stp));
+      else if ((*stp) > (*stx))
+	stpc = stpmax;
+      else
+	stpc = stpmin;
+
+      stpq = (*stp) + (dp/(dp-(*dx)))*((*stx) - (*stp));
+      if (*brackt)
+	if (abs((*stp)-stpc) < abs((*stp)-stpq))
+	  stpf = stpc;
+	else
+	  stpf = stpq;           
+      else
+	if (abs((*stp)-stpc) > abs((*stp)-stpq))
+	  stpf = stpc;
+	else
+	  stpf = stpq;
+    }
+
+  // Fourth case. A lower function value, derivatives of the same sign, and the magnitude of the derivative does not decrease. If the minimum is not bracketed, the step is either stpmin or stpmax, else the cubic step is taken.
+
+  else
+    {
+      info = 4;
+      bound = 0;
+
+      if (*brackt)
+	{
+
+	  theta = 3*(fp - (*fy))/((*sty) - *stp) + (*dy) + dp;
+	  VEC *tmp = v_get(3);
+	  tmp->ve[0] = theta;
+	  tmp->ve[1] = (*dy);
+	  tmp->ve[2] = dp;
+	  ss = v_norm_inf(tmp);
+
+	  gamma = ss*sqrt(pow(theta/ss,2.) - ((*dy)/ss)*(dp/ss));
+
+	  if (*stp > (*sty))
+	    gamma = -gamma;
+            
+          double p = (gamma - dp) + theta;
+          double q = ((gamma - dp) + gamma) + (*dy);
+          double r = p/q;
+          double stpc = *stp + r*((*sty) - *stp);
+          stpf = stpc;
+	}
+      else if (*stp > (*stx))
+	stpf = stpmax;
+      else
+	stpf = stpmin;
+    
+    }
+
+  // Update the interval of uncertainty. This update does not depend on the new step or the case analysis above.
+
+  if (fp > *fx)
+    {
+      *sty = *stp;
+      *fy = fp;
+      *dy = dp;
+    }
+  else
+    {
+      if (sgnd < 0.0)
+	{
+	  *sty = *stx;
+	  *fy = *fx;
+	  *dy = *dx;
+	}
+          
+      *stx = *stp;
+      *fx = fp;
+      *dx = dp;
+    }
+
+  // Compute the new step and safeguard it.
+
+  stpf = min(stpmax,stpf);
+  stpf = max(stpmin,stpf);
+  *stp = stpf;
+  if (*brackt && bound)
+    if (*sty > *stx) 
+      *stp = min(*stx+.66*(*sty-*stx),*stp);
+    else
+      *stp = max(*stx+.66*(*sty-*stx),*stp);
+         
+  return info;
+
+  // last card of subroutine cstep
 
 }
 
@@ -542,7 +969,7 @@ int _bracketingPhase(
 		    )
 
 { /* Fletcher, R. 1987 Practical methods of optimization. 2nd Edition. Page 34 */
-  double tau1 = 9.0;
+  double tau1 = 3.0;
   double f_alpha = fInitial;
   double fPrime_alpha = fPrimeInitial;
   double alphaMax = (fminimum - fInitial)/(rho*fPrimeInitial);
@@ -562,18 +989,6 @@ int _bracketingPhase(
       v_add(xInitial,dirtmp,x_new);
 
       double alphaold = *alpha;
-      int negflag = 0;
-      while (x_new->ve[0] < 0 || x_new->ve[1] < 0)
-	{
-          alphaold = *alpha;
-          *alpha = .67*(*alpha); 
-	  sv_mlt(*alpha,dir,dirtmp);
-	  v_add(xInitial,dirtmp,x_new);
-	  negflag=1;
-	}
-
-      if (negflag)
-	alphaMax = alphaold;
 
       grad = (*model)(x_new,dataptr,grad,&f_alpha); 
       *f_new = f_alpha;
@@ -587,6 +1002,7 @@ int _bracketingPhase(
 	  *a = alphaPrev; *b = *alpha;
 	  *f_a = fPrev; *fPrime_a = fPrimePrev;
 	  *f_b = f_alpha; *fPrime_b = fPrime_alpha;
+	  printf("a: %g, b: %g\n",*a,*b);
 	  return 2;
 	}
 
@@ -599,19 +1015,25 @@ int _bracketingPhase(
 	  *a = *alpha; *b = alphaPrev;
 	  *f_a = f_alpha; *fPrime_a = fPrime_alpha;
 	  *f_b = fPrev; *fPrime_b = fPrimePrev;
+	  printf("a: %g, b: %g\n",*a,*b);
 	  return 2;
 	}
 
-      if (2.0 * (*alpha) - alphaPrev < alphaMax) 
+      if (alphaMax <= 2.0 * (*alpha) - alphaPrev) 
 	{
-	  double brcktEndPntA = 2*(*alpha) -alphaPrev;
-	  double brcktEndPntB = min(alphaMax,(*alpha)+tau1*((*alpha)-alphaPrev));
-	  double alphaNew = pickAlphaWithinInterval(brcktEndPntA,brcktEndPntB,alphaPrev,(*alpha),fPrev,fPrimePrev,f_alpha,fPrime_alpha);
-	  alphaPrev = (*alpha);
-	  (*alpha) = alphaNew;
+	  (*alpha) = alphaMax;
 	}
       else
-	(*alpha) = alphaMax;
+	{
+	  double brcktEndPntA = 2*(*alpha) - alphaPrev;
+	  double brcktEndPntB = min(alphaMax,(*alpha)+tau1*((*alpha)-alphaPrev));
+	  double alphaNew = pickAlphaWithinInterval(brcktEndPntA,brcktEndPntB,alphaPrev,(*alpha),fPrev,fPrimePrev,f_alpha,fPrime_alpha);
+	  //(brcktEndPntA + brcktEndPntB) / 2;
+
+	  alphaPrev = (*alpha);
+	  (*alpha) = alphaNew;
+
+	}
     }
 }
 
@@ -639,6 +1061,7 @@ int _sectioningPhase(
 
 		    )
 {/* Fletcher, R. 1987 Practical methods of optimization. 2nd Edition. Page 35 */
+
   double eps = 1e-16;
   double tau2 = min(0.1,sigma);
   double tau3 = 0.5;
@@ -652,6 +1075,8 @@ int _sectioningPhase(
 
       double brcktEndpntA = a + tau2*(b - a); 
       double brcktEndpntB = b - tau3*(b - a);
+
+      printf("%d %g %g\n",iter,brcktEndpntA,brcktEndpntB);
 
       (*alpha) = pickAlphaWithinInterval(brcktEndpntA,brcktEndpntB,a,b,f_a,fPrime_a,f_b,fPrime_b);  
 
@@ -670,7 +1095,7 @@ int _sectioningPhase(
 
       double aPrev = a; double bPrev = b; double f_aPrev = f_a; double f_bPrev = f_b; 
       double fPrime_aPrev = fPrime_a; double fPrime_bPrev = fPrime_b;
-      if ((f_alpha > (fInitial + (*alpha)*rho*fPrimeInitial)) || (f_alpha >= f_a))
+      if ((f_alpha < (fInitial + (*alpha)*rho*fPrimeInitial)) || (f_alpha <= f_a))
 	{
 	  a = aPrev; b = (*alpha);
 	  f_a = f_aPrev; f_b = f_alpha;
