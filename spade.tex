@@ -371,12 +371,12 @@ The size structure at equilibrium is given by
 \begin{equation}
   \begin{split}
   u(x) &= \frac{g(0)u(0)}{g(x)} \exp\left(- \int_0^x \frac{ z(\lambda,U) } {g(\lambda)}\,d\lambda\right)\\
-%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( -\int_0^x \frac{\beta + \gamma \bar{U}}{\kappa(\omega-\lambda)}\,d\lambda\right)\\
-%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \left.\frac{(\beta + \gamma\bar{U})\log(\kappa(\omega-\lambda))}{\kappa}\right|_0^x\right)\\
-%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa(\omega-x)) - \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa\omega)\right)\\
-%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
-%  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
-%  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}(\omega-x)^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}}\omega^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( -\int_0^x \frac{\beta + \gamma \bar{U}}{\kappa(\omega-\lambda)}\,d\lambda\right)\\
+  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \left.\frac{(\beta + \gamma\bar{U})\log(\kappa(\omega-\lambda))}{\kappa}\right|_0^x\right)\\
+  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa(\omega-x)) - \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa\omega)\right)\\
+  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}(\omega-x)^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}}\omega^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
   &= \frac{\left(\alpha_1 \bar{V} + \alpha_2 \bar{W}\right) (\omega-x)^{(\beta+\gamma\bar{U})/\kappa-1}}{\kappa \omega^{(\beta+\gamma\bar{U})/\kappa}}
   \end{split} 
 \end{equation}
@@ -387,7 +387,23 @@ Consider now the initial values of the parameters for the optimisation algorithm
 \begin{equation}
   1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
 \end{equation}
-where $f$ is the constant fishing mortality and $\tilde{\beta}$ is a natural mortality term that is in some sense a mixture of density dependent and density independent effects. At this equilibrium, we have the following size-structure
+where $f$ is the constant fishing mortality and $\tilde{\beta}$ is a natural mortality term that is a mixture of density dependent and density independent effects. 
+
+
+
+%But we also have
+%\begin{equation}
+%  1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\beta + 0.4\gamma \bar{U}  + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
+%\end{equation}
+
+\begin{equation}
+{{2\,\left(\int_{0}^{w}{{\frac{x^2\,e^ {- {{\int_{0}^{x}{{\frac{f s(\lambda)+\beta}{\kappa(\omega-\lambda)}}\;d\lambda}}} }}{\kappa(\omega-x)}}\;dx}
+ \right)\,\left({{\int_{0}^{w}{{\frac{\left(\alpha_2 x^2+\alpha_1 x
+ \right)\,e^ {- {\int_{0}^{x}{{\frac{f\,s\left(l\right)+\beta}{\kappa(\omega-
+ \lambda)}}\;d\lambda}} }}{\kappa(\omega-x)}}\;dx}}}-1\right)}}
+\end{equation}
+
+At this equilibrium, we have the following size-structure
 \begin{equation}
   \frac{\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
 \int_0^\omega \left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}        
