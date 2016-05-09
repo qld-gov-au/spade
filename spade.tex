@@ -371,19 +371,20 @@ The size structure at equilibrium is given by
 \begin{equation}
   \begin{split}
   u(x) &= \frac{g(0)u(0)}{g(x)} \exp\left(- \int_0^x \frac{ z(\lambda,U) } {g(\lambda)}\,d\lambda\right)\\
-  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( -\int_0^x \frac{\beta + \gamma \bar{U}}{\kappa(\omega-\lambda)}\,d\lambda\right)\\
-  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \left.\frac{(\beta + \gamma\bar{U})\log(\kappa(\omega-\lambda))}{\kappa}\right|_0^x\right)\\
-  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa(\omega-x)) - \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa\omega)\right)\\
-  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
-  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
-  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}(\omega-x)^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}}\omega^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( -\int_0^x \frac{\beta + \gamma \bar{U}}{\kappa(\omega-\lambda)}\,d\lambda\right)\\
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \left.\frac{(\beta + \gamma\bar{U})\log(\kappa(\omega-\lambda))}{\kappa}\right|_0^x\right)\\
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa(\omega-x)) - \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa\omega)\right)\\
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+%  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+%  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}(\omega-x)^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}}\omega^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
   &= \frac{\left(\alpha_1 \bar{V} + \alpha_2 \bar{W}\right) (\omega-x)^{(\beta+\gamma\bar{U})/\kappa-1}}{\kappa \omega^{(\beta+\gamma\bar{U})/\kappa}}
   \end{split} 
 \end{equation}
 We also need initial conditions for our sensitivity PDEs. These are, by definition, $d u(x)/d\theta$. The derivations for these are contained in Appendix \ref{app:2}.
 
 \subsection{Initial parameter values}
-Consider now the initial values of the parameters for the optimisation algorithm. If we linearise the model by removing the density dependent natural mortality ($\gamma$) and consider the population at fished equilibrium, we have the following relation
+Consider now the initial values of the parameters for the optimisation algorithm. At equilibrium, the following relation holds
+%If we linearise the model by removing the density dependent natural mortality ($\gamma$) and consider the population at fished equilibrium, we have the following relation
 \begin{equation}
   1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
 \end{equation}
@@ -396,30 +397,31 @@ where $f$ is the constant fishing mortality and $\tilde{\beta}$ is a natural mor
 %  1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\beta + 0.4\gamma \bar{U}  + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
 %\end{equation}
 
-\begin{equation}
-{{2\,\left(\int_{0}^{w}{{\frac{x^2\,e^ {- {{\int_{0}^{x}{{\frac{f s(\lambda)+\beta}{\kappa(\omega-\lambda)}}\;d\lambda}}} }}{\kappa(\omega-x)}}\;dx}
- \right)\,\left({{\int_{0}^{w}{{\frac{\left(\alpha_2 x^2+\alpha_1 x
- \right)\,e^ {- {\int_{0}^{x}{{\frac{f\,s\left(l\right)+\beta}{\kappa(\omega-
- \lambda)}}\;d\lambda}} }}{\kappa(\omega-x)}}\;dx}}}-1\right)}}
-\end{equation}
+%\begin{equation}
+%{{2\,\left(\int_{0}^{w}{{\frac{x^2\,e^ {- {{\int_{0}^{x}{{\frac{f s(\lambda)+\beta}{\kappa(\omega-\lambda)}}\;d\lambda}}} }}{\kappa(\omega-x)}}\;dx}
+% \right)\,\left({{\int_{0}^{w}{{\frac{\left(\alpha_2 x^2+\alpha_1 x
+% \right)\,e^ {- {\int_{0}^{x}{{\frac{f\,s\left(l\right)+\beta}{\kappa(\omega-
+% \lambda)}}\;d\lambda}} }}{\kappa(\omega-x)}}\;dx}}}-1\right)}}
+%\end{equation}
 
-At this equilibrium, we have the following size-structure
+At this equilibrium, %we have the following size-structure
+%\begin{equation}
+%  \frac{\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
+%\int_0^\omega \left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}        
+%\end{equation}
+%and thus the following 
+the catch structure is proportional to
 \begin{equation}
-  \frac{\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
-\int_0^\omega \left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}        
+  h(x)=\frac{s(x)\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
+\int_0^\omega s(x)\left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}.        
 \end{equation}
-and thus the following catch structure
+If we assume the population has been roughly at equilibrium for a period of time (a visual assessment should suffice), then we can compare this theoretical catch structure to the average catch structre observed over that period. Then, given a fixed $\kappa$ and $\omega$, it is possible to estimate values for $f$ and $\tilde{\beta}$ by minimising the following objective function
 \begin{equation}
-  h(x) = \frac{s(x)\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
-\int_0^\omega s(x)\left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}        
+  G(\theta) = \int_0^\omega l(x) \log\left(\frac{l(x)}{h(x)}\right) \,dx.
 \end{equation}
-and objective function
+where $l(x)$ is the average observed size-structure for the time period. This expression can be differentiated to assist with optimisation:
 \begin{equation}
-  G_1(\theta) = \int_0^\omega l(x) \log\left(\frac{l(x)}{h(x)}\right) \,dx.
-\end{equation}
-where $l(x)$ is the observed size-structure for the entire time period. We will also use the derivatives:
-\begin{equation}
-  \frac{d G_1}{d \beta} = \int_0^\omega -\frac{l(x)}{h(x)} \frac{ A(x) \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right) B - A(x) \int_0^\omega A(x) \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B^2}\,dx  
+  \frac{d G}{d \beta} = \int_0^\omega -\frac{l(x)}{h(x)} \frac{ A(x) \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right) B - A(x) \int_0^\omega A(x) \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B^2}\,dx  
 \end{equation}
 where
 \begin{equation}
@@ -431,15 +433,15 @@ and
 \end{equation}
 and 
 \begin{equation}
-  \frac{d G_1}{d f} = \int_0^\omega -\frac{l(x)}{h(x)} \frac{ A(x) \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right) B - A(x) \int_0^\omega A(x) \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B^2}  \,dx
+  \frac{d G}{d f} = \int_0^\omega -\frac{l(x)}{h(x)} \frac{ A(x) \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right) B - A(x) \int_0^\omega A(x) \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B^2}  \,dx
 \end{equation}
 We can simplify this further to 
 \begin{equation}
-  \frac{d G_1}{d \beta} = \int_0^\omega -l(x) \frac{ \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right) B - \int_0^\omega A(x) \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B}\,dx  
+  \frac{d G}{d \beta} = \int_0^\omega -l(x) \frac{ \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right) B - \int_0^\omega A(x) \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B}\,dx  
 \end{equation}
 and
 \begin{equation}
-  \frac{d G_1}{d f} = \int_0^\omega -l(x) \frac{ \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right) B - \int_0^\omega A(x) \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B}  \,dx
+  \frac{d G}{d f} = \int_0^\omega -l(x) \frac{ \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right) B - \int_0^\omega A(x) \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B}  \,dx
 \end{equation}
 \subsection{Optimisation algorithm}
 The optimisation algorithm is essentially a BFGS (Broyden-Fletcher-Goldfarb-Shanno) method, but treated as a bi-level optimisation where $\iota$ is solved in the inner loop. This is because $\iota$ is a `nuisance parameter', in the following senses: \emph{i}) it is not of great interest directly, \emph{ii}) it is found through a different objective function to the other parameters, and \emph{iii}) that objective function could in principle be minimised to arbitrary precision (e.g. by taking $\iota$ to be a vector of spline coefficients) without over-parameterising the objective functions of interest. Therefore we let $\tilde{\theta}$ be the \emph{non-}$\iota$ components of $\theta$, so that $\theta = \langle\tilde{\theta},\iota\rangle$. Also let the main objective function be a weighted sum of the three `interesting' objective functions: $H_*(\theta) = \xi_2 H_2(\theta) +\xi_3 H_3(\theta) + \xi_4 H_4(\theta)$. We discuss how the $\xi_i$ are chosen later.

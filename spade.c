@@ -60,6 +60,7 @@ void solve_p_alpha1(VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,
 void solve_p_alpha2(VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_beta  (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_gamma (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
+void solve_p_delta (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_kappa (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_omega (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_iota  (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
@@ -280,6 +281,7 @@ int main(int argc, char *argv[])
   data.J = J;
   data.k = k;
 
+  /*
   VEC *th = v_get(2);
   th->ve[0] = .44;
   th->ve[1] = .92;
@@ -304,14 +306,17 @@ int main(int argc, char *argv[])
     }
 
   printf("%f %f\n",iota,a2);
+  */
 
   VEC *theta = v_get(5);
 
   theta->ve[0] = alpha1;
-  theta->ve[1] = a2;
+  theta->ve[1] = 0.002; //a2;
   theta->ve[2] = beta;
   theta->ve[3] = gamma;
-  theta->ve[4] = iota;
+  theta->ve[4] = 0.0005;
+
+  v_output(theta);
 
   bfgs(VMGMM,theta,&data);
 
@@ -896,8 +901,8 @@ int mthls(
       //      printf("%g ",f);
     }
 
-	 //	 printf("%d %g %g %g %g %g %d\n",info,stx,stp,sty,f,dg,infoc);
-	 //printf("%g ",f);
+  //	 printf("%d %g %g %g %g %g %d\n",info,stx,stp,sty,f,dg,infoc);
+  //printf("%g ",f);
 
 }
 
@@ -1836,7 +1841,7 @@ void solve(
   thextra->ve[0] = theta->ve[0];
   thextra->ve[1] = theta->ve[1];
   thextra->ve[2] = theta->ve[2];
-  thextra->ve[3] = theta->ve[3];
+  thextra->ve[3] = theta->ve[3]*1e-7;
   thextra->ve[4] = kappa;
   thextra->ve[5] = omega;
  
@@ -1847,7 +1852,7 @@ void solve(
   double a1 = theta->ve[0];
   double a2 = theta->ve[1];
   double bb = theta->ve[2];
-  double gg = theta->ve[3];
+  double gg = theta->ve[3]*1e-7;
   double kk = kappa;
   double ww = omega;
   double ii = theta->ve[4];
@@ -1943,7 +1948,6 @@ void solve_p_alpha1(
 		 )
 {
 
-
   VEC *xt; VEC *xht; VEC *xnt; 
   VEC *ut; VEC *uht; VEC *pt; VEC *unt;
   xt = v_get(x->n);
@@ -1964,7 +1968,7 @@ void solve_p_alpha1(
   double a1 = theta->ve[0];
   double a2 = theta->ve[1];
   double bb = theta->ve[2];
-  double gg = theta->ve[3];
+  double gg = theta->ve[3]*1e-7;
   double kk = kappa;
   double ww = omega;
   double ii = theta->ve[4];
@@ -1977,7 +1981,7 @@ void solve_p_alpha1(
   thextra->ve[0] = theta->ve[0];
   thextra->ve[1] = theta->ve[1];
   thextra->ve[2] = theta->ve[2];
-  thextra->ve[3] = theta->ve[3];
+  thextra->ve[3] = theta->ve[3]*1e-7;
   thextra->ve[4] = kappa;
   thextra->ve[5] = omega;
 
@@ -2124,7 +2128,7 @@ void solve_p_alpha2(
   double a1 = theta->ve[0];
   double a2 = theta->ve[1];
   double bb = theta->ve[2];
-  double gg = theta->ve[3];
+  double gg = theta->ve[3]*1e-7;
   double kk = kappa;
   double ww = omega;
   double ii = theta->ve[4];
@@ -2137,7 +2141,7 @@ void solve_p_alpha2(
   thextra->ve[0] = theta->ve[0];
   thextra->ve[1] = theta->ve[1];
   thextra->ve[2] = theta->ve[2];
-  thextra->ve[3] = theta->ve[3];
+  thextra->ve[3] = theta->ve[3]*1e-7;
   thextra->ve[4] = kappa;
   thextra->ve[5] = omega;
 
@@ -2260,7 +2264,7 @@ void solve_p_beta(
   double a1 = theta->ve[0];
   double a2 = theta->ve[1];
   double bb = theta->ve[2];
-  double gg = theta->ve[3];
+  double gg = theta->ve[3]*1e-7;
   double kk = kappa;
   double ww = omega;
   double ii = theta->ve[4];
@@ -2273,7 +2277,7 @@ void solve_p_beta(
   thextra->ve[0] = theta->ve[0];
   thextra->ve[1] = theta->ve[1];
   thextra->ve[2] = theta->ve[2];
-  thextra->ve[3] = theta->ve[3];
+  thextra->ve[3] = theta->ve[3]*1e-7;
   thextra->ve[4] = kappa;
   thextra->ve[5] = omega;
 
@@ -2394,7 +2398,7 @@ void solve_p_gamma(
   double a1 = theta->ve[0];
   double a2 = theta->ve[1];
   double bb = theta->ve[2];
-  double gg = theta->ve[3];
+  double gg = theta->ve[3]*1e-7;
   double kk = kappa;
   double ww = omega;
   double ii = theta->ve[4];
@@ -2407,7 +2411,7 @@ void solve_p_gamma(
   thextra->ve[0] = theta->ve[0];
   thextra->ve[1] = theta->ve[1];
   thextra->ve[2] = theta->ve[2];
-  thextra->ve[3] = theta->ve[3];
+  thextra->ve[3] = theta->ve[3]*1e-7;
   thextra->ve[4] = kappa;
   thextra->ve[5] = omega;
 
@@ -2432,14 +2436,14 @@ void solve_p_gamma(
       get_row(xn,i-1,xnt);
 
       for (int j=1;j<=x->n;j++)
-	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*(Ui->ve[i-1]+gg*Pi->ve[i-1])*ut->ve[j-1];
+	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*(1e-7*Ui->ve[i-1]+gg*Pi->ve[i-1])*ut->ve[j-1];
 	 
       Q2(a1,a2,kk,ww,xht,ph);
       double Ph = Q(xht,ph);
 
       for (int j=1;j<=x->n;j++)
 	{
-	  double b = k*(Uh->ve[i-1]+gg*Ph)*uht->ve[j];
+	  double b = k*(1e-7*Uh->ve[i-1]+gg*Ph)*uht->ve[j];
 	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
 	}
 
@@ -2531,7 +2535,7 @@ void solve_p_kappa(
   double a1 = theta->ve[0];
   double a2 = theta->ve[1];
   double bb = theta->ve[2];
-  double gg = theta->ve[3];
+  double gg = theta->ve[3]*1e-7;
   double kk = theta->ve[4];
   double ww = theta->ve[5];
   double ii = theta->ve[6];
@@ -2680,7 +2684,7 @@ void solve_p_omega(
   double a1 = theta->ve[0];
   double a2 = theta->ve[1];
   double bb = theta->ve[2];
-  double gg = theta->ve[3];
+  double gg = theta->ve[3]*1e-7;
   double kk = theta->ve[4];
   double ww = theta->ve[5];
   double ii = theta->ve[6];
@@ -2828,7 +2832,7 @@ void solve_p_iota(
   double a1 = theta->ve[0];
   double a2 = theta->ve[1];
   double bb = theta->ve[2];
-  double gg = theta->ve[3];
+  double gg = theta->ve[3]*1e-7;
   double kk = kappa;
   double ww = omega;
   double ii = theta->ve[4];
