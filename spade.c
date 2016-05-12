@@ -74,6 +74,8 @@ VEC *VMGMM(VEC *,struct DATA *,VEC *,double *); // The model
 VEC *VMGMM_eq(VEC *,struct DATA *,VEC *,double *); // equlibrium model
 VEC *calc_alpha2(double,double,double,double,double,double);
 
+//double ConditionNumber(VEC *,struct DATA *);
+
 double zstar(VEC *,double,double,double,double,double,double,double,double);
 double e(VEC *,double,double);
 double c(VEC *,double,double);
@@ -505,6 +507,49 @@ VEC * VMGMM_eq(
   return grad;
 
 }
+
+/*double ConditionNumber(
+
+		       VEC * theta,
+		       struct DATA *dataptr
+
+		       )
+{
+
+  int I = dataptr->I+1;
+  int J = dataptr->J+1;
+  MAT *x = m_get(I,J);
+  MAT *u = m_get(I,J);
+  MAT *xh = m_get(I,J+1);
+  MAT *uh = m_get(I,J+1);
+  MAT *xn = m_get(I,J+1);
+  MAT *xhh = m_get(I,J+1);
+  MAT *un = m_get(I,J+1);
+  VEC *Ui = v_get(I);
+  VEC *Uh = v_get(I);
+  VEC *Uhh = v_get(I);
+  IVEC *idxi = iv_get(I-1);
+
+  solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+
+  *f = H(x,u,dataptr,theta->ve[4]);
+  
+  MAT *p_a1 = m_get(x->m,x->n);
+  solve_p_alpha1(theta,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  grad->ve[0] = G_ni(p_a1,x,u,dataptr,theta->ve[4]);
+
+  MAT *p_a2 = m_get(x->m,x->n);
+  solve_p_alpha2(theta,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  grad->ve[1] = G_ni(p_a2,x,u,dataptr,theta->ve[4]); 
+
+  MAT *p_b = m_get(x->m,x->n);
+  solve_p_beta  (theta,p_b,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  grad->ve[2]= G_ni(p_b,x,u,dataptr,theta->ve[4]);
+
+  MAT *p_g = m_get(x->m,x->n);
+  solve_p_gamma (theta,p_g,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  grad->ve[3] = G_ni(p_g,x,u,dataptr,theta->ve[4]);
+*/
 
 VEC *VMGMM(
 
@@ -1666,6 +1711,104 @@ double G(
 
 }
 
+
+/*double G_ni_for_condition_number(
+
+	    MAT *p,
+	    MAT *x,
+	    MAT *u,
+	    struct DATA *data,
+	    double iota
+
+	    )
+{
+
+  int S = data->S;
+  double k = data->k;
+
+  int lfi=0;
+
+  VEC *ht = v_get(x->m);
+  VEC *tt = v_get(x->m);
+
+  for (int i=S;i<x->m;i++)
+    {
+
+      VEC *xt = v_get(x->n);
+      get_row(x,i,xt);      
+      VEC *ut = v_get(x->n);
+      get_row(u,i,ut);      
+      VEC *pt = v_get(x->n);
+      get_row(p,i,pt); 
+
+      VEC *v = v_get(x->n);
+      VEC *pv = v_get(x->n);
+
+      for (int j=0;j<x->n;j++) 
+	{
+	  pv->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*pt->ve[j];
+	  v->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+	}
+
+      if(data->t_id[lfi]==i) 
+	{
+      
+	  VEC *l = v_get(xt->dim);
+	  for (int j=0;j<xt->dim;j++)
+	    l->ve[j] = ut->ve[j]; 
+
+	  for (int j=0;j<xt->dim;j++)
+	    if (v->ve[j] < al*l->ve[j])
+	      ld->ve[j] = -pv->ve[j];
+	    else
+	      ld->ve[j] = pv->ve[j];
+
+	  ht->ve[i] = Q(xt,ld);
+
+          if (lfi<data->n)
+	    lfi += 1;
+
+	} 
+      else 
+	{ 
+          //printf("%d\n",i);
+          //printf("%f\n",Q(xt,pt));
+          //printf("%f\n",Q(xt,v));
+          //printf("%f\n",c(k*(i-tmi.I)));
+        
+	  if (Q(xt,v)<1e3*c(data->cat,k,k*(i-S)))
+	    ht->ve[i] = -Q(xt,pv);//*(Q(xt,v)-1e3*c(k*(i - tmi.I)))/fabs(Q(xt,v)-1e3*c(k*(i - tmi.I)));
+	  else
+	    ht->ve[i]=Q(xt,pv);
+	}
+
+      tt->ve[i] = k*(i-S);
+
+    }
+
+
+  if (BLAH) {
+
+    FILE *p1 = fopen("plot.txt","w");
+
+    for (int i=S;i<x->m;i++)
+      fprintf(p1,"%f %f\n",tt->ve[i],ht->ve[i]);
+
+    fclose(p1);
+
+    char buffer[100];
+
+    sprintf(buffer,"./plo1 > plotht.pdf");
+
+    system(buffer);
+
+  }
+
+  return Q(tt,ht);
+
+}
+*/
+
 double G_ni(
 
 	    MAT *p,
@@ -1754,7 +1897,7 @@ double G_ni(
 	    else
 	      ld->ve[j] = pv->ve[j];
 
-	  // ld->ve[j] = pv->ve[j]*(v->ve[j] - al*l->ve[j]) / fabs(v->ve[j] - al*l->ve[j]);
+	  // Ld->ve[j] = pv->ve[j]*(v->ve[j] - al*l->ve[j]) / fabs(v->ve[j] - al*l->ve[j]);
 
 	  ht->ve[i] = Q(xt,ld);
 
