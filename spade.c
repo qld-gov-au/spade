@@ -1,8 +1,10 @@
 // SPADE
 // Stock assessment using PArtial Differential Equations
-// Alex Campbell 'ghostofsandy' 2015
+// Alex Campbell 'ghostofsandy' 2015 - 2016
 
-#define BLAH 0
+#define PLOT 1
+#define PLOTDERIV 0
+#define PLOTSOLVP 0
 #define GCHECK 0
 
 #include <fenv.h>
@@ -27,6 +29,8 @@ struct DATA {
 };
 
 float kappa,omega;
+
+double alpha2fix = 0.00144;
 
 double iota1=5.2;
 double iota2=0.619;
@@ -310,13 +314,13 @@ int main(int argc, char *argv[])
   printf("%f %f\n",iota,a2);
   */
 
-  VEC *theta = v_get(5);
+  VEC *theta = v_get(4);
 
   theta->ve[0] = alpha1;
-  theta->ve[1] = 0.002; //a2;
-  theta->ve[2] = beta;
-  theta->ve[3] = gamma;
-  theta->ve[4] = 0.0005;
+  //  theta->ve[1] = 0.002; //a2;
+  theta->ve[1] = beta;
+  theta->ve[2] = gamma;
+  theta->ve[3] = 0.5;
 
   v_output(theta);
 
@@ -607,23 +611,32 @@ VEC *VMGMM(
   exit(1);
   */
 
-  *f = H(x,u,dataptr,theta->ve[4]);
+  *f = H(x,u,dataptr,theta->ve[3]);
+
+  printf("%g ",*f);
 
   MAT *p_a1 = m_get(x->m,x->n);
   solve_p_alpha1(theta,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[0] = G_ni(p_a1,x,u,dataptr,theta->ve[4]);
+  grad->ve[0] = G_ni(p_a1,x,u,dataptr,theta->ve[3]);
 
-  MAT *p_a2 = m_get(x->m,x->n);
-  solve_p_alpha2(theta,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[1] = G_ni(p_a2,x,u,dataptr,theta->ve[4]); 
+  printf("%g ",grad->ve[0]);
+  printf("%g ",theta->ve[0]);
+
+  //MAT *p_a2 = m_get(x->m,x->n);
+  //solve_p_alpha2(theta,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  //grad->ve[1] = G_ni(p_a2,x,u,dataptr,theta->ve[4]); 
 
   MAT *p_b = m_get(x->m,x->n);
   solve_p_beta  (theta,p_b ,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[2]= G_ni(p_b,x,u,dataptr,theta->ve[4]);
+  grad->ve[1]= G_ni(p_b,x,u,dataptr,theta->ve[3]);
+
+  printf("%g ",grad->ve[1]);
 
   MAT *p_g = m_get(x->m,x->n);
   solve_p_gamma (theta,p_g,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[3] = G_ni(p_g,x,u,dataptr,theta->ve[4]);
+  grad->ve[2] = G_ni(p_g,x,u,dataptr,theta->ve[3]);
+
+  printf("%g ",grad->ve[2]);
 
   /*
   MAT *p_k = m_get(x->m,x->n);
@@ -637,10 +650,12 @@ VEC *VMGMM(
 
   MAT *p_i = m_get(x->m,x->n);
   solve_p_iota(theta,p_i,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[4] = G(p_i,x,u,dataptr,theta->ve[4]);
+  grad->ve[3] = G(p_i,x,u,dataptr,theta->ve[3]);
+
+  printf("%g\n",grad->ve[3]);
 
   M_FREE(p_a1);
-  M_FREE(p_a2);
+  //M_FREE(p_a2);
   M_FREE(p_b);
   M_FREE(p_g);
   //M_FREE(p_k);
@@ -689,6 +704,9 @@ VEC * bfgs(
 
   //v_output(x);
   grad = (*model)(x,dataptr,grad,&f); 
+  exit(1);
+
+  //printf("%f ",f);
   //v_output(grad);
 
   /*
@@ -769,9 +787,9 @@ VEC * bfgs(
 
       //v_output(dir);
       double dirD = in_prod(grad,dir);
-      //printf("dirD: %f\n",dirD);
+      printf("dirD: %f\n",dirD);
 
-      if (fabs(dirD) < 1e-3)
+      if (fabs(dirD) < 1)
 	return(x);
       
       v_copy(x,oldx);
@@ -779,8 +797,8 @@ VEC * bfgs(
 
       int rt = mthls( model,x,f,grad,dir,1e-8,1e-4,0.9,DBL_EPSILON,1e-20,1e20,30,dataptr);
 
-      //      printf("\n%d\n",rt);
-      v_output(x); 
+      //printf("\n%d\n",rt);
+      //v_output(x);       
       //v_output(grad);
 
       v_sub(x,oldx,delta_x);
@@ -841,7 +859,7 @@ int mthls(
       //Set the minimum and maximum steps to correspond
       // to the present interval of uncertainty.
 
-      printf("%f\n",f);
+      //      printf("%f\n",f);
 
       double stmin,stmax;
 
@@ -894,8 +912,10 @@ int mthls(
       if (f <= ftest1 && fabs(dg) <= gtol*(-dginit))
 	info = 1;
 
-      if (info != 0)
+      if (info != 0){
+	printf("%d\n",info);
 	return info;
+      }
 
       // In the first stage we seek a step for which the modified function has a nonpositive value and nonnegative derivative.
 
@@ -1473,6 +1493,7 @@ double H(
 		 )
 {
 
+  iota *= 1e-3;
   int S = data->S;
   double k = data->k;
 
@@ -1511,7 +1532,7 @@ double H(
 
 	  double al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
-	  if (BLAH) {
+	  if (PLOT) {
 
 	    FILE *p1 = fopen("plot1.txt","w");
 
@@ -1555,7 +1576,7 @@ double H(
 
     }
 
-  if (BLAH) {
+  if (PLOT) {
 
     FILE *p1 = fopen("plot.txt","w");
 
@@ -1587,6 +1608,7 @@ double G(
 	 )
 {
 
+  iota *=1e-3;
   int lfi=0;
 
   int S = data->S;
@@ -1632,7 +1654,7 @@ double G(
 
 	  double al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
-	  if (BLAH) {
+	  if (PLOTDERIV) {
 
 	    FILE *p1 = fopen("plot1.txt","w");
 
@@ -1690,7 +1712,7 @@ double G(
     }
 
 
-  if (BLAH) {
+  if (PLOTDERIV) {
 
     FILE *p1 = fopen("plot.txt","w");
 
@@ -1820,6 +1842,7 @@ double G_ni(
 	    )
 {
 
+  iota *=1e-3;
   int S = data->S;
   double k = data->k;
 
@@ -1865,29 +1888,30 @@ double G_ni(
 
 	  double al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
-	  if (BLAH) {
+	  if (PLOTDERIV) 
+	    {
 
-	    FILE *p1 = fopen("plot1.txt","w");
+	      FILE *p1 = fopen("plot1.txt","w");
 
-	    for (int j=0;j<x->n;j++)
-	      fprintf(p1,"%f %f\n",xt->ve[j],al*l->ve[j]);
+	      for (int j=0;j<x->n;j++)
+		fprintf(p1,"%f %f\n",xt->ve[j],al*l->ve[j]);
 
-	    fclose(p1);
+	      fclose(p1);
 
-	    FILE *p2 = fopen("plot2.txt","w");
+	      FILE *p2 = fopen("plot2.txt","w");
 
-	    for (int j=0;j<x->n;j++)
-	      fprintf(p2,"%f %f\n",xt->ve[j],pv->ve[j]);
+	      for (int j=0;j<x->n;j++)
+		fprintf(p2,"%f %f\n",xt->ve[j],pv->ve[j]);
 
-	    fclose(p2);
+	      fclose(p2);
 
-	    char buffer[100];
+	      char buffer[100];
 
-	    sprintf(buffer,"./plo > plotl%.3f.pdf",k*(data->t_id[lfi] - S));
+	      sprintf(buffer,"./plo > plotl%.3f.pdf",k*(data->t_id[lfi] - S));
 
-	    system(buffer); 
+	      system(buffer);
 
-	  }
+	    }
 
 	  VEC *ld = v_get(x->n);
 
@@ -1922,8 +1946,7 @@ double G_ni(
 
     }
 
-
-  if (BLAH) {
+  if (PLOTDERIV) {
 
     FILE *p1 = fopen("plot.txt","w");
 
@@ -1981,10 +2004,10 @@ void solve(
 
   VEC * thextra = v_get(6);
 
-  thextra->ve[0] = theta->ve[0];
-  thextra->ve[1] = theta->ve[1];
-  thextra->ve[2] = theta->ve[2];
-  thextra->ve[3] = theta->ve[3]*1e-7;
+  thextra->ve[0] = theta->ve[0]*1e-3;
+  thextra->ve[1] = alpha2fix; //theta->ve[1];
+  thextra->ve[2] = theta->ve[1];
+  thextra->ve[3] = theta->ve[2]*1e-7;
   thextra->ve[4] = kappa;
   thextra->ve[5] = omega;
  
@@ -1992,13 +2015,13 @@ void solve(
  
   Ui->ve[0] = Q(xt,ut);
 
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double bb = theta->ve[2];
-  double gg = theta->ve[3]*1e-7;
+  double a1 = theta->ve[0]*1e-3;
+  double a2 = alpha2fix; //theta->ve[1];
+  double bb = theta->ve[1];
+  double gg = theta->ve[2]*1e-7;
   double kk = kappa;
   double ww = omega;
-  double ii = theta->ve[4];
+  double ii = theta->ve[3]*1e-3;
 
   //  printf("\n");
 
@@ -2108,23 +2131,23 @@ void solve_p_alpha1(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
  
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double bb = theta->ve[2];
-  double gg = theta->ve[3]*1e-7;
+  double a1 = theta->ve[0]*1e-3;
+  double a2 = alpha2fix; //theta->ve[1];
+  double bb = theta->ve[1];
+  double gg = theta->ve[2]*1e-7;
   double kk = kappa;
   double ww = omega;
-  double ii = theta->ve[4];
+  double ii = theta->ve[3]*1e-3;
 
   VEC *Pi;
   Pi = v_get(x->m);
 
   VEC * thextra = v_get(6);
 
-  thextra->ve[0] = theta->ve[0];
-  thextra->ve[1] = theta->ve[1];
-  thextra->ve[2] = theta->ve[2];
-  thextra->ve[3] = theta->ve[3]*1e-7;
+  thextra->ve[0] = theta->ve[0]*1e-3;
+  thextra->ve[1] = alpha2fix; //theta->ve[1];
+  thextra->ve[2] = theta->ve[1];
+  thextra->ve[3] = theta->ve[2]*1e-7;
   thextra->ve[4] = kappa;
   thextra->ve[5] = omega;
 
@@ -2134,20 +2157,19 @@ void solve_p_alpha1(
   
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
 
-  if (BLAH) {
+  if (PLOTSOLVP) 
+    {
 
-    FILE *p2 = fopen("plot.txt","w");
+      FILE *p2 = fopen("plot.txt","w");
 
-  for (int j=0;j<x->n;j++) 
-    fprintf(p2,"%f %f\n",xt->ve[j],pt->ve[j]);
+      for (int j=0;j<x->n;j++)
+	fprintf(p2,"%f %f\n",xt->ve[j],pt->ve[j]);
 
-  fclose(p2);
+      fclose(p2);
 
-  system("./plo1-nr > plotp_a1_ini.pdf");
+      system("./plo1-nr > plotp_a1_ini.pdf");
 
- }
-
-  //FILE *ft = fopen("bug_new.dat","w");
+    }
 
   for (int i=1;i<x->m;i++)
     { 
@@ -2181,7 +2203,7 @@ void solve_p_alpha1(
       Q2_alpha1(a1,a2,kk,ww,xnt,unt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
-      //      for (int j=0;j<=x->n;j++)
+      //for (int j=0;j<=x->n;j++)
       //fprintf(ft,"%f ",pn->ve[j]);
       //fprintf(ft,"\n");
 
@@ -2404,23 +2426,23 @@ void solve_p_beta(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double bb = theta->ve[2];
-  double gg = theta->ve[3]*1e-7;
+  double a1 = theta->ve[0]*1e-3;
+  double a2 = alpha2fix;//theta->ve[1];
+  double bb = theta->ve[1];
+  double gg = theta->ve[2]*1e-7;
   double kk = kappa;
   double ww = omega;
-  double ii = theta->ve[4];
+  double ii = theta->ve[3]*1e-3;
 
   VEC *Pi;
   Pi = v_get(x->m);
 
   VEC * thextra = v_get(6);
 
-  thextra->ve[0] = theta->ve[0];
-  thextra->ve[1] = theta->ve[1];
-  thextra->ve[2] = theta->ve[2];
-  thextra->ve[3] = theta->ve[3]*1e-7;
+  thextra->ve[0] = theta->ve[0]*1e-3;
+  thextra->ve[1] = alpha2fix; //theta->ve[1];
+  thextra->ve[2] = theta->ve[1];
+  thextra->ve[3] = theta->ve[2]*1e-7;
   thextra->ve[4] = kappa;
   thextra->ve[5] = omega;
 
@@ -2538,23 +2560,23 @@ void solve_p_gamma(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double bb = theta->ve[2];
-  double gg = theta->ve[3]*1e-7;
+  double a1 = theta->ve[0]*1e-3;
+  double a2 = alpha2fix; //theta->ve[1];
+  double bb = theta->ve[1];
+  double gg = theta->ve[2]*1e-7;
   double kk = kappa;
   double ww = omega;
-  double ii = theta->ve[4];
+  double ii = theta->ve[3]*1e-3;
  
   VEC *Pi;
   Pi = v_get(x->m);
 
   VEC * thextra = v_get(6);
 
-  thextra->ve[0] = theta->ve[0];
-  thextra->ve[1] = theta->ve[1];
-  thextra->ve[2] = theta->ve[2];
-  thextra->ve[3] = theta->ve[3]*1e-7;
+  thextra->ve[0] = theta->ve[0]*1e-3;
+  thextra->ve[1] = alpha2fix; //theta->ve[1];
+  thextra->ve[2] = theta->ve[1];
+  thextra->ve[3] = theta->ve[2]*1e-7;
   thextra->ve[4] = kappa;
   thextra->ve[5] = omega;
 
@@ -2676,12 +2698,12 @@ void solve_p_kappa(
   pn = v_get(x->n+1);
 
   double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double bb = theta->ve[2];
-  double gg = theta->ve[3]*1e-7;
-  double kk = theta->ve[4];
-  double ww = theta->ve[5];
-  double ii = theta->ve[6];
+  double a2 = alpha2fix; //theta->ve[1];
+  double bb = theta->ve[1];
+  double gg = theta->ve[2]*1e-7;
+  double kk = theta->ve[3];
+  double ww = theta->ve[4];
+  double ii = theta->ve[5];
 
   VEC *Pi;
   Pi = v_get(x->m);
@@ -2692,18 +2714,19 @@ void solve_p_kappa(
   
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
 
-if (BLAH) {
+  if (PLOTSOLVP)
+    {
 
-  FILE *p2 = fopen("plot.txt","w");
+      FILE *p2 = fopen("plot.txt","w");
 
-  for (int j=0;j<x->n;j++) 
-    fprintf(p2,"%f %f\n",xt->ve[j],pt->ve[j]);
+      for (int j=0;j<x->n;j++)
+	fprintf(p2,"%f %f\n",xt->ve[j],pt->ve[j]);
 
-  fclose(p2);
+      fclose(p2);
 
-  system("./plo1-nr > plotp_k_ini.pdf");
+      system("./plo1-nr > plotp_k_ini.pdf");
 
-}
+    }
 
   for (int i=1;i<x->m;i++)
     { 
@@ -2748,31 +2771,32 @@ if (BLAH) {
 
     }
 
-if (BLAH) {
+  if (PLOTSOLVP)
+    {
 
-  FILE *p2 = fopen("plot.txt","w");
+      FILE *p2 = fopen("plot.txt","w");
 
-  int i=100;
-  for (int j=0;j<x->n;j++) 
-    fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
+      int i=100;
+      for (int j=0;j<x->n;j++)
+	fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
 
-  fclose(p2);
+      fclose(p2);
 
-  system("./plo1_nr > plotp_k_100.pdf");
+      system("./plo1_nr > plotp_k_100.pdf");
 
-  p2 = fopen("plot.txt","w");
+      p2 = fopen("plot.txt","w");
 
-  i=1000;
-  for (int j=0;j<x->n;j++) 
-    fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
+      i=1000;
+      for (int j=0;j<x->n;j++)
+	fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
 
-  fclose(p2);
+      fclose(p2);
 
-  system("./plo1_nr > plotp_k_1000.pdf");
+      system("./plo1_nr > plotp_k_1000.pdf");
 
-}
+    }
 
-  V_FREE(xt); 
+  V_FREE(xt);
   V_FREE(xht);
   V_FREE(xnt); 
   V_FREE(ut); 
@@ -2825,12 +2849,12 @@ void solve_p_omega(
   pn = v_get(x->n+1);
  
   double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double bb = theta->ve[2];
-  double gg = theta->ve[3]*1e-7;
-  double kk = theta->ve[4];
-  double ww = theta->ve[5];
-  double ii = theta->ve[6];
+  double a2 = alpha2fix; //theta->ve[1];
+  double bb = theta->ve[1];
+  double gg = theta->ve[2]*1e-7;
+  double kk = theta->ve[3];
+  double ww = theta->ve[4];
+  double ii = theta->ve[5];
 
   VEC *Pi;
   Pi = v_get(x->m);
@@ -2841,18 +2865,19 @@ void solve_p_omega(
   
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
 
-if (BLAH) {
+  if (PLOTSOLVP) 
+    {
 
-  FILE *p2 = fopen("plot.txt","w");
+      FILE *p2 = fopen("plot.txt","w");
 
-  for (int j=0;j<x->n;j++) 
-    fprintf(p2,"%f %f\n",xt->ve[j],pt->ve[j]);
+      for (int j=0;j<x->n;j++) 
+	fprintf(p2,"%f %f\n",xt->ve[j],pt->ve[j]);
 
-  fclose(p2);
+      fclose(p2);
 
-  system("./plo1-nr > plotp_w_ini.pdf");
+      system("./plo1-nr > plotp_w_ini.pdf");
 
-}
+    }
 
   for (int i=1;i<x->m;i++)
     { 
@@ -2897,29 +2922,30 @@ if (BLAH) {
 
     }
 
-  if (BLAH) {
+  if (PLOTSOLVP) 
+    {
 
-  FILE *p2 = fopen("plot.txt","w");
+      FILE *p2 = fopen("plot.txt","w");
 
-  int i=100;
-  for (int j=0;j<x->n;j++) 
-    fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
+      int i=100;
+      for (int j=0;j<x->n;j++)
+	fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
 
-  fclose(p2);
+      fclose(p2);
 
-  system("./plo1_nr > plotp_w_100.pdf");
+      system("./plo1_nr > plotp_w_100.pdf");
 
-  p2 = fopen("plot.txt","w");
+      p2 = fopen("plot.txt","w");
 
-  i=1000;
-  for (int j=0;j<x->n;j++) 
-    fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
+      i=1000;
+      for (int j=0;j<x->n;j++)
+	fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
 
-  fclose(p2);
+      fclose(p2);
 
-  system("./plo1_nr > plotp_w_1000.pdf");
+      system("./plo1_nr > plotp_w_1000.pdf");
 
-  }
+    }
 
   V_FREE(xt); 
   V_FREE(xht);
@@ -2972,13 +2998,13 @@ void solve_p_iota(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double bb = theta->ve[2];
-  double gg = theta->ve[3]*1e-7;
+  double a1 = theta->ve[0]*1e-3;
+  double a2 = alpha2fix; //theta->ve[1];
+  double bb = theta->ve[1];
+  double gg = theta->ve[2]*1e-7;
   double kk = kappa;
   double ww = omega;
-  double ii = theta->ve[4];
+  double ii = theta->ve[3]*1e-3;
  
   VEC *Pi;
   Pi = v_get(x->m);

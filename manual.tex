@@ -40,6 +40,8 @@ Stock assessment using PArtial Differential Equations}
 \begin{document}
 \maketitle
 
+\tableofcontents
+
 \chapter{Model}
 Population dynamics are based on the McKendrick partial differential equation \citep{McKendrick1926}, generalised to accommodate density dependence \citep{Gurtin1974} and size structured dynamics \citep{Murphy1983}, and with a time-dependent mortality function:
 \begin{subequations}
@@ -106,7 +108,7 @@ Fishing & $\iota$ & $\text{day}^{-1}$\\
 \end{table}
 
 \chapter{Numerical solution}
-Equation \ref{eq:1} is a nonlinear hyperbolic partial differential equation with a nonlinear and non-local boundary condition, and in general must be solved numerically. As with all Mckendrick style PDEs it can be reduced to a coupled ODE problem by integrating along the characteristic curves \citep{Kot2001}. Following \citet{Angulo2004}, define
+Equation \ref{eq:1} is a nonlinear hyperbolic partial differential equation with a nonlinear and non-local boundary condition, and must be solved numerically. As with all Mckendrick style PDEs it can be reduced to a coupled ODE problem by integrating along the characteristic curves \citep{Kot2001}. Following \citet{Angulo2004}, define
 \begin{equation}
   z^*(x,U,t)=z(x,U,t)+g_x(x)
 \end{equation}
@@ -136,7 +138,8 @@ and therefore can be represented by
 \begin{equation}\label{eq:2.5}
   r(t;t^*,x^*)=u(x^*,t^*)\exp\left(-\int_{t^*}^{t}z^*(x(\tau;t^*,x^*),U,t)\,d\tau\right).
 \end{equation}
-The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.1}. We use a slightly modified version of the second order numerical scheme of \citet{Angulo2014}, given in Algorithm \ref{alg:base}.
+The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.1}. We use a slightly modified version of the second order numerical scheme of \citet{Angulo2014}, given in Algorithm \ref{alg:base}. \emph{Explain modifications. The most significant is that we have introduced a quarter step - this was needed to make the senstivity PDE algorithms work.}
+
 \begin{algorithm}
   \caption{Model PDE numerical solution}\label{alg:base}
   \begin{algorithmic}
@@ -153,6 +156,7 @@ The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integ
     \State $U_0^{n+1/4} \gets \mathcal{Q}(\mathbf{X}^{n+1/4},b(\mathbf{U}^{n+1/4})) / g(X_{0}^{n+1/4})$
   \end{algorithmic}
 \end{algorithm}
+
 Following \citet{Angulo2014} we use an adaptive mesh that keeps the number of nodes along the size dimension constant as the algorithm steps forward: at time $t^{n+1}$ we remove the grid node $X_l^{n+1}$ that satisfies
 \begin{equation}
   |X_{l+1}^{n+1} - X_{l-1}^{n+1}| = \text{min}_{1\leq j\leq J+1} |X_{j+1}^{n+1} - X_{j-1}^{n+1}|
@@ -248,7 +252,7 @@ This is implemented with Algorithm \ref{alg:sens}.
 Sensitivity PDE solutions for the other parameters follow analagously.
 
 \section{Initial state}
-If we assume that we have a complete fishing history, and that the initial state should therefore be unfished equilibrium, then it is possible to derive the starting condition analytically. 
+Unfished equilibrium can be derived analytically. 
 
 The general technique is to introduce integral weighting functions to reduce the PDE to coupled ODEs. This was pioneered by \citet{Gurtin1978}, and has since been applied to more complicated models \citep{Murphy1983,Swart1994}. For our model, we start by defining
 \begin{equation}
@@ -335,7 +339,7 @@ At this equilibrium, the catch structure is proportional to
   h(x)=\frac{s(x)\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
 \int_0^\omega s(x)\left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}.        
 \end{equation}
-If we assume the population has been roughly at equilibrium for a period of time (a visual assessment should suffice), then we can compare this theoretical catch structure to the average catch structre observed over that period. Then, given a fixed $\kappa$ and $\omega$, it is possible to estimate values for $f$ and $\tilde{\beta}$ by minimising the following objective function
+If we assume the population has been roughly at equilibrium for a period of time (a visual assessment should suffice), then we can compare this theoretical catch structure to the average catch structure observed over that period. Then, given a fixed $\kappa$ and $\omega$, it is possible to estimate values for $f$ and $\tilde{\beta}$ by minimising the following objective function
 \begin{equation}
   K(\theta) = \int_0^\omega l(x) \log\left(\frac{l(x)}{h(x)}\right) \,dx.
 \end{equation}
@@ -363,7 +367,7 @@ and
 \begin{equation}
   \frac{d K}{d f} = \int_0^\omega -l(x) \frac{ \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right) B - \int_0^\omega A(x) \left( - \int_0^x \frac{s(\lambda)d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B}  \,dx
 \end{equation}
-\subsection{Optimisation algorithm}
+\section{Optimisation algorithm}
 BFGS \citep{Broyden1970,Fletcher1970,Goldfarb1970,Shanno1970conditioning,Shanno1970optimal} method, with line search due to \citet{more1994line}.
 
 \begin{algorithm}
@@ -390,6 +394,14 @@ Wolfe conditions \citep{wolfe1969convergence}:
     \nabla J(\theta_{k+1})' &\mathbf{q}_k \geq c_2 \nabla J(\theta_k)' \mathbf{q}_k\label{eq:w2}
   \end{align}
 \end{subequations}
+
+\chapter{Diagnostics}
+
+\section{Condition number of the Hessian}
+Hessian matrix entries,
+\begin{equation}
+\mathbf{H}_{i,j}= \frac{\partial^2 J}{\partial \theta_i \partial \theta_j}
+\end{equation}
 
 \chapter{Implementation details}
 \begin{itemize}
