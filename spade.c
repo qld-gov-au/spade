@@ -2,7 +2,7 @@
 // Stock assessment using PArtial Differential Equations
 // Alex Campbell 'ghostofsandy' 2015 - 2016
 
-#define PLOT 1
+#define PLOT 0
 #define PLOTDERIV 0
 #define PLOTSOLVP 0
 #define GCHECK 0
@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
   theta->ve[2] = gamma;
   theta->ve[3] = 0.5;
 
-  v_output(theta);
+  //  v_output(theta);
 
   bfgs(VMGMM,theta,&data);
 
@@ -620,7 +620,7 @@ VEC *VMGMM(
   grad->ve[0] = G_ni(p_a1,x,u,dataptr,theta->ve[3]);
 
   printf("%g ",grad->ve[0]);
-  printf("%g ",theta->ve[0]);
+  //printf("%g ",theta->ve[0]);
 
   //MAT *p_a2 = m_get(x->m,x->n);
   //solve_p_alpha2(theta,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
@@ -697,14 +697,14 @@ VEC * bfgs(
   double f;
   int stop,iter;
 
-  MAT *H = m_get(x->dim,x->dim);
+  MAT *B = m_get(x->dim,x->dim);
   stop=0; iter=0;
 
-  m_ident(H);
+  m_ident(B);
 
   //v_output(x);
   grad = (*model)(x,dataptr,grad,&f); 
-  exit(1);
+  //  exit(1);
 
   //printf("%f ",f);
   //v_output(grad);
@@ -782,7 +782,7 @@ VEC * bfgs(
 	break;
 
       VEC *dir = v_get(x->dim);
-      mv_mlt(H,grad,dir);
+      mv_mlt(B,grad,dir);
       sv_mlt(-1.0/v_norm2(dir),dir,dir);
 
       //v_output(dir);
@@ -795,7 +795,75 @@ VEC * bfgs(
       v_copy(x,oldx);
       v_copy(grad,oldgrad);
 
-      int rt = mthls( model,x,f,grad,dir,1e-8,1e-4,0.9,DBL_EPSILON,1e-20,1e20,30,dataptr);
+      /*
+      if (fabs(dirD)<1200000) 
+	{
+
+	  int I = dataptr->I+1;
+	  int J = dataptr->J+1;
+	  MAT *y = m_get(I,J);
+	  MAT *u = m_get(I,J);
+	  MAT *xh = m_get(I,J+1);
+	  MAT *uh = m_get(I,J+1);
+	  MAT *xn = m_get(I,J+1);
+	  MAT *xhh = m_get(I,J+1);
+	  MAT *un = m_get(I,J+1);
+	  VEC *Ui = v_get(I);
+	  VEC *Uh = v_get(I);
+	  VEC *Uhh = v_get(I);
+	  IVEC *idxi = iv_get(I-1);
+
+	  solve(x,y,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+	  double h = H(y,u,dataptr,x->ve[3]);
+
+	  printf("h=%g\n",h);
+
+	  double ng = 0;
+	  double save = x->ve[3];
+	  for (int j=-3;j>-15;j--)
+	    {
+	      double delta = exp((double)j);
+	      x->ve[3] = save + delta;
+	      solve(x,y,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+
+	      double h_d = H(y,u,dataptr,x->ve[3]);
+	      ng = (h_d-h)/delta;
+	      printf("%g %g\n",delta,ng);
+	    }
+
+	  printf("%g %g %g\n",grad->ve[3],grad->ve[3]-ng,(grad->ve[3]-ng)/ng);
+	  exit(1);
+	  /*
+	  printf("\n");
+	  for (int i=0;i<10;i++) 
+	    {
+
+	      double step = i*1e-12;
+	      VEC *newx = v_get(dir->dim);	      
+	      v_add(x,sv_mlt(-step,dir,VNULL),newx);
+
+	      int I = dataptr->I+1;
+	      int J = dataptr->J+1;
+	      MAT *y = m_get(I,J);
+	      MAT *u = m_get(I,J);
+	      MAT *xh = m_get(I,J+1);
+	      MAT *uh = m_get(I,J+1);
+	      MAT *xn = m_get(I,J+1);
+	      MAT *xhh = m_get(I,J+1);
+	      MAT *un = m_get(I,J+1);
+	      VEC *Ui = v_get(I);
+	      VEC *Uh = v_get(I);
+	      VEC *Uhh = v_get(I);
+	      IVEC *idxi = iv_get(I-1);
+
+	      solve(newx,y,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+	      double f = H(y,u,dataptr,newx->ve[3]);
+	      printf("%f %f\n",step,f);
+	    }
+	    exit(1);*/
+      //}*/
+
+      int rt = mthls( model,x,f,grad,dir,1e-8,1e-4,0.9,DBL_EPSILON,1e-20,1e20,60,dataptr);
 
       //printf("\n%d\n",rt);
       //v_output(x);       
@@ -806,9 +874,9 @@ VEC * bfgs(
 
       //      grad = (*model)(x,dataptr,grad,&f);
       
-      H = UpdateHessian(H,delta_x,delta_grad);
+      B = UpdateHessian(B,delta_x,delta_grad);
 
-      //m_output(H);
+      //m_output(B);
 
     }
 }
@@ -1366,7 +1434,7 @@ VEC *ini_gamma(
   double Z = pow(in,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a1*w+k) / pow(in,1./3);
 
   for (int j=0;j<x->dim;j++)
-    p->ve[j] = -pow(1-x->ve[j]/w,Z/k - 2.) * ((Z-b-k)/(pow(g,2.)*Z)) * (a1 + 2*a2*k*w/(Z+k));
+    p->ve[j] = -pow(1-x->ve[j]/w,Z/k - 2.) * ((Z-b-k)/(1e-7*pow(g,2.)*Z)) * (a1 + 2*a2*k*w/(Z+k));
 
 }
 
@@ -1632,7 +1700,7 @@ double G(
 
       for (int j=0;j<x->n;j++) 
 	{
-	  pv->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*pt->ve[j] + e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+	  pv->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*pt->ve[j] + 1e-3*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 	  v->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 	}
 
@@ -2004,7 +2072,7 @@ void solve(
 
   VEC * thextra = v_get(6);
 
-  thextra->ve[0] = theta->ve[0]*1e-3;
+  thextra->ve[0] = theta->ve[0]; //*1e-3;
   thextra->ve[1] = alpha2fix; //theta->ve[1];
   thextra->ve[2] = theta->ve[1];
   thextra->ve[3] = theta->ve[2]*1e-7;
@@ -2015,8 +2083,8 @@ void solve(
  
   Ui->ve[0] = Q(xt,ut);
 
-  double a1 = theta->ve[0]*1e-3;
-  double a2 = alpha2fix; //theta->ve[1];
+  double a1 = theta->ve[0]; //*1e-3;
+  double a2 = alpha2fix;    //theta->ve[1];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
   double kk = kappa;
@@ -2131,7 +2199,7 @@ void solve_p_alpha1(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
  
-  double a1 = theta->ve[0]*1e-3;
+  double a1 = theta->ve[0]; //*1e-3;
   double a2 = alpha2fix; //theta->ve[1];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
@@ -2426,7 +2494,7 @@ void solve_p_beta(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double a1 = theta->ve[0]*1e-3;
+  double a1 = theta->ve[0]; //*1e-3;
   double a2 = alpha2fix;//theta->ve[1];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
@@ -2439,7 +2507,7 @@ void solve_p_beta(
 
   VEC * thextra = v_get(6);
 
-  thextra->ve[0] = theta->ve[0]*1e-3;
+  thextra->ve[0] = theta->ve[0]; //*1e-3;
   thextra->ve[1] = alpha2fix; //theta->ve[1];
   thextra->ve[2] = theta->ve[1];
   thextra->ve[3] = theta->ve[2]*1e-7;
@@ -2560,7 +2628,7 @@ void solve_p_gamma(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double a1 = theta->ve[0]*1e-3;
+  double a1 = theta->ve[0]; //*1e-3;
   double a2 = alpha2fix; //theta->ve[1];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
@@ -2573,10 +2641,10 @@ void solve_p_gamma(
 
   VEC * thextra = v_get(6);
 
-  thextra->ve[0] = theta->ve[0]*1e-3;
+  thextra->ve[0] = theta->ve[0]; //*1e-3;
   thextra->ve[1] = alpha2fix; //theta->ve[1];
   thextra->ve[2] = theta->ve[1];
-  thextra->ve[3] = theta->ve[2]*1e-7;
+  thextra->ve[3] = theta->ve[2];
   thextra->ve[4] = kappa;
   thextra->ve[5] = omega;
 
@@ -2998,7 +3066,7 @@ void solve_p_iota(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double a1 = theta->ve[0]*1e-3;
+  double a1 = theta->ve[0]; //*1e-3;
   double a2 = alpha2fix; //theta->ve[1];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
@@ -3026,14 +3094,14 @@ void solve_p_iota(
       get_row(xn,i-1,xnt);
 
       for (int j=1;j<=x->n;j++)
-	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*(s(xt->ve[j-1])*e(eff,k,t)+gg*Pi->ve[i-1])*ut->ve[j-1];
+	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*(1e-3*s(xt->ve[j-1])*e(eff,k,t)+gg*Pi->ve[i-1])*ut->ve[j-1];
 	 
       Q2(a1,a2,kk,ww,xht,ph);
       double Ph = Q(xht,ph);
 
       for (int j=1;j<=x->n;j++)
 	{
-	  double b = k*(s(xht->ve[j])*e(eff,k,th)+gg*Ph)*uht->ve[j];
+	  double b = k*(1e-3*s(xht->ve[j])*e(eff,k,th)+gg*Ph)*uht->ve[j];
 	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
 	}
 
