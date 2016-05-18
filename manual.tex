@@ -395,18 +395,116 @@ Wolfe conditions \citep{wolfe1969convergence}:
 
 New birth equation:
 \begin{equation}
-  b(x) = \alpha \left(8.588e-5 x + 0.00144 x^2\right)
+  b(x) = \alpha \left(a_1 x + a_2 x^2\right)
+\end{equation}
+where $a_1$ and $a_2$ are constant. 
+
+The mortality component of the sensitivity PDE for $\alpha$ is unchanged:
+\begin{equation}
+%  \begin{split}
+    \frac{d F}{d \alpha} = p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u \\
+%\kappa\omega p(0,t) &= \int_0^\omega \left(a_1 x + a_2 x^2\right) \left(\alpha p(x,t) + u(x,t)\right)\,dx
+%  \end{split}
 \end{equation}
 
-New sensitivity PDE:
-\begin{equation}
+The boundary conditions become
+\begin{subequations}
+  \begin{align}
+    \kappa\omega p(0,t) &= \int_0^\omega \left(a_1 x + a_2 x^2\right) \left(\alpha p(x,t) + u(x,t)\right)\,dx \\
+    \kappa\omega p(0,t) &= \int_0^\omega \alpha \left(a_1 x + a_2 x^2\right) p(x,t) \,dx \\
+    \kappa\omega p(0,t) &= \int_0^\omega \alpha \left(a_1 x + a_2 x^2\right) p(x,t) \,dx \\
+    \omega u(0,t) + \kappa\omega p(0,t) &= \int_0^\omega \alpha \left(a_1 x + a_2 x^2\right) p(x,t) \,dx \\
+    \kappa u(0,t) + \kappa\omega p(0,t) &= \int_0^\omega \alpha \left(a_1 x + a_2 x^2\right) p(x,t) \,dx \\
+    \kappa\omega p(0,t) &= \int_0^\omega \alpha \left(a_1 x + a_2 x^2\right) p(x,t)  \,dx  
+  \end{align}
+\end{subequations}
+
+Equilibrium becomes
+\begin{subequations}
+  \begin{align}
+  (\beta+\gamma \bar{U}) \bar{U} &= \alpha a_1 \bar{V} + \alpha a_2 \bar{W}\\
+  (\beta + \gamma \bar{U})\bar{V}  &=  \kappa \omega \bar{U} - \kappa \bar{V}\\
+  (\beta+\gamma \bar{U})\bar{W}  &=  2\kappa\omega \bar{V} - 2\kappa \bar{W}
+  \end{align}
+\end{subequations}
+
+
+Reducing as before we get
+\begin{equation}\label{eqn:Z}
   \begin{split}
-    \frac{d F}{d \alpha} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u \\
-\kappa\omega p(0,t) &= \int_0^\omega \left(8.588e-5 x + 0.00144 x^2\right) p(x,t)\,dx
+   (Z-\kappa) \frac{Z-\beta-\kappa}{\gamma} &= \frac{\alpha a_1 \kappa\omega (Z-\beta-\kappa)}{\gamma Z} + \frac{\alpha a_2 2 \kappa\omega \frac{\kappa\omega(Z-\beta-\kappa)}{\gamma Z}}{Z+\kappa}\\
+%    \frac{Z-\kappa}{\gamma} &= \frac{\alpha_1 \kappa\omega}{\gamma Z} + \frac{\alpha_2 2 \kappa\omega \frac{\kappa\omega}{\gamma Z}}{Z+\kappa}\\
+%    Z^2-\kappa Z - \alpha_1 \kappa\omega &= \frac{\alpha_2 2 \kappa\omega \kappa\omega}{Z+\kappa}\\
+%    \left(Z+\kappa\right)\left(Z^2-\kappa Z - \alpha_1 \kappa\omega\right) &= \alpha_2 2 \kappa\omega \kappa\omega\\
+%    Z^3 - \kappa Z^2 - \alpha_1\kappa\omega Z + \kappa Z^2 - \kappa^2 Z - \alpha_1 \kappa^2 \omega &= \alpha_2 2 \kappa\omega \kappa\omega\\
+%    Z^3 - \alpha_1\kappa\omega Z - \kappa^2 Z - \alpha_1 \kappa^2 \omega &= \alpha_2 2 \kappa\omega \kappa\omega\\
+    Z^3 - \kappa(\alpha a_1 \omega+\kappa)Z - \kappa\omega (\alpha a_1 \kappa + 2 \alpha a_2 \kappa\omega) &= 0
   \end{split}
 \end{equation}
 
-%//  \frac{d F}{d \alpha_2} &= p_t + \kappa(\omega-x)p_x - \kappa p +
+The real solution of this is
+\begin{equation}
+  Z = \frac{ \sqrt[3]{9 \alpha a_1 \kappa^2 \omega+18 \alpha a_2 \kappa^2 \omega^2+\kappa\zeta}}{3 \sqrt[3]{\frac23}} +  
+  \frac{\sqrt[3]{\frac23}\,\kappa (\alpha a_1  \omega+\kappa)}{\sqrt[3]{9 \alpha a_1 \kappa^2 \omega+18 \alpha a_2 \kappa^2 \omega^2+\kappa\zeta}}
+\end{equation}  
+where
+\begin{equation}
+\zeta= \sqrt{ 81 \kappa^2 \omega^2 (\alpha a_1 +2 \alpha a_2 \omega)^2 - 12\kappa( \alpha a_1  \omega+ \kappa)^3}.
+\end{equation}  
+
+The size structure at equilibrium is given by
+\begin{equation}
+  \begin{split}
+  u(x) &= \frac{g(0)u(0)}{g(x)} \exp\left(- \int_0^x \frac{ z(\lambda,U) } {g(\lambda)}\,d\lambda\right)\\
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( -\int_0^x \frac{\beta + \gamma \bar{U}}{\kappa(\omega-\lambda)}\,d\lambda\right)\\
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \left.\frac{(\beta + \gamma\bar{U})\log(\kappa(\omega-\lambda))}{\kappa}\right|_0^x\right)\\
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \exp\left( \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa(\omega-x)) - \kappa^{-1}(\beta + \gamma\bar{U})\log(\kappa\omega)\right)\\
+%  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+%  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+%  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}(\omega-x)^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}}\omega^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
+  &= \frac{\left(\alpha a_1 \bar{V} + \alpha a_2 \bar{W}\right) (\omega-x)^{(\beta+\gamma\bar{U})/\kappa-1}}{\kappa \omega^{(\beta+\gamma\bar{U})/\kappa}}
+  \end{split} 
+\end{equation}
+
+Simplifying $U(x)$
+\begin{equation}\label{eq:U2}
+ \begin{split}
+  U(x) =\frac{Z-\beta-\kappa}{\gamma Z}\left(\alpha a_1 + \frac{2\alpha a_2 \kappa\omega}{Z+k}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}.
+  \end{split}
+\end{equation}
+
+Then
+\begin{equation}\label{eq:da}
+\begin{split}
+  \frac{d u(x)}{d\alpha} &=
+{{Z_\alpha\left(-\kappa-b+Z
+ \right)\left({{2\alpha a_2\kappa\omega}\over{\kappa+Z}}+\alpha
+ a_1\right)\left(1-{{x}\over{\omega}}\right)^{{{Z
+ }\over{\kappa}}-2}\log \left(1-{{x}\over{\omega}}\right)}\over{Z\gamma\kappa}}\\
+&-{{Z_\alpha\left(-\kappa-b+Z\right)\left({{2\alpha a_2\kappa\omega}\over{\kappa+Z}}+\alpha a_1\right)\left(1-{{x}\over{\omega}}\right)^{{{Z}\over{\kappa}}-2}}\over{Z^2\gamma}}\\
+&+{{Z_\alpha \left({{2\alpha a_2\kappa\omega}\over{
+ \kappa+Z}}+\alpha a_1\right)\left(1-{{x}\over{\omega}}
+ \right)^{{{Z}\over{\kappa}}-2}}\over{Z\gamma}}\\
+&+{{\left(-\kappa-b+Z\right)\left({{2 a_2\kappa\omega
+ }\over{\kappa+Z}}-{{2\alpha Z_\alpha a_2\kappa\omega}\over{\left(\kappa+Z\right)
+ ^2}}+a_1\right)\left(1-{{x}\over{\omega}}\right)^{{{Z}\over{\kappa}}-2}}\over{Z\gamma}}
+  \end{split}
+\end{equation}
+where
+\begin{equation}
+\begin{split}
+Z_\alpha&= {{2^{{{1}\over{3}}}a_1\kappa\omega}\over{3^{{{1}\over{3}}}\left(\kappa\zeta+18\alpha a_2\kappa^2\omega^2+9\alpha a_1\kappa^2\omega\right)^{{{1}\over{3}}}}}\\
+&+{{{{\kappa \left(162\kappa^2\omega^2\left(2a_2\omega+a_1\right)\left(2\alpha a_2\omega+\alpha a_1\right)-36a_1\kappa\omega\left(\alpha a_1\omega+\kappa\right)^2\right)}\over{2\zeta}}+18a_2\kappa^2\omega^2+9a_1\kappa^2\omega}\over{2^{{{1}\over{3}}}3^{{{5}\over{3}}}\left(\kappa\zeta+18\alpha a_2\kappa^2\omega^2+9\alpha a_1 \kappa^2\omega\right)^{{{2}\over{3}}}}}\\
+&-{{2^{{{1}\over{3}}}\kappa\left(\alpha a_1\omega+\kappa\right)\left({{\kappa\left(162\kappa^2\omega^2\left(2 a_2\omega+a_1\right)\left(2\alpha a_2\omega+\alpha a_1 \right)-36a_1\kappa\omega\left(\alpha a_1\omega+\kappa\right)^2\right)}\over{2\zeta}}+18a_2 \kappa^2\omega^2+9a_1\kappa^2\omega\right)}\over{3^{{{4}\over{3}}}\left( \kappa\zeta+18\alpha a_2\kappa^2\omega^2+9\alpha a_1\kappa^2\omega\right)^{{{4}\over{3}}}}}
+\end{split}
+\end{equation}
+where 
+\begin{equation}
+\zeta=\sqrt{81\kappa^2\omega^2\left(2\alpha a_2\omega+\alpha a_1\right)^2-12\kappa\left(\alpha a_1\omega+\kappa\right)^3}
+\end{equation}
+
+
+Set $a_1 = 8.588e^{-5}$ and $a_2 = 0.00144$.
 
 \chapter{Diagnostics}
 

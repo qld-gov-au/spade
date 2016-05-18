@@ -7,6 +7,9 @@
 #define PLOTSOLVP 0
 #define GCHECK 0
 
+#define A1 8.588e-5
+#define A2 0.00144
+
 #include <fenv.h>
 #include <sys/time.h>
 #include <stdio.h>
@@ -29,8 +32,6 @@ struct DATA {
 };
 
 float kappa,omega;
-
-double alpha2fix = 0.00144;
 
 double iota1=5.2;
 double iota2=0.619;
@@ -60,8 +61,7 @@ VEC *bfgs(VEC * (*)(VEC *,struct DATA *,VEC *,double *),VEC *,struct DATA *);
 MAT *UpdateHessian(MAT*,VEC*,VEC*);
 
 void solve(VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
-void solve_p_alpha1(VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
-void solve_p_alpha2(VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
+void solve_p_alpha(VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_beta  (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_gamma (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_delta (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
@@ -76,7 +76,7 @@ double G_w(MAT*,MAT *,MAT *,struct DATA *,double);
 
 VEC *VMGMM(VEC *,struct DATA *,VEC *,double *); // The model
 VEC *VMGMM_eq(VEC *,struct DATA *,VEC *,double *); // equlibrium model
-VEC *calc_alpha2(double,double,double,double,double,double);
+VEC *calc_alpha(double,double,double,double,double,double);
 
 //double ConditionNumber(VEC *,struct DATA *);
 
@@ -88,14 +88,12 @@ double Q(VEC *,VEC *);
 double Qn(VEC *,VEC *,int);
 
 void Q2(double,double,double,double,VEC *,VEC *);
-void Q2_alpha1(double,double,double,double,VEC *,VEC *,VEC *);
-void Q2_alpha2(double,double,double,double,VEC *,VEC *,VEC *);
+void Q2_alpha(double,double,double,double,VEC *,VEC *,VEC *);
 void Q2_kappa(double,double,double,double,VEC *,VEC *,VEC *);
 void Q2_omega(double,double,double,double,VEC *,VEC *,VEC *);
 
 VEC *initial(VEC *,VEC *,VEC *);
-VEC *ini_alpha1(VEC *,VEC *,VEC *);
-VEC *ini_alpha2(VEC *,VEC *,VEC *);
+VEC *ini_alpha(VEC *,VEC *,VEC *);
 VEC *ini_beta(VEC *,VEC *,VEC *);
 VEC *ini_gamma(VEC *,VEC *,VEC *);
 VEC *ini_omega(VEC *,VEC *,VEC *);
@@ -126,7 +124,7 @@ int main(int argc, char *argv[])
   int Nce,Nlf;
   int N;
 
-  float beta,gamma,alpha1,alpha2;
+  float beta,gamma,alpha;
 
   J = 400;
   double k = 0.025;
@@ -262,8 +260,7 @@ int main(int argc, char *argv[])
 		}
 	    }
 
-	  sscanf(argv[i+2],"%f",&alpha1);
-	  sscanf(argv[i+3],"%f",&alpha2);
+	  sscanf(argv[i+2],"%f",&alpha);
 	  sscanf(argv[i+4],"%f",&beta);
 	  sscanf(argv[i+5],"%f",&gamma);
 	  sscanf(argv[i+6],"%f",&kappa);
@@ -316,7 +313,7 @@ int main(int argc, char *argv[])
 
   VEC *theta = v_get(4);
 
-  theta->ve[0] = alpha1;
+  theta->ve[0] = alpha;
   //  theta->ve[1] = 0.002; //a2;
   theta->ve[1] = beta;
   theta->ve[2] = gamma;
@@ -340,10 +337,9 @@ int main(int argc, char *argv[])
 
 }
 
-VEC * calc_alpha2(
+VEC * calc_alpha(
 
-			double a1,
-			double a2,
+			double a,
 			double k,
 			double w,
 			double bt,
@@ -365,7 +361,7 @@ VEC * calc_alpha2(
     t->ve[j] = (bt + f*s(x->ve[j])) / (k*(w-x->ve[j]));
 
   for (int j=0;j<v->dim;j++)
-    v->ve[j] = (a1*x->ve[j] + a2*pow(x->ve[j],2.))*exp(-Qn(x,t,j+1))/(k*(w-x->ve[j]));
+    v->ve[j] = a*(A1*x->ve[j] + A2*pow(x->ve[j],2.))*exp(-Qn(x,t,j+1))/(k*(w-x->ve[j]));
 
   double qv = Q(x,v);
 
@@ -615,15 +611,11 @@ VEC *VMGMM(
 
   printf("%g ",*f);
 
-  MAT *p_a1 = m_get(x->m,x->n);
-  solve_p_alpha1(theta,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[0] = G_ni(p_a1,x,u,dataptr,theta->ve[3]);
+  MAT *p_a = m_get(x->m,x->n);
+  solve_p_alpha(theta,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  grad->ve[0] = G_ni(p_a,x,u,dataptr,theta->ve[3]);
 
   printf("%g ",grad->ve[0]);
-
-  //MAT *p_a2 = m_get(x->m,x->n);
-  //solve_p_alpha2(theta,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  //grad->ve[1] = G_ni(p_a2,x,u,dataptr,theta->ve[4]); 
 
   MAT *p_b = m_get(x->m,x->n);
   solve_p_beta  (theta,p_b ,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
@@ -1329,7 +1321,7 @@ double idxselect(
 
 }
   
-VEC *ini_alpha1(
+VEC *ini_alpha(
 
 		VEC *theta,
 		VEC *x,
@@ -1340,18 +1332,18 @@ VEC *ini_alpha1(
 
   x->ve[x->dim-1] -= 1e-5;
 
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double b = theta->ve[2];
-  double g = theta->ve[3];
-  double k = theta->ve[4];
-  double w = theta->ve[5];
+  double a = theta->ve[0];
+  double b = theta->ve[1];
+  double g = theta->ve[2];
+  double k = theta->ve[3];
+  double w = theta->ve[4];
 
-  double zeta = sqrt( 81*k*k*w*w*pow(a1+2*a2*w,2.) - 12*k*pow(a1*w+k,3.) );
-  double in = 9*a1*k*k*w + 18*a2*k*k*w*w + k*zeta;
-  double Z = pow(in,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a1*w+k) / pow(in,1./3);
+  double eta = 18*a*A2*k*k*w*w+9*a*A1*k*k*w;
+  double eta2 = 18*A2*k*k*w*w+9*A1*k*k*w;
+  double eta3 = 162*k*k*w*w*(2*A2*w+A1)*(2*a*A2*w+a*A1)-36*A1*k*w*pow(a*A1*w+k,2.);
+  double zeta = sqrt( 81*k*k*w*w*pow(a*A1+2*a*A2*w,2.) - 12*k*pow(a*A1*w+k,3.) );
 
-  double Za1 = ((k*k*w*(3*zeta-6*pow(k+a1*w,2.)+27*k*w*(a1+2*a2*w)) ) / (zeta*pow(9*a1*pow(k,2.)*w + 18*a2*k*k*w*w + k*zeta,2./3.)) ) * ( (1/(pow(2.,1./3.)*pow(3.,2./3.))) - ( pow(2./3,1./3.)*k*(k+a1*w)) / (pow(9*a1*k*k*w + 18*a2*k*k*w*w + k*zeta,2./3.)) ) + ( pow(2./3,1./3.)*k*w ) / pow(9*a1*k*k*w + 18*a2*k*k*w*w + k*zeta,1./3.);
+  double Z_a = pow(2,1/3.)*A1*k*w / (pow(3,1/3.)*(k*zeta + eta,1/3.)) + ( k*eta3/(2*zeta) + eta2 ) / ( pow(2,1/3.)*pow(3,5/3.)*pow(k*zeta+eta,2/3.) ) - ( pow(2,1/3.)*k*(a*A1*w+k)*(k*eta3/(2*zeta) + eta2) / ( pow(3,4/3.)*(k*zeta+eta) );
 
   for (int j=0;j<x->dim;j++)
     p->ve[j] = pow(1-x->ve[j]/w,Z/k - 2.) * ( (Z-b-k)/(g*Z) * (1 - 2*a2*k*w/pow(Z+k,2.) * Za1) + (Za1/(g*Z))*(a1 + 2*a2*k*w/(Z+k))*((b+k)/Z + log(1 - x->ve[j]/w)* (Z-b-k)/k) );
