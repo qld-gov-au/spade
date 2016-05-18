@@ -620,7 +620,6 @@ VEC *VMGMM(
   grad->ve[0] = G_ni(p_a1,x,u,dataptr,theta->ve[3]);
 
   printf("%g ",grad->ve[0]);
-  //printf("%g ",theta->ve[0]);
 
   //MAT *p_a2 = m_get(x->m,x->n);
   //solve_p_alpha2(theta,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
@@ -652,7 +651,11 @@ VEC *VMGMM(
   solve_p_iota(theta,p_i,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
   grad->ve[3] = G(p_i,x,u,dataptr,theta->ve[3]);
 
-  printf("%g\n",grad->ve[3]);
+  printf("%g ",grad->ve[3]);
+
+
+  printf("%g ",theta->ve[0]);  printf("%g ",theta->ve[1]);  printf("%g ",theta->ve[2]);  printf("%g\n",theta->ve[3]);
+
 
   M_FREE(p_a1);
   //M_FREE(p_a2);
@@ -1627,7 +1630,7 @@ double H(
 	  VEC *ld = v_get(x->n);
 
 	  for (int j=0;j<xt->dim;j++)
-	    ld->ve[j] = fabs(v->ve[j] - al*l->ve[j]);
+	    ld->ve[j] = pow(v->ve[j] - al*l->ve[j],2.);
 
 	  ht->ve[i] = Q(xt,ld);
 
@@ -1637,7 +1640,7 @@ double H(
 	} 
       else 
 	{
-	  ht->ve[i] = fabs(Q(xt,v)-1e3*c(data->cat,k,k*(i - S)));
+	  ht->ve[i] = pow(Q(xt,v)-1e3*c(data->cat,k,k*(i - S)),2.);
 	}
 
       tt->ve[i] = k*(i-S);
@@ -1749,10 +1752,13 @@ double G(
 	  VEC *ld = v_get(x->n);
 
 	  for (int j=0;j<xt->dim;j++)
+	    ld->ve[j] = 2*(v->ve[j] - al*l->ve[j])*pv->ve[j];
+
+	  /*
 	    if (v->ve[j] < al*l->ve[j])
 	      ld->ve[j] = -pv->ve[j];
 	    else
-	      ld->ve[j] = pv->ve[j];
+	    ld->ve[j] = pv->ve[j];*/
 
 	  //	    ld->ve[j] = pv->ve[j]*(v->ve[j] - al*l->ve[j]) / fabs(v->ve[j] - al*l->ve[j]);
 
@@ -1768,11 +1774,13 @@ double G(
           //printf("%f\n",Q(xt,pt));
           //printf("%f\n",Q(xt,v));
           //printf("%f\n",c(k*(i-tmi.I)));
-        
+
+	  ht->ve[i] = 2*(Q(xt,v)-1e3*c(data->cat,k,k*(i-S)))*Q(xt,pv);
+	  /*    
 	  if (Q(xt,v)<1e3*c(data->cat,k,k*(i-S)))
 	    ht->ve[i] = -Q(xt,pv);//*(Q(xt,v)-1e3*c(k*(i - tmi.I)))/fabs(Q(xt,v)-1e3*c(k*(i - tmi.I)));
 	  else
-	    ht->ve[i]=Q(xt,pv);
+	  ht->ve[i]=Q(xt,pv);*/
 	}
 
       tt->ve[i] = k*(i-S);
@@ -1984,10 +1992,14 @@ double G_ni(
 	  VEC *ld = v_get(x->n);
 
 	  for (int j=0;j<xt->dim;j++)
+	    ld->ve[j] = 2*(v->ve[j] - al*l->ve[j])*pv->ve[j];
+
+	  /*
+	  for (int j=0;j<xt->dim;j++)
 	    if (v->ve[j] < al*l->ve[j])
 	      ld->ve[j] = -pv->ve[j];
 	    else
-	      ld->ve[j] = pv->ve[j];
+	    ld->ve[j] = pv->ve[j];*/
 
 	  // Ld->ve[j] = pv->ve[j]*(v->ve[j] - al*l->ve[j]) / fabs(v->ve[j] - al*l->ve[j]);
 
@@ -2003,11 +2015,13 @@ double G_ni(
           //printf("%f\n",Q(xt,pt));
           //printf("%f\n",Q(xt,v));
           //printf("%f\n",c(k*(i-tmi.I)));
-        
+
+	  ht->ve[i] = 2*(Q(xt,v)-1e3*c(data->cat,k,k*(i-S)))*Q(xt,pv);
+	  /*        
 	  if (Q(xt,v)<1e3*c(data->cat,k,k*(i-S)))
 	    ht->ve[i] = -Q(xt,pv);//*(Q(xt,v)-1e3*c(k*(i - tmi.I)))/fabs(Q(xt,v)-1e3*c(k*(i - tmi.I)));
 	  else
-	    ht->ve[i]=Q(xt,pv);
+	  ht->ve[i]=Q(xt,pv);*/
 	}
 
       tt->ve[i] = k*(i-S);

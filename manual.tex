@@ -166,16 +166,12 @@ See \citet{Angulo2014} for convergence analysis and numerical experiments.
 \chapter{Parameter Estimation}
 The model is calibrated against fishery catch-at-size data. This comes from two sources: commercial catch data (a scalar time series representing removals from the population), and scientific monitoring program data on the size structure of the commercial catch. These are combined to produce the `observation', $c(x,t)$: the catch rate (in kilograms per centimetre) at time $t$ and size $x$. It is this observation to which the model is fit:
 \begin{equation}
-J(\theta) = \int_0^T \int_0^\omega |s(x)w(x)f(t)u(x,t) - c(x,t)| \,dx\,dt
+K(\theta) = \int_0^T \int_0^\omega \left(s(x)w(x)f(t)u(x,t) - c(x,t)\right)^2 \,dx\,dt
 \end{equation}
-The gradient of $J$ with respect to $\theta$ is given by
+The gradient of $K$ with respect to $\theta$ is given by
 \begin{equation}
 \int_0^T \int_0^\omega
-\left(s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)\right)\times 
-\begin{cases}
--1, &  s(x)w(x)f(t)u(x,t) < c(x,t)\\
-\phantom{-}1, & s(x)w(x)f(t)u(x,t)>c(x,t) 
-\end{cases}\,dx\,dt
+2\left[s(x)w(x)f(t)u(x,t)-c(x,t)\right]\left[s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)\right]\,dx\,dt
 \end{equation}
 where $p(x,t)=u_\theta(x,t)$ are solutions of the the sensitivity-PDE \citep{Borggaard1997,Li2004}: %,Stanley2002}.
 \begin{equation}
@@ -374,12 +370,12 @@ BFGS \citep{Broyden1970,Fletcher1970,Goldfarb1970,Shanno1970conditioning,Shanno1
   \caption{BFGS Optimisation}\label{alg:opt}
   \begin{algorithmic}
     \State $B_0 \gets I$, $\theta_0 \gets \theta_\text{ini}$, $k \gets 0$
-    \While{$|| \nabla J(\theta_k) || < \epsilon$}
-    \State $\mathbf{q}_k \gets - B_k \nabla J(\theta_k)$
+    \While{$|| \nabla K(\theta_k) || < \epsilon$}
+    \State $\mathbf{q}_k \gets - B_k \nabla K(\theta_k)$
     \State Find $\zeta_k$ that satisfies \ref{eq:w1} and \ref{eq:w2}
     \State $\mathbf{s}_k \gets \zeta_k \mathbf{q}_k$
     \State $\theta_{k+1} \gets \theta_k + \mathbf{s}_k$
-    \State $\mathbf{y}_k \gets \nabla J(\theta_{k+1}) - \nabla J(\theta_k)$
+    \State $\mathbf{y}_k \gets \nabla K(\theta_{k+1}) - \nabla K(\theta_k)$
     \State $\rho_k \gets (\mathbf{s_k}' \mathbf{y}_k)^{-1}$
     \State $B_{k+1} \gets (I - \rho_k \mathbf{s}_k \mathbf{y}_k') B_k (I - \rho_k \mathbf{y}_k' \mathbf{s}_k) + \rho_k \mathbf{s}_k\mathbf{s}_k'$
     \State $k \gets k+1$
@@ -390,10 +386,27 @@ BFGS \citep{Broyden1970,Fletcher1970,Goldfarb1970,Shanno1970conditioning,Shanno1
 Wolfe conditions \citep{wolfe1969convergence}:
 \begin{subequations}
   \begin{align}
-    J(\theta_{k+1}) &\leq J(\theta_k) + c_1 \zeta_k \nabla J(\theta_k)' \mathbf{q}_k \label{eq:w1}\\
-    \nabla J(\theta_{k+1})' &\mathbf{q}_k \geq c_2 \nabla J(\theta_k)' \mathbf{q}_k\label{eq:w2}
+    K(\theta_{k+1}) &\leq K(\theta_k) + c_1 \zeta_k \nabla K(\theta_k)' \mathbf{q}_k \label{eq:w1}\\
+    \nabla K(\theta_{k+1})' &\mathbf{q}_k \geq c_2 \nabla K(\theta_k)' \mathbf{q}_k\label{eq:w2}
   \end{align}
 \end{subequations}
+
+\chapter{Simpler}
+
+New birth equation:
+\begin{equation}
+  b(x) = \alpha \left(8.588e-5 x + 0.00144 x^2\right)
+\end{equation}
+
+New sensitivity PDE:
+\begin{equation}
+  \begin{split}
+    \frac{d F}{d \alpha} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u \\
+\kappa\omega p(0,t) &= \int_0^\omega \left(8.588e-5 x + 0.00144 x^2\right) p(x,t)\,dx
+  \end{split}
+\end{equation}
+
+%//  \frac{d F}{d \alpha_2} &= p_t + \kappa(\omega-x)p_x - \kappa p +
 
 \chapter{Diagnostics}
 
