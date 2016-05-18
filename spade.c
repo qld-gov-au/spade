@@ -1338,44 +1338,15 @@ VEC *ini_alpha(
   double k = theta->ve[3];
   double w = theta->ve[4];
 
-  double eta = 18*a*A2*k*k*w*w+9*a*A1*k*k*w;
-  double eta2 = 18*A2*k*k*w*w+9*A1*k*k*w;
-  double eta3 = 162*k*k*w*w*(2*A2*w+A1)*(2*a*A2*w+a*A1)-36*A1*k*w*pow(a*A1*w+k,2.);
   double zeta = sqrt( 81*k*k*w*w*pow(a*A1+2*a*A2*w,2.) - 12*k*pow(a*A1*w+k,3.) );
+  double eta = 9*a*A1*k*k*w + 18*a*A2*k*k*w*w + k*zeta;
+  double eta2 = 9*A1*k*k*w + 18*A2*k*k*w*w + k*zeta;
+  double Z = pow(eta,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a*A1*w+k) / pow(eta,1./3);
 
-  double Z_a = pow(2,1/3.)*A1*k*w / (pow(3,1/3.)*(k*zeta + eta,1/3.)) + ( k*eta3/(2*zeta) + eta2 ) / ( pow(2,1/3.)*pow(3,5/3.)*pow(k*zeta+eta,2/3.) ) - ( pow(2,1/3.)*k*(a*A1*w+k)*(k*eta3/(2*zeta) + eta2) / ( pow(3,4/3.)*(k*zeta+eta) );
-
-  for (int j=0;j<x->dim;j++)
-    p->ve[j] = pow(1-x->ve[j]/w,Z/k - 2.) * ( (Z-b-k)/(g*Z) * (1 - 2*a2*k*w/pow(Z+k,2.) * Za1) + (Za1/(g*Z))*(a1 + 2*a2*k*w/(Z+k))*((b+k)/Z + log(1 - x->ve[j]/w)* (Z-b-k)/k) );
-
-}
-
-VEC *ini_alpha2(
-
-		VEC *theta,
-		VEC *x,
-		VEC *p
-
-		)
-{
-
-  x->ve[x->dim-1] -= 1e-5;
-
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double b = theta->ve[2];
-  double g = theta->ve[3];
-  double k = theta->ve[4];
-  double w = theta->ve[5];
-
-  double zeta = sqrt( 81*k*k*w*w*pow(a1+2*a2*w,2.) - 12*k*pow(a1*w+k,3.) );
-  double in = 9*a1*k*k*w + 18*a2*k*k*w*w + k*zeta;
-  double Z = pow(in,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a1*w+k) / pow(in,1./3);
-
-  double Za2 = (6*k*k*w*w*(zeta+9*k*w*(a1 + 2*a2*w)) / (zeta*pow(9*a1*k*k*w + 18*a2*k*k*w*w + k*zeta,2./3.)) ) * ( (1/(pow(2.,1./3.)*pow(3.,2./3.))) - ( pow(2./3,1./3.)*k*(k+a1*w)) / (pow(9*a1*k*k*w + 18*a2*k*k*w*w + k*zeta,2./3.)) );
+  double Za = ( k*k*w*(3*A1*zeta+6*A2*w*zeta-6*A1*pow(k+a*A1*w,2.)+27*k*w*(A1+2*A2*w)*(a*A1+2*a*A2*w)) / ( zeta*pow(eta2,2/3.) ) ) * ( (1/ (pow(2,1/3.) * pow(3,2/3.) )) - ( pow(2/3.,1/3.)*k*(k+a*A1*w) / pow(eta2,2/3.) ) ) + ( pow(2/3.,1/3.)*A1*k*w / pow(eta,1/3.) );
 
   for (int j=0;j<x->dim;j++)
-    p->ve[j] = pow(1-x->ve[j]/w,Z/k - 2.) * ( (Z - b - k)/(g*Z) * ( 2*k*w/(Z+k) - (2*a2*k*w/pow(Z+k,2.)) * Za2) + (Za2/(g*Z))*(a1 + 2*a2*k*w/(Z+k))*((b+k)/Z + log(1 - x->ve[j]/w) * (Z-b-k)/k) );
+    p->ve[j] = pow(1-x->ve[j]/w,Z/k - 2.) * ( (Z-b-k)/(g*Z) * (A1 + 2*A2*k*w/(Z+k) - 2*a*A2*k*w/pow(Z+k,2.) * Za) + (Za/(g*Z))*(a*A1 + 2*a*A2*k*w/(Z+k))*((b+k)/Z + log(1 - x->ve[j]/w)* (Z-b-k)/k) );
 
 }
 
@@ -1390,19 +1361,18 @@ VEC *ini_beta(
 
   x->ve[x->dim-1] -= 1e-5;
 
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double b = theta->ve[2];
-  double g = theta->ve[3];
-  double k = theta->ve[4];
-  double w = theta->ve[5];
+  double a = theta->ve[0];
+  double b = theta->ve[1];
+  double g = theta->ve[2];
+  double k = theta->ve[3];
+  double w = theta->ve[4];
 
-  double zeta = sqrt( 81*k*k*w*w*pow(a1+2*a2*w,2.) - 12*k*pow(a1*w+k,3.) );
-  double in = 9*a1*k*k*w + 18*a2*k*k*w*w + k*zeta;
-  double Z = pow(in,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a1*w+k) / pow(in,1./3);
+  double zeta = sqrt( 81*k*k*w*w*pow(a*A1+2*a*A2*w,2.) - 12*k*pow(a*A1*w+k,3.) );
+  double eta = 9*a*A1*k*k*w + 18*a*A2*k*k*w*w + k*zeta;
+  double Z = pow(eta,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a*A1*w+k) / pow(eta,1./3);
 
   for (int j=0;j<x->dim;j++)
-    p->ve[j] = -pow(1-x->ve[j]/w,Z/k - 2.) * (1/(g*Z)) * (a1 + 2*a2*k*w/(Z+k));
+    p->ve[j] = -pow(1-x->ve[j]/w,Z/k - 2.) * (1/(g*Z)) * (a*A1 + 2*a*A2*k*w/(Z+k));
 
 }
 
@@ -1417,19 +1387,18 @@ VEC *ini_gamma(
 
   x->ve[x->dim-1] -= 1e-5;
 
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double b = theta->ve[2];
-  double g = theta->ve[3];
-  double k = theta->ve[4];
-  double w = theta->ve[5];
+  double a = theta->ve[0];
+  double b = theta->ve[1];
+  double g = theta->ve[2];
+  double k = theta->ve[3];
+  double w = theta->ve[4];
 
-  double zeta = sqrt( 81*k*k*w*w*pow(a1+2*a2*w,2.) - 12*k*pow(a1*w+k,3.) );
-  double in = 9*a1*k*k*w + 18*a2*k*k*w*w + k*zeta;
-  double Z = pow(in,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a1*w+k) / pow(in,1./3);
+  double zeta = sqrt( 81*k*k*w*w*pow(a*A1+2*a*A2*w,2.) - 12*k*pow(a*A1*w+k,3.) );
+  double eta = 9*a*A1*k*k*w + 18*a*A2*k*k*w*w + k*zeta;
+  double Z = pow(eta,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a*A1*w+k) / pow(eta,1./3);
 
   for (int j=0;j<x->dim;j++)
-    p->ve[j] = -pow(1-x->ve[j]/w,Z/k - 2.) * ((Z-b-k)/(1e-7*pow(g,2.)*Z)) * (a1 + 2*a2*k*w/(Z+k));
+    p->ve[j] = -pow(1-x->ve[j]/w,Z/k - 2.) * ((Z-b-k)/(1e-7*pow(g,2.)*Z)) * (a*A1 + 2*a*A2*k*w/(Z+k));
 
 }
 
