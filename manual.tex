@@ -473,36 +473,28 @@ Simplifying $U(x)$
   \end{split}
 \end{equation}
 
-Then
 \begin{equation}\label{eq:da}
 \begin{split}
-  \frac{d u(x)}{d\alpha} &=
-{{Z_\alpha\left(-\kappa-b+Z
- \right)\left({{2\alpha a_2\kappa\omega}\over{\kappa+Z}}+\alpha
- a_1\right)\left(1-{{x}\over{\omega}}\right)^{{{Z
- }\over{\kappa}}-2}\log \left(1-{{x}\over{\omega}}\right)}\over{Z\gamma\kappa}}\\
-&-{{Z_\alpha\left(-\kappa-b+Z\right)\left({{2\alpha a_2\kappa\omega}\over{\kappa+Z}}+\alpha a_1\right)\left(1-{{x}\over{\omega}}\right)^{{{Z}\over{\kappa}}-2}}\over{Z^2\gamma}}\\
-&+{{Z_\alpha \left({{2\alpha a_2\kappa\omega}\over{
- \kappa+Z}}+\alpha a_1\right)\left(1-{{x}\over{\omega}}
- \right)^{{{Z}\over{\kappa}}-2}}\over{Z\gamma}}\\
-&+{{\left(-\kappa-b+Z\right)\left({{2 a_2\kappa\omega
- }\over{\kappa+Z}}-{{2\alpha Z_\alpha a_2\kappa\omega}\over{\left(\kappa+Z\right)
- ^2}}+a_1\right)\left(1-{{x}\over{\omega}}\right)^{{{Z}\over{\kappa}}-2}}\over{Z\gamma}}
+  \frac{d u(x)}{d\alpha} =& \frac{(\beta+\kappa)Z_{\alpha}}{\gamma Z^2}\left(\alpha a_1 + \frac{2\alpha a_2 \kappa\omega}{Z+\kappa}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}+\\
+&  \frac{Z-\beta-\kappa}{\gamma Z}\left(a_1+ \frac{2 a_2 \kappa\omega}{Z+\kappa}-\frac{2 \alpha a_2\kappa\omega}{(Z+\kappa)^2}Z_{\alpha}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}+\\ 
+& \frac{Z-\beta-\kappa}{\gamma Z}\left(\alpha a_1+ \frac{2\alpha a_2 \kappa\omega}{Z+\kappa}
+\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}\log\left(1-\frac{x}{\omega}\right)\frac{Z_{\alpha}}{\kappa}, 
   \end{split}
 \end{equation}
+which can be written as
+\begin{equation}\begin{split}
+\left(1-\frac{x}{\omega}\right)^{\frac{Z}{\kappa}-2}&\left[ 
+\frac{Z-\beta-\kappa}{\gamma Z}\left(a_1+ \frac{2 a_2 \kappa\omega}{Z+\kappa}-\frac{2 \alpha a_2\kappa\omega}{(Z+\kappa)^2}Z_{\alpha}\right) + \right.\\
+&\left.+\frac{Z_{\alpha}}{\gamma Z}\left(\alpha a_1 + \frac{2\alpha a_2 \kappa\omega}{Z+\kappa}\right)
+  \left(\frac{\beta+\kappa}{Z}+ \log\left(1-\frac{x}{\omega}\right)\frac{Z-\beta-\kappa}{\kappa}\right) \right], 
+\end{split}\end{equation}
 where
-\begin{equation}
-\begin{split}
-Z_\alpha&= {{2^{{{1}\over{3}}}a_1\kappa\omega}\over{3^{{{1}\over{3}}}\left(\kappa\zeta+18\alpha a_2\kappa^2\omega^2+9\alpha a_1\kappa^2\omega\right)^{{{1}\over{3}}}}}\\
-&+{{{{\kappa \left(162\kappa^2\omega^2\left(2a_2\omega+a_1\right)\left(2\alpha a_2\omega+\alpha a_1\right)-36a_1\kappa\omega\left(\alpha a_1\omega+\kappa\right)^2\right)}\over{2\zeta}}+18a_2\kappa^2\omega^2+9a_1\kappa^2\omega}\over{2^{{{1}\over{3}}}3^{{{5}\over{3}}}\left(\kappa\zeta+18\alpha a_2\kappa^2\omega^2+9\alpha a_1 \kappa^2\omega\right)^{{{2}\over{3}}}}}\\
-&-{{2^{{{1}\over{3}}}\kappa\left(\alpha a_1\omega+\kappa\right)\left({{\kappa\left(162\kappa^2\omega^2\left(2 a_2\omega+a_1\right)\left(2\alpha a_2\omega+\alpha a_1 \right)-36a_1\kappa\omega\left(\alpha a_1\omega+\kappa\right)^2\right)}\over{2\zeta}}+18a_2 \kappa^2\omega^2+9a_1\kappa^2\omega\right)}\over{3^{{{4}\over{3}}}\left( \kappa\zeta+18\alpha a_2\kappa^2\omega^2+9\alpha a_1\kappa^2\omega\right)^{{{4}\over{3}}}}}
-\end{split}
-\end{equation}
-where 
-\begin{equation}
-\zeta=\sqrt{81\kappa^2\omega^2\left(2\alpha a_2\omega+\alpha a_1\right)^2-12\kappa\left(\alpha a_1\omega+\kappa\right)^3}
-\end{equation}
-
+\begin{equation}\begin{split}
+Z_{\alpha}= &\frac{\kappa^2 \omega\,(3 a_1 \zeta+6 a_2  \omega \zeta -6 a_1 (\kappa+\alpha a_1 \omega)^2 + 27\kappa\omega( a_1  + 2 a_2 \omega)(\alpha a_1 + 2 \alpha a_2 \omega))}
+{\zeta\, (9 a_1 \kappa^2 \omega + 18 a_2 \kappa^2 \omega^2 + \kappa \zeta)^{2/3}}\left(
+\frac1{2^{1/3}3^{2/3}}-\right.\\
+&\left. \frac{(2/3)^{1/3} \kappa ( \kappa + \alpha a_1\omega)}{(9 a_1 \kappa^2 \omega + 18 a_2 \kappa^2 \omega^2 + \kappa \zeta)^{2/3}}\right)+\frac{(2/3)^{1/3}a_1 \kappa\omega}{(9 \alpha a_1 \kappa^2 \omega + 18 \alpha a_2 \kappa^2 \omega^2 + \kappa \zeta)^{1/3}}.
+\end{split}\end{equation}
 
 Set $a_1 = 8.588e^{-5}$ and $a_2 = 0.00144$.
 
