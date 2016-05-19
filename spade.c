@@ -53,7 +53,7 @@ double s(double x)
     return exp(-pow(x-phi*iota1,2.)/(2*iota2*pow(phi,2.)));
 }
 double g(const double,const double,const double);
-double b(const double,const double,const double);
+double b(const double,const double);
 
 int mthls(VEC *(*f)(VEC *,struct DATA *,VEC *,double *),VEC *,double,VEC *,VEC *,double,double,double,double,double,double,int,struct DATA *); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
 int cstep(double*,double*,double*,double*,double*,double*,double*,double,double,int*,double,double); // cstep from More-Thuente line search
@@ -76,7 +76,7 @@ double G_w(MAT*,MAT *,MAT *,struct DATA *,double);
 
 VEC *VMGMM(VEC *,struct DATA *,VEC *,double *); // The model
 VEC *VMGMM_eq(VEC *,struct DATA *,VEC *,double *); // equlibrium model
-VEC *calc_alpha(double,double,double,double,double,double);
+VEC *calc_alpha(double,double,double,double,double);
 
 //double ConditionNumber(VEC *,struct DATA *);
 
@@ -87,8 +87,8 @@ double c(VEC *,double,double);
 double Q(VEC *,VEC *);
 double Qn(VEC *,VEC *,int);
 
-void Q2(double,double,double,double,VEC *,VEC *);
-void Q2_alpha(double,double,double,double,VEC *,VEC *,VEC *);
+void Q2(double,double,double,VEC *,VEC *);
+void Q2_alpha(double,double,double,VEC *,VEC *,VEC *);
 void Q2_kappa(double,double,double,double,VEC *,VEC *,VEC *);
 void Q2_omega(double,double,double,double,VEC *,VEC *,VEC *);
 
@@ -314,7 +314,6 @@ int main(int argc, char *argv[])
   VEC *theta = v_get(4);
 
   theta->ve[0] = alpha;
-  //  theta->ve[1] = 0.002; //a2;
   theta->ve[1] = beta;
   theta->ve[2] = gamma;
   theta->ve[3] = 0.5;
@@ -612,7 +611,7 @@ VEC *VMGMM(
   printf("%g ",*f);
 
   MAT *p_a = m_get(x->m,x->n);
-  solve_p_alpha(theta,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  solve_p_alpha(theta,p_a,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
   grad->ve[0] = G_ni(p_a,x,u,dataptr,theta->ve[3]);
 
   printf("%g ",grad->ve[0]);
@@ -649,7 +648,7 @@ VEC *VMGMM(
   printf("%g ",theta->ve[0]);  printf("%g ",theta->ve[1]);  printf("%g ",theta->ve[2]);  printf("%g\n",theta->ve[3]);
 
 
-  M_FREE(p_a1);
+  M_FREE(p_a);
   //M_FREE(p_a2);
   M_FREE(p_b);
   M_FREE(p_g);
@@ -1271,10 +1270,10 @@ MAT *UpdateHessian(
 
   MAT *eye = m_get(H->m,H->n);
   double rhok =  1/in_prod(y,s);
-  MAT *A1 = m_sub(m_ident(eye),sm_mlt(rhok,m_mlt(sMc,yMr,MNULL),MNULL),MNULL);
-  MAT *A2 = m_sub(m_ident(eye),sm_mlt(rhok,m_mlt(yMc,sMr,MNULL),MNULL),MNULL);
+  MAT *AA1 = m_sub(m_ident(eye),sm_mlt(rhok,m_mlt(sMc,yMr,MNULL),MNULL),MNULL);
+  MAT *AA2 = m_sub(m_ident(eye),sm_mlt(rhok,m_mlt(yMc,sMr,MNULL),MNULL),MNULL);
 
-  H =  m_add(m_mlt(A1,m_mlt(H,A2,MNULL),MNULL),sm_mlt(rhok,m_mlt(sMc,sMr,MNULL),MNULL),MNULL);
+  H =  m_add(m_mlt(AA1,m_mlt(H,AA2,MNULL),MNULL),sm_mlt(rhok,m_mlt(sMc,sMr,MNULL),MNULL),MNULL);
 
   return H;
 }
@@ -2599,7 +2598,7 @@ void solve_p_kappa(
   pn = v_get(x->n+1);
 
   double a1 = theta->ve[0];
-  double a2 = alpha2fix; //theta->ve[1];
+  double a2 = 0;
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
   double kk = theta->ve[3];
@@ -2752,7 +2751,7 @@ void solve_p_omega(
   pn = v_get(x->n+1);
  
   double a1 = theta->ve[0];
-  double a2 = alpha2fix; //theta->ve[1];
+  double a2 = 0;
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
   double kk = theta->ve[3];
@@ -3098,7 +3097,7 @@ void Q2_alpha(
   double p0 = p->ve[0];
   double p1 = p->ve[1];
 
-  double rt = A1*x0*u0*x1 + A2*x0*x0*u0*x1 + a*A1*x1*p1*x1 + a*A2*x1*x1*p1*x1 + A1*x1*u1*x1 + A2*x1*x1*u1*x1 - A1*x0*u0*x0 - A2*x0*x0*u0*x0 - a*A1*x1*p1*x0 - a*A2*x1*x1*p1*x0 - a1*x1*u1*x0 - A2*x1*x1*u1*x0;
+  double rt = A1*x0*u0*x1 + A2*x0*x0*u0*x1 + a*A1*x1*p1*x1 + a*A2*x1*x1*p1*x1 + A1*x1*u1*x1 + A2*x1*x1*u1*x1 - A1*x0*u0*x0 - A2*x0*x0*u0*x0 - a*A1*x1*p1*x0 - a*A2*x1*x1*p1*x0 - A1*x1*u1*x0 - A2*x1*x1*u1*x0;
 
   for (int j=1;j<x->dim-1;j++) 
     {
@@ -3126,7 +3125,7 @@ void Q2_alpha(
 /* Quadrature plus implicit.. */
 void Q2_kappa(
 
-	      double a1,
+	      double a,
 	      double a2,
 	      double k,
 	      double w,
@@ -3145,19 +3144,19 @@ void Q2_kappa(
       error(E_SIZES,"Q2");
     }
 
-  double rt = x->ve[1] * b(a1,a2,x->ve[1])*p->ve[1] - x->ve[0]*b(a1,a2,x->ve[1])*p->ve[1]; 
+  double rt = x->ve[1] * b(a,x->ve[1])*p->ve[1] - x->ve[0]*b(a,x->ve[1])*p->ve[1]; 
 
   for (int j=1;j<x->dim-1;j++) 
-    rt = rt + (b(a1,a2,x->ve[j])*p->ve[j] + b(a1,a2,x->ve[j+1])*p->ve[j+1]) * (x->ve[j+1]-x->ve[j]);
+    rt = rt + (b(a,x->ve[j])*p->ve[j] + b(a,x->ve[j+1])*p->ve[j+1]) * (x->ve[j+1]-x->ve[j]);
 
-  p->ve[0] = (rt - 2*w*u->ve[0]) / (2*k*w + x->ve[0]*b(a1,a2,x->ve[0]) - x->ve[1]*b(a1,a2,x->ve[0])); 
+  p->ve[0] = (rt - 2*w*u->ve[0]) / (2*k*w + x->ve[0]*b(a,x->ve[0]) - x->ve[1]*b(a,x->ve[0])); 
 
 }
 
 
 void Q2_omega(
 
-	      double a1,
+	      double a,
 	      double a2,
 	      double k,
 	      double w,
@@ -3176,12 +3175,12 @@ void Q2_omega(
       error(E_SIZES,"Q2");
     }
 
-  double rt = x->ve[1] * b(a1,a2,x->ve[1])*p->ve[1] - x->ve[0]*b(a1,a2,x->ve[1])*p->ve[1]; 
+  double rt = x->ve[1] * b(a,x->ve[1])*p->ve[1] - x->ve[0]*b(a,x->ve[1])*p->ve[1]; 
 
   for (int j=1;j<x->dim-1;j++) 
-    rt = rt + (b(a1,a2,x->ve[j])*p->ve[j] + b(a1,a2,x->ve[j+1])*p->ve[j+1]) * (x->ve[j+1]-x->ve[j]);
+    rt = rt + (b(a,x->ve[j])*p->ve[j] + b(a,x->ve[j+1])*p->ve[j+1]) * (x->ve[j+1]-x->ve[j]);
 
-  p->ve[0] = (rt - 2*k*u->ve[0]) / (2*k*w + x->ve[0]*b(a1,a2,x->ve[0]) - x->ve[1]*b(a1,a2,x->ve[0])); 
+  p->ve[0] = (rt - 2*k*u->ve[0]) / (2*k*w + x->ve[0]*b(a,x->ve[0]) - x->ve[1]*b(a,x->ve[0])); 
 
 }
 
