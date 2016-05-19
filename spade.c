@@ -1411,6 +1411,8 @@ VEC *ini_kappa(
 	       )
 {
 
+  // not updated for new birth function yet
+
   x->ve[x->dim-1] -= 1e-5;
 
   double a1 = theta->ve[0];
@@ -1439,6 +1441,8 @@ VEC *ini_omega(
 
 		)
 {
+
+  // not updated for new birth function yet
 
   x->ve[x->dim-1] -= 1e-5;
 
@@ -1472,23 +1476,22 @@ VEC *initial(
 
   x->ve[x->dim-1] -= 1e-5;
 
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double b = theta->ve[2];
-  double g = theta->ve[3];
-  double k = theta->ve[4];
-  double w = theta->ve[5];
+  double a = theta->ve[0];
+  double b = theta->ve[1];
+  double g = theta->ve[2];
+  double k = theta->ve[3];
+  double w = theta->ve[4];
 
-  double zeta = sqrt( 81*k*k*w*w*pow(a1+2*a2*w,2.) - 12*k*pow(a1*w+k,3.) );
-  double in = 9*a1*k*k*w + 18*a2*k*k*w*w + k*zeta;
-  double Z = pow(in,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a1*w+k) / pow(in,1./3);
+  double zeta = sqrt( 81*k*k*w*w*pow(a*A1+2*a*A2*w,2.) - 12*k*pow(a*A1*w+k,3.) );
+  double eta = 9*a*A1*k*k*w + 18*a*A2*k*k*w*w + k*zeta;
+  double Z = pow(eta,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a*A1*w+k) / pow(eta,1./3);
 
   double ubar = (Z - b - k) / g; 
   double vbar = (k*w*ubar) / (b+g*ubar+k);
   double wbar = (2*k*w*vbar) / (b+g*ubar+2*k);  
 
   for (int j=0;j<x->dim;j++) 
-    u->ve[j] = (a1*vbar+a2*wbar)*pow(w-x->ve[j],(b+g*ubar)/k-1) / (k*pow(w,(b+g*ubar)/k));
+    u->ve[j] = (a*A1*vbar+a*A2*wbar)*pow(w-x->ve[j],(b+g*ubar)/k-1) / (k*pow(w,(b+g*ubar)/k));
 
   return u;
 }
@@ -1506,13 +1509,12 @@ double g(
 
 double b(
 
-	 const double a1,
-	 const double a2,
+	 const double a,
 	 const double x
 
 	 )
 { /* birth function */
-  return a1*x + a2*pow(x,2.);
+  return a*(A1*x + A2*pow(x,2.));
 }
       
 double H(
@@ -2045,21 +2047,19 @@ void solve(
   for (int j=1;j<x->n;j++) 
     x->me[0][j] = h*j;
 
-  VEC * thextra = v_get(6);
+  VEC * thextra = v_get(5);
 
-  thextra->ve[0] = theta->ve[0]; //*1e-3;
-  thextra->ve[1] = alpha2fix; //theta->ve[1];
-  thextra->ve[2] = theta->ve[1];
-  thextra->ve[3] = theta->ve[2]*1e-7;
-  thextra->ve[4] = kappa;
-  thextra->ve[5] = omega;
+  thextra->ve[0] = theta->ve[0];
+  thextra->ve[1] = theta->ve[1];
+  thextra->ve[2] = theta->ve[2]*1e-7;
+  thextra->ve[3] = kappa;
+  thextra->ve[4] = omega;
  
   set_row(u,0,initial(thextra,get_row(x,0,xt),ut));
  
   Ui->ve[0] = Q(xt,ut);
 
-  double a1 = theta->ve[0]; //*1e-3;
-  double a2 = alpha2fix;    //theta->ve[1];
+  double aa = theta->ve[0];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
   double kk = kappa;
@@ -2084,7 +2084,7 @@ void solve(
 	  uhh->ve[j] = ut->ve[j-1]*exp(-(k/4)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k));
 	}
 
-      Q2(a1,a2,kk,ww,xhht,uhh);
+      Q2(aa,kk,ww,xhht,uhh);
       Uhh->ve[i-1] = Q(xhht,uhh);
       set_row(xhh,i-1,xhht);
 
@@ -2094,7 +2094,7 @@ void solve(
 	  uht->ve[j] = ut->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k));
 	}
 
-      Q2(a1,a2,kk,ww,xht,uht);
+      Q2(aa,kk,ww,xht,uht);
       Uh->ve[i-1] = Q(xht,uht);
       set_row(xh,i-1,xht);
       set_row(uh,i-1,uht);
@@ -2105,7 +2105,7 @@ void solve(
 	  unt->ve[j] = ut->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
 	}
 
-      Q2(a1,a2,kk,ww,xnt,unt);
+      Q2(aa,kk,ww,xnt,unt);
       Ui->ve[i] = Q(xnt,unt);
       set_row(xn,i-1,xnt);
       set_row(un,i-1,unt);
@@ -2134,7 +2134,7 @@ void solve(
 
 }
 
-void solve_p_alpha1(
+void solve_p_alpha(
 
 		    VEC *theta,
 		    MAT *p,
@@ -2174,8 +2174,7 @@ void solve_p_alpha1(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
  
-  double a1 = theta->ve[0]; //*1e-3;
-  double a2 = alpha2fix; //theta->ve[1];
+  double aa = theta->ve[0];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
   double kk = kappa;
@@ -2185,17 +2184,16 @@ void solve_p_alpha1(
   VEC *Pi;
   Pi = v_get(x->m);
 
-  VEC * thextra = v_get(6);
+  VEC * thextra = v_get(5);
 
-  thextra->ve[0] = theta->ve[0]*1e-3;
-  thextra->ve[1] = alpha2fix; //theta->ve[1];
-  thextra->ve[2] = theta->ve[1];
-  thextra->ve[3] = theta->ve[2]*1e-7;
-  thextra->ve[4] = kappa;
-  thextra->ve[5] = omega;
+  thextra->ve[0] = theta->ve[0];
+  thextra->ve[1] = theta->ve[1];
+  thextra->ve[2] = theta->ve[2]*1e-7;
+  thextra->ve[3] = kappa;
+  thextra->ve[4] = omega;
 
   get_row(x,0,xt);
-  ini_alpha1(thextra,xt,pt);
+  ini_alpha(thextra,xt,pt);
   set_row(p,0,pt);
   
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
@@ -2210,7 +2208,7 @@ void solve_p_alpha1(
 
       fclose(p2);
 
-      system("./plo1-nr > plotp_a1_ini.pdf");
+      system("./plo1-nr > plotp_a_ini.pdf");
 
     }
 
@@ -2231,7 +2229,7 @@ void solve_p_alpha1(
       for (int j=1;j<=x->n;j++)
 	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*gg*Pi->ve[i-1]*ut->ve[j-1];
 	 
-      Q2_alpha1(a1,a2,kk,ww,xht,uht,ph);
+      Q2_alpha(aa,kk,ww,xht,uht,ph);
       double Ph = Q(xht,ph);
 
       for (int j=1;j<=x->n;j++)
@@ -2243,7 +2241,7 @@ void solve_p_alpha1(
 	}
 
       get_row(un,i-1,unt);
-      Q2_alpha1(a1,a2,kk,ww,xnt,unt,pn);
+      Q2_alpha(aa,kk,ww,xnt,unt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
       //for (int j=0;j<=x->n;j++)
@@ -2256,144 +2254,6 @@ void solve_p_alpha1(
     }
   //  fclose(ft);
   //exit(1);   
-  /*  printf("\n");
-  for (int j=0;j<300;j++)
-    {
-      printf("%f %f\n",x->me[x->m-1][j],p->me[x->m-1][j]); //s(x->me[tmi.I+2][j])*w(x->me[tmi.I+2][j])*tmi.dp.iota*e(2*k)*); //-tmi.I+4][i]);
-      //printf("%f %f\n",x->me[x->m-1][i],s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*e(k*(x->m-9-(tmi.I+1)))*u->me[x->m-1][i] + s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*tmi.dp.iota*e(k*(x->m-9-(tmi.I+1)))*p->me[x->m-1][i]);
-    }
-  printf("e\n");
-  exit(1);
-  */
-
-  /*
-  VEC *xxx = v_get(x->m);
-  for (int j=0;j<x->m;j++)
-    xxx->ve[j] = x->me[x->m-1][j];
-
-  VEC *yyy = v_get(x->m);
-  for (int j=0;j<x->m;j++)
-    yyy->ve[j] = s(x->me[x->m-59][j])*w(x->me[x->m-59][j])*e(k*(x->m-59-(tmi.I+1)))*u->me[x->m-59][j] + s(x->me[x->m-59][j])*w(x->me[x->m-59][j])*iota*e(k*(x->m-59-(tmi.I+1)))*p->me[x->m-59][j];
-
-  printf("%f\n",Q(xxx,yyy));
-
-  exit(1);  
-  */
-
-  V_FREE(xt); 
-  V_FREE(xht);
-  V_FREE(xnt); 
-  V_FREE(ut); 
-  V_FREE(uht);
-  V_FREE(pt);
-  V_FREE(ph);
-  V_FREE(pn);
-  V_FREE(Pi);
-  V_FREE(xhht);
-
-}
-
-void solve_p_alpha2(
-
-		 VEC *theta,
-		 MAT *p,
-		 MAT *x,
-		 MAT *u,
-		 MAT *xhh,
-		 MAT *xh,
-		 MAT *xn,
-		 MAT *uh,
-		 MAT *un,
-		 VEC *Ui,
-		 VEC *Uh,
-		 VEC *Uhh,
-		 IVEC *idxi,
-		 VEC *eff,
-		 double k,
-		 
-		 int S
-
-		 )
-{
-
-  VEC *xt; VEC *xht; VEC *xnt; 
-  VEC *ut; VEC *uht; VEC *pt; VEC *unt;
-  xt = v_get(x->n);
-  xht = v_get(x->n+1);
-  xnt = v_get(x->n+1);
-  ut = v_get(x->n);
-  uht = v_get(x->n+1);
-  unt = v_get(x->n+1);
-  pt = v_get(x->n);
-
-  VEC *xhht; 
-  xhht = v_get(x->n+1);
-
-  VEC *ph; VEC *pn;
-  ph = v_get(x->n+1);
-  pn = v_get(x->n+1);
-
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double bb = theta->ve[2];
-  double gg = theta->ve[3]*1e-7;
-  double kk = kappa;
-  double ww = omega;
-  double ii = theta->ve[4];
- 
-  VEC *Pi;
-  Pi = v_get(x->m);
-
-  VEC * thextra = v_get(6);
-
-  thextra->ve[0] = theta->ve[0];
-  thextra->ve[1] = theta->ve[1];
-  thextra->ve[2] = theta->ve[2];
-  thextra->ve[3] = theta->ve[3]*1e-7;
-  thextra->ve[4] = kappa;
-  thextra->ve[5] = omega;
-
-  get_row(x,0,xt);
-  ini_alpha2(thextra,xt,pt);
-  set_row(p,0,pt);
-  
-  Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
-
-  for (int i=1;i<x->m;i++)
-    { 
-
-      double t = k*(i-S-1);
-      double th = k*(i-S-.5);
-      double thh = k*(i-S-.75);
-
-      get_row(x,i-1,xt);
-      get_row(p,i-1,pt);
-      get_row(xh,i-1,xht);
-      get_row(xhh,i-1,xhht);
-      get_row(uh,i-1,uht);
-      get_row(xn,i-1,xnt);
-
-      for (int j=1;j<=x->n;j++)
-	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*gg*Pi->ve[i-1]*ut->ve[j-1];
-	 
-      Q2_alpha2(a1,a2,kk,ww,xht,uht,ph);
-      double Ph = Q(xht,ph);
-
-      for (int j=1;j<=x->n;j++)
-	{
-	  double b = k*gg*Ph*uht->ve[j];
-	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
-	}
-
-      get_row(un,i-1,unt);
-      Q2_alpha2(a1,a2,kk,ww,xnt,unt,pn);
-      Pi->ve[i] = Q(xnt,pn);
-
-      idxremove(pn,pt,idxi->ive[i-1]); 
-      set_row(p,i,pt);
-
-    }
-   
   /*  printf("\n");
   for (int j=0;j<300;j++)
     {
@@ -2469,8 +2329,7 @@ void solve_p_beta(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double a1 = theta->ve[0]; //*1e-3;
-  double a2 = alpha2fix;//theta->ve[1];
+  double aa = theta->ve[0];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
   double kk = kappa;
@@ -2480,14 +2339,13 @@ void solve_p_beta(
   VEC *Pi;
   Pi = v_get(x->m);
 
-  VEC * thextra = v_get(6);
+  VEC * thextra = v_get(5);
 
-  thextra->ve[0] = theta->ve[0]; //*1e-3;
-  thextra->ve[1] = alpha2fix; //theta->ve[1];
-  thextra->ve[2] = theta->ve[1];
-  thextra->ve[3] = theta->ve[2]*1e-7;
-  thextra->ve[4] = kappa;
-  thextra->ve[5] = omega;
+  thextra->ve[0] = theta->ve[0];
+  thextra->ve[1] = theta->ve[1];
+  thextra->ve[2] = theta->ve[2]*1e-7;
+  thextra->ve[3] = kappa;
+  thextra->ve[4] = omega;
 
   get_row(x,0,xt);
   ini_beta(thextra,xt,pt);
@@ -2512,7 +2370,7 @@ void solve_p_beta(
       for (int j=1;j<=x->n;j++)
 	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*(1+gg*Pi->ve[i-1])*ut->ve[j-1];
 	 
-      Q2(a1,a2,kk,ww,xht,ph);
+      Q2(aa,kk,ww,xht,ph);
       double Ph = Q(xht,ph);
 
       for (int j=1;j<=x->n;j++)
@@ -2521,7 +2379,7 @@ void solve_p_beta(
 	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
 	}
 
-      Q2(a1,a2,kk,ww,xnt,pn);
+      Q2(aa,kk,ww,xnt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
       idxremove(pn,pt,idxi->ive[i-1]); 
@@ -2603,8 +2461,7 @@ void solve_p_gamma(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double a1 = theta->ve[0]; //*1e-3;
-  double a2 = alpha2fix; //theta->ve[1];
+  double aa = theta->ve[0];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
   double kk = kappa;
@@ -2614,14 +2471,13 @@ void solve_p_gamma(
   VEC *Pi;
   Pi = v_get(x->m);
 
-  VEC * thextra = v_get(6);
+  VEC * thextra = v_get(5);
 
-  thextra->ve[0] = theta->ve[0]; //*1e-3;
-  thextra->ve[1] = alpha2fix; //theta->ve[1];
-  thextra->ve[2] = theta->ve[1];
-  thextra->ve[3] = theta->ve[2];
-  thextra->ve[4] = kappa;
-  thextra->ve[5] = omega;
+  thextra->ve[0] = theta->ve[0];
+  thextra->ve[1] = theta->ve[1];
+  thextra->ve[2] = theta->ve[2];
+  thextra->ve[3] = kappa;
+  thextra->ve[4] = omega;
 
   get_row(x,0,xt);
   ini_gamma(thextra,xt,pt);
@@ -2646,7 +2502,7 @@ void solve_p_gamma(
       for (int j=1;j<=x->n;j++)
 	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*(1e-7*Ui->ve[i-1]+gg*Pi->ve[i-1])*ut->ve[j-1];
 	 
-      Q2(a1,a2,kk,ww,xht,ph);
+      Q2(aa,kk,ww,xht,ph);
       double Ph = Q(xht,ph);
 
       for (int j=1;j<=x->n;j++)
@@ -2655,7 +2511,7 @@ void solve_p_gamma(
 	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
 	}
 
-      Q2(a1,a2,kk,ww,xnt,pn);
+      Q2(aa,kk,ww,xnt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
       idxremove(pn,pt,idxi->ive[i-1]); 
@@ -2722,6 +2578,8 @@ void solve_p_kappa(
 
 		 )
 {
+
+  // this function has not been updated for new birth function
 
   VEC *xt; VEC *xht; VEC *xnt; 
   VEC *ut; VEC *uht; VEC *pt; VEC *unt;
@@ -2874,6 +2732,8 @@ void solve_p_omega(
 		 )
 {
 
+  // this function has not been updated for new birth function
+
   VEC *xt; VEC *xht; VEC *xnt; 
   VEC *ut; VEC *uht; VEC *pt; VEC *unt;
   xt = v_get(x->n);
@@ -3006,20 +2866,19 @@ void solve_p_omega(
 void solve_p_iota(
 
 		  VEC *theta,
-		 MAT *p,
-		 MAT *x,
-		 MAT *u,
-		 MAT *xhh,
-		 MAT *xh,
-		 MAT *xn,
-		 MAT *uh,
-		 VEC *Ui,
-		 VEC *Uh,
-		 VEC *Uhh,
+		  MAT *p,
+		  MAT *x,
+		  MAT *u,
+		  MAT *xhh,
+		  MAT *xh,
+		  MAT *xn,
+		  MAT *uh,
+		  VEC *Ui,
+		  VEC *Uh,
+		  VEC *Uhh,
 		  IVEC *idxi,
 		  VEC *eff,
-		  double k,
-		  
+		  double k,		  
 		  int S
 
 		 )
@@ -3041,8 +2900,7 @@ void solve_p_iota(
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double a1 = theta->ve[0]; //*1e-3;
-  double a2 = alpha2fix; //theta->ve[1];
+  double aa = theta->ve[0];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
   double kk = kappa;
@@ -3071,7 +2929,7 @@ void solve_p_iota(
       for (int j=1;j<=x->n;j++)
 	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*(1e-3*s(xt->ve[j-1])*e(eff,k,t)+gg*Pi->ve[i-1])*ut->ve[j-1];
 	 
-      Q2(a1,a2,kk,ww,xht,ph);
+      Q2(aa,kk,ww,xht,ph);
       double Ph = Q(xht,ph);
 
       for (int j=1;j<=x->n;j++)
@@ -3080,7 +2938,7 @@ void solve_p_iota(
 	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
 	}
 
-      Q2(a1,a2,kk,ww,xnt,pn);
+      Q2(aa,kk,ww,xnt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
       idxremove(pn,pt,idxi->ive[i-1]); 
@@ -3188,8 +3046,7 @@ double Qn(
 /* Quadrature plus implicit.. */
 void Q2(
 
-	double a1,
-	double a2,
+	double a,
 	double k,
 	double w,
 	VEC *x,
@@ -3204,20 +3061,19 @@ void Q2(
       error(E_SIZES,"Q2");
     }
 
-  double rt = x->ve[1] * b(a1,a2,x->ve[1])*u->ve[1] - x->ve[0]*b(a1,a2,x->ve[1])*u->ve[1]; 
+  double rt = x->ve[1] * b(a,x->ve[1])*u->ve[1] - x->ve[0]*b(a,x->ve[1])*u->ve[1]; 
 
   for (int j=1;j<x->dim-1;j++) 
-    rt = rt + (b(a1,a2,x->ve[j])*u->ve[j] + b(a1,a2,x->ve[j+1])*u->ve[j+1]) * (x->ve[j+1]-x->ve[j]);
+    rt = rt + (b(a,x->ve[j])*u->ve[j] + b(a,x->ve[j+1])*u->ve[j+1]) * (x->ve[j+1]-x->ve[j]);
 
-  u->ve[0] = rt / (2*k*w + x->ve[0]*b(a1,a2,x->ve[0]) - x->ve[1]*b(a1,a2,x->ve[0])); 
+  u->ve[0] = rt / (2*k*w + x->ve[0]*b(a,x->ve[0]) - x->ve[1]*b(a,x->ve[0])); 
 
 }
 
 /* Quadrature plus implicit.. */
-void Q2_alpha1(
+void Q2_alpha(
 
-	       double a1,
-	       double a2,
+	       double a,
 	       double k,
 	       double w,
 	       VEC *x,
@@ -3233,42 +3089,37 @@ void Q2_alpha1(
       error(E_SIZES,"Q2");
     }
 
-  double rt = x->ve[1]*x->ve[0]*u->ve[0] + x->ve[1]*x->ve[1]*u->ve[1] + a1*x->ve[1]*x->ve[1]*p->ve[1] + x->ve[1]*x->ve[1]*x->ve[1]*a2*p->ve[1] - x->ve[0]*x->ve[0]*u->ve[0] - x->ve[0]*x->ve[1]*u->ve[1] - a1*x->ve[0]*x->ve[1]*p->ve[1] - x->ve[0]*x->ve[1]*x->ve[1]*a2*p->ve[1];
+  double x0 = x->ve[0];
+  double x1 = x->ve[1];
+
+  double u0 = u->ve[0];
+  double u1 = u->ve[1];
+
+  double p0 = p->ve[0];
+  double p1 = p->ve[1];
+
+  double rt = A1*x0*u0*x1 + A2*x0*x0*u0*x1 + a*A1*x1*p1*x1 + a*A2*x1*x1*p1*x1 + A1*x1*u1*x1 + A2*x1*x1*u1*x1 - A1*x0*u0*x0 - A2*x0*x0*u0*x0 - a*A1*x1*p1*x0 - a*A2*x1*x1*p1*x0 - a1*x1*u1*x0 - A2*x1*x1*u1*x0;
 
   for (int j=1;j<x->dim-1;j++) 
-    rt += (x->ve[j+1]*u->ve[j+1]+a1*x->ve[j+1]*p->ve[j+1]+a2*x->ve[j+1]*x->ve[j+1]*p->ve[j+1] + x->ve[j]*u->ve[j]+a1*x->ve[j]*p->ve[j]+a2*x->ve[j]*x->ve[j]*p->ve[j]) * (x->ve[j+1]-x->ve[j]);
-
-  p->ve[0] =  rt/ (2*k*w + x->ve[0]*x->ve[0]*a1 + x->ve[0]*x->ve[0]*x->ve[0]*a2 - x->ve[0]*x->ve[1]*a1 - x->ve[1]*x->ve[0]*x->ve[0]*a2); 
-
-}
-
-
-/* Quadrature plus implicit.. */
-void Q2_alpha2(
-
-	      double a1,
-	      double a2,
-	      double k,
-	      double w,
-	      VEC *x,
-	      VEC *u,
-	      VEC *p
-
-	       )
-{
-
-  if (x->dim != u->dim)
     {
-      printf("%d %d\n",x->dim,u->dim);
-      error(E_SIZES,"Q2");
+
+      x0 = x->ve[j];
+      x1 = x->ve[j+1];
+
+      u0 = u->ve[j];
+      u1 = u->ve[j+1];
+
+      p0 = p->ve[j];
+      p1 = p->ve[j+1];
+
+      rt += ( a*A1*x0*p0 + a*A2*x0*x0*p0 + A1*x0*u0 + A2*x0*x0*u0 + a*A1*x1*p1 + a*A2*x1*x1*p1 + A1*x1*u1 + A2*x1*x1*u1 ) * (x1-x0);
+
     }
 
-  double rt = x->ve[1]*x->ve[0]*x->ve[0]*u->ve[0] + x->ve[1]*x->ve[1]*x->ve[1]*u->ve[1] + a1*x->ve[1]*x->ve[1]*p->ve[1] + x->ve[1]*x->ve[1]*x->ve[1]*a2*p->ve[1] - x->ve[0]*x->ve[0]*x->ve[0]*u->ve[0] - x->ve[0]*x->ve[1]*x->ve[1]*u->ve[1] - a1*x->ve[0]*x->ve[1]*p->ve[1] - x->ve[0]*x->ve[1]*x->ve[1]*a2*p->ve[1];
+  x0 = x->ve[0];
+  x1 = x->ve[1];
 
-  for (int j=1;j<x->dim-1;j++) 
-    rt += (x->ve[j+1]*x->ve[j+1]*u->ve[j+1]+a1*x->ve[j+1]*p->ve[j+1]+a2*x->ve[j+1]*x->ve[j+1]*p->ve[j+1] + x->ve[j]*x->ve[j]*u->ve[j]+a1*x->ve[j]*p->ve[j]+a2*x->ve[j]*x->ve[j]*p->ve[j]) * (x->ve[j+1]-x->ve[j]);
-
-  p->ve[0] =  rt/ (2*k*w + x->ve[0]*x->ve[0]*a1 + x->ve[0]*x->ve[0]*x->ve[0]*a2 - x->ve[0]*x->ve[1]*a1 - x->ve[1]*x->ve[0]*x->ve[0]*a2); 
+  p->ve[0] =  rt / (2*k*w + a*A1*x0*x0 + a*A2*x0*x0*x0 - a*A1*x0*x1 - a*A2*x0*x0*x1); 
 
 }
 
@@ -3285,6 +3136,8 @@ void Q2_kappa(
 
 	      )
 {
+
+  // this function has not been updated for new birth function
 
   if (x->dim != p->dim)
     {
@@ -3314,6 +3167,8 @@ void Q2_omega(
 
 	      )
 {
+
+  // this function has not been updated for new birth function
 
   if (x->dim != p->dim)
     {
