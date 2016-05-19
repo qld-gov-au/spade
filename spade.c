@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
   int Nce,Nlf;
   int N;
 
-  float beta,gamma,alpha;
+  float beta,gamma,alpha,iota;
 
   J = 400;
   double k = 0.025;
@@ -177,6 +177,7 @@ int main(int argc, char *argv[])
 	  N = Y/k;
 
 	  PX_FREE(order);
+	  V_FREE(vti);
 
           data.cat = v_get(N+1);
           data.eff = v_get(4*N+1);
@@ -260,13 +261,20 @@ int main(int argc, char *argv[])
 		}
 	    }
 
+	  V_FREE(lfv);
+	  V_FREE(ilv);
+	  V_FREE(cnt);
+
 	  sscanf(argv[i+2],"%f",&alpha);
 	  sscanf(argv[i+3],"%f",&beta);
 	  sscanf(argv[i+4],"%f",&gamma);
-	  sscanf(argv[i+5],"%f",&kappa);
-	  sscanf(argv[i+6],"%f",&omega);
+	  sscanf(argv[i+5],"%f",&iota);
+	  //sscanf(argv[i+5],"%f",&kappa);
+	  //sscanf(argv[i+6],"%f",&omega);
+	  kappa = .1;
+	  omega = 160;
 
-	  i += 8;
+	  i += 7;
 
 	} 
       else
@@ -316,14 +324,19 @@ int main(int argc, char *argv[])
   theta->ve[0] = alpha;
   theta->ve[1] = beta;
   theta->ve[2] = gamma;
-  theta->ve[3] = 0.5;
-
-  //  v_output(theta);
+  theta->ve[3] = iota;
 
   bfgs(VMGMM,theta,&data);
 
-  //  theta->ve[4] = kappa;
-  // theta->ve[5] = omega;
+  V_FREE(theta);
+  V_FREE(data.cat);
+  V_FREE(data.eff);
+  free(data.t_id);
+  free(data.t_sz);
+
+  for (int i=0;i<data.n;i++)
+    free(data.lf[i]);;
+  free(data.lf);
 
   return(0);
 
@@ -335,220 +348,6 @@ int main(int argc, char *argv[])
   //exit(1);
 
 }
-
-VEC * calc_alpha(
-
-			double a,
-			double k,
-			double w,
-			double bt,
-			double f
-
-			)
-{
-
-  VEC *retur = v_get(3);
-
-  VEC *x = v_get(500);
-  VEC *v = v_get(x->dim);
-  VEC *t = v_get(x->dim);
-
-  for (int j=0;j<x->dim;j++)
-    x->ve[j] = j*w/500.;
-
-  for (int j=0;j<t->dim;j++)
-    t->ve[j] = (bt + f*s(x->ve[j])) / (k*(w-x->ve[j]));
-
-  for (int j=0;j<v->dim;j++)
-    v->ve[j] = a*(A1*x->ve[j] + A2*pow(x->ve[j],2.))*exp(-Qn(x,t,j+1))/(k*(w-x->ve[j]));
-
-  double qv = Q(x,v);
-
-  retur->ve[0] = pow(qv-1,2.);
-
-  VEC *z = v_get(x->dim);
-  VEC *q = v_get(x->dim);
-
-  for (int j=0;j<v->dim;j++)
-    z->ve[j] = pow(x->ve[j],2.)*exp(-Qn(x,t,j+1))/(k*(w-x->ve[j]));
-
-  retur->ve[1] = 2*Q(x,z)*(qv-1); 
-
-  return retur;
-
-}
-
-VEC * VMGMM_eq(
-
-		  VEC *x,
-		  struct DATA *d,
-		  VEC *grad,
-		  double *f
-
-		  )
-{
-
-  VEC *xx = v_get(d->J);
-  for (int j=0;j<xx->dim;j++)
-    xx->ve[j] = h*j;
-
-  int nd=0;
-  for (int i=0;i<d->n;i++)
-    nd += d->t_sz[i];
-
-  VEC *dt = v_get(nd);
-  int ii=0;
-  for (int i=0;i<d->n;i++)
-    for (int jj=0;jj<d->t_sz[i];jj++)
-      {
-	dt->ve[ii] = d->lf[i][jj];
-	ii++;
-      }
-
-  double bw = get_bw(dt);
-
-  VEC *l = v_get(d->J);
-
-  for (int j=0;j<l->dim;j++)
-    for (int jj=0;jj<dt->dim;jj++)
-      l->ve[j] += exp( -pow((xx->ve[j] - dt->ve[jj])/bw,2.) );
-
-  double Ql = Q(xx,l);
-
-  for (int j=0;j<l->dim;j++)
-    l->ve[j] /= Ql;
-
-  VEC *v = v_get(xx->dim);
-  VEC *w = v_get(xx->dim);
-
-  for (int j=0;j<w->dim;j++)
-    w->ve[j] = (x->ve[0] + x->ve[1]*s(xx->ve[j])) / (kappa*(omega-xx->ve[j]));
-
-  for (int j=1;j<v->dim;j++)
-    v->ve[j] = s(xx->ve[j])*exp(-Qn(xx,w,j+1))/(omega-xx->ve[j]);
-      
-  double B = Q(xx,v);
-
-  VEC * vn = v_get(v->dim);
-
-  for (int j=0;j<v->dim;j++)
-    vn->ve[j] = v->ve[j]/B;
-  /*
-  printf("\n");
-  for (int j=0;j<w->dim;j++)
-    printf("%f %f\n",xx->ve[j],vn->ve[j]);
-  printf("e\n\n");
-  for (int j=0;j<w->dim;j++)
-    printf("%f %f\n",xx->ve[j],l->ve[j]);
-  exit(1);
-  */
-  VEC *objf = v_get(v->dim);
-
-  for (int j=0;j<v->dim;j++)
-    objf->ve[j]=l->ve[j]*log(l->ve[j]/(vn->ve[j]+1e-12) + 1e-12);
-    
-  *f = Q(xx,objf);
-
-  VEC *w2 = v_get(w->dim);
-
-  for (int j=0;j<w->dim-1;j++)
-    w2->ve[j] = 1/(kappa*(omega-xx->ve[j]));
-
-  VEC *w3 = v_get(w->dim);
-  for (int j=1;j<w->dim;j++)
-    w3->ve[j] = s(xx->ve[j])*exp(-Qn(xx,w,j+1))*Qn(xx,w2,j+1)/(omega-xx->ve[j]);
-
-  double C = Q(xx,w3);
-
-  VEC * fc = v_get(w->dim);
-
-  for (int j=1;j<w->dim;j++)
-    fc->ve[j] = (B*Qn(xx,w2,j+1)-C ) / B;
-    
-  VEC *w4 = v_get(w->dim);
-  
-  for (int j=0;j<w->dim;j++)
-    w4->ve[j] =  s(xx->ve[j])/(kappa*(omega-xx->ve[j]));
-
-  VEC *w5 = v_get(w->dim);
-
-  for (int j=0;j<w->dim;j++)
-    w5->ve[j] = s(xx->ve[j])*exp(-Qn(xx,w,j+1))*Qn(xx,w4,j+1)/(omega-xx->ve[j]);
-
-  double D = Q(xx,w5);
-
-  VEC * fc2 = v_get(w->dim);
-
-  for (int j=1;j<w->dim;j++)
-    fc2->ve[j] = (B*Qn(xx,w4,j+1)-D) / B;
-
-  VEC *dGdb = v_get(w->dim);
-  VEC *dGdf = v_get(w->dim);
-    
-  for (int j=0;j<w->dim;j++)
-    {
-      dGdb->ve[j]=l->ve[j]*fc->ve[j];
-      dGdf->ve[j]=l->ve[j]*fc2->ve[j];
-    }
-
-  grad->ve[0] = Q(xx,dGdb);
-  grad->ve[1] = Q(xx,dGdf);
-
-  V_FREE(v);
-  V_FREE(w);
-  V_FREE(w2);
-  V_FREE(w3);
-  V_FREE(w4);
-  V_FREE(w5);
-  V_FREE(dGdb);
-  V_FREE(dGdf);
-
-  return grad;
-
-}
-
-/*double ConditionNumber(
-
-		       VEC * theta,
-		       struct DATA *dataptr
-
-		       )
-{
-
-  int I = dataptr->I+1;
-  int J = dataptr->J+1;
-  MAT *x = m_get(I,J);
-  MAT *u = m_get(I,J);
-  MAT *xh = m_get(I,J+1);
-  MAT *uh = m_get(I,J+1);
-  MAT *xn = m_get(I,J+1);
-  MAT *xhh = m_get(I,J+1);
-  MAT *un = m_get(I,J+1);
-  VEC *Ui = v_get(I);
-  VEC *Uh = v_get(I);
-  VEC *Uhh = v_get(I);
-  IVEC *idxi = iv_get(I-1);
-
-  solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-
-  *f = H(x,u,dataptr,theta->ve[4]);
-  
-  MAT *p_a1 = m_get(x->m,x->n);
-  solve_p_alpha1(theta,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[0] = G_ni(p_a1,x,u,dataptr,theta->ve[4]);
-
-  MAT *p_a2 = m_get(x->m,x->n);
-  solve_p_alpha2(theta,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[1] = G_ni(p_a2,x,u,dataptr,theta->ve[4]); 
-
-  MAT *p_b = m_get(x->m,x->n);
-  solve_p_beta  (theta,p_b,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[2]= G_ni(p_b,x,u,dataptr,theta->ve[4]);
-
-  MAT *p_g = m_get(x->m,x->n);
-  solve_p_gamma (theta,p_g,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[3] = G_ni(p_g,x,u,dataptr,theta->ve[4]);
-*/
 
 VEC *VMGMM(
 
@@ -647,7 +446,6 @@ VEC *VMGMM(
   printf("%g ",theta->ve[0]);  printf("%g ",theta->ve[1]);  printf("%g ",theta->ve[2]);  printf("%g\n",theta->ve[3]);
 
   M_FREE(p_a);
-  //M_FREE(p_a2);
   M_FREE(p_b);
   M_FREE(p_g);
   //M_FREE(p_k);
@@ -682,7 +480,7 @@ VEC * bfgs(
 
   VEC *oldx = v_get(x->dim);
   VEC *oldgrad = v_get(x->dim);
-  VEC *x_new = v_get(x->dim);
+  //  VEC *x_new = v_get(x->dim);
   VEC *delta_x = v_get(x->dim);
   VEC *delta_grad = v_get(x->dim);
   VEC *grad = v_get(x->dim);
@@ -720,11 +518,13 @@ VEC * bfgs(
   v_output(grad2);
 
   double dg = in_prod(grad2,sd);
-
   printf("dg: %g\n",dg);
 
-  printf("\nChecking G def d H / d alpha1 \n\n");
-  printf("\ng: %f\n",grad2->ve[3]);
+  */
+
+  /*
+  printf("\nChecking G def d H / d beta \n\n");
+  printf("\ng: %f\n",grad->ve[3]);
 
   int I = dataptr->I+1;
   int J = dataptr->J+1;
@@ -740,38 +540,37 @@ VEC * bfgs(
   VEC *Uhh = v_get(I);
   IVEC *idxi = iv_get(I-1);
 
-  solve(nx,xx,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  solve(x,xx,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
 
-  double h = H(xx,u,dataptr,nx->ve[6]);
+  double h = H(xx,u,dataptr,x->ve[3]);
 
   printf("h=%g\n",h);
 
   double ng = 0;     
-  double save = nx->ve[3];
-  for (int j=-8;j>-35;j--)
+  double save = x->ve[3];
+  for (int j=-2;j>-25;j--)
     {
 	  double delta = exp((double)j);
-	  nx->ve[3] = save + delta;
+	  x->ve[3] = save + delta;
 
-	  solve(nx,xx,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+	  solve(x,xx,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
 
-	  double h_d = H(xx,u,dataptr,nx->ve[6]);
+	  double h_d = H(xx,u,dataptr,x->ve[3]);
 	  ng = (h_d-h)/delta;
 	  printf("%g %g\n",delta,ng);
     }
 
-  printf("%g %g %g\n",grad2->ve[3],grad2->ve[3]-ng,(grad2->ve[3]-ng)/ng);
-  exit(1);
+  printf("%g %g %g\n",grad->ve[3],grad->ve[3]-ng,(grad->ve[3]-ng)/ng);
 
+  exit(1);  
   */
-
   //  MAT *H = m_get(x->dim,x->dim);
 
-  while (stop==0)
-    {
-      iter=iter+1;
-      if (iter == 150)
-	break;
+  //  while (stop==0)
+  //{
+  //  iter=iter+1;
+  //  if (iter == 3)
+  //	return(x);
 
       VEC *dir = v_get(x->dim);
       mv_mlt(B,grad,dir);
@@ -856,7 +655,7 @@ VEC * bfgs(
       //}*/
 
       int rt = mthls( model,x,f,grad,dir,1e-8,1e-4,0.9,DBL_EPSILON,1e-20,1e20,60,dataptr);
-
+    
       //printf("\n%d\n",rt);
       //v_output(x);       
       //v_output(grad);
@@ -870,7 +669,17 @@ VEC * bfgs(
 
       //m_output(B);
 
-    }
+      //}
+
+      V_FREE(dir);
+      V_FREE(oldx);
+      V_FREE(oldgrad);
+      V_FREE(delta_x);
+      V_FREE(delta_grad);
+      V_FREE(grad);
+      M_FREE(B);
+
+      return(x);
 }
 
 int mthls(
@@ -946,7 +755,10 @@ int mthls(
 
       // Evaluate the funtion and gradient at stp and compute the directional derivative
 
-      v_add(wa,sv_mlt(stp,sd,VNULL),x);
+      VEC *vtmp = v_get(x->dim);
+      vtmp = sv_mlt(stp,sd,vtmp);
+      v_add(wa,vtmp,x);
+      V_FREE(vtmp);
       gr = (*fcn)(x,d,gr,&f);
       nfev += 1;
       double dg = in_prod(gr,sd);
@@ -974,6 +786,7 @@ int mthls(
 
       if (info != 0){
 	printf("%d\n",info);
+	V_FREE(wa);
 	return info;
       }
 
@@ -1075,6 +888,7 @@ int cstep(
       tmp->ve[1] = (*dx);
       tmp->ve[2] = dp;
       ss = v_norm_inf(tmp);
+      V_FREE(tmp);
       gamma = ss*sqrt(pow(theta/ss,2.) - ((*dx)/ss)*(dp/ss));
       if ((*stp) < (*stx)) 
 	gamma = -gamma;
@@ -1106,6 +920,7 @@ int cstep(
       tmp->ve[1] = (*dx);
       tmp->ve[2] = dp;
       ss = v_norm_inf(tmp);
+      V_FREE(tmp);
       gamma = ss*sqrt(pow(theta/ss,2.) - ((*dx)/ss)*(dp/ss));
 
       if ((*stp) > (*stx)) 
@@ -1139,7 +954,7 @@ int cstep(
       tmp->ve[1] = (*dx);
       tmp->ve[2] = dp;
       ss = v_norm_inf(tmp);
-
+      V_FREE(tmp);
       // The case gamma = 0 only arises if the cubic does not tend to infinity in the direction of the step.
 
       gamma = ss*sqrt(max(0.,pow(theta/ss,2.) - (*dx/ss)*(dp/ss)));
@@ -1189,6 +1004,7 @@ int cstep(
 	  tmp->ve[1] = (*dy);
 	  tmp->ve[2] = dp;
 	  ss = v_norm_inf(tmp);
+	  V_FREE(tmp);
 
 	  gamma = ss*sqrt(pow(theta/ss,2.) - ((*dy)/ss)*(dp/ss));
 
@@ -1267,13 +1083,55 @@ MAT *UpdateHessian(
   vm_move(y,0,yMc,0,0,H->m,1);
 
   MAT *eye = m_get(H->m,H->n);
-  double rhok =  1/in_prod(y,s);
-  MAT *AA1 = m_sub(m_ident(eye),sm_mlt(rhok,m_mlt(sMc,yMr,MNULL),MNULL),MNULL);
-  MAT *AA2 = m_sub(m_ident(eye),sm_mlt(rhok,m_mlt(yMc,sMr,MNULL),MNULL),MNULL);
+  eye = m_ident(eye);
 
-  H =  m_add(m_mlt(AA1,m_mlt(H,AA2,MNULL),MNULL),sm_mlt(rhok,m_mlt(sMc,sMr,MNULL),MNULL),MNULL);
+  double rhok =  1/in_prod(y,s);
+
+  MAT *sMc_yMr = m_get(H->n,H->n);
+  sMc_yMr = m_mlt(sMc,yMr,sMc_yMr);
+
+  MAT *rhok_sMc_yMr = m_get(H->n,H->n);
+  rhok_sMc_yMr = sm_mlt(rhok,sMc_yMr,rhok_sMc_yMr);
+
+  MAT *AA1 = m_get(H->n,H->n);
+  AA1 = m_sub(eye,rhok_sMc_yMr,AA1);
+
+  MAT *yMr_sMc = m_get(H->n,H->n);
+  yMr_sMc = m_mlt(yMc,sMr,yMr_sMc);
+
+  MAT *rhok_yMr_sMc  = m_get(H->n,H->n);
+  rhok_yMr_sMc = sm_mlt(rhok,yMr_sMc,rhok_yMr_sMc);
+
+  MAT *AA2 = m_get(H->n,H->n);
+  AA2 = m_sub(eye,rhok_yMr_sMc,AA2);
+
+  H = m_mlt(H,AA2,H);
+  H = m_mlt(AA1,H,H);
+
+  MAT *sMc_sMr = m_get(H->n,H->n);
+  sMc_sMr = m_mlt(sMc,sMr,sMc_sMr);
+
+  sMc_sMr = sm_mlt(rhok,sMc_sMr,sMc_sMr);
+
+  H = m_add(H,sMc_sMr,H);
+
+  M_FREE(sMr);
+  M_FREE(sMc);
+  M_FREE(yMr);
+  M_FREE(yMc);
+  M_FREE(eye);
+  M_FREE(AA1);
+  M_FREE(AA2);
+  M_FREE(sMc_yMr);
+  M_FREE(rhok_sMc_yMr);
+  M_FREE(yMr_sMc);
+  M_FREE(rhok_yMr_sMc);
+  M_FREE(sMc_sMr);
 
   return H;
+
+  //H =  m_add(m_mlt(AA1,m_mlt(H,AA2,MNULL),MNULL),sm_mlt(rhok,m_mlt(sMc,sMr,MNULL),MNULL),MNULL);
+
 }
 
 VEC *idxremove(
@@ -1545,7 +1403,7 @@ double H(
       for (int j=0;j<x->n;j++)
 	v->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 
-      if(data->t_id[lfi]==i) 
+      if(lfi < data->n && data->t_id[lfi]==i) 
 	{
       
 	  VEC *dt = v_get(data->t_sz[lfi]);
@@ -1594,8 +1452,11 @@ double H(
 
 	  ht->ve[i] = Q(xt,ld);
 
-          if (lfi<data->n)
-	    lfi += 1;
+	  lfi += 1;
+
+	  V_FREE(dt);
+	  V_FREE(l);
+	  V_FREE(ld);
 
 	} 
       else 
@@ -1604,6 +1465,10 @@ double H(
 	}
 
       tt->ve[i] = k*(i-S);
+
+      V_FREE(xt);
+      V_FREE(ut);
+      V_FREE(v);
 
     }
 
@@ -1624,7 +1489,12 @@ double H(
 
   }
 
-  return Q(tt,ht);
+  double blah = Q(tt,ht);
+
+  V_FREE(ht);
+  V_FREE(tt);
+
+  return blah; 
 
 }
 
@@ -1667,7 +1537,8 @@ double G(
 	  v->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 	}
 
-      if(data->t_id[lfi]==i) 
+      //      if(data->t_id[lfi]==i) 
+      if(lfi < data->n && data->t_id[lfi]==i) 
 	{
       
 	  VEC *dt = v_get(data->t_sz[lfi]);
@@ -1724,8 +1595,11 @@ double G(
 
 	  ht->ve[i] = Q(xt,ld);
 
-          if (lfi<data->n)
-	    lfi += 1;
+	  lfi += 1;
+
+	  V_FREE(dt);
+	  V_FREE(l);
+	  V_FREE(ld);
 
 	} 
       else 
@@ -1744,6 +1618,12 @@ double G(
 	}
 
       tt->ve[i] = k*(i-S);
+
+      V_FREE(xt);
+      V_FREE(ut);
+      V_FREE(pt);
+      V_FREE(v);
+      V_FREE(pv);
 
     }
 
@@ -1765,7 +1645,12 @@ double G(
 
   }
 
-  return Q(tt,ht);
+  double blah = Q(tt,ht);
+
+  V_FREE(ht);
+  V_FREE(tt);
+
+  return blah;
 
 }
 
@@ -1906,7 +1791,7 @@ double G_ni(
 	  v->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 	}
 
-      if(data->t_id[lfi]==i) 
+      if(lfi < data->n && data->t_id[lfi]==i) 
 	{
       
 	  VEC *dt = v_get(data->t_sz[lfi]);
@@ -1965,8 +1850,11 @@ double G_ni(
 
 	  ht->ve[i] = Q(xt,ld);
 
-          if (lfi<data->n)
-	    lfi += 1;
+	  lfi += 1;
+
+	  V_FREE(dt);
+	  V_FREE(l);
+	  V_FREE(ld);
 
 	} 
       else 
@@ -1985,6 +1873,12 @@ double G_ni(
 	}
 
       tt->ve[i] = k*(i-S);
+
+      V_FREE(xt);
+      V_FREE(ut);
+      V_FREE(pt);
+      V_FREE(v);
+      V_FREE(pv);
 
     }
 
@@ -2005,7 +1899,13 @@ double G_ni(
 
   }
 
-  return Q(tt,ht);
+
+  double blah = Q(tt,ht);
+
+  V_FREE(ht);
+  V_FREE(tt);
+
+  return blah;
 
 }
 
@@ -2024,8 +1924,7 @@ void solve(
 		 VEC *Uhh,
 		 IVEC *idxi,
 		 VEC *eff,
-		 double k,
-		 
+		 double k,		 
 		 int S
 
 		 )
@@ -2053,6 +1952,8 @@ void solve(
   thextra->ve[4] = omega;
  
   set_row(u,0,initial(thextra,get_row(x,0,xt),ut));
+
+  V_FREE(thextra);
  
   Ui->ve[0] = Q(xt,ut);
 
@@ -2084,7 +1985,7 @@ void solve(
       Q2(aa,kk,ww,xhht,uhh);
       Uhh->ve[i-1] = Q(xhht,uhh);
       set_row(xhh,i-1,xhht);
-
+      
       for (int j=1;j<=x->n;j++)
 	{
 	  xht->ve[j] = xt->ve[j-1] + (k/2)*g(kk,ww,xhht->ve[j]);
@@ -2126,7 +2027,6 @@ void solve(
   V_FREE(uht);
   V_FREE(xhht); 
   V_FREE(uhh);
-  V_FREE(xt); 
   V_FREE(ut);
 
 }
@@ -2147,8 +2047,7 @@ void solve_p_alpha(
 		    VEC *Uhh,
 		    IVEC *idxi,
 		    VEC *eff,
-		    double k,
-		    
+		    double k,		    
 		    int S
 
 		 )
@@ -2192,6 +2091,8 @@ void solve_p_alpha(
   get_row(x,0,xt);
   ini_alpha(thextra,xt,pt);
   set_row(p,0,pt);
+
+  V_FREE(thextra);
   
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
 
@@ -2281,10 +2182,12 @@ void solve_p_alpha(
   V_FREE(ut); 
   V_FREE(uht);
   V_FREE(pt);
+  V_FREE(unt);
   V_FREE(ph);
   V_FREE(pn);
   V_FREE(Pi);
   V_FREE(xhht);
+
 
 }
 
@@ -2347,6 +2250,8 @@ void solve_p_beta(
   get_row(x,0,xt);
   ini_beta(thextra,xt,pt);
   set_row(p,0,pt);
+
+  V_FREE(thextra);
   
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
 
@@ -2407,6 +2312,7 @@ void solve_p_beta(
 
   exit(1);  
   */
+
   V_FREE(xt); 
   V_FREE(xht);
   V_FREE(xnt); 
@@ -2417,6 +2323,7 @@ void solve_p_beta(
   V_FREE(pn);
   V_FREE(Pi);
   V_FREE(xhht);
+
 
 }
 
@@ -2479,6 +2386,8 @@ void solve_p_gamma(
   get_row(x,0,xt);
   ini_gamma(thextra,xt,pt);
   set_row(p,0,pt);
+
+  V_FREE(thextra);
   
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
 
@@ -2550,6 +2459,7 @@ void solve_p_gamma(
   V_FREE(pn);
   V_FREE(Pi);
   V_FREE(xhht);
+
 
 }
 
@@ -2700,6 +2610,7 @@ void solve_p_kappa(
   V_FREE(ut); 
   V_FREE(uht);
   V_FREE(pt);
+  V_FREE(unt);
   V_FREE(ph);
   V_FREE(pn);
   V_FREE(Pi);
@@ -3293,3 +3204,218 @@ VEC *numgrad(
   return fg;
 
 }
+
+VEC * calc_alpha(
+
+			double a,
+			double k,
+			double w,
+			double bt,
+			double f
+
+			)
+{
+
+  VEC *retur = v_get(3);
+
+  VEC *x = v_get(500);
+  VEC *v = v_get(x->dim);
+  VEC *t = v_get(x->dim);
+
+  for (int j=0;j<x->dim;j++)
+    x->ve[j] = j*w/500.;
+
+  for (int j=0;j<t->dim;j++)
+    t->ve[j] = (bt + f*s(x->ve[j])) / (k*(w-x->ve[j]));
+
+  for (int j=0;j<v->dim;j++)
+    v->ve[j] = a*(A1*x->ve[j] + A2*pow(x->ve[j],2.))*exp(-Qn(x,t,j+1))/(k*(w-x->ve[j]));
+
+  double qv = Q(x,v);
+
+  retur->ve[0] = pow(qv-1,2.);
+
+  VEC *z = v_get(x->dim);
+  VEC *q = v_get(x->dim);
+
+  for (int j=0;j<v->dim;j++)
+    z->ve[j] = pow(x->ve[j],2.)*exp(-Qn(x,t,j+1))/(k*(w-x->ve[j]));
+
+  retur->ve[1] = 2*Q(x,z)*(qv-1); 
+
+  return retur;
+
+}
+
+VEC * VMGMM_eq(
+
+		  VEC *x,
+		  struct DATA *d,
+		  VEC *grad,
+		  double *f
+
+		  )
+{
+
+  VEC *xx = v_get(d->J);
+  for (int j=0;j<xx->dim;j++)
+    xx->ve[j] = h*j;
+
+  int nd=0;
+  for (int i=0;i<d->n;i++)
+    nd += d->t_sz[i];
+
+  VEC *dt = v_get(nd);
+  int ii=0;
+  for (int i=0;i<d->n;i++)
+    for (int jj=0;jj<d->t_sz[i];jj++)
+      {
+	dt->ve[ii] = d->lf[i][jj];
+	ii++;
+      }
+
+  double bw = get_bw(dt);
+
+  VEC *l = v_get(d->J);
+
+  for (int j=0;j<l->dim;j++)
+    for (int jj=0;jj<dt->dim;jj++)
+      l->ve[j] += exp( -pow((xx->ve[j] - dt->ve[jj])/bw,2.) );
+
+  double Ql = Q(xx,l);
+
+  for (int j=0;j<l->dim;j++)
+    l->ve[j] /= Ql;
+
+  VEC *v = v_get(xx->dim);
+  VEC *w = v_get(xx->dim);
+
+  for (int j=0;j<w->dim;j++)
+    w->ve[j] = (x->ve[0] + x->ve[1]*s(xx->ve[j])) / (kappa*(omega-xx->ve[j]));
+
+  for (int j=1;j<v->dim;j++)
+    v->ve[j] = s(xx->ve[j])*exp(-Qn(xx,w,j+1))/(omega-xx->ve[j]);
+      
+  double B = Q(xx,v);
+
+  VEC * vn = v_get(v->dim);
+
+  for (int j=0;j<v->dim;j++)
+    vn->ve[j] = v->ve[j]/B;
+  /*
+  printf("\n");
+  for (int j=0;j<w->dim;j++)
+    printf("%f %f\n",xx->ve[j],vn->ve[j]);
+  printf("e\n\n");
+  for (int j=0;j<w->dim;j++)
+    printf("%f %f\n",xx->ve[j],l->ve[j]);
+  exit(1);
+  */
+  VEC *objf = v_get(v->dim);
+
+  for (int j=0;j<v->dim;j++)
+    objf->ve[j]=l->ve[j]*log(l->ve[j]/(vn->ve[j]+1e-12) + 1e-12);
+    
+  *f = Q(xx,objf);
+
+  VEC *w2 = v_get(w->dim);
+
+  for (int j=0;j<w->dim-1;j++)
+    w2->ve[j] = 1/(kappa*(omega-xx->ve[j]));
+
+  VEC *w3 = v_get(w->dim);
+  for (int j=1;j<w->dim;j++)
+    w3->ve[j] = s(xx->ve[j])*exp(-Qn(xx,w,j+1))*Qn(xx,w2,j+1)/(omega-xx->ve[j]);
+
+  double C = Q(xx,w3);
+
+  VEC * fc = v_get(w->dim);
+
+  for (int j=1;j<w->dim;j++)
+    fc->ve[j] = (B*Qn(xx,w2,j+1)-C ) / B;
+    
+  VEC *w4 = v_get(w->dim);
+  
+  for (int j=0;j<w->dim;j++)
+    w4->ve[j] =  s(xx->ve[j])/(kappa*(omega-xx->ve[j]));
+
+  VEC *w5 = v_get(w->dim);
+
+  for (int j=0;j<w->dim;j++)
+    w5->ve[j] = s(xx->ve[j])*exp(-Qn(xx,w,j+1))*Qn(xx,w4,j+1)/(omega-xx->ve[j]);
+
+  double D = Q(xx,w5);
+
+  VEC * fc2 = v_get(w->dim);
+
+  for (int j=1;j<w->dim;j++)
+    fc2->ve[j] = (B*Qn(xx,w4,j+1)-D) / B;
+
+  VEC *dGdb = v_get(w->dim);
+  VEC *dGdf = v_get(w->dim);
+    
+  for (int j=0;j<w->dim;j++)
+    {
+      dGdb->ve[j]=l->ve[j]*fc->ve[j];
+      dGdf->ve[j]=l->ve[j]*fc2->ve[j];
+    }
+
+  grad->ve[0] = Q(xx,dGdb);
+  grad->ve[1] = Q(xx,dGdf);
+
+  V_FREE(v);
+  V_FREE(w);
+  V_FREE(w2);
+  V_FREE(w3);
+  V_FREE(w4);
+  V_FREE(w5);
+  V_FREE(dGdb);
+  V_FREE(dGdf);
+
+  return grad;
+
+}
+
+
+/*double ConditionNumber(
+
+		       VEC * theta,
+		       struct DATA *dataptr
+
+		       )
+{
+
+  int I = dataptr->I+1;
+  int J = dataptr->J+1;
+  MAT *x = m_get(I,J);
+  MAT *u = m_get(I,J);
+  MAT *xh = m_get(I,J+1);
+  MAT *uh = m_get(I,J+1);
+  MAT *xn = m_get(I,J+1);
+  MAT *xhh = m_get(I,J+1);
+  MAT *un = m_get(I,J+1);
+  VEC *Ui = v_get(I);
+  VEC *Uh = v_get(I);
+  VEC *Uhh = v_get(I);
+  IVEC *idxi = iv_get(I-1);
+
+  solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+
+  *f = H(x,u,dataptr,theta->ve[4]);
+  
+  MAT *p_a1 = m_get(x->m,x->n);
+  solve_p_alpha1(theta,p_a1,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  grad->ve[0] = G_ni(p_a1,x,u,dataptr,theta->ve[4]);
+
+  MAT *p_a2 = m_get(x->m,x->n);
+  solve_p_alpha2(theta,p_a2,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  grad->ve[1] = G_ni(p_a2,x,u,dataptr,theta->ve[4]); 
+
+  MAT *p_b = m_get(x->m,x->n);
+  solve_p_beta  (theta,p_b,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  grad->ve[2]= G_ni(p_b,x,u,dataptr,theta->ve[4]);
+
+  MAT *p_g = m_get(x->m,x->n);
+  solve_p_gamma (theta,p_g,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+  grad->ve[3] = G_ni(p_g,x,u,dataptr,theta->ve[4]);
+*/
