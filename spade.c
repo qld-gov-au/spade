@@ -261,10 +261,10 @@ int main(int argc, char *argv[])
 	    }
 
 	  sscanf(argv[i+2],"%f",&alpha);
-	  sscanf(argv[i+4],"%f",&beta);
-	  sscanf(argv[i+5],"%f",&gamma);
-	  sscanf(argv[i+6],"%f",&kappa);
-	  sscanf(argv[i+7],"%f",&omega);
+	  sscanf(argv[i+3],"%f",&beta);
+	  sscanf(argv[i+4],"%f",&gamma);
+	  sscanf(argv[i+5],"%f",&kappa);
+	  sscanf(argv[i+6],"%f",&omega);
 
 	  i += 8;
 
@@ -644,9 +644,7 @@ VEC *VMGMM(
 
   printf("%g ",grad->ve[3]);
 
-
   printf("%g ",theta->ve[0]);  printf("%g ",theta->ve[1]);  printf("%g ",theta->ve[2]);  printf("%g\n",theta->ve[3]);
-
 
   M_FREE(p_a);
   //M_FREE(p_a2);
