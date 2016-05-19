@@ -566,11 +566,11 @@ VEC * bfgs(
   */
   //  MAT *H = m_get(x->dim,x->dim);
 
-  //  while (stop==0)
-  //{
-  //  iter=iter+1;
-  //  if (iter == 3)
-  //	return(x);
+  while (1)
+    {
+      iter=iter+1;
+      if (iter == 3)
+	break;
 
       VEC *dir = v_get(x->dim);
       mv_mlt(B,grad,dir);
@@ -669,17 +669,19 @@ VEC * bfgs(
 
       //m_output(B);
 
-      //}
-
       V_FREE(dir);
-      V_FREE(oldx);
-      V_FREE(oldgrad);
-      V_FREE(delta_x);
-      V_FREE(delta_grad);
-      V_FREE(grad);
-      M_FREE(B);
 
-      return(x);
+
+    }
+
+  V_FREE(oldx);
+  V_FREE(oldgrad);
+  V_FREE(delta_x);
+  V_FREE(delta_grad);
+  V_FREE(grad);
+  M_FREE(B);
+
+  return(x);
 }
 
 int mthls(
@@ -1105,16 +1107,21 @@ MAT *UpdateHessian(
   MAT *AA2 = m_get(H->n,H->n);
   AA2 = m_sub(eye,rhok_yMr_sMc,AA2);
 
-  H = m_mlt(H,AA2,H);
-  H = m_mlt(AA1,H,H);
+  MAT *HAA2 = m_get(H->n,H->n);
+  HAA2 = m_mlt(H,AA2,HAA2);
+
+  MAT *HAA12 = m_get(H->n,H->n);
+  HAA12 = m_mlt(AA1,HAA2,HAA12);
 
   MAT *sMc_sMr = m_get(H->n,H->n);
   sMc_sMr = m_mlt(sMc,sMr,sMc_sMr);
 
   sMc_sMr = sm_mlt(rhok,sMc_sMr,sMc_sMr);
 
-  H = m_add(H,sMc_sMr,H);
+  H = m_add(HAA12,sMc_sMr,H);
 
+  M_FREE(HAA2);
+  M_FREE(HAA12);
   M_FREE(sMr);
   M_FREE(sMc);
   M_FREE(yMr);
