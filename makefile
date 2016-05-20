@@ -11,7 +11,7 @@ HLIST = $(HBASE) meschach/iter.h meschach/matlab.h meschach/matrix2.h \
 	meschach/zmatrix.h meschach/zmatrix2.h
 
 spade: spade.o libmeschach.a
-	cc spade.o -L. -lmeschach -lm -o spade
+	cc spade.o -L. -lmeschach -lm -pthread -o spade
 spade.o : spade.c
 	cc $(cflags) spade.c -std=c99
 libmeschach.a: $(objects1) $(objects2)

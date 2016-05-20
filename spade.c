@@ -2,6 +2,7 @@
 // Stock assessment using PArtial Differential Equations
 // Alex Campbell 'ghostofsandy' 2015 - 2016
 
+#define PTH 1
 #define PLOT 0
 #define PLOTDERIV 0
 #define PLOTSOLVP 0
@@ -16,6 +17,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
 #include "meschach/matrix.h"
 #include "meschach/matrix2.h"
 #include "meschach/sparse.h"
@@ -60,14 +62,27 @@ int cstep(double*,double*,double*,double*,double*,double*,double*,double,double,
 VEC *bfgs(VEC * (*)(VEC *,struct DATA *,VEC *,double *),VEC *,struct DATA *);
 MAT *UpdateHessian(MAT*,VEC*,VEC*);
 
+typedef struct {
+  VEC * theta;
+  struct DATA *dataptr;
+  VEC * grad;
+
+  MAT * p, *x, *u, *xhh, *xh, *xn, *uh, *un;
+  VEC * Ui, *Uh, *Uhh;
+  IVEC * idxi;
+  VEC * eff;
+  double k;
+	int S;
+} Solve_Args;
+
 void solve(VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
-void solve_p_alpha(VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
-void solve_p_beta  (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
-void solve_p_gamma (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
+void solve_p_alpha(void *);
+void solve_p_beta(void *);
+void solve_p_gamma(void *);
 void solve_p_delta (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_kappa (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_omega (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
-void solve_p_iota  (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
+void solve_p_iota(void *);
 
 double H(MAT *,MAT *,struct DATA *,double);
 double G(MAT *,MAT *,MAT *,struct DATA *,double);
@@ -413,23 +428,72 @@ VEC *VMGMM(
   printf("%g ",*f);
 
   MAT *p_a = m_get(x->m,x->n);
-  solve_p_alpha(theta,p_a,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[0] = G_ni(p_a,x,u,dataptr,theta->ve[3]);
+  // p alpha
+  Solve_Args solve_p_alpha_args;
+  solve_p_alpha_args.theta = theta;
+  solve_p_alpha_args.dataptr = dataptr;
+  solve_p_alpha_args.grad = grad;
+  solve_p_alpha_args.p = p_a;
+  solve_p_alpha_args.x = x;
+  solve_p_alpha_args.u = u;
+  solve_p_alpha_args.xhh = xhh;
+  solve_p_alpha_args.xh = xh;
+  solve_p_alpha_args.xn = xn;
+  solve_p_alpha_args.uh = uh;
+  solve_p_alpha_args.un = un;
+  solve_p_alpha_args.Ui = Ui;
+  solve_p_alpha_args.Uh = Uh;
+  solve_p_alpha_args.Uhh = Uhh;
+  solve_p_alpha_args.idxi = idxi;
+  solve_p_alpha_args.eff = dataptr->eff;
+  solve_p_alpha_args.k = dataptr->k;
+  solve_p_alpha_args.S = dataptr->S;
 
-  printf("%g ",grad->ve[0]);
 
+  // p beta
   MAT *p_b = m_get(x->m,x->n);
-  solve_p_beta  (theta,p_b ,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[1]= G_ni(p_b,x,u,dataptr,theta->ve[3]);
+  Solve_Args solve_p_beta_args;
+  solve_p_beta_args.theta = theta;
+  solve_p_beta_args.dataptr = dataptr;
+  solve_p_beta_args.grad = grad;
+  solve_p_beta_args.p = p_b;
+  solve_p_beta_args.x = x;
+  solve_p_beta_args.u = u;
+  solve_p_beta_args.xhh = xhh;
+  solve_p_beta_args.xh = xh;
+  solve_p_beta_args.xn = xn;
+  solve_p_beta_args.uh = uh;
+  //solve_p_beta_args.un = un;
+  solve_p_beta_args.Ui = Ui;
+  solve_p_beta_args.Uh = Uh;
+  solve_p_beta_args.Uhh = Uhh;
+  solve_p_beta_args.idxi = idxi;
+  solve_p_beta_args.eff = dataptr->eff;
+  solve_p_beta_args.k = dataptr->k;
+  solve_p_beta_args.S = dataptr->S;
 
-  printf("%g ",grad->ve[1]);
-
+  // p gamma
   MAT *p_g = m_get(x->m,x->n);
-  solve_p_gamma (theta,p_g,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[2] = G_ni(p_g,x,u,dataptr,theta->ve[3]);
-
-  printf("%g ",grad->ve[2]);
-
+  Solve_Args solve_p_gamma_args;
+  solve_p_gamma_args.theta = theta;
+  solve_p_gamma_args.dataptr = dataptr;
+  solve_p_gamma_args.grad = grad;
+  solve_p_gamma_args.p = p_g;
+  solve_p_gamma_args.x = x;
+  solve_p_gamma_args.u = u;
+  solve_p_gamma_args.xhh = xhh;
+  solve_p_gamma_args.xh = xh;
+  solve_p_gamma_args.xn = xn;
+  solve_p_gamma_args.uh = uh;
+  //solve_p_gamma_args.un = un;
+  solve_p_gamma_args.Ui = Ui;
+  solve_p_gamma_args.Uh = Uh;
+  solve_p_gamma_args.Uhh = Uhh;
+  solve_p_gamma_args.idxi = idxi;
+  solve_p_gamma_args.eff = dataptr->eff;
+  solve_p_gamma_args.k = dataptr->k;
+  solve_p_gamma_args.S = dataptr->S;
+ 
   /*
   MAT *p_k = m_get(x->m,x->n);
   solve_p_kappa (theta,p_k ,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
@@ -440,11 +504,84 @@ VEC *VMGMM(
   grad->ve[5] = G_ni(p_w,x,u,dataptr,theta->ve[6]);
   */
 
+  // p iota
   MAT *p_i = m_get(x->m,x->n);
-  solve_p_iota(theta,p_i,x,u,xhh,xh,xn,uh,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[3] = G(p_i,x,u,dataptr,theta->ve[3]);
+  Solve_Args solve_p_iota_args;
+  solve_p_iota_args.theta = theta;
+  solve_p_iota_args.dataptr = dataptr;
+  solve_p_iota_args.grad = grad;
+  solve_p_iota_args.grad = grad;
+  solve_p_iota_args.dataptr = dataptr;
+  solve_p_iota_args.p = p_i;
+  solve_p_iota_args.x = x;
+  solve_p_iota_args.u = u;
+  solve_p_iota_args.xhh = xhh;
+  solve_p_iota_args.xh = xh;
+  solve_p_iota_args.xn = xn;
+  solve_p_iota_args.uh = uh;
+  //solve_p_iota_args.un = un;
+  solve_p_iota_args.Ui = Ui;
+  solve_p_iota_args.Uh = Uh;
+  solve_p_iota_args.Uhh = Uhh;
+  solve_p_iota_args.idxi = idxi;
+  solve_p_iota_args.eff = dataptr->eff;
+  solve_p_iota_args.k = dataptr->k;
+  solve_p_iota_args.S = dataptr->S;
 
-  printf("%g ",grad->ve[3]);
+  if (PTH)
+    {
+
+      pthread_t solve_p_alpha_thread;
+      if (pthread_create(&solve_p_alpha_thread, NULL, solve_p_alpha, (void*)&solve_p_alpha_args)) {
+	fprintf(stderr, "Error creating thread - solve_p_alpha_thread");
+	exit(0);
+      }
+
+      pthread_t solve_p_beta_thread;
+      if (pthread_create(&solve_p_beta_thread, NULL, solve_p_beta, (void*)&solve_p_beta_args)) {
+	fprintf(stderr, "Error creating thread - solve_p_beta_thread");
+	exit(0);
+      }
+
+      pthread_t solve_p_gamma_thread;
+      if (pthread_create(&solve_p_gamma_thread, NULL, solve_p_gamma, (void*)&solve_p_gamma_args)) {
+    fprintf(stderr, "Error creating thread - solve_p_gamma_thread");
+    exit(0);
+      }
+
+      pthread_t solve_p_iota_thread;
+      if (pthread_create(&solve_p_iota_thread, NULL, solve_p_iota, (void*)&solve_p_iota_args)) { 
+	fprintf(stderr, "Error creating thread - solve_p_iota_thread");
+	exit(0);
+      }
+
+      // await all threads
+
+      pthread_join(solve_p_alpha_thread, NULL);
+      pthread_join(solve_p_beta_thread, NULL);
+      pthread_join(solve_p_gamma_thread, NULL);
+      pthread_join(solve_p_iota_thread, NULL);
+
+    }
+  else
+    {
+      solve_p_alpha((void*)&solve_p_alpha_args);
+      solve_p_beta((void*)&solve_p_beta_args);
+      solve_p_gamma((void*)&solve_p_gamma_args);
+      solve_p_iota((void*)&solve_p_iota_args);
+    }  
+
+  // p alpha debugging
+  printf("%g ", grad->ve[0]);
+
+  // p beta debugging
+  printf("%g ", grad->ve[1]);
+
+  // p gamma debugging
+  printf("%g ", grad->ve[2]);
+
+  // p iota debugging
+  printf("%g ", grad->ve[3]);
 
   printf("%g ",theta->ve[0]);  printf("%g ",theta->ve[1]);  printf("%g ",theta->ve[2]);  printf("%g\n",theta->ve[3]);
 
@@ -2041,29 +2178,30 @@ void solve(
 
 }
 
-void solve_p_alpha(
-
-		    VEC *theta,
-		    MAT *p,
-		    MAT *x,
-		    MAT *u,
-		    MAT *xhh,
-		    MAT *xh,
-		    MAT *xn,
-		    MAT *uh,
-		    MAT *un,
-		    VEC *Ui,
-		    VEC *Uh,
-		    VEC *Uhh,
-		    IVEC *idxi,
-		    VEC *eff,
-		    double k,		    
-		    int S
-
-		 )
+void solve_p_alpha(void* args)
 {
+  Solve_Args * solve_args = (struct Solve_Args*)args;
 
-  VEC *xt; VEC *xht; VEC *xnt; 
+  VEC* theta = (*solve_args).theta;
+  struct DATA *dataptr = (*solve_args).dataptr;
+  VEC *grad = (*solve_args).grad;
+  MAT *p = (*solve_args).p;
+  MAT *x = (*solve_args).x;
+  MAT *u = (*solve_args).u;
+  MAT *xhh = (*solve_args).xhh;
+  MAT *xh = (*solve_args).xh;
+  MAT *xn = (*solve_args).xn;
+  MAT *uh = (*solve_args).uh;
+  MAT *un = (*solve_args).un;
+  VEC *Ui = (*solve_args).Ui;
+  VEC *Uh = (*solve_args).Uh;
+  VEC *Uhh = (*solve_args).Uhh;
+  IVEC *idxi = (*solve_args).idxi;
+  VEC *eff = (*solve_args).eff;
+  double k = (*solve_args).k;
+  int S = (*solve_args).S;
+
+  VEC *xt; VEC *xht; VEC *xnt;
   VEC *ut; VEC *uht; VEC *pt; VEC *unt;
   xt = v_get(x->n);
   xht = v_get(x->n+1);
@@ -2197,33 +2335,35 @@ void solve_p_alpha(
   V_FREE(pn);
   V_FREE(Pi);
   V_FREE(xhht);
-
+  
+  grad->ve[0] = G_ni(p, x, u, dataptr, theta->ve[3]);
 
 }
 
-void solve_p_beta(
-
-		 VEC *theta,
-		 MAT *p,
-		 MAT *x,
-		 MAT *u,
-		 MAT *xhh,
-		 MAT *xh,
-		 MAT *xn,
-		 MAT *uh,
-		 VEC *Ui,
-		 VEC *Uh,
-		 VEC *Uhh,
-		 IVEC *idxi,
-		 VEC *eff,
-		 double k,
-		 
-		 int S
-
-		 )
+void solve_p_beta(void* args)
 {
+  Solve_Args * solve_args = (struct Solve_Args*)args;
 
-  VEC *xt; VEC *xht; VEC *xnt; 
+  VEC* theta = (*solve_args).theta;
+  struct DATA *dataptr = (*solve_args).dataptr;
+  VEC *grad = (*solve_args).grad;
+  MAT *p = (*solve_args).p;
+  MAT *x = (*solve_args).x;
+  MAT *u = (*solve_args).u;
+  MAT *xhh = (*solve_args).xhh;
+  MAT *xh = (*solve_args).xh;
+  MAT *xn = (*solve_args).xn;
+  MAT *uh = (*solve_args).uh;
+  //MAT *un = (*solve_args).un;
+  VEC *Ui = (*solve_args).Ui;
+  VEC *Uh = (*solve_args).Uh;
+  VEC *Uhh = (*solve_args).Uhh;
+  IVEC *idxi = (*solve_args).idxi;
+  VEC *eff = (*solve_args).eff;
+  double k = (*solve_args).k;
+  int S = (*solve_args).S;
+
+  VEC *xt; VEC *xht; VEC *xnt;
   VEC *ut; VEC *uht; VEC *pt;
   xt = v_get(x->n);
   xht = v_get(x->n+1);
@@ -2333,33 +2473,34 @@ void solve_p_beta(
   V_FREE(pn);
   V_FREE(Pi);
   V_FREE(xhht);
-
-
+  
+  grad->ve[1] = G_ni(p, x, u, dataptr, theta->ve[3]);
 }
 
-void solve_p_gamma(
-
-		 VEC *theta,
-		 MAT *p,
-		 MAT *x,
-		 MAT *u,
-		 MAT *xhh,
-		 MAT *xh,
-		 MAT *xn,
-		 MAT *uh,
-		 VEC *Ui,
-		 VEC *Uh,
-		 VEC *Uhh,
-		 IVEC *idxi,
-		 VEC *eff,
-		 double k,
-		 
-		 int S
-
-		 )
+void solve_p_gamma(void* args)
 {
+  Solve_Args * solve_args = (struct Solve_Args*)args;
 
-  VEC *xt; VEC *xht; VEC *xnt; 
+  VEC* theta = (*solve_args).theta;
+  struct DATA *dataptr = (*solve_args).dataptr;
+  VEC *grad = (*solve_args).grad;
+  MAT *p = (*solve_args).p;
+  MAT *x = (*solve_args).x;
+  MAT *u = (*solve_args).u;
+  MAT *xhh = (*solve_args).xhh;
+  MAT *xh = (*solve_args).xh;
+  MAT *xn = (*solve_args).xn;
+  MAT *uh = (*solve_args).uh;
+  //MAT *un = (*solve_args).un;
+  VEC *Ui = (*solve_args).Ui;
+  VEC *Uh = (*solve_args).Uh;
+  VEC *Uhh = (*solve_args).Uhh;
+  IVEC *idxi = (*solve_args).idxi;
+  VEC *eff = (*solve_args).eff;
+  double k = (*solve_args).k;
+  int S = (*solve_args).S;
+
+  VEC *xt; VEC *xht; VEC *xnt;
   VEC *ut; VEC *uht; VEC *pt;
   xt = v_get(x->n);
   xht = v_get(x->n+1);
@@ -2469,7 +2610,8 @@ void solve_p_gamma(
   V_FREE(pn);
   V_FREE(Pi);
   V_FREE(xhht);
-
+  
+  grad->ve[2] = G_ni(p, x, u, dataptr, theta->ve[3]);
 
 }
 
@@ -2781,28 +2923,30 @@ void solve_p_omega(
 
 }
 
-void solve_p_iota(
-
-		  VEC *theta,
-		  MAT *p,
-		  MAT *x,
-		  MAT *u,
-		  MAT *xhh,
-		  MAT *xh,
-		  MAT *xn,
-		  MAT *uh,
-		  VEC *Ui,
-		  VEC *Uh,
-		  VEC *Uhh,
-		  IVEC *idxi,
-		  VEC *eff,
-		  double k,		  
-		  int S
-
-		 )
+void solve_p_iota(void* args)
 {
+  Solve_Args * solve_args = (struct Solve_Args*)args;
 
-  VEC *xt; VEC *xht; VEC *xnt; 
+  VEC* theta = (*solve_args).theta;
+  struct DATA *dataptr = (*solve_args).dataptr;
+  VEC *grad = (*solve_args).grad;
+  MAT *p = (*solve_args).p;
+  MAT *x = (*solve_args).x;
+  MAT *u = (*solve_args).u;
+  MAT *xhh = (*solve_args).xhh;
+  MAT *xh = (*solve_args).xh;
+  MAT *xn = (*solve_args).xn;
+  MAT *uh = (*solve_args).uh;
+  //MAT *un = (*solve_args).un;
+  VEC *Ui = (*solve_args).Ui;
+  VEC *Uh = (*solve_args).Uh;
+  VEC *Uhh = (*solve_args).Uhh;
+  IVEC *idxi = (*solve_args).idxi;
+  VEC *eff = (*solve_args).eff;
+  double k = (*solve_args).k;
+  int S = (*solve_args).S;
+
+  VEC *xt; VEC *xht; VEC *xnt;
   VEC *ut; VEC *uht; VEC *pt;
   xt = v_get(x->n);
   xht = v_get(x->n+1);
@@ -2898,7 +3042,8 @@ void solve_p_iota(
   V_FREE(pn);
   V_FREE(Pi);
   V_FREE(xhht);
-
+  
+  grad->ve[3] = G(p, x, u, dataptr, theta->ve[3]);
 }
 
 double c(
