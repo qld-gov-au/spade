@@ -662,9 +662,9 @@ VEC * bfgs(
 
   */
 
-  /*
-  printf("\nChecking G def d H / d beta \n\n");
-  printf("\ng: %f\n",grad->ve[3]);
+  /*  
+  printf("\nChecking G def d H / d alpha \n\n");
+  printf("\ng: %f\n",grad->ve[0]);
 
   int I = dataptr->I+1;
   int J = dataptr->J+1;
@@ -687,11 +687,11 @@ VEC * bfgs(
   printf("h=%g\n",h);
 
   double ng = 0;     
-  double save = x->ve[3];
+  double save = x->ve[0];
   for (int j=-2;j>-25;j--)
     {
 	  double delta = exp((double)j);
-	  x->ve[3] = save + delta;
+	  x->ve[0] = save + delta;
 
 	  solve(x,xx,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
 
@@ -700,10 +700,10 @@ VEC * bfgs(
 	  printf("%g %g\n",delta,ng);
     }
 
-  printf("%g %g %g\n",grad->ve[3],grad->ve[3]-ng,(grad->ve[3]-ng)/ng);
+  printf("%g %g %g\n",grad->ve[0],grad->ve[0]-ng,(grad->ve[0]-ng)/ng);
 
-  exit(1);  
-  */
+  exit(1);  */
+  
   //  MAT *H = m_get(x->dim,x->dim);
 
   while (1)
@@ -1342,10 +1342,9 @@ VEC *ini_alpha(
 
   double zeta = sqrt( 81*k*k*w*w*pow(a*A1+2*a*A2*w,2.) - 12*k*pow(a*A1*w+k,3.) );
   double eta = 9*a*A1*k*k*w + 18*a*A2*k*k*w*w + k*zeta;
-  double eta2 = 9*A1*k*k*w + 18*A2*k*k*w*w + k*zeta;
   double Z = pow(eta,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a*A1*w+k) / pow(eta,1./3);
 
-  double Za = ( k*k*w*(3*A1*zeta+6*A2*w*zeta-6*A1*pow(k+a*A1*w,2.)+27*k*w*(A1+2*A2*w)*(a*A1+2*a*A2*w)) / ( zeta*pow(eta2,2/3.) ) ) * ( (1/ (pow(2,1/3.) * pow(3,2/3.) )) - ( pow(2/3.,1/3.)*k*(k+a*A1*w) / pow(eta2,2/3.) ) ) + ( pow(2/3.,1/3.)*A1*k*w / pow(eta,1/3.) );
+  double Za = ( k*k*w*(3*A1*zeta+6*A2*w*zeta-6*A1*pow(k+a*A1*w,2.)+27*k*w*(A1+2*A2*w)*(a*A1+2*a*A2*w)) / ( zeta*pow(eta,2/3.) ) ) * ( (1/ (pow(2,1/3.) * pow(3,2/3.) )) - ( pow(2/3.,1/3.)*k*(k+a*A1*w) / pow(eta,2/3.) ) ) + ( pow(2/3.,1/3.)*A1*k*w / pow(eta,1/3.) );
 
   for (int j=0;j<x->dim;j++)
     p->ve[j] = pow(1-x->ve[j]/w,Z/k - 2.) * ( (Z-b-k)/(g*Z) * (A1 + 2*A2*k*w/(Z+k) - 2*a*A2*k*w/pow(Z+k,2.) * Za) + (Za/(g*Z))*(a*A1 + 2*a*A2*k*w/(Z+k))*((b+k)/Z + log(1 - x->ve[j]/w)* (Z-b-k)/k) );
