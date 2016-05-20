@@ -265,6 +265,9 @@ int main(int argc, char *argv[])
 	  V_FREE(ilv);
 	  V_FREE(cnt);
 
+	  free(ln);
+	  free(tl);
+
 	  sscanf(argv[i+2],"%f",&alpha);
 	  sscanf(argv[i+3],"%f",&beta);
 	  sscanf(argv[i+4],"%f",&gamma);
