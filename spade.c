@@ -60,7 +60,6 @@ double b(const double,const double);
 int mthls(VEC *(*f)(VEC *,struct DATA *,VEC *,double *),VEC *,double,VEC *,VEC *,double,double,double,double,double,double,int,struct DATA *); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
 int cstep(double*,double*,double*,double*,double*,double*,double*,double,double,int*,double,double); // cstep from More-Thuente line search
 VEC *bfgs(VEC * (*)(VEC *,struct DATA *,VEC *,double *),VEC *,struct DATA *);
-MAT *UpdateHessian(MAT*,VEC*,VEC*);
 
 typedef struct {
   VEC * theta;
@@ -619,11 +618,11 @@ VEC *VMGMM(
 
 VEC * bfgs(
 
-	     VEC * (*model)(VEC *,struct DATA *,VEC *,double *),
-	     VEC *x,
-	     struct DATA *data
+	   VEC * (*model)(VEC *,struct DATA *,VEC *,double *),
+	   VEC *x,
+	   struct DATA *data
 
-	       )	       
+	   )   
 {
 
   int n = x->dim;
@@ -656,14 +655,10 @@ VEC * bfgs(
       mv_mlt(B,g,p);      
       sv_mlt(-1.0,p,p);
 
-      //v_output(p);
-
       v_copy(x,oldx);
       v_copy(g,oldg);
 
       double stp = 1e-4/v_norm2(p);
-
-      //printf("stp: %f\n",stp);
 
       // More-Thuente line search
       int rt = mthls(model,x,f,g,p,stp,1e-4,0.9,DBL_EPSILON,1e-20,1e20,60,data);
@@ -676,7 +671,7 @@ VEC * bfgs(
 
       double sy = in_prod(s,y);
 
-      if (sy==0)
+      if (sy==0)  // what is this? 
 	break;
 
       mv_mlt(B,y,u);
@@ -688,8 +683,7 @@ VEC * bfgs(
       // not using meschach for this - overcomplicates it?
       for (int i=0;i<n;i++)
 	for (int j=0;j<n;j++)
-	  B->me[i][j] += c1 * s->ve[i] * s->ve[j] - c2 * (u->ve[i] * s->ve[j] + u->ve[j] * s->ve[i] );
-
+	  B->me[i][j] += c1 * s->ve[i] * s->ve[j] - c2 * ( u->ve[i] * s->ve[j] + u->ve[j] * s->ve[i] );
 
     }
 
@@ -810,176 +804,6 @@ int mthls(
       if (info != 0){
 	printf("%d\n",info);
 	V_FREE(wa);
-	return info;
-      }
-
-      // In the first stage we seek a step for which the modified function has a nonpositive value and nonnegative derivative.
-
-      if (stage1 && f <= ftest1 && dg >= min(ftol,gtol)*dginit)
-	stage1 = 0;
-
-      //A modified function is used to predict the step only if we have not obtained a step for which the modified function has a nonpositive function value and nonnegative derivative, and if a lower function value has been obtained but the decrease is not sufficient.
-
-      if (stage1 && f <= fx && f > ftest1)
-	{
-
-	  // Define the modified function and derivative values.
-
-	  double fm = f - stp*dgtest;
-	  double fxm = fx - stx*dgtest;
-	  double fym = fy - sty*dgtest;
-	  double dgm = dg - dgtest;
-	  double dgxm = dgx - dgtest;
-	  double dgym = dgy - dgtest;
- 
-	  // Call cstep to update the interval of uncertainty and to compute the new step.
-	  infoc = cstep(&stx,&fxm,&dgxm,&sty,&fym,&dgym,&stp,fm,dgm,&brackt,stmin,stmax);
-
-	  // Reset the function and gradient values for f.
-
-	  fx = fxm + stx*dgtest;
-	  fy = fym + sty*dgtest;
-	  dgx = dgxm + dgtest;
-	  dgy = dgym + dgtest;
-
-	}
-      else
-	{
-	  infoc = cstep(&stx,&fx,&dgx,&sty,&fy,&dgy,&stp,f,dg,&brackt,stmin,stmax);
-	}
-
-      // Force a sufficient decrease in the size of the interval of uncertainty
-
-      if (brackt)
-	{
-
-	  if (fabs(sty-stx) >= .66*width1)
-	    stp = stx + .5*(sty - stx);
-	  width1 = width;
-	  width = fabs(sty-stx);
-	}
-
-      //      printf("%g ",f);
-    }
-
-  //	 printf("%d %g %g %g %g %g %d\n",info,stx,stp,sty,f,dg,infoc);
-  //printf("%g ",f);
-
-}
-
-
-int mthls2(
-
-	  VEC *(*fcn)(VEC *,struct DATA *,VEC *,double *),
-	  VEC *x,
-	  double f,
-	  VEC *gr,
-	  VEC *sd,
-	  VEC *xnew,
-	  double *fret,
-	  double stp,
-	  double ftol,
-	  double gtol,
-	  double xtol,
-	  double stpmin,
-	  double stpmax,
-	  int maxfev,
-	  struct DATA *d
-
-	  )
-{
-  
-  int xtrapf = 4;
-  int info = 0;
-  int infoc = 1;
-  double dginit = in_prod(gr,sd); // g's must be < 0 (initial gradient in search direction must be descent)
-  int brackt = 0;
-  int stage1 = 1;
-  int nfev = 0;
-  double finit = f;
-  double dgtest = ftol*dginit;
-  double width = stpmax - stpmin;
-  double width1 = 2*width;
-  VEC *wa = v_get(x->dim);
-  v_copy(x,wa);
-
-  double stx = 0;
-  double fx = finit;
-  double dgx = dginit;
-  double sty = 0;
-  double fy = finit;
-  double dgy = dginit;
-
-  while (1) 
-    {
-
-      //Set the minimum and maximum steps to correspond
-      // to the present interval of uncertainty.
-
-      //      printf("%f\n",f);
-
-      double stmin,stmax;
-
-      if (brackt)
-	{
-	  stmin = min(stx,sty);
-	  stmax = max(stx,sty);
-	}
-      else
-	{
-	  stmin = stx;
-	  stmax = stp + xtrapf*(stp - stx);
-	}
-
-      // Force the step to be within the bounds stpmax and stpmin.
-
-      stp = max(stp,stpmin);
-      stp = min(stp,stpmax);
-
-      // If an unusual termination is to occur then let stp be the lowest point obtained so far.
-
-      if ((brackt && (stp <= stmin || stp >= stmax)) || nfev >= maxfev-1 || infoc == 0 || (brackt && stmax-stmin <= xtol*stmax))
-	stp = stx;
-
-      // Evaluate the funtion and gradient at stp and compute the directional derivative
-
-      VEC *vtmp = v_get(x->dim);
-      vtmp = sv_mlt(stp,sd,vtmp);
-      v_add(wa,vtmp,x);
-      V_FREE(vtmp);
-      gr = (*fcn)(x,d,gr,&f);
-      nfev += 1;
-      double dg = in_prod(gr,sd);
-      double ftest1 = finit + stp*dgtest;
-
-      // Test for convergence.
-
-      if ((brackt && (stp <= stmin || stp >= stmax)) || infoc == 0)
-	info = 6;
-
-      if (stp == stpmax && f <= ftest1 && dg <= dgtest)
-	info = 5;
-
-      if (stp == stpmin && (f > ftest1 || dg >= dgtest))
-	info = 4;
-
-      if (nfev >= maxfev)
-	info = 3;
-
-      if (brackt && stmax - stmin <= xtol*stmax)
-	info = 2;
-
-      if (f <= ftest1 && fabs(dg) <= gtol*(-dginit))
-	info = 1;
-
-      if (info != 0){
-	//printf("%d\n",info);
-
-	v_copy(x,xnew);
-	v_copy(wa,x);
-	V_FREE(wa);
-	*fret = f;
-
 	return info;
       }
 
@@ -1253,82 +1077,6 @@ int cstep(
   return info;
 
   // last card of subroutine cstep
-
-}
-
-MAT *UpdateHessian(
-
-		   MAT* H, 
-		   VEC* s,
-		   VEC* y
-
-		   )
-{
-
-  MAT *sMr = m_get(1,H->n);
-  vm_move(s,0,sMr,0,0,1,H->n);
-  MAT *sMc = m_get(H->m,1);
-  vm_move(s,0,sMc,0,0,H->m,1);
-
-  MAT *yMr = m_get(1,H->n);
-  vm_move(y,0,yMr,0,0,1,H->n);
-  MAT *yMc = m_get(H->m,1);
-  vm_move(y,0,yMc,0,0,H->m,1);
-
-  MAT *eye = m_get(H->m,H->n);
-  eye = m_ident(eye);
-
-  double rhok =  1/in_prod(y,s);
-
-  MAT *sMc_yMr = m_get(H->n,H->n);
-  sMc_yMr = m_mlt(sMc,yMr,sMc_yMr);
-
-  MAT *rhok_sMc_yMr = m_get(H->n,H->n);
-  rhok_sMc_yMr = sm_mlt(rhok,sMc_yMr,rhok_sMc_yMr);
-
-  MAT *AA1 = m_get(H->n,H->n);
-  AA1 = m_sub(eye,rhok_sMc_yMr,AA1);
-
-  MAT *yMr_sMc = m_get(H->n,H->n);
-  yMr_sMc = m_mlt(yMc,sMr,yMr_sMc);
-
-  MAT *rhok_yMr_sMc  = m_get(H->n,H->n);
-  rhok_yMr_sMc = sm_mlt(rhok,yMr_sMc,rhok_yMr_sMc);
-
-  MAT *AA2 = m_get(H->n,H->n);
-  AA2 = m_sub(eye,rhok_yMr_sMc,AA2);
-
-  MAT *HAA2 = m_get(H->n,H->n);
-  HAA2 = m_mlt(H,AA2,HAA2);
-
-  MAT *HAA12 = m_get(H->n,H->n);
-  HAA12 = m_mlt(AA1,HAA2,HAA12);
-
-  MAT *sMc_sMr = m_get(H->n,H->n);
-  sMc_sMr = m_mlt(sMc,sMr,sMc_sMr);
-
-  sMc_sMr = sm_mlt(rhok,sMc_sMr,sMc_sMr);
-
-  H = m_add(HAA12,sMc_sMr,H);
-
-  M_FREE(HAA2);
-  M_FREE(HAA12);
-  M_FREE(sMr);
-  M_FREE(sMc);
-  M_FREE(yMr);
-  M_FREE(yMc);
-  M_FREE(eye);
-  M_FREE(AA1);
-  M_FREE(AA2);
-  M_FREE(sMc_yMr);
-  M_FREE(rhok_sMc_yMr);
-  M_FREE(yMr_sMc);
-  M_FREE(rhok_yMr_sMc);
-  M_FREE(sMc_sMr);
-
-  return H;
-
-  //H =  m_add(m_mlt(AA1,m_mlt(H,AA2,MNULL),MNULL),sm_mlt(rhok,m_mlt(sMc,sMr,MNULL),MNULL),MNULL);
 
 }
 
