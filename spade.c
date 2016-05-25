@@ -2,6 +2,25 @@
 // Stock assessment using PArtial Differential Equations
 // Alex Campbell 'ghostofsandy' 2015 - 2016
 
+// Testing:
+
+// quick test:
+//time ./spade -fn karumba .09 .09 1.3 .07
+//number function evals: 42, function value: 790362.592819
+//Vector: dim: 4
+//   0.100412718    0.121894385     1.10724432    0.079491708
+//real	1m1.321s
+//user	2m30.212s
+//sys	0m0.024s
+
+// longer test:
+// ./spade -fn karumba .8 .4 1.3 .1
+// should return:
+//  number function evals: 352, function value: 790362.592819
+//  Vector: dim: 4
+//     0.100412718    0.121894385     1.10724432    0.079
+
+
 #define PTH 1
 #define PLOT 0
 #define PLOTDERIV 0
@@ -57,7 +76,7 @@ double s(double x)
 double g(const double,const double,const double);
 double b(const double,const double);
 
-int mthls(VEC *(*f)(VEC *,struct DATA *,VEC *,double *),VEC *,double,VEC *,VEC *,double,double,double,double,double,double,int,struct DATA *); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
+int cvsrch(VEC *(*f)(VEC *,struct DATA *,VEC *,double *),VEC *,double,VEC *,VEC *,double,double,double,double,double,double,int,struct DATA *); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
 int cstep(double*,double*,double*,double*,double*,double*,double*,double,double,int*,double,double); // cstep from More-Thuente line search
 VEC *bfgs(VEC * (*)(VEC *,struct DATA *,VEC *,double *),VEC *,struct DATA *);
 
@@ -82,7 +101,6 @@ void solve_p_gamma(void *);
 void solve_p_kappa (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_omega (VEC *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,MAT *,VEC *,VEC *,VEC *,IVEC *,VEC *,double,int);
 void solve_p_iota(void *);
-
 //void output_plots(VEC *,VEC *(*)(VEC *,struct DATA *,VEC *,double *),struct DATA *,char *);
 
 double H(MAT *,MAT *,struct DATA *,double);
@@ -360,7 +378,7 @@ int main(int argc, char *argv[])
   free(data.t_sz);
 
   for (int i=0;i<data.n;i++)
-    free(data.lf[i]);;
+    free(data.lf[i]);
   free(data.lf);
 
   return(0);
@@ -432,7 +450,7 @@ VEC *VMGMM(
 
   *f = H(x,u,dataptr,theta->ve[3]);
 
-  printf("%g ",*f);
+  //printf("%g ",*f);
 
   MAT *p_a = m_get(x->m,x->n);
   // p alpha
@@ -579,18 +597,18 @@ VEC *VMGMM(
     }  
 
   // p alpha debugging
-  printf("%g ", grad->ve[0]);
+  //  printf("%g ", grad->ve[0]);
 
   // p beta debugging
-  printf("%g ", grad->ve[1]);
+  //printf("%g ", grad->ve[1]);
 
   // p gamma debugging
-  printf("%g ", grad->ve[2]);
+  //printf("%g ", grad->ve[2]);
 
   // p iota debugging
-  printf("%g ", grad->ve[3]);
+  //printf("%g ", grad->ve[3]);
 
-  printf("%g ",theta->ve[0]);  printf("%g ",theta->ve[1]);  printf("%g ",theta->ve[2]);  printf("%g\n",theta->ve[3]);
+  //printf("%g ",theta->ve[0]);  printf("%g ",theta->ve[1]);  printf("%g ",theta->ve[2]);  printf("%g\n",theta->ve[3]);
 
   M_FREE(p_a);
   M_FREE(p_b);
@@ -626,6 +644,7 @@ VEC * bfgs(
 {
 
   int n = x->dim;
+  int nfev = 0;
 
   double f;
 
@@ -643,6 +662,7 @@ VEC * bfgs(
   m_ident(B);
 
   g = (*model)(x,data,g,&f); 
+  nfev += 1;
 
   while (1)
     {
@@ -653,26 +673,25 @@ VEC * bfgs(
 	break;
 
       mv_mlt(B,g,p);      
-      sv_mlt(-1.0,p,p);
+      sv_mlt(-1./v_norm2(p),p,p);
 
       v_copy(x,oldx);
       v_copy(g,oldg);
 
-      double stp = 1e-4/v_norm2(p);
-
       // More-Thuente line search
-      int rt = mthls(model,x,f,g,p,stp,1e-4,0.9,DBL_EPSILON,1e-20,1e20,60,data);
+      nfev += cvsrch(model,x,f,g,p,1e-2,1e-1,0.4,DBL_EPSILON,1e-20,1e20,60,data);
     
       v_sub(x,oldx,s);
       v_sub(g,oldg,y);
 
       // update inverse hessian based on julia code
-      // ... straight out of wikipedia?
-
       double sy = in_prod(s,y);
 
-      if (sy==0)  // what is this? 
-	break;
+      if (sy==0)
+	{
+	  printf("cannot find a stepsize that reduces the function along the descent direction\n");
+	  exit(1);
+	}
 
       mv_mlt(B,y,u);
 
@@ -680,12 +699,16 @@ VEC * bfgs(
       double c1 = (sy + yBy) / (sy*sy);
       double c2 = 1/sy;
 
-      // not using meschach for this - overcomplicates it?
+      // not using meschach for this - overcomplicates it.
       for (int i=0;i<n;i++)
 	for (int j=0;j<n;j++)
 	  B->me[i][j] += c1 * s->ve[i] * s->ve[j] - c2 * ( u->ve[i] * s->ve[j] + u->ve[j] * s->ve[i] );
 
     }
+
+  (*model)(x,data,g,&f); 
+  printf("number function evals: %d, function value: %f\n",nfev,f);
+  v_output(x);
 
   V_FREE(oldx);
   V_FREE(oldg);
@@ -699,7 +722,7 @@ VEC * bfgs(
 
 }
 
-int mthls(
+int cvsrch(
 
 	  VEC *(*fcn)(VEC *,struct DATA *,VEC *,double *),
 	  VEC *x,
@@ -717,11 +740,167 @@ int mthls(
 
 	  )
 {
-  
+  /* 
+
+    Translation of Dianne O'Leary's translation (into matlab) of minpack subroutine cvsrch.
+    
+    Dianne's comments will be prefaced with the matlab comment specifier '%'    
+ 
+    %   Translation of minpack subroutine cvsrch
+    %   Dianne O'Leary   July 1991
+    %     **********
+    %
+    %     Subroutine cvsrch
+    %
+    %     The purpose of cvsrch is to find a step which satisfies 
+    %     a sufficient decrease condition and a curvature condition.
+    %     The user must provide a subroutine which calculates the
+    %     function and the gradient.
+    %
+    %     At each stage the subroutine updates an interval of
+    %     uncertainty with endpoints stx and sty. The interval of
+    %     uncertainty is initially chosen so that it contains a 
+    %     minimizer of the modified function
+    %
+    %          f(x+stp*s) - f(x) - ftol*stp*(gradf(x)'s).
+    %
+    %     If a step is obtained for which the modified function 
+    %     has a nonpositive function value and nonnegative derivative, 
+    %     then the interval of uncertainty is chosen so that it 
+    %     contains a minimizer of f(x+stp*s).
+    %
+    %     The algorithm is designed to find a step which satisfies 
+    %     the sufficient decrease condition 
+    %
+    %           f(x+stp*s) <= f(x) + ftol*stp*(gradf(x)'s),
+    %
+    %     and the curvature condition
+    %
+    %           abs(gradf(x+stp*s)'s)) <= gtol*abs(gradf(x)'s).
+    %
+    %     If ftol is less than gtol and if, for example, the function
+    %     is bounded below, then there is always a step which satisfies
+    %     both conditions. If no step can be found which satisfies both
+    %     conditions, then the algorithm usually stops when rounding
+    %     errors prevent further progress. In this case stp only 
+    %     satisfies the sufficient decrease condition.
+    %
+    %     The subroutine statement is
+    %
+    %        subroutine cvsrch(fcn,n,x,f,g,s,stp,ftol,gtol,xtol,
+    %                          stpmin,stpmax,maxfev,info,nfev,wa)
+    %     where
+    %
+    %	fcn is the name of the user-supplied subroutine which
+    %         calculates the function and the gradient.  fcn must 
+    %      	  be declared in an external statement in the user 
+    %         calling program, and should be written as follows.
+    %
+    %         function [f,g] = fcn(n,x) (Matlab)     (10/2010 change in documentation)
+    %	  (derived from Fortran subroutine fcn(n,x,f,g) )
+    %         integer n
+    %         f
+    %         x(n),g(n)
+    %	  ----------
+    %         Calculate the function at x and
+    %         return this value in the variable f.
+    %         Calculate the gradient at x and
+    %         return this vector in g.
+    %	  ----------
+    %	  return
+    %	  end
+    %
+    %       n is a positive integer input variable set to the number
+    %	  of variables.
+    %
+    %	x is an array of length n. On input it must contain the
+    %	  base point for the line search. On output it contains 
+    %         x + stp*s.
+    %
+    %	f is a variable. On input it must contain the value of f
+    %         at x. On output it contains the value of f at x + stp*s.
+    %
+    %	g is an array of length n. On input it must contain the
+    %         gradient of f at x. On output it contains the gradient
+    %         of f at x + stp*s.
+    %
+    %	s is an input array of length n which specifies the
+    %         search direction.
+    %
+    %	stp is a nonnegative variable. On input stp contains an
+    %         initial estimate of a satisfactory step. On output
+    %         stp contains the final estimate.
+    %
+    %       ftol and gtol are nonnegative input variables. Termination
+    %         occurs when the sufficient decrease condition and the
+    %         directional derivative condition are satisfied.
+    %
+    %	xtol is a nonnegative input variable. Termination occurs
+    %         when the relative width of the interval of uncertainty 
+    %	  is at most xtol.
+    %
+    %	stpmin and stpmax are nonnegative input variables which 
+    %	  specify lower and upper bounds for the step.
+    %
+    %	maxfev is a positive integer input variable. Termination
+    %         occurs when the number of calls to fcn is at least
+    %         maxfev by the end of an iteration.
+    %
+    %	info is an integer output variable set as follows:
+    %	  
+    %	  info = 0  Improper input parameters.
+    %
+    %	  info = 1  The sufficient decrease condition and the
+    %                   directional derivative condition hold.
+    %
+    %	  info = 2  Relative width of the interval of uncertainty
+    %		    is at most xtol.
+    %
+    %	  info = 3  Number of calls to fcn has reached maxfev.
+    %
+    %	  info = 4  The step is at the lower bound stpmin.
+    %
+    %	  info = 5  The step is at the upper bound stpmax.
+    %
+    %	  info = 6  Rounding errors prevent further progress.
+    %                   There may not be a step which satisfies the
+    %                   sufficient decrease and curvature conditions.
+    %                   Tolerances may be too small.
+    %
+    %       nfev is an integer output variable set to the number of
+    %         calls to fcn.
+    %
+    %	wa is a work array of length n.
+    %
+    %     Subprograms called
+    %
+    %	user-supplied......fcn
+    %
+    %	MINPACK-supplied...cstep
+    %
+    %	FORTRAN-supplied...abs,max,min
+    %	  
+    %     Argonne National Laboratory. MINPACK Project. June 1983
+    %     Jorge J. More', David J. Thuente
+    %
+    %     **********
+
+  */
+ 
   int xtrapf = 4;
   int info = 0;
   int infoc = 1;
-  double dginit = in_prod(gr,sd); // g's must be < 0 (initial gradient in search direction must be descent)
+
+  //%     Compute the initial gradient in the search direction
+  //%     and check that s is a descent direction.
+
+  double dginit = in_prod(gr,sd); 
+  if (dginit >= 0.)
+    {
+      printf("initial gradient in the search direction must be a descent\n");
+      exit(1);
+    }
+
   int brackt = 0;
   int stage1 = 1;
   int nfev = 0;
@@ -732,6 +911,14 @@ int mthls(
   VEC *wa = v_get(x->dim);
   v_copy(x,wa);
 
+  //%     The variables stx, fx, dgx contain the values of the step, 
+  //%     function, and directional derivative at the best step.
+  //%     The variables sty, fy, dgy contain the value of the step,
+  //%     function, and derivative at the other endpoint of
+  //%     the interval of uncertainty.
+  //%     The variables stp, f, dg contain the values of the step,
+  //%     function, and derivative at the current step.
+
   double stx = 0;
   double fx = finit;
   double dgx = dginit;
@@ -739,13 +926,17 @@ int mthls(
   double fy = finit;
   double dgy = dginit;
 
+  //%
+  //%     Start of iteration.
+  //%
+
   while (1) 
     {
 
-      //Set the minimum and maximum steps to correspond
-      // to the present interval of uncertainty.
-
-      //      printf("%f\n",f);
+      //%
+      //%        Set the minimum and maximum steps to correspond
+      //%        to the present interval of uncertainty.
+      //%
 
       double stmin,stmax;
 
@@ -760,17 +951,25 @@ int mthls(
 	  stmax = stp + xtrapf*(stp - stx);
 	}
 
-      // Force the step to be within the bounds stpmax and stpmin.
+      //%
+      //%        Force the step to be within the bounds stpmax and stpmin.
+      //%
 
       stp = max(stp,stpmin);
       stp = min(stp,stpmax);
 
-      // If an unusual termination is to occur then let stp be the lowest point obtained so far.
+      //%
+      //%        If an unusual termination is to occur then let 
+      //%        stp be the lowest point obtained so far.
+      //%
 
       if ((brackt && (stp <= stmin || stp >= stmax)) || nfev >= maxfev-1 || infoc == 0 || (brackt && stmax-stmin <= xtol*stmax))
 	stp = stx;
 
-      // Evaluate the funtion and gradient at stp and compute the directional derivative
+      //%
+      //%        Evaluate the function and gradient at stp
+      //%        and compute the directional derivative.
+      //%
 
       VEC *vtmp = v_get(x->dim);
       vtmp = sv_mlt(stp,sd,vtmp);
@@ -781,7 +980,9 @@ int mthls(
       double dg = in_prod(gr,sd);
       double ftest1 = finit + stp*dgtest;
 
-      // Test for convergence.
+      //%
+      //%        Test for convergence.
+      //%
 
       if ((brackt && (stp <= stmin || stp >= stmax)) || infoc == 0)
 	info = 6;
@@ -801,23 +1002,39 @@ int mthls(
       if (f <= ftest1 && fabs(dg) <= gtol*(-dginit))
 	info = 1;
 
+      //%
+      //%        Check for termination.
+      //%
+
       if (info != 0){
-	printf("%d\n",info);
+	if (info != 1) {
+	  printf("mthls exit condition: %d\n",info);
+	  exit(1);
+	}
 	V_FREE(wa);
-	return info;
+	return nfev;
       }
 
-      // In the first stage we seek a step for which the modified function has a nonpositive value and nonnegative derivative.
+      //%
+      //%        In the first stage we seek a step for which the modified
+      //%        function has a nonpositive value and nonnegative derivative.
+      //%
 
       if (stage1 && f <= ftest1 && dg >= min(ftol,gtol)*dginit)
 	stage1 = 0;
-
-      //A modified function is used to predict the step only if we have not obtained a step for which the modified function has a nonpositive function value and nonnegative derivative, and if a lower function value has been obtained but the decrease is not sufficient.
+      //%
+      //%        A modified function is used to predict the step only if
+      //%        we have not obtained a step for which the modified
+      //%        function has a nonpositive function value and nonnegative 
+      //%        derivative, and if a lower function value has been  
+      //%        obtained but the decrease is not sufficient.
+      //%
 
       if (stage1 && f <= fx && f > ftest1)
 	{
-
-	  // Define the modified function and derivative values.
+	  //%
+	  //%           Define the modified function and derivative values.
+	  //%
 
 	  double fm = f - stp*dgtest;
 	  double fxm = fx - stx*dgtest;
@@ -826,10 +1043,16 @@ int mthls(
 	  double dgxm = dgx - dgtest;
 	  double dgym = dgy - dgtest;
  
-	  // Call cstep to update the interval of uncertainty and to compute the new step.
+	  //% 
+	  //%           Call cstep to update the interval of uncertainty 
+	  //%           and to compute the new step.
+	  //%
+
 	  infoc = cstep(&stx,&fxm,&dgxm,&sty,&fym,&dgym,&stp,fm,dgm,&brackt,stmin,stmax);
 
-	  // Reset the function and gradient values for f.
+	  //%
+	  //%           Reset the function and gradient values for f.
+	  //%
 
 	  fx = fxm + stx*dgtest;
 	  fy = fym + sty*dgtest;
@@ -839,10 +1062,19 @@ int mthls(
 	}
       else
 	{
+
+	  //% 
+	  //%           Call cstep to update the interval of uncertainty 
+	  //%           and to compute the new step.
+	  //%
+
 	  infoc = cstep(&stx,&fx,&dgx,&sty,&fy,&dgy,&stp,f,dg,&brackt,stmin,stmax);
 	}
 
-      // Force a sufficient decrease in the size of the interval of uncertainty
+      //
+      //%        Force a sufficient decrease in the size of the
+      //%        interval of uncertainty.
+      //%
 
       if (brackt)
 	{
@@ -853,11 +1085,15 @@ int mthls(
 	  width = fabs(sty-stx);
 	}
 
-      //      printf("%g ",f);
+      //%
+      //%        End of iteration.
+      //%
+
     }
 
-  //	 printf("%d %g %g %g %g %g %d\n",info,stx,stp,sty,f,dg,infoc);
-  //printf("%g ",f);
+  //%
+  //%     Last card of subroutine cvsrch.
+  //%
 
 }
 
@@ -879,14 +1115,84 @@ int cstep(
 	  )
 {
 
+  /*
+
+    Translation of Dianne O'Leary's translation (to matlab) of minpack subroutine cstep.
+
+    Dianne's comments will be prefaced by the matlab comment specifier '%'
+
+    %   Translation of minpack subroutine cstep 
+    %   Dianne O'Leary   July 1991
+    %     **********
+    %
+    %     Subroutine cstep
+    %
+    %     The purpose of cstep is to compute a safeguarded step for
+    %     a linesearch and to update an interval of uncertainty for
+    %     a minimizer of the function.
+    %
+    %     The parameter stx contains the step with the least function
+    %     value. The parameter stp contains the current step. It is
+    %     assumed that the derivative at stx is negative in the
+    %     direction of the step. If brackt is set true then a
+    %     minimizer has been bracketed in an interval of uncertainty
+    %     with endpoints stx and sty.
+    %
+    %     The subroutine statement is
+    %
+    %       subroutine cstep(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,
+    %                        stpmin,stpmax,info)
+    % 
+    %     where
+    %
+    %       stx, fx, and dx are variables which specify the step,
+    %         the function, and the derivative at the best step obtained
+    %         so far. The derivative must be negative in the direction
+    %         of the step, that is, dx and stp-stx must have opposite 
+    %         signs. On output these parameters are updated appropriately.
+    %
+    %       sty, fy, and dy are variables which specify the step,
+    %         the function, and the derivative at the other endpoint of
+    %         the interval of uncertainty. On output these parameters are 
+    %         updated appropriately.
+    %
+    %       stp, fp, and dp are variables which specify the step,
+    %         the function, and the derivative at the current step.
+    %         If brackt is set true then on input stp must be
+    %         between stx and sty. On output stp is set to the new step.
+    %
+    %       brackt is a logical variable which specifies if a minimizer
+    %         has been bracketed. If the minimizer has not been bracketed
+    %         then on input brackt must be set false. If the minimizer
+    %         is bracketed then on output brackt is set true.
+    %
+    %       stpmin and stpmax are input variables which specify lower 
+    %         and upper bounds for the step.
+    %
+    %       info is an integer output variable set as follows:
+    %         If info = 1,2,3,4,5, then the step has been computed
+    %         according to one of the five cases below. Otherwise
+    %         info = 0, and this indicates improper input parameters.
+    %
+    %     Subprograms called
+    %
+    %       FORTRAN-supplied ... abs,max,min,sqrt
+    %                        ... dble
+    %
+    %     Argonne National Laboratory. MINPACK Project. June 1983
+    %     Jorge J. More', David J. Thuente
+    %
+    %     **********
+  */
+
   int info = 0;
 
-  // Determine if the derivatives have opposite sign.
+  //% Determine if the derivatives have opposite sign.
 
   double sgnd = dp*((*dx)/fabs((*dx)));
 
-  // First case. A higher function value.
-  // The minimum is bracketed. If the cubic step is closer to stx than the quadratic step, the cubic step is taken, else the average of the cubic and quadratic steps is taken.
+  //% First case. A higher function value.
+  //% The minimum is bracketed. If the cubic step is closer to stx than the quadratic step, the cubic step is taken, else the average of the cubic and quadratic steps is taken.
 
   int bound;
   double theta;
@@ -924,7 +1230,7 @@ int cstep(
 
     } 
 
-  // Second case. A lower function value and derivatives of opposite sign. The minimum is bracketed. If the cubic step is closer to stx than the quadratic (secant) step, the cubic step is taken, else the quadratic step is taken.
+  //% Second case. A lower function value and derivatives of opposite sign. The minimum is bracketed. If the cubic step is closer to stx than the quadratic (secant) step, the cubic step is taken, else the quadratic step is taken.
 
   else if (sgnd < 0.0) 
     {
@@ -957,7 +1263,7 @@ int cstep(
       *brackt = 1;
     }
 
-  // Third case. A lower function value, derivatives of the same sign, and the magnitude of the derivative decreases. The cubic step is only used if the cubic tends to infinity in the direction of the step or if the minimum of the cubic is beyond stp. Otherwise the cubic step is defined to be either stpmin or stpmax. The quadratic (secant) step is also computed and if the minimum is bracketed then the the step closest to stx is taken, else the step farthest away is taken.
+  //% Third case. A lower function value, derivatives of the same sign, and the magnitude of the derivative decreases. The cubic step is only used if the cubic tends to infinity in the direction of the step or if the minimum of the cubic is beyond stp. Otherwise the cubic step is defined to be either stpmin or stpmax. The quadratic (secant) step is also computed and if the minimum is bracketed then the the step closest to stx is taken, else the step farthest away is taken.
 
   else if (fabs(dp) < fabs(*dx)) 
     {
@@ -972,7 +1278,7 @@ int cstep(
       tmp->ve[2] = dp;
       ss = v_norm_inf(tmp);
       V_FREE(tmp);
-      // The case gamma = 0 only arises if the cubic does not tend to infinity in the direction of the step.
+      // % The case gamma = 0 only arises if the cubic does not tend to infinity in the direction of the step.
 
       gamma = ss*sqrt(max(0.,pow(theta/ss,2.) - (*dx/ss)*(dp/ss)));
 
@@ -1005,7 +1311,7 @@ int cstep(
 	  stpf = stpq;
     }
 
-  // Fourth case. A lower function value, derivatives of the same sign, and the magnitude of the derivative does not decrease. If the minimum is not bracketed, the step is either stpmin or stpmax, else the cubic step is taken.
+  //% Fourth case. A lower function value, derivatives of the same sign, and the magnitude of the derivative does not decrease. If the minimum is not bracketed, the step is either stpmin or stpmax, else the cubic step is taken.
 
   else
     {
@@ -1041,7 +1347,7 @@ int cstep(
     
     }
 
-  // Update the interval of uncertainty. This update does not depend on the new step or the case analysis above.
+  //% Update the interval of uncertainty. This update does not depend on the new step or the case analysis above.
 
   if (fp > *fx)
     {
@@ -1063,7 +1369,7 @@ int cstep(
       *dx = dp;
     }
 
-  // Compute the new step and safeguard it.
+  //% Compute the new step and safeguard it.
 
   stpf = min(stpmax,stpf);
   stpf = max(stpmin,stpf);
@@ -1076,7 +1382,7 @@ int cstep(
          
   return info;
 
-  // last card of subroutine cstep
+  //%  last card of subroutine cstep
 
 }
 
