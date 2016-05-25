@@ -557,25 +557,25 @@ VEC *VMGMM(
     {
 
       pthread_t solve_p_alpha_thread;
-      if (pthread_create(&solve_p_alpha_thread, NULL, solve_p_alpha, (void*)&solve_p_alpha_args)) {
+      if (pthread_create(&solve_p_alpha_thread, NULL, (void *)solve_p_alpha, (void*)&solve_p_alpha_args)) {
 	fprintf(stderr, "Error creating thread - solve_p_alpha_thread");
 	exit(0);
       }
 
       pthread_t solve_p_beta_thread;
-      if (pthread_create(&solve_p_beta_thread, NULL, solve_p_beta, (void*)&solve_p_beta_args)) {
+      if (pthread_create(&solve_p_beta_thread, NULL, (void *)solve_p_beta, (void*)&solve_p_beta_args)) {
 	fprintf(stderr, "Error creating thread - solve_p_beta_thread");
 	exit(0);
       }
 
       pthread_t solve_p_gamma_thread;
-      if (pthread_create(&solve_p_gamma_thread, NULL, solve_p_gamma, (void*)&solve_p_gamma_args)) {
+      if (pthread_create(&solve_p_gamma_thread, NULL, (void *)solve_p_gamma, (void*)&solve_p_gamma_args)) {
     fprintf(stderr, "Error creating thread - solve_p_gamma_thread");
     exit(0);
       }
 
       pthread_t solve_p_iota_thread;
-      if (pthread_create(&solve_p_iota_thread, NULL, solve_p_iota, (void*)&solve_p_iota_args)) { 
+      if (pthread_create(&solve_p_iota_thread, NULL, (void *)solve_p_iota, (void*)&solve_p_iota_args)) { 
 	fprintf(stderr, "Error creating thread - solve_p_iota_thread");
 	exit(0);
       }
@@ -2284,7 +2284,7 @@ void solve(
 
 void solve_p_alpha(void* args)
 {
-  Solve_Args * solve_args = (struct Solve_Args*)args;
+  Solve_Args * solve_args = (Solve_Args *)args;
 
   VEC* theta = (*solve_args).theta;
   struct DATA *dataptr = (*solve_args).dataptr;
@@ -2446,7 +2446,7 @@ void solve_p_alpha(void* args)
 
 void solve_p_beta(void* args)
 {
-  Solve_Args * solve_args = (struct Solve_Args*)args;
+  Solve_Args * solve_args = (Solve_Args *)args;
 
   VEC* theta = (*solve_args).theta;
   struct DATA *dataptr = (*solve_args).dataptr;
@@ -2583,7 +2583,7 @@ void solve_p_beta(void* args)
 
 void solve_p_gamma(void* args)
 {
-  Solve_Args * solve_args = (struct Solve_Args*)args;
+  Solve_Args * solve_args = (Solve_Args *)args;
 
   VEC* theta = (*solve_args).theta;
   struct DATA *dataptr = (*solve_args).dataptr;
@@ -3029,7 +3029,7 @@ void solve_p_omega(
 
 void solve_p_iota(void* args)
 {
-  Solve_Args * solve_args = (struct Solve_Args*)args;
+  Solve_Args * solve_args = (Solve_Args *)args;
 
   VEC* theta = (*solve_args).theta;
   struct DATA *dataptr = (*solve_args).dataptr;

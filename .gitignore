@@ -3,4 +3,7 @@
 *.dat
 *.cbp
 *.depend
+*.cproj
+*.sln
+*.userprefs
 bin
