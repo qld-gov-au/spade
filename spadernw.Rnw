@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage{Sweave}
 \usepackage{geometry}
 \usepackage{natbib}
 \bibliographystyle{apalike}
@@ -32,10 +33,7 @@
   \and
   Tomislav Buric\\
   Faculty of Electrical Engineering and Computing,\\
-  University of Zagreb, Croatia\\
-  School of Mathematics and Physics\\
-  University of Queensland\\
-  Brisbane, Australia
+  University of Zagreb, Croatia
 }
 
 \floatstyle{boxed}
@@ -52,7 +50,7 @@
 \maketitle
 
 \begin{abstract}
-In 1926 Anderson Gray McKendrick introduced an equation that describes the death process, in continuous-time, of an age-structured population.  This fundamental equation has been extended and generalised in the intervening years into a form which encapsulates much of the core of modern stock assessment.  We introduce numerical and analytical techniques that enable efficient and robust parameter estimation for fishery models built using this approach and demonstrate this using an Australian barramundi (\emph{Lates calcarifer}) fishery.  We highlight the additional insight the continuous formalism provides on the question of scale (or granularity) of the model.
+In 1926 Anderson Gray McKendrick introduced an equation that describes the death process, in continuous-time, of an age-structured population.  This fundamental equation has been extended and generalised in the intervening years into a form which encapsulates much of the core of modern stock assessment.  We introduce numerical and analytical techniques that enable efficient and robust parameter estimation for fishery models built using this approach and demonstrate these using an Australian barramundi (\emph{Lates calcarifer}) fishery.  We highlight the additional insight the continuous formalism provides on the questions of scale (or granularity) and parameter identifiability, and discuss the characterisation of uncertainty in both formalisms.
 \end{abstract}
 
 %We discuss some of the differences between traditional matrix-based fishery models and the pde formalism.  And focus on the scale thing.
@@ -75,14 +73,13 @@ In 1926 Anderson Gray McKendrick introduced an equation that describes the death
 
 %what would a fishery model look like in this formalism?
 
-Providing there is sufficient information available to calibrate them, population models that explicitly represent the size of the individual are significantly more realistic than those that lump this dimension into one or a few state variables.  This enhanced realism is particularly important for populations which experience a forcing that acts along the dimension, for example a time-dependent mortality process that varies as a function of size.  `Size' is being used as a shorthand for any physiologically important dimension, for example age, length, weight, body mass etc.  These models are commonly referred to as physiologically structured population models \citep{Metz2014}. 
+Providing there is sufficient information available to calibrate them, population models that explicitly represent the size of the individual are significantly more realistic than those that lump this dimension into one or a few state variables.  This enhanced realism is particularly important for populations which experience a forcing that acts along the dimension - for example a time-dependent mortality process that varies as a function of size - or for which management controls act along the dimension.  `Size' is being used as a shorthand for any physiologically important dimension, for example age, length, weight, body mass etc.  These models are commonly referred to as physiologically structured population models \citep{Metz2014}. 
 
 % - but .. profound (cite van Sickle) 
-Here we present a size structured population model wherein the population is subject to an exogenous mortality process, namely fishing, and for which parameters are estimated by minimising the discrepancy between predictions of the model and empirical data. This is also the goal of the applied science of `stock assessment' \citep{Hilborn1992}, where the estimated parameters are used to guide the management of a fishery. The methods we present here, however, differ somewhat from those used in stock assessment, and bear more resemblance to the mathematical ecology literature. In particular, we represent the physiological dimension mathematically as a continuum, rather than as a discrete set of states as is done almost exclusively in stock assessment. The decision to represent both time and size as a continuum means that we are dealing with partial differential equations, and brings with it some challenges as well as some advantages.  The aim of this paper is to show one of way of tackling the challenges, and to highlight some of the advantages. While some things are ostensibly harder in this paradigm, such as the need to solve differential equations using numerical techniques, some things are possible that are not in the discrete paradigm, and some things actually become easier.  Perhaps the main advantage though is conceptual clarity. 
+Here we present a physiologically structured population model wherein the population is subject to an exogenous mortality process, namely fishing, and for which parameters are estimated by minimising the discrepancy between predictions of the model and empirical data. This is also the goal of the applied science of `stock assessment' \citep{Hilborn1992}, where the estimated parameters are used to guide the management of a fishery. The methods we present here, however, differ somewhat from those used in stock assessment, and bear more resemblance to the mathematical ecology literature. In particular, we represent the physiological dimension mathematically as a continuum, rather than as a discrete set of states as is done almost exclusively in stock assessment. The decision to represent both time and size as a continuum means that we are dealing with partial differential equations, and brings with it some challenges as well as some advantages.  The aim of this paper is to show one of way of tackling the challenges, and to highlight some of the advantages. While some things are ostensibly harder in this paradigm, such as the need to solve differential equations using numerical techniques, some things are possible that are not in the discrete paradigm, and some things actually become easier.  Perhaps the main advantage though is conceptual clarity. 
 
 The approach is demonstrated by fitting the model to data from a barramundi fishery in Queensland, Australia.
 
-\clearpage
 \section{From Malthus to Murphy}\label{sec:model}
 The simplest population model follows the Malthusian principle 
 \begin{equation}
@@ -108,7 +105,7 @@ This equation requires a boundary condition on $n(a,t)$ in both $t$ and $a$. The
 \begin{equation}
 n(a,0) = f(a)
 \end{equation}
-says that the population has a given initial age distribution. The other boundary condition is the birth rate, also known as the renewal equation, 
+says that the population has a given initial age distribution.  The other boundary condition is the birth rate, also known as the renewal equation, 
 \begin{equation}
 n(0,t) = \int_a b(a)n(a,t)\,da
 \end{equation}
@@ -119,11 +116,8 @@ However the McKendrick model has the same problem as Malthus - the death process
 \frac{\partial n(a,t)}{\partial t} + \frac{\partial n(a,t)}{\partial a} = -\mu(a,N,t) n(a,t)
 \end{equation}
 
-
-
-Very sensible to have an age dependent death rate.
-
-Population dynamics are based on the McKendrick partial differential equation \citep{McKendrick1926}, generalised to accommodate density dependence \citep{Gurtin1974} and size structured dynamics \citep{Murphy1983}, and with a time-dependent mortality function:
+\section{Fishery models}
+Once we introduce a time-dependent mortality function we are in business:
 \begin{subequations}
 \label{eq:1}
 \begin{align}
@@ -160,11 +154,18 @@ where $w(x)$ is the weight of a fish of size $x$, given by
 \begin{equation}
   w(x)=w_1 x^{w_2}.
 \end{equation}
-This completes the specification of a simple fishery system. The biological component of this system is a slight variant of that analysed by \citet{Murphy1983} - simpler in that growth and births are not density dependent, but more complex in that growth is size-dependent (von Bertalanffy). Another way to think of it is as the simplest modification of the first model in \citet{Gurtin1978} needed to handle size-dependent growth.\\
+This completes the specification of a simple fishery system. The biological component of this system is a slight variant of that analysed by \citet{Murphy1983} - simpler in that growth and births are not density dependent, but more complex in that growth is size-dependent (von Bertalanffy). Another way to think of it is as the simplest modification of the first model in \citet{Gurtin1978} needed to handle size-dependent growth.  Both G\&M and Murphy had autonomous pdes, we don't, which is why we need a numerical solution.
 
-\clearpage
+It will turn out to be useful to reparameterise the birth function thus
+\begin{equation}
+  b(x) = \alpha(a_1 x+a_2 x^2).
+\end{equation}
+
+%\clearpage
 \section{Numerical solution}
 Equation \ref{eq:1} is a nonlinear hyperbolic partial differential equation with a nonlinear and non-local boundary condition, and in general must be solved numerically. As with all Mckendrick style PDEs it can be reduced to a coupled ODE problem by integrating along the characteristic curves \citep{Kot2001}. Following \citet{Angulo2004}, define
+
+Even without a time-dependent term you would still need a numerical solution.
 \begin{equation}
   z^*(x,U,t)=z(x,U,t)+g_x(x)
 \end{equation}
@@ -217,25 +218,19 @@ Following \citet{Angulo2014} we use an adaptive mesh that keeps the number of no
 \end{equation}
 See \citet{Angulo2014} for convergence analysis and numerical experiments. 
 
-%The R code for the scheme, implemented for the particular model outlined in section \ref{sec:model}, is given in Appendix \ref{app:ns}.
-
-\clearpage
+%\clearpage
 \section{Parameter Estimation}
 The model is calibrated against fishery catch-at-size data. This comes from two sources: commercial catch data (a scalar time series representing removals from the population), and scientific monitoring program data on the size structure of the commercial catch. These are combined to produce the `observation', $c(x,t)$: the catch rate (in kilograms per centimetre) at time $t$ and size $x$. It is this observation to which the model is fit:
 \begin{equation}
-H(\theta) = \int_0^T \int_0^\omega |s(x)w(x)f(t)u(x,t) - c(x,t)| \,dx\,dt
+K(\theta) = \int_0^T \int_0^\omega \big(s(x)w(x)f(t)u(x,t) - c(x,t)\big)^2 \,dx\,dt
 \end{equation}
-Optimisation is a hard problem in general, and optimisation routines that make use of the gradient of the objective function (with respect to the model parameters) are usually significantly more efficient. The gradient of $H$ with respect to $\theta$ is given by
+The derivative of $K$ with respect to $\theta$ is given by
 \begin{equation}
-%\frac{d H(\theta)}{d\theta}=
 \int_0^T \int_0^\omega
-\left(s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)\right)\times 
-\begin{cases}
--1, &  s(x)w(x)f(t)u(x,t) < c(x,t)\\
-\phantom{-}1, & s(x)w(x)f(t)u(x,t)>c(x,t) 
-\end{cases}\,dx\,dt
+2\big(s(x)w(x)f(t)u(x,t)-c(x,t)\big)\big(s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)\big)\,dx\,dt
 \end{equation}
 where $p(x,t)=u_\theta(x,t)$ are solutions of the the sensitivity-PDE \citep{Borggaard1997,Li2004}: %,Stanley2002}.
+
 \begin{equation}
   \frac{d F}{d\theta} = F_\theta + F_u p + F_{u_t} p_t + F_{u_x} p_x = 0
 \end{equation}
@@ -259,8 +254,7 @@ with boundary condition
 Substituting in the birth, growth and death functions, we get the following sensitivity PDEs
 \begin{subequations}
   \begin{align}
-  \frac{d F}{d \alpha_1} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u = 0\\
-  \frac{d F}{d \alpha_2} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u = 0\\
+  \frac{d F}{d \alpha} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u = 0\\
   \frac{d F}{d \beta} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \left(1+ \gamma P\right)u = 0 \\
   \frac{d F}{d \gamma} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \left(U+ \gamma P\right)u = 0 \\
   \frac{d F}{d \kappa} &= p_t + (\omega-x)u_x + \kappa(\omega-x)p_x - \kappa p - u + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u = 0 \\
@@ -271,16 +265,17 @@ Substituting in the birth, growth and death functions, we get the following sens
 The boundary conditions for each case are given by
 \begin{subequations}
   \begin{align}
-    \kappa\omega p(0,t) &= \int_0^\omega x u(x,t) + \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \kappa\omega p(0,t) &= \int_0^\omega x^2 u(x,t) + \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \kappa\omega p(0,t) &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \kappa\omega p(0,t) &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \omega u(0,t) + \kappa\omega p(0,t) &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \kappa u(0,t) + \kappa\omega p(0,t) &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx \\
-    \kappa\omega p(0,t) &= \int_0^\omega \alpha_1 x p(x,t) + \alpha_2 x^2 p(x,t) \,dx  
+    \kappa\omega p(0,t) &= \int_0^\omega \left(a_1 x + a_2 x^2\right) \left(\alpha p(x,t) + u(x,t)\right)\,dx \\
+    \kappa\omega p(0,t) &= \int_0^\omega \alpha \left(a_1 x + a_2 x^2\right) p(x,t) \,dx \\
+    \kappa\omega p(0,t) &= \int_0^\omega \alpha \left(a_1 x + a_2 x^2\right) p(x,t) \,dx \\
+    \omega u(0,t) + \kappa\omega p(0,t) &= \int_0^\omega \alpha \left(a_1 x + a_2 x^2\right) p(x,t) \,dx \\
+    \kappa u(0,t) + \kappa\omega p(0,t) &= \int_0^\omega \alpha \left(a_1 x + a_2 x^2\right) p(x,t) \,dx \\
+    \kappa\omega p(0,t) &= \int_0^\omega \alpha \left(a_1 x + a_2 x^2\right) p(x,t)  \,dx  
   \end{align}
 \end{subequations}
-These PDEs can be reduced to coupled ODE problems along characteristics in a manner analogous to the original PDE case. For all derivatives the size ODE (Equation \ref{eq:2.2}) remains unchanged. For $\iota$ the `population' ODE is
+These PDEs can be reduced to coupled ODE problems along characteristics in a manner analogous to the original PDE case. 
+
+For all derivatives the size ODE (Equation \ref{eq:2.2}) remains unchanged. For $\iota$ the `population' ODE is
 \begin{equation}
   \begin{split}
     q(t&;t^*,x^*)=p(x^*,t^*)\exp\left(-\int_{t^*}^t z^*(x(\tau;x^*,t^*),U(\tau),\tau)\,d\tau\right) -\\
@@ -297,7 +292,7 @@ and
   m(x,P(t),u(x,t),t)= \left(s(x)e(t)+\gamma P(t)\right) u(x,t).
 \end{equation}
 
-This is implemented with Algorithm \ref{alg:sens}. 
+This is implemented with Algorithm \ref{alg:sens}, this is one of the two main technical contributions of this paper. The other being the analytical gradients.
 \begin{algorithm}
   \caption{Sensitivity PDE numerical solution for $\iota$}\label{alg:sens}
   \begin{algorithmic}
@@ -310,7 +305,9 @@ This is implemented with Algorithm \ref{alg:sens}.
 Sensitivity PDE solutions for the other parameters follow analagously.
 
 \subsection{Initial state}
-If we assume that we have a complete fishing history, and that the initial state should therefore be unfished equilibrium, then it is possible to derive the starting condition analytically. 
+Unfished equilibrium can be derived analytically.
+
+%If we assume that we have a complete fishing history, and that the initial state should therefore be unfished equilibrium, then it is possible to derive the starting condition analytically. 
 
 The general technique is to introduce integral weighting functions to reduce the PDE to coupled ODEs. This was pioneered by \citet{Gurtin1978}, and has since been applied to more complicated models \citep{Murphy1983,Swart1994}. For our model, we start by defining
 \begin{equation}
@@ -320,21 +317,20 @@ and
 \begin{equation}
     W(t) = \int_0^{\omega} x^2 u(x,t)\, dx .
 \end{equation}
-The model PDE (Equation \ref{eq:1}) is then integrated along the size dimension three times, the second and third time having been first multiplied by $x$ and $x^2$ respectively, producing three ODEs.\footnote{This reduction depends on a technical assumption that the initial data $u(x,0)$ has compact support so that $u(x,t)=0$ for sufficiently large $x$. This is obviously biologically realistic.} Details are contained in Appendix \ref{app:eq}. Eventually we obtain the system
-\begin{subequations}
-  \begin{align*}
-    \frac{dU}{dt} &= -(\beta+\gamma U) U + \alpha_1 V + \alpha_2 W\\%\frac{e^{\psi \cos(\theta-\phi)}}{2\pi I_0(\psi)}\\
-    \frac{d V}{d t} &= -(\beta+\gamma U)V + \kappa \omega U - \kappa V\\
-    \frac{d W}{d t} &= -(\beta+\gamma U)W + 2\kappa\omega V - 2\kappa W\\
-    %\frac{d \theta}{d t} &= 1
-  \end{align*}
-\end{subequations}
-so that at equilibrium we have
+The model PDE (Equation \ref{eq:1}) is then integrated along the size dimension three times, the second and third time having been first multiplied by $x$ and $x^2$ respectively, producing three ODEs.\footnote{This reduction depends on a technical assumption that the initial data $u(x,0)$ has compact support so that $u(x,t)=0$ for sufficiently large $x$. This is obviously biologically realistic.} Eventually we obtain an ODE system (see Appendix \ref{app:eq}) which at equilibrium is given by
+%\begin{subequations}
+%  \begin{align*}
+%    \frac{dU}{dt} &= -(\beta+\gamma U) U + \alpha a_1 V + \alpha a_2 W\\
+%    \frac{d V}{d t} &= -(\beta+\gamma U)V + \kappa \omega U - \kappa V\\
+%    \frac{d W}{d t} &= -(\beta+\gamma U)W + 2\kappa\omega V - 2\kappa W\\
+%  \end{align*}
+%\end{subequations}
+%so that at equilibrium we have
 \begin{subequations}
   \begin{align}
-  (\beta+\gamma \bar{U}) \bar{U} &= \alpha_1 \bar{V} + \alpha_2 \bar{W}\label{seq:3a}\\
-  (\beta + \gamma \bar{U})\bar{V}  &=  \kappa \omega \bar{U} - \kappa \bar{V}\label{seq:3b}\\
-  (\beta+\gamma \bar{U})\bar{W}  &=  2\kappa\omega \bar{V} - 2\kappa \bar{W}\label{seq:3c}
+  (\beta+\gamma \bar{U}) \bar{U} &= \alpha a_1 \bar{V} + \alpha a_2 \bar{W}\\
+  (\beta + \gamma \bar{U})\bar{V}  &=  \kappa \omega \bar{U} - \kappa \bar{V}\\
+  (\beta+\gamma \bar{U})\bar{W}  &=  2\kappa\omega \bar{V} - 2\kappa \bar{W}
   \end{align}
 \end{subequations}
 
@@ -344,30 +340,30 @@ We can simplify \ref{seq:3b} to
 \end{equation}
 and \ref{seq:3c} to 
 \begin{equation}
-\bar{W} = \frac{2\kappa\omega\bar{V}}{\beta + \gamma\bar{U} + 2\kappa}\label{eq:7}
+  \bar{W} = \frac{2\kappa\omega\bar{V}}{\beta + \gamma\bar{U} + 2\kappa}\label{eq:7}
 \end{equation}
 
 Then let $Z=\beta + \gamma\bar{U}+\kappa$ so that
 \begin{equation}\label{eqn:Z}
   \begin{split}
-   (Z-\kappa) \frac{Z-\beta-\kappa}{\gamma} &= \frac{\alpha_1 \kappa\omega (Z-\beta-\kappa)}{\gamma Z} + \frac{\alpha_2 2 \kappa\omega \frac{\kappa\omega(Z-\beta-\kappa)}{\gamma Z}}{Z+\kappa}\\
+   (Z-\kappa) \frac{Z-\beta-\kappa}{\gamma} &= \frac{\alpha a_1 \kappa\omega (Z-\beta-\kappa)}{\gamma Z} + \frac{\alpha a_2 2 \kappa\omega \frac{\kappa\omega(Z-\beta-\kappa)}{\gamma Z}}{Z+\kappa}\\   
 %    \frac{Z-\kappa}{\gamma} &= \frac{\alpha_1 \kappa\omega}{\gamma Z} + \frac{\alpha_2 2 \kappa\omega \frac{\kappa\omega}{\gamma Z}}{Z+\kappa}\\
 %    Z^2-\kappa Z - \alpha_1 \kappa\omega &= \frac{\alpha_2 2 \kappa\omega \kappa\omega}{Z+\kappa}\\
 %    \left(Z+\kappa\right)\left(Z^2-\kappa Z - \alpha_1 \kappa\omega\right) &= \alpha_2 2 \kappa\omega \kappa\omega\\
 %    Z^3 - \kappa Z^2 - \alpha_1\kappa\omega Z + \kappa Z^2 - \kappa^2 Z - \alpha_1 \kappa^2 \omega &= \alpha_2 2 \kappa\omega \kappa\omega\\
 %    Z^3 - \alpha_1\kappa\omega Z - \kappa^2 Z - \alpha_1 \kappa^2 \omega &= \alpha_2 2 \kappa\omega \kappa\omega\\
-    Z^3 - \kappa(\alpha_1\omega+\kappa)Z - \kappa\omega (\alpha_1\kappa + 2 \alpha_2\kappa\omega) &= 0
+    Z^3 - \kappa(\alpha a_1 \omega+\kappa)Z - \kappa\omega (\alpha a_1 \kappa + 2 \alpha a_2 \kappa\omega) &= 0
   \end{split}
 \end{equation}
 
 The real solution of this is
 \begin{equation}
-  Z = \frac{ \sqrt[3]{9 \alpha_1 \kappa^2 \omega+18 \alpha_2 \kappa^2 \omega^2+\kappa\zeta}}{3 \sqrt[3]{\frac23}} +  
-  \frac{\sqrt[3]{\frac23}\,\kappa (\alpha_1  \omega+\kappa)}{\sqrt[3]{9 \alpha_1 \kappa^2 \omega+18 \alpha_2 \kappa^2 \omega^2+\kappa\zeta}}
+  Z = \frac{ \sqrt[3]{9 \alpha a_1 \kappa^2 \omega+18 \alpha a_2 \kappa^2 \omega^2+\kappa\zeta}}{3 \sqrt[3]{\frac23}} +  
+  \frac{\sqrt[3]{\frac23}\,\kappa (\alpha a_1  \omega+\kappa)}{\sqrt[3]{9 \alpha a_1 \kappa^2 \omega+18 \alpha a_2 \kappa^2 \omega^2+\kappa\zeta}}
 \end{equation}  
 where
 \begin{equation}
-\zeta= \sqrt{ 81 \kappa^2 \omega^2 (\alpha_1+2 \alpha_2 \omega)^2 - 12\kappa( \alpha_1  \omega+ \kappa)^3}.
+\zeta= \sqrt{ 81 \kappa^2 \omega^2 (\alpha a_1 +2 \alpha a_2 \omega)^2 - 12\kappa( \alpha a_1  \omega+ \kappa)^3}.
 \end{equation}  
 
 The size structure at equilibrium is given by
@@ -380,9 +376,10 @@ The size structure at equilibrium is given by
 %  &= \frac{\alpha_1 \bar{V} + \alpha_2 \bar{W}}{\kappa(\omega-x)} \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
 %  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{(\kappa(\omega-x))^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{(\kappa\omega)^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
 %  &= (\alpha_1 \bar{V} + \alpha_2 \bar{W}) \frac{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}(\omega-x)^{\frac{\beta+\gamma\bar{U}}{\kappa}-1}}{\kappa^{\frac{\beta+\gamma\bar{U}}{\kappa}}\omega^{\frac{\beta+\gamma\bar{U}}{\kappa}}}\\  
-  &= \frac{\left(\alpha_1 \bar{V} + \alpha_2 \bar{W}\right) (\omega-x)^{(\beta+\gamma\bar{U})/\kappa-1}}{\kappa \omega^{(\beta+\gamma\bar{U})/\kappa}}
+  &= \frac{\left(\alpha a_1 \bar{V} + \alpha a_2 \bar{W}\right) (\omega-x)^{(\beta+\gamma\bar{U})/\kappa-1}}{\kappa \omega^{(\beta+\gamma\bar{U})/\kappa}}
   \end{split} 
 \end{equation}
+
 We also need initial conditions for our sensitivity PDEs. These are, by definition, $d u(x)/d\theta$. The derivations for these are contained in Appendix \ref{app:2}.
 
 \subsection{Initial parameter values}
@@ -392,8 +389,6 @@ Consider now the initial values of the parameters for the optimisation algorithm
   1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
 \end{equation}
 where $f$ is the constant fishing mortality and $\tilde{\beta}$ is a natural mortality term that is a mixture of density dependent and density independent effects. 
-
-
 
 %But we also have
 %\begin{equation}
@@ -484,6 +479,193 @@ Wolf conditions:
 \end{subequations}
 
 \section{Application}
+
+<<code,echo=FALSE>>=
+
+library(lubridate)
+
+k <- 0.05
+I <- 1000
+J <- 400
+N <- 500
+
+cek <- k/2
+
+load('../data/bar2.RData')
+barra <- subset(bar2, CAABSpeciesCommonName=='Barramundi')
+
+bar2$Time <- (julian(bar2$StartDate) - julian(ymd("1990-01-01")))/365.25
+
+StartYear <- 1990
+EndYear <- 2010
+
+barra <- subset(bar2, CAABSpeciesCommonName=='Barramundi')
+
+cat <- array(0,dim=N+1)
+eff <- array(0,dim=2*N+1)
+
+karumba <- droplevels(subset(barra,GridDerived %in% c('AI16','AH16','AG17','AG18','AF17','AF18','AE17','AE18','AD17','AD18','AC18','AC17','AC16','AC15','AB15')))
+karumba <- subset(karumba,StartDateYear >= StartYear)
+karumba <- subset(karumba,StartDateYear <= EndYear)
+
+for (i in 1:nrow(karumba)) {
+    idxr <- floor((karumba$Time[i]+cek/2)/cek)
+    idxr2 <- floor((karumba$Time[i]+k/2)/k)
+    eff[idxr] <- eff[idxr] + 1.0/cek
+    cat[idxr2] <- cat[idxr2] + (karumba$RetainedWholeWeightDerived[i]/k)/1e3
+}
+
+A1 <- 8.588e-5
+A2 <- 0.00144
+
+phi <- 17
+iota1 <- 5.2
+iota2 <- 0.619
+
+alpha <- .1
+beta <- .1
+gamma <- 1.1
+iota <- .1
+kappa <- .1
+omega <- 160
+
+g <- function(x) { kappa*(omega-x) }
+b <- function(x) { alpha*(A1*x + A2*x^2) }
+zstar <- function(x,U,t) { beta+gamma*U+s(x)*iota*e(t)-kappa }
+
+w <- function(x) { eta1*x^eta2 }
+s <- function(x) { exp(-(x-phi*iota1)^2 / (2*iota2*phi^2)) }
+
+Q <- function(x,V,J) {
+  rt <- 0
+  for (i in 1:(J-1))
+    rt <- rt + (x[i+1]-x[i]) * (V[i]+V[i+1])/2
+  rt
+}
+
+Q2 <- function(x,u,gv,J) {
+  rt <- x[2]*b(x[2])*u[2] - x[1]*b(x[2])*u[2]
+  for (i in 2:(J-1))
+    rt <- rt + (b(x[i])*u[i]+b(x[i+1])*u[i+1])*(x[i+1]-x[i])
+  rt[1] <- rt / (2*gv+x[1]*b(x[1]) - x[2]*b(x[1]))
+  return(rt)
+}   
+
+e <- function(t) {
+
+  if (t<0)
+    {
+      return(0)
+    }
+  else
+    {
+      cek <- k/2
+      idx <- floor((t + (cek/2) - 1e-12)/cek)
+      return (eff[idx+1])
+    }
+}
+
+cf <- function(t) {
+
+  if (t<0)
+    {
+      return(NA)
+    }
+  else
+    {
+      idx <- floor((t+(k/2)-1e-12)/k)
+      return(cat[idx+1])
+    }
+}
+
+x <- matrix(0,nrow=I+1,ncol=J+I+2)
+n <- matrix(0,nrow=I+1,ncol=J+I+2)
+xh <- matrix(0,nrow=I+1,ncol=J+I+2)
+nh <- matrix(0,nrow=I+1,ncol=J+I+2)
+spb <- matrix(0,nrow=I+1,ncol=J+I+2)
+SpB <- array(0,dim=I+1)    
+
+for (j in 1:(J+1))
+    x[1,j] <- (j-1)*omega/J
+x[1,J+1] <- x[1,J+1] - 1e-9
+
+a <- alpha
+bb <- beta
+gg <- gamma
+k <- kappa
+w <- omega
+
+zeta <- sqrt( 81*k*k*w*w*(a*A1+2*a*A2*w)^2 - 12*k*(a*A1*w+k)^3 )
+eta <- 9*a*A1*k*k*w + 18*a*A2*k*k*w*w + k*zeta
+Z <- eta^(1/3) / (3*(2/3)^(1/3)) + (2/3)^(1/3)*k*(a*A1*w+k) / eta^(1/3)
+
+ubar <- (Z-beta-kappa)/gamma
+vbar <- (kappa*omega*ubar) / (beta+gamma*ubar+kappa)
+wbar <- (2*kappa*omega*vbar) / (beta+gamma*ubar+2*kappa)
+
+for (j in 1:(J+1))
+    n[1,j] <- (a*A1*vbar+a*A2*wbar)*(omega-x[1,j])^((beta+gamma*ubar)/kappa - 1) / (kappa*omega^((beta+gamma*ubar)/kappa))
+
+for (j in 1:(J+1))
+    spb[1,j] <- b(x[1,j])*n[1,j]
+SpB[1] <- Q(x[1,],spb[1,],J+1)
+    
+Qi <- array(0,dim=I+1)
+HF <- array(0,dim=I+1)
+
+Qi[1] <- Q(x[1,],n[1,],J+1)
+
+for (i in 2:(I+1)) {
+
+    t <- k*(i-N-2)
+    th <- k*(i-N-1.5)
+
+    xh[i,1] <- 1e-9
+    for (j in 2:(J+i)) 
+      xh[i,j] <- x[i-1,j-1]+(k/2)*g(x[i-1,j-1])
+    xh[i,J+i+1] <- omega
+
+    for (j in 2:(J+i+1)) 
+      nh[i,j] <- n[i-1,j-1]*exp(-(k/2)*zstar(x[i-1,j-1],Qi[i-1],t))
+    nh[i,1] <- Q2(xh[i,],nh[i,],g(0),J+i+1)
+
+    Qhalf <- Q(xh[i,],nh[i,],J+i+1)
+
+    x[i,1] <- 1e-9
+    for (j in 2:(J+i))
+      x[i,j] <- x[i-1,j-1] + k*g(xh[i,j])
+    x[i,J+i+1] <- omega
+
+    for (j in 2:(J+i+1))
+      n[i,j] <- n[i-1,j-1]*exp(-k*zstar(xh[i,j],Qhalf,th))
+    n[i,1] <- Q2(x[i,],n[i,],g(0),J+i+1)
+
+    Qi[i] <- Q(x[i,],n[i,],J+i+1)
+
+    for (j in 1:(J+i+1))
+        spb[i,j] <- b(x[i,j])*n[i,j]
+    SpB[i] <- Q(x[i,],spb[i,],J+i+1)
+
+}
+
+@ 
+
+<<eq,echo=FALSE>>=
+eq <- function(x) { (a*A1*vbar+a*A2*wbar)*(omega-x)^((beta+gamma*ubar)/kappa - 1) / (kappa*omega^((beta+gamma*ubar)/kappa)) }
+@ 
+
+<<ploteq,echo=FALSE,fig=TRUE,include=FALSE>>=
+xs <- seq(0,omega,length.out=300)
+plot(xs,eq(xs),type='l',xlab='Size (cm)',ylab='Population (number density)')
+#points(X[1000,],U[1000,],col='red')
+@ 
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{spadernw-ploteq.pdf}
+  \caption{Size distribution at equilibrium.}
+  \label{fig:ploteq}
+\end{figure}
+
 \begin{table}
   \centering
 \begin{tabular}{|c|c|c|c|}
@@ -507,6 +689,9 @@ Process & Symbol & Units & Value\\
 \label{tbl:active}
 \end{table}
 
+\section{Discussion}
+Very sensible to have an age dependent death rate. Plasticity. Incoherence of standard probabilistic growth models. Identifiability. Granularity and scale.
+
 \clearpage
 \begin{appendices}  
 \section{Analytical Equilibrium Derivations}\label{app:eq}
@@ -515,20 +700,20 @@ Process & Symbol & Units & Value\\
 \begin{subequations}
   \begin{align}
     \int_0^{\omega} u_t(x,t)\,dx + \int_0^{\omega} [\kappa(\omega-x)u(x,t)]_x \, dx &= \int_0^{\omega} -(\beta+\gamma U(t)) u(x,t)\, dx\\
-    \Rightarrow \dot{U}(t) + \int_0^{\omega} \kappa(\omega-x)u_x(x,t)\,dx - \int_0^{\omega} \kappa u(x,t)\,dx&= -(\beta+\gamma U(t)) U(t)\\
+%    \Rightarrow \dot{U}(t) + \int_0^{\omega} \kappa(\omega-x)u_x(x,t)\,dx - \int_0^{\omega} \kappa u(x,t)\,dx&= -(\beta+\gamma U(t)) U(t)\\
     \Rightarrow \dot{U}(t) + \int_0^{\omega} \kappa(\omega-x)u_x(x,t)\,dx - \kappa  U(t) &= -(\beta+\gamma U(t)) U(t)\label{eq:1pt3}
   \end{align}
 \end{subequations}
 
 Integrating the second term in \ref{eq:1pt3} by parts:
-\begin{equation*}
-  \upsilon=\kappa(\omega - x),~~~d\nu=u_x(x,t)\,dx,~~~d\upsilon=-\kappa\,dx,~~~\nu=u(x,t)
-\end{equation*}
+%\begin{equation*}
+%  \upsilon=\kappa(\omega - x),~~~d\nu=u_x(x,t)\,dx,~~~d\upsilon=-\kappa\,dx,~~~\nu=u(x,t)
+%\end{equation*}
 
 \begin{subequations}
   \begin{align*}
     &\kappa(\omega-x) u(x,t)]_0^{\omega} - \int_0^{\omega} u(x,t) (-\kappa)\,dx\\
-    &\Rightarrow \kappa(\omega - \omega)u(\omega,t) - \kappa(\omega-0)u(0,t) + \kappa U(t)\\
+    %&\Rightarrow \kappa(\omega - \omega)u(\omega,t) - \kappa(\omega-0)u(0,t) + \kappa U(t)\\
       &\Rightarrow \kappa U(t) - \kappa(\omega-0)u(0,t)
   \end{align*}
 \end{subequations}
@@ -536,33 +721,32 @@ subbing back:
 \begin{subequations}
   \begin{align}
     &\dot{U}(t) + \kappa U(t) - \kappa(\omega-0)u(0,t) - \kappa  U(t) = -(\beta+\gamma U(t)) U(t)\\
-    &\Rightarrow \dot{U}(t) = -(\beta+\gamma U(t)) U(t) + \kappa(\omega-0)u(0,t)\\
-    &\Rightarrow \dot{U}(t) = -(\beta+\gamma U(t)) U(t) + \int_0^\omega b(x) u(x,t)\, dx\\
-    &\Rightarrow \dot{U}(t) = -(\beta+\gamma U(t)) U(t) + \int_0^\omega \left( \alpha_1 x u(x,t) + \alpha_2 x^2 u(x,t) \right) \, dx\\
-    &\Rightarrow \dot{U}(t) = -(\beta+\gamma U(t)) U(t) + \int_0^\omega \alpha_1 x u(x,t)\, dx + \int_0^\omega \alpha_2 x^2 u(x,t) \, dx\\
+    %&\Rightarrow \dot{U}(t) = -(\beta+\gamma U(t)) U(t) + \kappa(\omega-0)u(0,t)\\
+    %&\Rightarrow \dot{U}(t) = -(\beta+\gamma U(t)) U(t) + \int_0^\omega b(x) u(x,t)\, dx\\
+    %&\Rightarrow \dot{U}(t) = -(\beta+\gamma U(t)) U(t) + \int_0^\omega \left( \alpha_1 x u(x,t) + \alpha_2 x^2 u(x,t) \right) \, dx\\
+    %&\Rightarrow \dot{U}(t) = -(\beta+\gamma U(t)) U(t) + \int_0^\omega \alpha_1 x u(x,t)\, dx + \int_0^\omega \alpha_2 x^2 u(x,t) \, dx\\
     &\Rightarrow \dot{U}(t) = -(\beta+\gamma U(t)) U(t) + \alpha_1 V(t) + \alpha_2 W(t)
   \end{align}
 \end{subequations}
 
-\clearpage
 \emph{Part two - sub \ref{seq:2a} and \ref{seq:2b} into \ref{eq:1.1}, multiply by $x$ and integrate over $x$ from 0 to $\omega$.}
 
 \begin{subequations}
   \begin{align}
     \int_0^{\omega} u_t(x,t)x\,dx + \int_0^{\omega} [\kappa(\omega-x)u(x,t)]_x x \, dx &= \int_0^{\omega} -(\beta+\gamma U(t)) u(x,t)x\, dx\\
-    \Rightarrow \dot{V}(t) + \int_0^{\omega} x\kappa(\omega-x)u_x(x,t)\,dx - \int_0^{\omega} x\kappa u(x,t)\,dx &= -(\beta+\gamma U(t)) V(t)\\
+    %\Rightarrow \dot{V}(t) + \int_0^{\omega} x\kappa(\omega-x)u_x(x,t)\,dx - \int_0^{\omega} x\kappa u(x,t)\,dx &= -(\beta+\gamma U(t)) V(t)\\
     \Rightarrow \dot{V}(t) + \int_0^{\omega} x\kappa(\omega-x)u_x(x,t)\,dx - \kappa V(t) &= -(\beta+\gamma U(t)) V(t)\label{eq:2pt3}
   \end{align}
 \end{subequations}
 Integrating the second term in \ref{eq:2pt3} by parts:
-\begin{equation*}
-  \upsilon=x\kappa(\omega - x),~~~d\nu=u_x(x,t)\,dx,~~~d\upsilon=\kappa \omega - 2\kappa x \,dx,~~~\nu=u(x,t)
-\end{equation*}
+%\begin{equation*}
+%  \upsilon=x\kappa(\omega - x),~~~d\nu=u_x(x,t)\,dx,~~~d\upsilon=\kappa \omega - 2\kappa x \,dx,~~~\nu=u(x,t)
+%\end{equation*}
 
 \begin{subequations}
   \begin{align*}
     &\left. x\kappa(\omega - x) u(x,t) \right]_0^{\omega} - \int_0^{\omega} u(x,t) \left[ \kappa \omega - 2 \kappa x \right] \,dx\\
-    &\Rightarrow \left. x\kappa(\omega -x) u(x,t) \right]_0^{\omega} - \int_0^{\omega} \kappa \omega u(x,t)\,dx + \int_0^{\omega} 2\kappa x u(x,t)\,dx\\
+    %&\Rightarrow \left. x\kappa(\omega -x) u(x,t) \right]_0^{\omega} - \int_0^{\omega} \kappa \omega u(x,t)\,dx + \int_0^{\omega} 2\kappa x u(x,t)\,dx\\
     &\Rightarrow 2\kappa V(t) - \kappa \omega U(t) 
   \end{align*}
 \end{subequations}
@@ -571,30 +755,30 @@ subbing back into \ref{eq:2pt3}
 \begin{subequations}
   \begin{align*}
     &\dot{V}(t) + 2\kappa V(t) - \kappa \omega U(t) - \kappa V(t) = -(\beta+\gamma U(t)) V(t)\\
-    &\Rightarrow \dot{V}(t) + \kappa V(t) - \kappa \omega U(t) = -(\beta+\gamma U(t)) V(t)\\
+    %&\Rightarrow \dot{V}(t) + \kappa V(t) - \kappa \omega U(t) = -(\beta+\gamma U(t)) V(t)\\
     &\Rightarrow \dot{V}(t) = -(\beta+\gamma U(t)) V(t) + \kappa \omega U(t) - \kappa V(t)
   \end{align*}
 \end{subequations}
 
-\clearpage
+%\clearpage
 \emph{Part three - sub \ref{seq:2a} and \ref{seq:2b} into \ref{eq:1.1}, multiply by $x^2$ and integrate over $x$ from 0 to $\omega$.}
 
 \begin{subequations}
   \begin{align}
     \int_0^{\omega} u_t(x,t)x^2\,dx + \int_0^{\omega} [\kappa(\omega-x)u(x,t)]_x x^2 \, dx &= \int_0^{\omega} -(\beta+\gamma U(t)) u(x,t)x^2\, dx\\
-    \Rightarrow \dot{W}(t) + \int_0^{\omega} x^2\kappa(\omega-x)u_x(x,t)\,dx - \int_0^{\omega} x^2\kappa u(x,t)\,dx &= -(\beta+\gamma U(t)) W(t)\\
+    %\Rightarrow \dot{W}(t) + \int_0^{\omega} x^2\kappa(\omega-x)u_x(x,t)\,dx - \int_0^{\omega} x^2\kappa u(x,t)\,dx &= -(\beta+\gamma U(t)) W(t)\\
     \Rightarrow \dot{W}(t) + \int_0^{\omega} x^2\kappa(\omega-x)u_x(x,t)\,dx - \kappa W(t) &= -(\beta+\gamma U(t)) W(t)\label{eq:2pt3}
   \end{align}
 \end{subequations}
 Integrating the second term in \ref{eq:2pt3} by parts:
-\begin{equation*}
-  \upsilon=x^2\kappa(\omega - x),~~~d\nu=u_x(x,t)\,dx,~~~d\upsilon=2\kappa \omega x - 3\kappa x^2 \,dx,~~~\nu=u(x,t)
-\end{equation*}
+%\begin{equation*}
+%  \upsilon=x^2\kappa(\omega - x),~~~d\nu=u_x(x,t)\,dx,~~~d\upsilon=2\kappa \omega x - 3\kappa x^2 \,dx,~~~\nu=u(x,t)
+%\end{equation*}
 
 \begin{subequations}
   \begin{align*}
     &\left. x^2 \kappa(\omega - x) u(x,t) \right]_0^{\omega} - \int_0^{\omega} u(x,t) \left[ 2\kappa \omega x - 3 \kappa x^2 \right] \,dx\\
-    &\Rightarrow \left. x\kappa(\omega -x) u(x,t) \right]_0^{\omega} - \int_0^{\omega} 2\kappa \omega x u(x,t)\,dx + \int_0^{\omega} 3\kappa x^2 u(x,t)\,dx\\
+    %&\Rightarrow \left. x\kappa(\omega -x) u(x,t) \right]_0^{\omega} - \int_0^{\omega} 2\kappa \omega x u(x,t)\,dx + \int_0^{\omega} 3\kappa x^2 u(x,t)\,dx\\
     &\Rightarrow 3\kappa W(t) - 2 \kappa \omega V(t) 
   \end{align*}
 \end{subequations}
@@ -603,83 +787,63 @@ subbing back into \ref{eq:2pt3}
 \begin{subequations}
   \begin{align*}
     &\dot{W}(t) + 3\kappa W(t) - 2\kappa \omega V(t) - \kappa W(t) = -(\beta+\gamma U(t)) W(t)\\
-    &\Rightarrow \dot{W}(t) + 2\kappa W(t) - 2\kappa \omega V(t) = -(\beta+\gamma U(t)) W(t)\\
+    %&\Rightarrow \dot{W}(t) + 2\kappa W(t) - 2\kappa \omega V(t) = -(\beta+\gamma U(t)) W(t)\\
     &\Rightarrow \dot{W}(t) = -(\beta+\gamma U(t)) W(t) + 2\kappa \omega V(t) - 2\kappa W(t)
   \end{align*}
 \end{subequations}
 
-\clearpage
+%\clearpage
 \section{Initial state for sensitivity PDEs}\label{app:2}
-
 
 %%%%%%%%%%%%%% a_1
 
 We can simplify function $U(x)$ in a following way
-\begin{equation}\label{eq:U}
+Simplifying $U(x)$
+\begin{equation}\label{eq:U2}
  \begin{split}
-  U(x) &=  \frac{ \left(\alpha_1\bar{V}+\alpha_2\bar{W}\right)(\omega-x)^{(\beta+\gamma\bar{U})/\kappa -1} }{\kappa\omega^{(\beta+\gamma\bar{U})/\kappa}} \\ 
-  &=\frac{\alpha_1\bar{V}+\alpha_2\bar{W}}{\kappa(\omega-x)}\left(1-\frac{x}{\omega}\right)^{(\beta+\gamma\bar{U})/\kappa}\\  
-  &=\frac{\alpha_1 \frac{\kappa\omega (Z-\beta-\kappa)}{\gamma Z} +\alpha_2\frac{2\kappa^2\omega^2(Z-\beta-\kappa)}{\gamma Z (Z+k)}}{\kappa(\omega-x)}\left(1-\frac{x}{\omega}\right)^{(Z-\kappa)/\kappa}\\
-    &=\frac{Z-\beta-\kappa}{\gamma Z}\left(\alpha_1 + \frac{2\alpha_2 \kappa\omega}{Z+k}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}.
+  U(x) = \frac{Z-\beta-\kappa}{\gamma Z}\left(\alpha a_1 + \frac{2\alpha a_2 \kappa\omega}{Z+k}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}.
   \end{split}
 \end{equation}
 
+%\begin{equation}\label{eq:U}
+% \begin{split}
+%  U(x) &=  \frac{ \left(\alpha_1\bar{V}+\alpha_2\bar{W}\right)(\omega-x)^{(\beta+\gamma\bar{U})/\kappa -1} }{\kappa\omega^{(\beta+\gamma\bar{U})/\kappa}} \\ 
+%  &=\frac{\alpha_1\bar{V}+\alpha_2\bar{W}}{\kappa(\omega-x)}\left(1-\frac{x}{\omega}\right)^{(\beta+\gamma\bar{U})/\kappa}\\  
+%  &=\frac{\alpha_1 \frac{\kappa\omega (Z-\beta-\kappa)}{\gamma Z} +\alpha_2\frac{2\kappa^2\omega^2(Z-\beta-\kappa)}{\gamma Z (Z+k)}}{\kappa(\omega-x)}\left(1-\frac{x}{\omega}\right)^{(Z-\kappa)/\kappa}\\
+%    &=\frac{Z-\beta-\kappa}{\gamma Z}\left(\alpha_1 + \frac{2\alpha_2 \kappa\omega}{Z+k}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}.
+%  \end{split}
+%\end{equation}
+
 {\bf 1.} Now for the first parameter we have
 
-\begin{equation}\label{eq:da1}
+\begin{equation}\label{eq:da}
 \begin{split}
-  \frac{d u(x)}{d\alpha_1} =& \frac{(\beta+\kappa)Z_{\alpha_1}}{\gamma Z^2}\left(\alpha_1 + \frac{2\alpha_2 \kappa\omega}{Z+\kappa}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}+\\
-&  \frac{Z-\beta-\kappa}{\gamma Z}\left(1-\frac{2\alpha_2\kappa\omega}{(Z+\kappa)^2}Z_{\alpha_1}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}+\\ 
-& \frac{Z-\beta-\kappa}{\gamma Z}\left(\alpha_1+ \frac{2\alpha_2 \kappa\omega}{Z+\kappa}
-\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}\log\left(1-\frac{x}{\omega}\right)\frac{Z_{\alpha_1}}{\kappa}, 
+  \frac{d u(x)}{d\alpha} =& \frac{(\beta+\kappa)Z_{\alpha}}{\gamma Z^2}\left(\alpha a_1 + \frac{2\alpha a_2 \kappa\omega}{Z+\kappa}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}+\\
+&  \frac{Z-\beta-\kappa}{\gamma Z}\left(a_1+ \frac{2 a_2 \kappa\omega}{Z+\kappa}-\frac{2 \alpha a_2\kappa\omega}{(Z+\kappa)^2}Z_{\alpha}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}+\\ 
+& \frac{Z-\beta-\kappa}{\gamma Z}\left(\alpha a_1+ \frac{2\alpha a_2 \kappa\omega}{Z+\kappa}
+\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}\log\left(1-\frac{x}{\omega}\right)\frac{Z_{\alpha}}{\kappa}, 
   \end{split}
 \end{equation}
 which can be written as
 \begin{equation}\begin{split}
 \left(1-\frac{x}{\omega}\right)^{\frac{Z}{\kappa}-2}&\left[ 
-\frac{Z-\beta-\kappa}{\gamma Z}\left(1-\frac{2\alpha_2\kappa\omega}{(Z+\kappa)^2}Z_{\alpha_1}\right) + \right.\\
-&\left.+\frac{Z_{\alpha_1}}{\gamma Z}\left(\alpha_1 + \frac{2\alpha_2 \kappa\omega}{Z+\kappa}\right)
+\frac{Z-\beta-\kappa}{\gamma Z}\left(a_1+ \frac{2 a_2 \kappa\omega}{Z+\kappa}-\frac{2 \alpha a_2\kappa\omega}{(Z+\kappa)^2}Z_{\alpha}\right) + \right.\\
+&\left.+\frac{Z_{\alpha}}{\gamma Z}\left(\alpha a_1 + \frac{2\alpha a_2 \kappa\omega}{Z+\kappa}\right)
   \left(\frac{\beta+\kappa}{Z}+ \log\left(1-\frac{x}{\omega}\right)\frac{Z-\beta-\kappa}{\kappa}\right) \right], 
 \end{split}\end{equation}
 where
 \begin{equation}\begin{split}
-Z_{\alpha_1}= &\frac{\kappa^2 \omega\,(3\zeta -6(\kappa+\alpha_1 \omega)^2 + 27\kappa\omega( \alpha_1  + 2 \alpha_2 \omega))}
-{\zeta\, (9 \alpha_1 \kappa^2 \omega + 18 \alpha_2 \kappa^2 \omega^2 + \kappa \zeta)^{2/3}}\left(
+Z_{\alpha}= &\frac{\kappa^2 \omega\,(3 a_1 \zeta+6 a_2  \omega \zeta -6 a_1 (\kappa+\alpha a_1 \omega)^2 + 27\kappa\omega( a_1  + 2 a_2 \omega)(\alpha a_1 + 2 \alpha a_2 \omega))}
+{\zeta\, (9 \alpha a_1 \kappa^2 \omega + 18 \alpha a_2 \kappa^2 \omega^2 + \kappa \zeta)^{2/3}}\left(
 \frac1{2^{1/3}3^{2/3}}-\right.\\
-&\left. \frac{(2/3)^{1/3} \kappa ( \kappa + \alpha_1\omega)}{(9 \alpha_1 \kappa^2 \omega + 18 \alpha_2 \kappa^2 \omega^2 + \kappa \zeta)^{2/3}}\right)+\frac{(2/3)^{1/3}\kappa\omega}{(9 \alpha_1 \kappa^2 \omega + 18 \alpha_2 \kappa^2 \omega^2 + \kappa \zeta)^{1/3}}.
+&\left. \frac{(2/3)^{1/3} \kappa ( \kappa + \alpha a_1\omega)}{(9 \alpha a_1 \kappa^2 \omega + 18 \alpha a_2 \kappa^2 \omega^2 + \kappa \zeta)^{2/3}}\right)+\frac{(2/3)^{1/3}a_1 \kappa\omega}{(9 \alpha a_1 \kappa^2 \omega + 18 \alpha a_2 \kappa^2 \omega^2 + \kappa \zeta)^{1/3}}.
 \end{split}\end{equation}
-
-
-%%%%%%%%%%%%%%%%%%% a_2
-
-
-{\bf 2.} Similarly
-
-\begin{equation}\label{eq:da2}
-\begin{split}
-  \frac{d u(x)}{d\alpha_2} =& \frac{(\beta+\kappa)Z_{\alpha_2}}{\gamma Z^2}\left(\alpha_1 + \frac{2\alpha_2 \kappa\omega}{Z+\kappa}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}+\\
-&  \frac{Z-\beta-\kappa}{\gamma Z} \left(\frac{2\kappa\omega}{Z+\kappa}-\frac{2\alpha_2\kappa\omega}{(Z+\kappa)^2}Z_{\alpha_2}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}+\\ 
-& \frac{Z-\beta-\kappa}{\gamma Z}\left(\alpha_1+ \frac{2\alpha_2 \kappa\omega}{Z+\kappa}
-\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}\log\left(1-\frac{x}{\omega}\right)\frac{Z_{\alpha_2}}{\kappa}, 
-  \end{split}
-\end{equation}
-that is simplified
-\begin{equation}\begin{split}
-\left(1-\frac{x}{\omega}\right)^{\frac{Z}{\kappa}-2}&\left[ 
- \frac{Z-\beta-\kappa}{\gamma Z} \left(\frac{2\kappa\omega}{Z+\kappa}-\frac{2\alpha_2\kappa\omega}{(Z+\kappa)^2}Z_{\alpha_2}\right) +\right.\\
-&\left. +\frac{Z_{\alpha_2}}{\gamma Z}\left(\alpha_1 + \frac{2\alpha_2 \kappa\omega}{Z+\kappa}\right) \left(\frac{\beta+\kappa}{Z}+ \log\left(1-\frac{x}{\omega}\right)\frac{Z-\beta-\kappa}{\kappa}\right) \right], 
-\end{split}\end{equation}
-
-where
-\begin{equation}
-Z_{\alpha_2}= \frac{6 \kappa^2 \omega^2(\zeta + 9 \kappa \omega (\alpha_1 +2 \alpha_2 \omega))}{\zeta\,(9 \alpha_1 \kappa^2 \omega + 18 \alpha_2 \kappa^2 \omega^2 + \kappa \zeta)^{2/3}} \left( \frac1{2^{1/3}3^{2/3}}-\frac{  (2/3)^{1/3} \kappa( \kappa +  \alpha_1  \omega)}{(9 \alpha_1 \kappa^2 \omega + 18 \alpha_2 \kappa^2 \omega^2 + \kappa \zeta)^{2/3}} \right).
-\end{equation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% k
 
 \bigskip
 
-{\bf 3.} The next one is
+{\bf 2.} The next one is
 \begin{equation}\label{eq:dk}
 \begin{split}
   \frac{d u(x)}{d\kappa} =& \frac{(\beta+\kappa)Z_{\kappa}-Z}{\gamma Z^2}\left(\alpha_1 + \frac{2\alpha_2 \kappa\omega}{Z+\kappa}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}+\\
@@ -708,7 +872,7 @@ Z_{\kappa}=& \frac{6 \kappa\, (\alpha_1  \omega \zeta + 2 \alpha_2  \omega^2 \ze
 
 \bigskip
 
-{\bf 4.} For the parameter $\omega$ we have
+{\bf 3.} For the parameter $\omega$ we have
 \begin{equation}\label{eq:dw}
 \begin{split}
   \frac{d u(x)}{d\omega} =& \frac{(\beta+\kappa)Z_{\omega}}{\gamma Z^2}\left(\alpha_1 + \frac{2\alpha_2 \kappa\omega}{Z+\kappa}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}+\\
@@ -736,7 +900,7 @@ Z_{\omega}=& \frac{3 \kappa^2 ( \alpha_1 \zeta + 4 \alpha_2  \omega \zeta - 2 \a
 
 \bigskip
 
-{\bf 5.} Next parameter is $\beta$ which is much simpler since $Z$ isn't function of $\beta$ so derivative is just
+{\bf 4.} Next parameter is $\beta$ which is much simpler since $Z$ isn't function of $\beta$ so derivative is just
 \begin{equation}\label{eq:db}
   \frac{d u(x)}{d\beta} =-\frac{1}{\gamma Z}\left(\alpha_1 + \frac{2\alpha_2 \kappa\omega}{Z+k}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}.
 \end{equation}
@@ -745,7 +909,7 @@ Z_{\omega}=& \frac{3 \kappa^2 ( \alpha_1 \zeta + 4 \alpha_2  \omega \zeta - 2 \a
 
 \bigskip
 
-{\bf 6.} Very similar is for the $\gamma$
+{\bf 5.} Very similar is for the $\gamma$
 \begin{equation}\label{eq:dg}
   \frac{d u(x)}{d\gamma} =-\frac{Z-\beta-\kappa}{\gamma^2 Z}\left(\alpha_1 + \frac{2\alpha_2 \kappa\omega}{Z+k}\right)\left(1-\frac{x}{\omega}\right)^{Z/\kappa-2}.
 \end{equation}
