@@ -1,87 +1,56 @@
-cflags = -c -g
-objects1 = copy.o err.o matrixio.o memory.o vecop.o matop.o pxop.o \
-	submat.o init.o otherio.o machine.o matlab.o ivecop.o version.o \
-	meminfo.o memstat.o
-objects2 = lufactor.o bkpfacto.o chfactor.o qrfactor.o solve.o hsehldr.o \
-	givens.o update.o norm.o hessen.o symmeig.o schur.o svd.o fft.o \
-	mfunc.o bdfactor.o
-HBASE = meschach/err.h meschach/meminfo.h meschach/machine.h meschach/matrix.h
-HLIST = $(HBASE) meschach/iter.h meschach/matlab.h meschach/matrix2.h \
-	meschach/oldnames.h meschach/sparse.h meschach/sparse2.h \
-	meschach/zmatrix.h meschach/zmatrix2.h
+# General options
+OUTPUT_NAME := spade
+CC = cc
+LINKER_FLAGS = -lm -pthread
 
-spade: spade.o libmeschach.a
-	cc spade.o -L. -lmeschach -lm -pthread -o spade
-spade.o : spade.c
-	cc $(cflags) spade.c -std=c99
-libmeschach.a: $(objects1) $(objects2)
-	ar rc libmeschach.a $(objects1) $(objects2)
-copy.o : meschach/copy.c $(HBASE)
-	cc $(cflags) meschach/copy.c
-err.o : meschach/err.c $(HBASE)
-	cc $(cflags) meschach/err.c
-matrixio.o : meschach/matrixio.c $(HBASE)
-	cc $(cflags) meschach/matrixio.c
-memory.o : meschach/memory.c $(HBASE)
-	cc $(cflags) meschach/memory.c
-vecop.o : meschach/vecop.c $(HBASE)
-	cc $(cflags) meschach/vecop.c
-matop.o : meschach/matop.c $(HBASE)
-	cc $(cflags) meschach/matop.c
-pxop.o : meschach/pxop.c $(HBASE)
-	cc $(cflags) meschach/pxop.c
-submat.o : meschach/submat.c $(HBASE)
-	cc $(cflags) meschach/submat.c
-init.o : meschach/init.c $(HBASE)
-	cc $(cflags) meschach/init.c
-otherio.o : meschach/otherio.c $(HBASE)
-	cc $(cflags) meschach/otherio.c
-machine.o : meschach/machine.c $(HBASE)
-	cc $(cflags) meschach/machine.c
-matlab.o : meschach/matlab.c $(HBASE)
-	cc $(cflags) meschach/matlab.c
-ivecop.o : meschach/ivecop.c $(HBASE)
-	cc $(cflags) meschach/ivecop.c
-version.o : meschach/version.c $(HBASE)
-	cc $(cflags) meschach/version.c
-meminfo.o : meschach/meminfo.c $(HBASE)
-	cc $(cflags) meschach/meminfo.c
-memstat.o : meschach/memstat.c $(HBASE)
-	cc $(cflags) meschach/memstat.c
-lufactor.o : meschach/lufactor.c $(HLIST)
-	cc $(cflags) meschach/lufactor.c
-bkpfacto.o : meschach/bkpfacto.c $(HLIST)
-	cc $(cflags) meschach/bkpfacto.c
-chfactor.o : meschach/chfactor.c $(HLIST)
-	cc $(cflags) meschach/chfactor.c
-qrfactor.o : meschach/qrfactor.c $(HLIST)
-	cc $(cflags) meschach/qrfactor.c
-solve.o : meschach/solve.c $(HLIST)
-	cc $(cflags) meschach/solve.c
-hsehldr.o : meschach/hsehldr.c $(HLIST)
-	cc $(cflags) meschach/hsehldr.c
-givens.o : meschach/givens.c $(HLIST)
-	cc $(cflags) meschach/givens.c
-update.o : meschach/update.c $(HLIST)
-	cc $(cflags) meschach/update.c
-norm.o : meschach/norm.c $(HLIST)
-	cc $(cflags) meschach/norm.c
-hessen.o : meschach/hessen.c $(HLIST)
-	cc $(cflags) meschach/hessen.c
-symmeig.o : meschach/symmeig.c $(HLIST)
-	cc $(cflags) meschach/symmeig.c
-schur.o : meschach/schur.c $(HLIST)
-	cc $(cflags) meschach/schur.c
-svd.o : meschach/svd.c $(HLIST)
-	cc $(cflags) meschach/svd.c
-fft.o : meschach/fft.c $(HLIST)
-	cc $(cflags) meschach/fft.c
-mfunc.o : meschach/mfunc.c $(HLIST)
-	cc $(cflags) meschach/mfunc.c
-bdfactor.o : meschach/bdfactor.c $(HLIST)
-	cc $(cflags) meschach/bdfactor.c
+# Spade options
+SPADE_CFLAGS = -g -lm -pthread -std=c99
+SPADE_SOURCE_DIRS = initial mathprop optim socbio util VMGMM
+SPADE_SOURCES = \
+	spade.c \
+	common.c \
+	$(wildcard $(SPADE_SOURCE_DIRS:=/*.c)) \
+	$(wildcard $(SPADE_SOURCE_DIRS:=/**/*.c)) \
+	$(wildcard $(SPADE_SOURCE_DIRS:=/**/**/*.c))
+SPADE_OBJECTS := $(patsubst %.c,%_SPADE.o,$(SPADE_SOURCES))
 
-.PHONY : clean
+# Meschach options
+MESCHACH_CFLAGS = -g
+MESCHACH_SOURCES := \
+	copy.c err.c matrixio.c memory.c vecop.c matop.c pxop.c submat.c \
+	init.c otherio.c machine.c matlab.c ivecop.c version.c meminfo.c \
+	memstat.c lufactor.c bkpfacto.c chfactor.c qrfactor.c solve.c \
+	hsehldr.c givens.c update.c norm.c hessen.c symmeig.c schur.c \
+	svd.c fft.c mfunc.c bdfactor.c
+MESCHACH_SOURCES := $(addprefix meschach/, $(MESCHACH_SOURCES))
+MESCHACH_OBJECTS := $(patsubst %.c,%_MESCHACH.o,$(MESCHACH_SOURCES)) 
 
+# Computed options
+OBJECTS := $(SPADE_OBJECTS) $(MESCHACH_OBJECTS)
+
+# Default task
+all: build
+
+# Generate executable
+build: $(OBJECTS)
+	$(CC) $(OBJECTS) $(LINKER_FLAGS) -o $(OUTPUT_NAME)
+	@echo "Build successful"
+
+# Generate object files
+$(SPADE_OBJECTS): %_SPADE.o: %.c
+	$(CC) -c $(SPADE_CFLAGS) $< -o $@
+
+$(MESCHACH_OBJECTS): %_MESCHACH.o: %.c
+	$(CC) -c $(MESCHACH_CFLAGS) $< -o $@
+
+# Regenerate executable
+rebuild: clean build
+
+# Run a sample project
+test: rebuild
+	./spade -fn karumba .09 .09 1.3 .07
+
+# Remove build artifacts
 clean:
-	rm -f $(objects1) $(objects2)
+	rm -f $(OUTPUT_NAME) $(OBJECTS)
+
