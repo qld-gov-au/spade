@@ -1,7 +1,7 @@
 ﻿#include <math.h>
 #include "../../../meschach/matrix.h"
 #include "../../../common.h"
-#include "../../../socbio/fixed/s.h"
+#include "../../../socbio/fixed/selectivity.h"
 #include "../../objfns/objfns.h"
 #include "../zstar.h"
 #include "../../../socbio/variable/effort.h"

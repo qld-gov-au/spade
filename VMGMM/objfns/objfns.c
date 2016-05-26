@@ -1,8 +1,8 @@
 ﻿#include <math.h>
 #include "../../meschach/matrix.h"
 #include "../../common.h"
-#include "../../socbio/fixed/s.h"
-#include "../../socbio/fixed/w.h"
+#include "../../socbio/fixed/selectivity.h"
+#include "../../socbio/fixed/weight.h"
 #include "../../socbio/variable/effort.h"
 #include "../../socbio/variable/catch.h"
 #include "../solvers/Q.h"

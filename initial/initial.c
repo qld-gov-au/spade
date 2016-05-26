@@ -1,6 +1,6 @@
 ﻿#include <math.h>
 #include "../meschach/matrix.h"
-#include "../socbio/fixed/s.h"
+#include "../socbio/fixed/selectivity.h"
 #include "../common.h"
 #include "../VMGMM/solvers/Qn.h"
 #include "../VMGMM/solvers/Q.h"

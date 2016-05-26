@@ -1,5 +1,5 @@
 ﻿#include "../../meschach/matrix.h"
-#include "../../socbio/fixed/s.h"
+#include "../../socbio/fixed/selectivity.h"
 #include "../../socbio/variable/effort.h"
 
 double zstar(
