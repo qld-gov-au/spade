@@ -5,7 +5,7 @@ LINKER_FLAGS = -lm -pthread
 
 # Spade options
 SPADE_CFLAGS = -g -lm -pthread -std=c99
-SPADE_SOURCE_DIRS = initial mathprop optim socbio util VMGMM
+SPADE_SOURCE_DIRS = initial mathprop optim socbio util VMGMM plotting
 SPADE_SOURCES = \
 	spade.c \
 	common.c \
@@ -48,7 +48,7 @@ rebuild: clean build
 
 # Run a sample project
 test: rebuild
-	./spade -fn karumba .09 .09 1.3 .07
+	./spade -fn karumba .5 .5 .5 .5 .1
 
 # Remove build artifacts
 clean:

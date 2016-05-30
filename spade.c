@@ -47,6 +47,8 @@ int main(int argc, char *argv[])
 
   float beta,gamma,alpha,iota;
 
+  int minfish = 250;
+
   J = 400;
   double k = 0.025;
 
@@ -152,7 +154,7 @@ int main(int argc, char *argv[])
 
 	  data.n = 0;
 	  for (int i=0;i<cnt->dim;i++)	   
-	    if (cnt->ve[i] > 100)
+	    if (cnt->ve[i] > minfish)
 	      data.n += 1;
 
           data.lf = (double **) calloc(data.n,sizeof(double *));
@@ -162,7 +164,7 @@ int main(int argc, char *argv[])
 	  int kk=0;
 	  for (int i=0;i<cnt->dim;i++)
 	    {
-	      if (cnt->ve[i] > 100)
+	      if (cnt->ve[i] > minfish)
 		{
 
 		  data.t_id[kk] = i;
@@ -193,9 +195,9 @@ int main(int argc, char *argv[])
 	  sscanf(argv[i+3],"%f",&beta);
 	  sscanf(argv[i+4],"%f",&gamma);
 	  sscanf(argv[i+5],"%f",&iota);
-	  //sscanf(argv[i+5],"%f",&kappa);
+	  sscanf(argv[i+6],"%f",&kappa);
 	  //sscanf(argv[i+6],"%f",&omega);
-	  kappa = .1;
+	  //	  kappa = .1;
 	  omega = 160;
 
 	  i += 7;
@@ -249,14 +251,16 @@ int main(int argc, char *argv[])
   theta->ve[1] = beta;
   theta->ve[2] = gamma;
   theta->ve[3] = iota;
+  //theta->ve[4] = kappa;
 
-  bfgs(VMGMM,theta,&data);
+  char lab1[10]="before";
+  plot(theta,&data,lab1);
 
-  //char lab1[10]="before";
-  //output_plots(theta,VMGMM,&data,lab);
+  theta = bfgs(VMGMM,theta,&data);
 
-  //char lab2[10]="after";
-  //output_plots(theta,VMGMM,&data,lab2);
+  char lab2[10]="after";
+
+  plot(theta,&data,lab2);
 
   V_FREE(theta);
   V_FREE(data.cat);

@@ -37,36 +37,6 @@ VEC *VMGMM(
 
   solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
 
-  //  VEC *ctt = v_get(x->n);
-  //  VEC *xt = v_get(x->n);
-
-  /*
-  FILE *p1 = fopen("plot1.txt","w");
-
-  for (int i=0;i<x->m;i++)
-    {
-
-      xt = get_row(x,i,xt);
-      for (int j=0;j<x->n;j++)
-	ctt->ve[j] = s(x->me[i][j])*theta->ve[6]*e(dataptr->eff,dataptr->k,dataptr->k*(i-dataptr->S))*w(x->me[i][j])*u->me[i][j];
-      fprintf(p1,"%f %f\n",dataptr->k*(i-dataptr->S),Q(xt,ctt)/1e3);
-
-    }
-
-  fclose(p1);
-
-  FILE *p2 = fopen("plot2.txt","w");
-
-  for (int i=0;i<x->m;i++) 
-    fprintf(p2,"%f %f\n",dataptr->k*(i-dataptr->S),c(dataptr->cat,dataptr->k,dataptr->k*(i-dataptr->S)));
-
-  fclose(p2);
-
-  system("./plo > plotc.pdf");
-
-  exit(1);
-  */
-
   *f = H(x,u,dataptr,theta->ve[3]);
 
   //printf("%g ",*f);
