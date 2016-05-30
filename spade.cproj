@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{70C088B0-6D4B-4A4B-BD7F-2F6E3304D112}</ProjectGuid>
+    <Compiler>
+      <Compiler ctype="GccCompiler" />
+    </Compiler>
+    <Language>C</Language>
+    <Target>Bin</Target>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug</OutputPath>
+    <Externalconsole>true</Externalconsole>
+    <OutputName>spade</OutputName>
+    <CompileTarget>Bin</CompileTarget>
+    <DefineSymbols>DEBUG MONODEVELOP</DefineSymbols>
+    <SourceDirectory>.</SourceDirectory>
+    <ExtraLinkerArguments>-lm
+-pthread</ExtraLinkerArguments>
+    <Commandlineparameters>-fn karumba .5 .5 .5 .5 .1</Commandlineparameters>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release</OutputPath>
+    <Externalconsole>true</Externalconsole>
+    <OutputName>spade</OutputName>
+    <CompileTarget>Bin</CompileTarget>
+    <OptimizationLevel>3</OptimizationLevel>
+    <DefineSymbols>MONODEVELOP</DefineSymbols>
+    <SourceDirectory>.</SourceDirectory>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="spade.c" />
+    <Compile Include="meschach\bdfactor.c" />
+    <Compile Include="meschach\bkpfacto.c" />
+    <Compile Include="meschach\chfactor.c" />
+    <Compile Include="meschach\copy.c" />
+    <Compile Include="meschach\err.c" />
+    <Compile Include="meschach\fft.c" />
+    <Compile Include="meschach\givens.c" />
+    <Compile Include="meschach\hessen.c" />
+    <Compile Include="meschach\hsehldr.c" />
+    <Compile Include="meschach\init.c" />
+    <Compile Include="meschach\ivecop.c" />
+    <Compile Include="meschach\lufactor.c" />
+    <Compile Include="meschach\machine.c" />
+    <Compile Include="meschach\matlab.c" />
+    <Compile Include="meschach\matop.c" />
+    <Compile Include="meschach\matrixio.c" />
+    <Compile Include="meschach\meminfo.c" />
+    <Compile Include="meschach\memory.c" />
+    <Compile Include="meschach\memstat.c" />
+    <Compile Include="meschach\mfunc.c" />
+    <Compile Include="meschach\norm.c" />
+    <Compile Include="meschach\otherio.c" />
+    <Compile Include="meschach\pxop.c" />
+    <Compile Include="meschach\qrfactor.c" />
+    <Compile Include="meschach\schur.c" />
+    <Compile Include="meschach\solve.c" />
+    <Compile Include="meschach\submat.c" />
+    <Compile Include="meschach\svd.c" />
+    <Compile Include="meschach\symmeig.c" />
+    <Compile Include="meschach\update.c" />
+    <Compile Include="meschach\vecop.c" />
+    <Compile Include="meschach\version.c" />
+    <Compile Include="common.c" />
+    <Compile Include="VMGMM\VMGMM.c" />
+    <Compile Include="optim\optim.c" />
+    <Compile Include="util\util.c" />
+    <Compile Include="VMGMM\solvers\alpha\ini_alpha.c" />
+    <Compile Include="VMGMM\solvers\beta\ini_beta.c" />
+    <Compile Include="VMGMM\solvers\gamma\ini_gamma.c" />
+    <Compile Include="VMGMM\solvers\kappa\ini_kappa.c" />
+    <Compile Include="VMGMM\solvers\omega\ini_omega.c" />
+    <Compile Include="VMGMM\solvers\spade_solve.c" />
+    <Compile Include="socbio\variable\growth.c" />
+    <Compile Include="socbio\variable\birth.c" />
+    <Compile Include="VMGMM\objfns\objfns.c" />
+    <Compile Include="VMGMM\solvers\alpha\solve_p_alpha.c" />
+    <Compile Include="VMGMM\solvers\beta\solve_p_beta.c" />
+    <Compile Include="VMGMM\solvers\gamma\solve_p_gamma.c" />
+    <Compile Include="VMGMM\solvers\iota\solve_p_iota.c" />
+    <Compile Include="VMGMM\solvers\kappa\solve_p_kappa.c" />
+    <Compile Include="VMGMM\solvers\omega\solve_p_omega.c" />
+    <Compile Include="socbio\variable\catch.c" />
+    <Compile Include="VMGMM\solvers\Q.c" />
+    <Compile Include="VMGMM\solvers\Qn.c" />
+    <Compile Include="VMGMM\solvers\reproduce.c" />
+    <Compile Include="VMGMM\solvers\alpha\reproduce_alpha.c" />
+    <Compile Include="VMGMM\solvers\kappa\reproduce_kappa.c" />
+    <Compile Include="VMGMM\solvers\omega\reproduce_omega.c" />
+    <Compile Include="VMGMM\solvers\zstar.c" />
+    <Compile Include="socbio\variable\effort.c" />
+    <Compile Include="mathprop\mathprop.c" />
+    <Compile Include="initial\initial.c" />
+    <Compile Include="socbio\fixed\selectivity.c" />
+    <Compile Include="socbio\fixed\weight.c" />
+    <Compile Include="plotting\plot.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="meschach\err.h" />
+    <None Include="meschach\iter.h" />
+    <None Include="meschach\machine.h" />
+    <None Include="meschach\matlab.h" />
+    <None Include="meschach\matrix.h" />
+    <None Include="meschach\matrix2.h" />
+    <None Include="meschach\meminfo.h" />
+    <None Include="meschach\oldnames.h" />
+    <None Include="meschach\sparse.h" />
+    <None Include="meschach\sparse2.h" />
+    <None Include="meschach\zmatrix.h" />
+    <None Include="meschach\zmatrix2.h" />
+    <None Include="common.h" />
+    <None Include="spade.h" />
+    <None Include="VMGMM\VMGMM.h" />
+    <None Include="optim\optim.h" />
+    <None Include="util\util.h" />
+    <None Include="VMGMM\solvers\alpha\ini_alpha.h" />
+    <None Include="VMGMM\solvers\beta\ini_beta.h" />
+    <None Include="VMGMM\solvers\gamma\ini_gamma.h" />
+    <None Include="VMGMM\solvers\kappa\ini_kappa.h" />
+    <None Include="VMGMM\solvers\omega\ini_omega.h" />
+    <None Include="VMGMM\solvers\spade_solve.h" />
+    <None Include="socbio\variable\growth.h" />
+    <None Include="socbio\variable\birth.h" />
+    <None Include="VMGMM\objfns\objfns.h" />
+    <None Include="VMGMM\solvers\alpha\solve_p_alpha.h" />
+    <None Include="VMGMM\solvers\beta\solve_p_beta.h" />
+    <None Include="VMGMM\solvers\gamma\solve_p_gamma.h" />
+    <None Include="VMGMM\solvers\iota\solve_p_iota.h" />
+    <None Include="VMGMM\solvers\kappa\solve_p_kappa.h" />
+    <None Include="VMGMM\solvers\omega\solve_p_omega.h" />
+    <None Include="socbio\variable\catch.h" />
+    <None Include="VMGMM\solvers\Q.h" />
+    <None Include="VMGMM\solvers\Qn.h" />
+    <None Include="VMGMM\solvers\reproduce.h" />
+    <None Include="VMGMM\solvers\alpha\reproduce_alpha.h" />
+    <None Include="VMGMM\solvers\kappa\reproduce_kappa.h" />
+    <None Include="VMGMM\solvers\omega\reproduce_omega.h" />
+    <None Include="VMGMM\solvers\zstar.h" />
+    <None Include="socbio\variable\effort.h" />
+    <None Include="mathprop\mathprop.h" />
+    <None Include="initial\initial.h" />
+    <None Include="socbio\fixed\selectivity.h" />
+    <None Include="socbio\fixed\weight.h" />
+    <None Include="plotting\plot.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="socbio\" />
+    <Folder Include="socbio\fixed\" />
+    <Folder Include="VMGMM\" />
+    <Folder Include="optim\" />
+    <Folder Include="util\" />
+    <Folder Include="VMGMM\solvers\" />
+    <Folder Include="VMGMM\solvers\alpha\" />
+    <Folder Include="VMGMM\solvers\beta\" />
+    <Folder Include="VMGMM\solvers\gamma\" />
+    <Folder Include="VMGMM\solvers\kappa\" />
+    <Folder Include="VMGMM\solvers\omega\" />
+    <Folder Include="VMGMM\solvers\iota\" />
+    <Folder Include="socbio\variable\" />
+    <Folder Include="VMGMM\objfns\" />
+    <Folder Include="mathprop\" />
+    <Folder Include="initial\" />
+  </ItemGroup>
+</Project>
