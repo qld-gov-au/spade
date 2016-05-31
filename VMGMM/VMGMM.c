@@ -77,7 +77,6 @@ VEC *VMGMM(
   solve_p_beta_args.xh = xh;
   solve_p_beta_args.xn = xn;
   solve_p_beta_args.uh = uh;
-  //solve_p_beta_args.un = un;
   solve_p_beta_args.Ui = Ui;
   solve_p_beta_args.Uh = Uh;
   solve_p_beta_args.Uhh = Uhh;
@@ -99,7 +98,6 @@ VEC *VMGMM(
   solve_p_gamma_args.xh = xh;
   solve_p_gamma_args.xn = xn;
   solve_p_gamma_args.uh = uh;
-  //solve_p_gamma_args.un = un;
   solve_p_gamma_args.Ui = Ui;
   solve_p_gamma_args.Uh = Uh;
   solve_p_gamma_args.Uhh = Uhh;
@@ -108,11 +106,31 @@ VEC *VMGMM(
   solve_p_gamma_args.k = dataptr->k;
   solve_p_gamma_args.S = dataptr->S;
  
-  /*
+  
+  // p kappa
   MAT *p_k = m_get(x->m,x->n);
-  solve_p_kappa (theta,p_k ,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  grad->ve[4] = G_ni(p_k,x,u,dataptr,theta->ve[6]);
+  Solve_Args solve_p_kappa_args;
+  solve_p_kappa_args.theta = theta;
+  solve_p_kappa_args.dataptr = dataptr;
+  solve_p_kappa_args.grad = grad;
+  solve_p_kappa_args.p = p_k;
+  solve_p_kappa_args.x = x;
+  solve_p_kappa_args.u = u;
+  solve_p_kappa_args.xhh = xhh;
+  solve_p_kappa_args.xh = xh;
+  solve_p_kappa_args.xn = xn;
+  solve_p_kappa_args.uh = uh;
+  solve_p_kappa_args.un = un;
+  solve_p_kappa_args.Ui = Ui;
+  solve_p_kappa_args.Uh = Uh;
+  solve_p_kappa_args.Uhh = Uhh;
+  solve_p_kappa_args.idxi = idxi;
+  solve_p_kappa_args.eff = dataptr->eff;
+  solve_p_kappa_args.k = dataptr->k;
+  solve_p_kappa_args.S = dataptr->S;
 
+
+  /*
   MAT *p_w = m_get(x->m,x->n);
   solve_p_omega (theta,p_w ,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
   grad->ve[5] = G_ni(p_w,x,u,dataptr,theta->ve[6]);
@@ -124,8 +142,6 @@ VEC *VMGMM(
   solve_p_iota_args.theta = theta;
   solve_p_iota_args.dataptr = dataptr;
   solve_p_iota_args.grad = grad;
-  solve_p_iota_args.grad = grad;
-  solve_p_iota_args.dataptr = dataptr;
   solve_p_iota_args.p = p_i;
   solve_p_iota_args.x = x;
   solve_p_iota_args.u = u;
@@ -141,6 +157,21 @@ VEC *VMGMM(
   solve_p_iota_args.eff = dataptr->eff;
   solve_p_iota_args.k = dataptr->k;
   solve_p_iota_args.S = dataptr->S;
+
+  /*  double kappa_save = theta->ve[4];
+  double ng;
+
+  for (int j=-4;j>-15;j--)
+    {
+
+      double delta = exp((double)j);
+      theta->ve[4] = kappa_save + delta;
+
+      solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
+      ng = (H(x,u,dataptr,theta->ve[3])-*f)/delta;
+      printf("%g %g\n",delta,ng);
+    }
+  */
 
   if (PTH)
     {
@@ -169,12 +200,19 @@ VEC *VMGMM(
 	exit(0);
       }
 
+      pthread_t solve_p_kappa_thread;
+      if (pthread_create(&solve_p_kappa_thread, NULL, (void *)solve_p_kappa, (void*)&solve_p_kappa_args)) { 
+	fprintf(stderr, "Error creating thread - solve_p_kappa_thread");
+	exit(0);
+      }
+
       // await all threads
 
       pthread_join(solve_p_alpha_thread, NULL);
       pthread_join(solve_p_beta_thread, NULL);
       pthread_join(solve_p_gamma_thread, NULL);
       pthread_join(solve_p_iota_thread, NULL);
+      pthread_join(solve_p_kappa_thread, NULL);
 
     }
   else
@@ -183,7 +221,12 @@ VEC *VMGMM(
       solve_p_beta((void*)&solve_p_beta_args);
       solve_p_gamma((void*)&solve_p_gamma_args);
       solve_p_iota((void*)&solve_p_iota_args);
+      solve_p_kappa((void*)&solve_p_kappa_args);
     }  
+
+
+  //printf("%g %g",grad->ve[4],ng);
+  //exit(1);
 
   // p alpha debugging
   //  printf("%g ", grad->ve[0]);
@@ -202,8 +245,7 @@ VEC *VMGMM(
   M_FREE(p_a);
   M_FREE(p_b);
   M_FREE(p_g);
-  //M_FREE(p_k);
-  //M_FREE(p_w);
+  M_FREE(p_k);
   M_FREE(p_i);
   M_FREE(x);
   M_FREE(u);
@@ -216,8 +258,6 @@ VEC *VMGMM(
   V_FREE(Uh);
   V_FREE(Uhh);
   IV_FREE(idxi);
-  //V_FREE(ctt);
-  //V_FREE(xt);
 
   return grad;
 

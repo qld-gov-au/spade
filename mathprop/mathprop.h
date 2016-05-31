@@ -12,4 +12,6 @@ VEC *numgrad(
 
 	     );
 
+double ConditionNumber(VEC *,struct DATA *);
+
  #endif

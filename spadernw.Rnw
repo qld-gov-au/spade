@@ -50,7 +50,7 @@
 \maketitle
 
 \begin{abstract}
-In 1926 Anderson McKendrick introduced an equation that describes the death process, in continuous-time, of an age-structured population.  Morton Gurtin and Richard MacCamy (1974) and then Lea Murphy (1983) made key extensions such that, with the addition of a time-dependent mortality term, this formalism encapsulates the core of modern stock assessment.  We introduce numerical and analytical techniques that enable efficient and robust parameter estimation for fishery models built using this formalism and demonstrate these using an Australian barramundi (\emph{Lates calcarifer}) fishery.  We highlight the additional insight the continuous paradigm provides on questions of scale and parameter identifiability, and discuss the characterisation of uncertainty.
+In 1926 Anderson McKendrick introduced a differential equation that described a mortality process for an age-structured population.  Morton Gurtin and Richard MacCamy (1974), and then Lea Murphy (1983), made key extensions such that, with the addition of a time-dependent mortality term, the equation encapsulates much of the core of modern stock assessment.  We introduce numerical and analytical techniques that enable efficient and robust parameter estimation for fishery models built using this class of equations and demonstrate these using an Australian barramundi (\emph{Lates calcarifer}) fishery.  We highlight the additional insight the differential formalism provides on questions of scale and parameter identifiability, and discuss the characterisation of uncertainty.
 \end{abstract}
 
 %We discuss some of the differences between traditional matrix-based fishery models and the pde formalism.  And focus on the scale thing.
@@ -70,9 +70,6 @@ In 1926 Anderson McKendrick introduced an equation that describes the death proc
 %\end{abstract}
 
 \section{Introduction}
-
-%what would a fishery model look like in this formalism?
-
 Providing there is sufficient information available to calibrate them, population models that explicitly represent the size\footnote{Here we are using `size' as a shorthand for any physiologically important dimension, for example age, length, weight, body mass etc.  A general term for these models is physiologically structured population models \citep{Metz2014}.} of the individual are significantly more realistic than those that lump this dimension into one or a few state variables.  This enhanced realism is particularly important for populations which experience a forcing, or can be controlled through a behaviour, that acts along the dimension - for example a time-dependent mortality process that varies as a function of size, or a size-based management control.   
 
 Here we present a size structured population model wherein the population is subject to an external (time-dependent) mortality effect, namely fishing, and for which parameters are estimated by minimising the discrepancy between predictions of the model and data.  This is also the goal of the applied science of `stock assessment' \citep{Hilborn1992}, where the estimated parameters are used to guide the management of a fishery.  The methods we present here, however, differ somewhat from those used in stock assessment, and bear more resemblance to the mathematical ecology literature.  In particular, we represent the physiological dimension mathematically as a continuum, rather than as a discrete set of states as is done almost exclusively in stock assessment.\footnote{The only exception we are aware of is \cite{Dueri2012a,Dueri2012b}, about which more later.}  The decision to represent both time and size as a continuum means that we are dealing with partial differential equations, and brings with it some challenges as well as some advantages.  The aim of this paper is to show one of way of tackling the challenges - in particular we introduce a numerical and analytic techniques for efficient parameter estimation - and to highlight some of the advantages.  While some things are ostensibly harder in this paradigm, such as the need to solve differential equations using numerical techniques, some things are possible that are not in the discrete paradigm, and some things actually become easier.  Perhaps the main advantage though is conceptual clarity. 
@@ -94,11 +91,11 @@ N(t) = \frac{ \zeta}{1 + \left( \frac{\zeta}{N(0)}-1\right)e^{-\alpha_0 t}}
 \end{equation}
 describing the evolution of a population towards the stable equilibrium point $\zeta=\alpha_0/\beta_0$.
 
-A limitation of the Verhulstian model is that it does not consider the age of the population.  The first explicit reference to age in a differential equation was made by \citet{McKendrick1926}\footnote{\citet{Lotka1925} clearly understood the concept and many of the consequences but did not write down the equation from which they flow. In ecology it is often referred to as the \citet{vonFoerster1959} equation.}, 
+A limitation of the Verhulstian model is that it does not consider the age of the population.  The first explicit reference to age in a differential equation was made by \citet{McKendrick1926}\footnote{\citet{Lotka1925} clearly understood the concept and many of the consequences but did not write down the equation from which they flow. In ecology it is often referred to as the \citet{vonFoerster1959} equation after he developed the ideas apparently without being aware of \citet{McKendrick1926}.}, 
 \begin{equation}
 \frac{\partial n(a,t)}{\partial t} + \frac{\partial n(a,t)}{\partial a} = -\mu(a,t) n(a,t)
 \end{equation}
-where $n(a,t)$ is the number of individuals of age $a$ at time $t$, and $\mu$ is rate at which they die per unit of population. 
+where $n(a,t)$ is the density of individuals of age $a$ at time $t$, and $\mu$ is rate at which they die per unit of population. 
 
 This equation requires a boundary condition on $n(a,t)$ in both $t$ and $a$. The initial condition,
 \begin{equation}
@@ -116,7 +113,7 @@ However the McKendrick model has the same problem as Malthus - the death process
 \end{equation}
 
 \section{Fishery models}
-Once we introduce a time-dependent mortality function we are in business:
+Once we introduce a time-dependent mortality function we have all the ingredients for a simple size-structured fishery model:
 \begin{subequations}
 \label{eq:1}
 \begin{align}
@@ -126,14 +123,15 @@ g(0)u(0,t) &=  \int_0^{\omega} b(x) u(x,t)\,dx\label{eq:1.2}\\
 U(t) &= \int_0^{\omega} u(x,t)\, dx
 \end{align}
 \end{subequations}
-where $x$ is the size of the individual, $\omega$ is the maximum size, and $b$, $g$ and $z$ represent the processes of birth, growth and death respectively. The birth and growth processes are parameterised as      
+where $x$ is the size of the individual, $\omega$ is the maximum size, and $b$, $g$ and $z$ represent the processes of birth, growth and death respectively. The birth and growth processes can be parameterised to taste, however in the sequel we will emphasise the importance of analytically tractable parameterisations.  A choice which will turn out to be both analytically tractable and yet not overly restrictive is
 \begin{subequations}
   \begin{align}
     g(x) &= \kappa (\omega - x)\label{seq:2b}\\
     b(x) &= \left(\alpha_1 x + \alpha_2 x^2\right)\label{seq:2c},%\exp\left(\psi \cos(t-\phi)\right)/ 2\pi I_0(\psi)
   \end{align}
 \end{subequations}
-while the mortality process is given by 
+so that growth is von Bertalannfy and birth is ...
+The mortality process is given by 
 \begin{equation}
   z(x,U(t),t) = \beta + \gamma U(t) + s(x)f(t)\label{seq:2a},
 \end{equation}
@@ -365,6 +363,26 @@ If we assume the population has been roughly at equilibrium for a period of time
 where $l(x)$ is the average observed size-structure for the time period. 
 
 For optimisation we use the BFGS \citep{Broyden1970,Fletcher1970,Goldfarb1970,Shanno1970conditioning,Shanno1970optimal} method, with line search due to \citet{more1994line}.
+
+The guiding philosophy is
+
+This has a number of benefits, including
+
+- a small number of parameters to optimise, and therefore the applicability of Quasi-Newton methods, which can be memory intensive. 
+
+\section{Identifiability}
+
+
+
+\begin{equation}
+  \Gamma 
+  \begin{cases}
+    u_t + [g(x)u(x)]_x = \mu(x,U,t) u & \\
+    g(0)u(0) = \int_x b(x)u(x)\,dx &
+  \end{cases}
+\end{equation}
+    
+
 
 \section{Scale, granularity, relationship with optimisation and computational complexity}
 

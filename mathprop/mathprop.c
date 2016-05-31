@@ -1,4 +1,16 @@
 ﻿#include "../meschach/matrix.h"
+#include "../meschach/matrix2.h"
+#include "../common.h"
+#include "../VMGMM/solvers/spade_solve.h"
+#include "../VMGMM/solvers/alpha/solve_p_alpha.h"
+#include "../VMGMM/solvers/beta/solve_p_beta.h"
+#include "../VMGMM/solvers/gamma/solve_p_gamma.h"
+#include "../VMGMM/solvers/iota/solve_p_iota.h"
+#include "../VMGMM/solvers/kappa/solve_p_kappa.h"
+#include "../VMGMM/solvers/omega/solve_p_omega.h"
+#include "../VMGMM/objfns/objfns.h"
+
+
 
 VEC *numgrad(
 
@@ -29,7 +41,6 @@ VEC *numgrad(
 
 }
 
-/*
 double ConditionNumber(
 
 		       VEC * theta,
@@ -37,6 +48,10 @@ double ConditionNumber(
 
 		       )
 {
+
+  int n = theta->dim;
+
+  VEC * grad = v_get(n);
 
   int I = dataptr->I+1;
   int J = dataptr->J+1;
@@ -53,7 +68,7 @@ double ConditionNumber(
   IVEC *idxi = iv_get(I-1);
 
   solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,dataptr->eff,dataptr->k,dataptr->S);
-  *f = H(x,u,dataptr,theta->ve[3]);
+  double f = H(x,u,dataptr,theta->ve[3]);
 
   // p alpha
   MAT *p_a = m_get(x->m,x->n);
@@ -139,61 +154,99 @@ double ConditionNumber(
   solve_p_iota_args.k = dataptr->k;
   solve_p_iota_args.S = dataptr->S;
 
-  VEC *theta_save = v_get(theta->dim);
+  // p kappa
+  MAT *p_k = m_get(x->m,x->n);
+  Solve_Args solve_p_kappa_args;
+  solve_p_kappa_args.theta = theta;
+  solve_p_kappa_args.dataptr = dataptr;
+  solve_p_kappa_args.grad = grad;
+  solve_p_kappa_args.p = p_k;
+  solve_p_kappa_args.x = x;
+  solve_p_kappa_args.u = u;
+  solve_p_kappa_args.xhh = xhh;
+  solve_p_kappa_args.xh = xh;
+  solve_p_kappa_args.xn = xn;
+  solve_p_kappa_args.uh = uh;
+  solve_p_kappa_args.un = un;
+  solve_p_kappa_args.Ui = Ui;
+  solve_p_kappa_args.Uh = Uh;
+  solve_p_kappa_args.Uhh = Uhh;
+  solve_p_kappa_args.idxi = idxi;
+  solve_p_kappa_args.eff = dataptr->eff;
+  solve_p_kappa_args.k = dataptr->k;
+  solve_p_kappa_args.S = dataptr->S;
+
+  VEC *theta_save = v_get(n);
+  
   theta_save->ve[0]=theta->ve[0];
   theta_save->ve[1]=theta->ve[1];
   theta_save->ve[2]=theta->ve[2];
   theta_save->ve[3]=theta->ve[3];
+  theta_save->ve[4]=theta->ve[4];
 
-  MAT *H = m_get(4,4);
+  MAT *hessin = m_get(n,n);
 
   double epsilon = 1e-7;
 
-  for (int j=1;j<=theta->dim;j++)
+  VEC *delta = v_get(n);
+  
+  MAT *gp = m_get(n,n);
+  MAT *gn = m_get(n,n);
+  
+  for (int i=0;i<n;i++)
     {
 
-      VEC *delta = v_get(theta->dim);
-      delta->ve[j] = epsilon;
-
+      VEC *delta = v_get(n);
+      
+      delta->ve[i] = epsilon;
       v_add(theta_save,delta,theta);
 
       solve_p_alpha_args.theta = theta;
       solve_p_beta_args.theta = theta;
       solve_p_gamma_args.theta = theta;
       solve_p_iota_args.theta = theta;
+      solve_p_kappa_args.theta = theta;
 
       solve_p_alpha((void*)&solve_p_alpha_args);
       solve_p_beta((void*)&solve_p_beta_args);
       solve_p_gamma((void*)&solve_p_gamma_args);
       solve_p_iota((void*)&solve_p_iota_args);
-
-      VEC *g1 = v_get(4);
-
-      g1 = grad;
-
-      delta->ve[j] = -epsilon;
-
+      solve_p_kappa((void*)&solve_p_kappa_args);
+  
+      vm_move(grad,0,gp,i,0,1,n);
+       
+      delta->ve[i] = -epsilon;
       v_add(theta_save,delta,theta);
 
       solve_p_alpha_args.theta = theta;
       solve_p_beta_args.theta = theta;
       solve_p_gamma_args.theta = theta;
       solve_p_iota_args.theta = theta;
+      solve_p_kappa_args.theta = theta;
 
       solve_p_alpha((void*)&solve_p_alpha_args);
       solve_p_beta((void*)&solve_p_beta_args);
       solve_p_gamma((void*)&solve_p_gamma_args);
       solve_p_iota((void*)&solve_p_iota_args);
+      solve_p_kappa((void*)&solve_p_kappa_args);
+ 
+      vm_move(grad,0,gn,i,0,1,n);  
+            
+      V_FREE(delta);
+     }
+  
+  for (int i=0;i<n;i++)
+    for (int j=0;j<n;j++)
+      hessin->me[i][j] = (gp->me[i][j] - gn->me[i][j])/(4*epsilon) + (gp->me[j][i] - gn->me[j][i])/(4*epsilon);
 
-      VEC *g2 = v_get(4);
-      g2 = grad;
+  VEC * evals = v_get(n);
+  MAT *Q = m_get(n,n);
 
-      g1 = grad;
+  evals = symmeig(hessin,Q,evals);
 
-      H->me[i][j];
+  v_output(evals);
 
-      }
-
+  M_FREE(hessin);
   M_FREE(p_a);
   M_FREE(p_b);
   M_FREE(p_g);
@@ -210,10 +263,10 @@ double ConditionNumber(
   V_FREE(Uhh);
   IV_FREE(idxi);
 
-  return cn;
+  return evals->ve[4]/evals->ve[0];
 
 }
-*/
+
 
 
 /*

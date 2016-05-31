@@ -26,6 +26,7 @@
 #include "common.h"
 #include "VMGMM/VMGMM.h"
 #include "optim/optim.h"
+#include "plotting/plot.h"
 
 int feenableexcept(int);
 
@@ -197,7 +198,7 @@ int main(int argc, char *argv[])
 	  sscanf(argv[i+5],"%f",&iota);
 	  sscanf(argv[i+6],"%f",&kappa);
 	  //sscanf(argv[i+6],"%f",&omega);
-	  //	  kappa = .1;
+	  	  //kappa = .1;
 	  omega = 160;
 
 	  i += 7;
@@ -245,13 +246,18 @@ int main(int argc, char *argv[])
   printf("%f %f\n",iota,a2);
   */
 
-  VEC *theta = v_get(4);
+  VEC *theta = v_get(5);
 
   theta->ve[0] = alpha;
   theta->ve[1] = beta;
   theta->ve[2] = gamma;
   theta->ve[3] = iota;
-  //theta->ve[4] = kappa;
+  theta->ve[4] = kappa;
+
+  double cn = ConditionNumber(theta, &data);
+
+  printf("%f\n",cn);
+  exit(1);
 
   char lab1[10]="before";
   plot(theta,&data,lab1);

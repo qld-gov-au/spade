@@ -50,7 +50,7 @@ void solve_p_beta(void* args)
   double aa = theta->ve[0];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
-  double kk = kappa;
+  double kk = theta->ve[4];
   double ww = omega;
   double ii = theta->ve[3]*1e-3;
 
@@ -62,7 +62,7 @@ void solve_p_beta(void* args)
   thextra->ve[0] = theta->ve[0];
   thextra->ve[1] = theta->ve[1];
   thextra->ve[2] = theta->ve[2]*1e-7;
-  thextra->ve[3] = kappa;
+  thextra->ve[3] = theta->ve[4];
   thextra->ve[4] = omega;
 
   get_row(x,0,xt);

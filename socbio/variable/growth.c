@@ -1,11 +1,11 @@
 ﻿
 double g(
 
-	 const double k,
+	 const double kappa,
 	 const double w,
 	 const double x
 
 	 )
 { /* von-Bertalanffy growth */
-  return k*(w - x);
+  return kappa*(w - x);
 }

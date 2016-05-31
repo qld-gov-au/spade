@@ -7,7 +7,7 @@ double zstar(
 	      VEC *eff,
 	      double b,
 	      double g,
-	      double k,
+	      double kappa,
 	      double i,
 	      double t,
 	      double x,
@@ -17,6 +17,6 @@ double zstar(
 	     )
 { /* death function: beta + gamma U + s(x)f(t) - kappa */
 
-  return b + g*U + s(x)*i*e(eff,r,t) - k;
+  return b + g*U + s(x)*i*e(eff,r,t) - kappa;
 
 }

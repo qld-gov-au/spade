@@ -7,7 +7,6 @@
 void Q2_kappa(
 
 	      double a,
-	      double a2,
 	      double k,
 	      double w,
 	      VEC *x,

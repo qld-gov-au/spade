@@ -6,7 +6,6 @@
 void Q2_kappa(
 
 	      double a,
-	      double a2,
 	      double k,
 	      double w,
 	      VEC *x,
@@ -15,8 +14,6 @@ void Q2_kappa(
 
 	      )
 {
-
-  // this function has not been updated for new birth function
 
   if (x->dim != p->dim)
     {

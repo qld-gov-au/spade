@@ -51,7 +51,7 @@ void solve_p_iota(void* args)
   double aa = theta->ve[0];
   double bb = theta->ve[1];
   double gg = theta->ve[2]*1e-7;
-  double kk = kappa;
+  double kk = theta->ve[4];
   double ww = omega;
   double ii = theta->ve[3]*1e-3;
  
