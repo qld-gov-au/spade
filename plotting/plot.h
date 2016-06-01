@@ -6,7 +6,7 @@
 void plot(
 	
 	  VEC *,
-	  struct DATA *,
+	  Data *,
 	  char *
 
 	  );

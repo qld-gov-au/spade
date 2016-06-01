@@ -1,9 +1,9 @@
 ﻿#include <math.h>
 #include "../meschach/matrix.h"
-#include "../socbio/fixed/selectivity.h"
+#include "../model/fishing/selectivity.h"
 #include "../common.h"
-#include "../VMGMM/solvers/Qn.h"
-#include "../VMGMM/solvers/Q.h"
+#include "../machinery/Qn.h"
+#include "../machinery/Q.h"
 #include "../util/util.h"
 
 VEC * calc_alpha(
@@ -51,7 +51,7 @@ VEC * calc_alpha(
 VEC * VMGMM_eq(
 
 		  VEC *x,
-		  struct DATA *d,
+		  Data *d,
 		  VEC *grad,
 		  double *f
 

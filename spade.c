@@ -24,7 +24,7 @@
 #include <math.h>
 #include "spade.h"
 #include "common.h"
-#include "VMGMM/VMGMM.h"
+#include "machinery/VMGMM.h"
 #include "optim/optim.h"
 #include "plotting/plot.h"
 
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   J = 400;
   double k = 0.025;
 
-  struct DATA data;
+  Data data;
 
   if (argc < 2)
     {
@@ -254,10 +254,9 @@ int main(int argc, char *argv[])
   theta->ve[3] = iota;
   theta->ve[4] = kappa;
 
-  double cn = ConditionNumber(theta, &data);
-
-  printf("%f\n",cn);
-  exit(1);
+  //  double cn = ConditionNumber(theta, &data);
+  //printf("%f\n",cn);
+  //exit(1);
 
   char lab1[10]="before";
   plot(theta,&data,lab1);

@@ -5,7 +5,7 @@ LINKER_FLAGS = -lm -pthread
 
 # Spade options
 SPADE_CFLAGS = -g -lm -pthread -std=c99
-SPADE_SOURCE_DIRS = initial mathprop optim socbio util VMGMM plotting
+SPADE_SOURCE_DIRS = initial machinery mathprop model optim util plotting
 SPADE_SOURCES = \
 	spade.c \
 	common.c \

@@ -12,7 +12,7 @@
 #define A1 8.588e-5
 #define A2 0.00144
 
-struct DATA {
+typedef struct {
   VEC *eff;
   VEC *cat;
   double **lf; 
@@ -21,20 +21,24 @@ struct DATA {
   int *t_sz;
   int I,J,S;
   double k;
-};
+} Data;
+
+typedef struct {
+  MAT *x,*u,*xhh,*xh,*xn,*uh,*un;
+  VEC *Ui,*Uh,*Uhh;
+  IVEC *idxi;
+} Solve_Core_Args;
 
 typedef struct {
   VEC * theta;
-  struct DATA *dataptr;
-  VEC * grad;
-
-  MAT * p, *x, *u, *xhh, *xh, *xn, *uh, *un;
-  VEC * Ui, *Uh, *Uhh;
-  IVEC * idxi;
+  Data *d;
+  VEC * g;
+  MAT * p;
   VEC * eff;
   double k;
-	int S;
-} Solve_Args;
+  int S;
+  Solve_Core_Args *core_args;  
+} Grad_Args;
 
 float kappa,omega;
 

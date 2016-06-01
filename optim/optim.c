@@ -5,9 +5,9 @@
 
 VEC * bfgs(
 
-	   VEC * (*model)(VEC *,struct DATA *,VEC *,double *),
+	   VEC * (*model)(VEC *,Data *,VEC *,double *),
 	   VEC *x,
-	   struct DATA *data
+	   Data *data
 
 	   )   
 {
@@ -382,7 +382,7 @@ int cstep(
 
 int cvsrch(
 
-	  VEC *(*fcn)(VEC *,struct DATA *,VEC *,double *),
+	  VEC *(*fcn)(VEC *,Data *,VEC *,double *),
 	  VEC *x,
 	  double f,
 	  VEC *gr,
@@ -394,7 +394,7 @@ int cvsrch(
 	  double stpmin,
 	  double stpmax,
 	  int maxfev,
-	  struct DATA *d
+	  Data *d
 
 	  )
 {

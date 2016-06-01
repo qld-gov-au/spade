@@ -17,7 +17,7 @@ VEC * calc_alpha(
 VEC * VMGMM_eq(
 
 		  VEC *x,
-		  struct DATA *d,
+		  Data *d,
 		  VEC *grad,
 		  double *f
 

@@ -1,18 +1,18 @@
 #include <math.h>
 #include "../meschach/matrix.h"
 #include "../common.h"
-#include "../VMGMM/solvers/spade_solve.h"
-#include "../socbio/fixed/selectivity.h"
-#include "../socbio/fixed/weight.h"
-#include "../socbio/variable/effort.h"
-#include "../socbio/variable/catch.h"
-#include "../VMGMM/solvers/Q.h"
+#include "../machinery/spade_solve.h"
+#include "../model/fishing/selectivity.h"
+#include "../model/fishing/effort.h"
+#include "../model/fishing/catch.h"
+#include "../model/biology/weight.h"
+#include "../machinery/Q.h"
 #include "../util/util.h"
 
 void plot( 
 
-	  VEC *theta,
-	  struct DATA *d,
+	  VEC *p,
+	  Data *d,
 	  char * label
 
 	   )
@@ -20,31 +20,37 @@ void plot(
 
   int I = d->I+1;
   int J = d->J+1;
-  MAT *x = m_get(I,J);
-  MAT *u = m_get(I,J);
-  MAT *xh = m_get(I,J+1);
-  MAT *uh = m_get(I,J+1);
-  MAT *xn = m_get(I,J+1);
-  MAT *xhh = m_get(I,J+1);
-  MAT *un = m_get(I,J+1);
-  VEC *Ui = v_get(I);
-  VEC *Uh = v_get(I);
-  VEC *Uhh = v_get(I);
-  IVEC *idxi = iv_get(I-1);
 
-  solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,d->eff,d->k,d->S);
+  Solve_Core_Args core_args;
+  
+  core_args.x = m_get(I,J);
+  core_args.u = m_get(I,J);
+  core_args.xh = m_get(I,J+1);
+  core_args.uh = m_get(I,J+1);
+  core_args.xn = m_get(I,J+1);
+  core_args.xhh = m_get(I,J+1);
+  core_args.un = m_get(I,J+1);
+  core_args.Ui = v_get(I);
+  core_args.Uh = v_get(I);
+  core_args.Uhh = v_get(I);
+  core_args.idxi = iv_get(I-1);  
 
-  M_FREE(xh);
-  M_FREE(uh);
-  M_FREE(xn);
-  M_FREE(xhh);
-  M_FREE(un);
-  V_FREE(Ui);
-  V_FREE(Uh);
-  V_FREE(Uhh);
-  IV_FREE(idxi);
+  solve(p,d->eff,d->k,d->S,&core_args);
 
-  double iota = theta->ve[3];
+  MAT *x = core_args.x;
+  MAT *u = core_args.u;
+
+  M_FREE(core_args.xh);
+  M_FREE(core_args.uh);
+  M_FREE(core_args.xn);
+  M_FREE(core_args.xhh);
+  M_FREE(core_args.un);
+  V_FREE(core_args.Ui);
+  V_FREE(core_args.Uh);
+  V_FREE(core_args.Uhh);
+  IV_FREE(core_args.idxi);
+
+  double iota = p->ve[3];
   iota *= 1e-3;
 
   VEC *ctt = v_get(x->n);
@@ -148,7 +154,7 @@ void plot(
 
     }
 
-  M_FREE(x);
-  M_FREE(u);
+  M_FREE(core_args.x);
+  M_FREE(core_args.u);
 
 }

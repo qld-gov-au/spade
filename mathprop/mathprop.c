@@ -1,14 +1,14 @@
 ﻿#include "../meschach/matrix.h"
 #include "../meschach/matrix2.h"
 #include "../common.h"
-#include "../VMGMM/solvers/spade_solve.h"
-#include "../VMGMM/solvers/alpha/solve_p_alpha.h"
-#include "../VMGMM/solvers/beta/solve_p_beta.h"
-#include "../VMGMM/solvers/gamma/solve_p_gamma.h"
-#include "../VMGMM/solvers/iota/solve_p_iota.h"
-#include "../VMGMM/solvers/kappa/solve_p_kappa.h"
-#include "../VMGMM/solvers/omega/solve_p_omega.h"
-#include "../VMGMM/objfns/objfns.h"
+#include "../machinery/spade_solve.h"
+#include "../machinery/alpha/grad_alpha.h"
+#include "../machinery/beta/grad_beta.h"
+#include "../machinery/gamma/grad_gamma.h"
+#include "../machinery/iota/grad_iota.h"
+#include "../machinery/kappa/grad_kappa.h"
+#include "../machinery/omega/grad_omega.h"
+#include "../machinery/objfns.h"
 
 
 
@@ -41,10 +41,11 @@ VEC *numgrad(
 
 }
 
+/*
 double ConditionNumber(
 
 		       VEC * theta,
-		       struct DATA *dataptr
+		       Data *dataptr
 
 		       )
 {
@@ -72,109 +73,109 @@ double ConditionNumber(
 
   // p alpha
   MAT *p_a = m_get(x->m,x->n);
-  Solve_Args solve_p_alpha_args;
-  solve_p_alpha_args.dataptr = dataptr;
-  solve_p_alpha_args.grad = grad;
-  solve_p_alpha_args.p = p_a;
-  solve_p_alpha_args.x = x;
-  solve_p_alpha_args.u = u;
-  solve_p_alpha_args.xhh = xhh;
-  solve_p_alpha_args.xh = xh;
-  solve_p_alpha_args.xn = xn;
-  solve_p_alpha_args.uh = uh;
-  solve_p_alpha_args.un = un;
-  solve_p_alpha_args.Ui = Ui;
-  solve_p_alpha_args.Uh = Uh;
-  solve_p_alpha_args.Uhh = Uhh;
-  solve_p_alpha_args.idxi = idxi;
-  solve_p_alpha_args.eff = dataptr->eff;
-  solve_p_alpha_args.k = dataptr->k;
-  solve_p_alpha_args.S = dataptr->S;
+  Solve_Args grad_alpha_args;
+  grad_alpha_args.dataptr = dataptr;
+  grad_alpha_args.grad = grad;
+  grad_alpha_args.p = p_a;
+  grad_alpha_args.x = x;
+  grad_alpha_args.u = u;
+  grad_alpha_args.xhh = xhh;
+  grad_alpha_args.xh = xh;
+  grad_alpha_args.xn = xn;
+  grad_alpha_args.uh = uh;
+  grad_alpha_args.un = un;
+  grad_alpha_args.Ui = Ui;
+  grad_alpha_args.Uh = Uh;
+  grad_alpha_args.Uhh = Uhh;
+  grad_alpha_args.idxi = idxi;
+  grad_alpha_args.eff = dataptr->eff;
+  grad_alpha_args.k = dataptr->k;
+  grad_alpha_args.S = dataptr->S;
 
   // p beta
   MAT *p_b = m_get(x->m,x->n);
-  Solve_Args solve_p_beta_args;
-  solve_p_beta_args.theta = theta;
-  solve_p_beta_args.dataptr = dataptr;
-  solve_p_beta_args.grad = grad;
-  solve_p_beta_args.p = p_b;
-  solve_p_beta_args.x = x;
-  solve_p_beta_args.u = u;
-  solve_p_beta_args.xhh = xhh;
-  solve_p_beta_args.xh = xh;
-  solve_p_beta_args.xn = xn;
-  solve_p_beta_args.uh = uh;
-  solve_p_beta_args.Ui = Ui;
-  solve_p_beta_args.Uh = Uh;
-  solve_p_beta_args.Uhh = Uhh;
-  solve_p_beta_args.idxi = idxi;
-  solve_p_beta_args.eff = dataptr->eff;
-  solve_p_beta_args.k = dataptr->k;
-  solve_p_beta_args.S = dataptr->S;
+  Solve_Args grad_beta_args;
+  grad_beta_args.theta = theta;
+  grad_beta_args.dataptr = dataptr;
+  grad_beta_args.grad = grad;
+  grad_beta_args.p = p_b;
+  grad_beta_args.x = x;
+  grad_beta_args.u = u;
+  grad_beta_args.xhh = xhh;
+  grad_beta_args.xh = xh;
+  grad_beta_args.xn = xn;
+  grad_beta_args.uh = uh;
+  grad_beta_args.Ui = Ui;
+  grad_beta_args.Uh = Uh;
+  grad_beta_args.Uhh = Uhh;
+  grad_beta_args.idxi = idxi;
+  grad_beta_args.eff = dataptr->eff;
+  grad_beta_args.k = dataptr->k;
+  grad_beta_args.S = dataptr->S;
 
   // p gamma
   MAT *p_g = m_get(x->m,x->n);
-  Solve_Args solve_p_gamma_args;
-  solve_p_gamma_args.theta = theta;
-  solve_p_gamma_args.dataptr = dataptr;
-  solve_p_gamma_args.grad = grad;
-  solve_p_gamma_args.p = p_g;
-  solve_p_gamma_args.x = x;
-  solve_p_gamma_args.u = u;
-  solve_p_gamma_args.xhh = xhh;
-  solve_p_gamma_args.xh = xh;
-  solve_p_gamma_args.xn = xn;
-  solve_p_gamma_args.uh = uh;
-  solve_p_gamma_args.Ui = Ui;
-  solve_p_gamma_args.Uh = Uh;
-  solve_p_gamma_args.Uhh = Uhh;
-  solve_p_gamma_args.idxi = idxi;
-  solve_p_gamma_args.eff = dataptr->eff;
-  solve_p_gamma_args.k = dataptr->k;
-  solve_p_gamma_args.S = dataptr->S;
+  Solve_Args grad_gamma_args;
+  grad_gamma_args.theta = theta;
+  grad_gamma_args.dataptr = dataptr;
+  grad_gamma_args.grad = grad;
+  grad_gamma_args.p = p_g;
+  grad_gamma_args.x = x;
+  grad_gamma_args.u = u;
+  grad_gamma_args.xhh = xhh;
+  grad_gamma_args.xh = xh;
+  grad_gamma_args.xn = xn;
+  grad_gamma_args.uh = uh;
+  grad_gamma_args.Ui = Ui;
+  grad_gamma_args.Uh = Uh;
+  grad_gamma_args.Uhh = Uhh;
+  grad_gamma_args.idxi = idxi;
+  grad_gamma_args.eff = dataptr->eff;
+  grad_gamma_args.k = dataptr->k;
+  grad_gamma_args.S = dataptr->S;
  
   // p iota
   MAT *p_i = m_get(x->m,x->n);
-  Solve_Args solve_p_iota_args;
-  solve_p_iota_args.theta = theta;
-  solve_p_iota_args.dataptr = dataptr;
-  solve_p_iota_args.grad = grad;
-  solve_p_iota_args.p = p_i;
-  solve_p_iota_args.x = x;
-  solve_p_iota_args.u = u;
-  solve_p_iota_args.xhh = xhh;
-  solve_p_iota_args.xh = xh;
-  solve_p_iota_args.xn = xn;
-  solve_p_iota_args.uh = uh;
-  solve_p_iota_args.Ui = Ui;
-  solve_p_iota_args.Uh = Uh;
-  solve_p_iota_args.Uhh = Uhh;
-  solve_p_iota_args.idxi = idxi;
-  solve_p_iota_args.eff = dataptr->eff;
-  solve_p_iota_args.k = dataptr->k;
-  solve_p_iota_args.S = dataptr->S;
+  Solve_Args grad_iota_args;
+  grad_iota_args.theta = theta;
+  grad_iota_args.dataptr = dataptr;
+  grad_iota_args.grad = grad;
+  grad_iota_args.p = p_i;
+  grad_iota_args.x = x;
+  grad_iota_args.u = u;
+  grad_iota_args.xhh = xhh;
+  grad_iota_args.xh = xh;
+  grad_iota_args.xn = xn;
+  grad_iota_args.uh = uh;
+  grad_iota_args.Ui = Ui;
+  grad_iota_args.Uh = Uh;
+  grad_iota_args.Uhh = Uhh;
+  grad_iota_args.idxi = idxi;
+  grad_iota_args.eff = dataptr->eff;
+  grad_iota_args.k = dataptr->k;
+  grad_iota_args.S = dataptr->S;
 
   // p kappa
   MAT *p_k = m_get(x->m,x->n);
-  Solve_Args solve_p_kappa_args;
-  solve_p_kappa_args.theta = theta;
-  solve_p_kappa_args.dataptr = dataptr;
-  solve_p_kappa_args.grad = grad;
-  solve_p_kappa_args.p = p_k;
-  solve_p_kappa_args.x = x;
-  solve_p_kappa_args.u = u;
-  solve_p_kappa_args.xhh = xhh;
-  solve_p_kappa_args.xh = xh;
-  solve_p_kappa_args.xn = xn;
-  solve_p_kappa_args.uh = uh;
-  solve_p_kappa_args.un = un;
-  solve_p_kappa_args.Ui = Ui;
-  solve_p_kappa_args.Uh = Uh;
-  solve_p_kappa_args.Uhh = Uhh;
-  solve_p_kappa_args.idxi = idxi;
-  solve_p_kappa_args.eff = dataptr->eff;
-  solve_p_kappa_args.k = dataptr->k;
-  solve_p_kappa_args.S = dataptr->S;
+  Solve_Args grad_kappa_args;
+  grad_kappa_args.theta = theta;
+  grad_kappa_args.dataptr = dataptr;
+  grad_kappa_args.grad = grad;
+  grad_kappa_args.p = p_k;
+  grad_kappa_args.x = x;
+  grad_kappa_args.u = u;
+  grad_kappa_args.xhh = xhh;
+  grad_kappa_args.xh = xh;
+  grad_kappa_args.xn = xn;
+  grad_kappa_args.uh = uh;
+  grad_kappa_args.un = un;
+  grad_kappa_args.Ui = Ui;
+  grad_kappa_args.Uh = Uh;
+  grad_kappa_args.Uhh = Uhh;
+  grad_kappa_args.idxi = idxi;
+  grad_kappa_args.eff = dataptr->eff;
+  grad_kappa_args.k = dataptr->k;
+  grad_kappa_args.S = dataptr->S;
 
   VEC *theta_save = v_get(n);
   
@@ -201,34 +202,34 @@ double ConditionNumber(
       delta->ve[i] = epsilon;
       v_add(theta_save,delta,theta);
 
-      solve_p_alpha_args.theta = theta;
-      solve_p_beta_args.theta = theta;
-      solve_p_gamma_args.theta = theta;
-      solve_p_iota_args.theta = theta;
-      solve_p_kappa_args.theta = theta;
+      grad_alpha_args.theta = theta;
+      grad_beta_args.theta = theta;
+      grad_gamma_args.theta = theta;
+      grad_iota_args.theta = theta;
+      grad_kappa_args.theta = theta;
 
-      solve_p_alpha((void*)&solve_p_alpha_args);
-      solve_p_beta((void*)&solve_p_beta_args);
-      solve_p_gamma((void*)&solve_p_gamma_args);
-      solve_p_iota((void*)&solve_p_iota_args);
-      solve_p_kappa((void*)&solve_p_kappa_args);
+      grad_alpha((void*)&grad_alpha_args);
+      grad_beta((void*)&grad_beta_args);
+      grad_gamma((void*)&grad_gamma_args);
+      grad_iota((void*)&grad_iota_args);
+      grad_kappa((void*)&grad_kappa_args);
   
       vm_move(grad,0,gp,i,0,1,n);
        
       delta->ve[i] = -epsilon;
       v_add(theta_save,delta,theta);
 
-      solve_p_alpha_args.theta = theta;
-      solve_p_beta_args.theta = theta;
-      solve_p_gamma_args.theta = theta;
-      solve_p_iota_args.theta = theta;
-      solve_p_kappa_args.theta = theta;
+      grad_alpha_args.theta = theta;
+      grad_beta_args.theta = theta;
+      grad_gamma_args.theta = theta;
+      grad_iota_args.theta = theta;
+      grad_kappa_args.theta = theta;
 
-      solve_p_alpha((void*)&solve_p_alpha_args);
-      solve_p_beta((void*)&solve_p_beta_args);
-      solve_p_gamma((void*)&solve_p_gamma_args);
-      solve_p_iota((void*)&solve_p_iota_args);
-      solve_p_kappa((void*)&solve_p_kappa_args);
+      grad_alpha((void*)&grad_alpha_args);
+      grad_beta((void*)&grad_beta_args);
+      grad_gamma((void*)&grad_gamma_args);
+      grad_iota((void*)&grad_iota_args);
+      grad_kappa((void*)&grad_kappa_args);
  
       vm_move(grad,0,gn,i,0,1,n);  
             
@@ -265,7 +266,7 @@ double ConditionNumber(
 
   return evals->ve[4]/evals->ve[0];
 
-}
+}*/
 
 
 
@@ -273,7 +274,7 @@ double ConditionNumber(
 void output_plots(
 
 		  VEC *p,
-		  struct DATA *d,
+		  Data *d,
 		  char *label
 
 		  )
