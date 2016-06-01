@@ -20,25 +20,25 @@ VEC *VMGMM(
 		  )
 {
 
-  Solve_Core_Args * core_args;
+  Solve_Core_Args core_args;
   
   int I,J;
   I = d->I;
   J = d->J;
   
-  core_args->x = m_get(I,J);
-  core_args->u = m_get(I,J);
-  core_args->xh = m_get(I,J+1);
-  core_args->uh = m_get(I,J+1);
-  core_args->xn = m_get(I,J+1);
-  core_args->xhh = m_get(I,J+1);
-  core_args->un = m_get(I,J+1);
-  core_args->Ui = v_get(I);
-  core_args->Uh = v_get(I);
-  core_args->Uhh = v_get(I);
-  core_args->idxi = iv_get(I-1);   
+  core_args.x = m_get(I,J);
+  core_args.u = m_get(I,J);
+  core_args.xh = m_get(I,J+1);
+  core_args.uh = m_get(I,J+1);
+  core_args.xn = m_get(I,J+1);
+  core_args.xhh = m_get(I,J+1);
+  core_args.un = m_get(I,J+1);
+  core_args.Ui = v_get(I);
+  core_args.Uh = v_get(I);
+  core_args.Uhh = v_get(I);
+  core_args.idxi = iv_get(I-1);   
 
-  *f = K(theta,d,core_args);  
+  *f = K(theta,d,&core_args);  
 
   MAT *p_a = m_get(I,J);  
   Grad_Args grad_alpha_args;    
@@ -49,7 +49,7 @@ VEC *VMGMM(
   grad_alpha_args.eff = d->eff;
   grad_alpha_args.k = d->k;
   grad_alpha_args.S = d->S;   
-  grad_alpha_args.core_args = core_args;
+  grad_alpha_args.core_args = &core_args;
   
   MAT *p_b = m_get(I,J);
   Grad_Args grad_beta_args;
@@ -60,7 +60,7 @@ VEC *VMGMM(
   grad_beta_args.eff = d->eff;
   grad_beta_args.k = d->k;
   grad_beta_args.S = d->S;
-  grad_beta_args.core_args = core_args;
+  grad_beta_args.core_args = &core_args;
 
   MAT *p_g = m_get(I,J);
   Grad_Args grad_gamma_args;
@@ -71,7 +71,7 @@ VEC *VMGMM(
   grad_gamma_args.eff = d->eff;
   grad_gamma_args.k = d->k;
   grad_gamma_args.S = d->S;
-  grad_gamma_args.core_args = core_args;   
+  grad_gamma_args.core_args = &core_args;   
 
   MAT *p_i = m_get(I,J);
   Grad_Args grad_iota_args;
@@ -82,7 +82,7 @@ VEC *VMGMM(
   grad_iota_args.eff = d->eff;
   grad_iota_args.k = d->k;
   grad_iota_args.S = d->S;
-  grad_iota_args.core_args = core_args;   
+  grad_iota_args.core_args = &core_args;   
 
   MAT *p_k = m_get(I,J);
   Grad_Args grad_kappa_args;
@@ -93,7 +93,7 @@ VEC *VMGMM(
   grad_kappa_args.eff = d->eff;
   grad_kappa_args.k = d->k;
   grad_kappa_args.S = d->S;
-  grad_kappa_args.core_args = core_args;
+  grad_kappa_args.core_args = &core_args;
   
   if (PTH)
     {
@@ -169,17 +169,6 @@ VEC *VMGMM(
   M_FREE(p_g);
   M_FREE(p_k);
   M_FREE(p_i);
-  M_FREE(core_args->x);
-  M_FREE(core_args->u);
-  M_FREE(core_args->xh);
-  M_FREE(core_args->uh);
-  M_FREE(core_args->xn);
-  M_FREE(core_args->xhh);
-  M_FREE(core_args->un);
-  V_FREE(core_args->Ui);
-  V_FREE(core_args->Uh);
-  V_FREE(core_args->Uhh);
-  IV_FREE(core_args->idxi);
 
   return g;
 
