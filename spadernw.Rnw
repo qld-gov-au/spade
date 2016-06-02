@@ -50,7 +50,7 @@
 \maketitle
 
 \begin{abstract}
-In 1926 Anderson McKendrick introduced a differential equation that described a mortality process for an age-structured population.  Morton Gurtin and Richard MacCamy (1974), and then Lea Murphy (1983), made key extensions such that, with the addition of a time-dependent mortality term, the equation encapsulates much of the core of modern stock assessment.  We introduce numerical and analytical techniques that enable efficient and robust parameter estimation for fishery models built using this class of equations and demonstrate these using an Australian barramundi (\emph{Lates calcarifer}) fishery.  We highlight the additional insight the differential formalism provides on questions of scale and parameter identifiability, and discuss the characterisation of uncertainty.
+In 1926 Anderson McKendrick introduced a differential equation that describes a mortality process for an age-structured population.  Morton Gurtin and Richard MacCamy (1974), and then Lea Murphy (1983), made key extensions such that, with the addition of a time-dependent mortality term, the equation encapsulates much of the core of modern stock assessment.  We introduce numerical and analytical techniques that enable efficient parameter estimation for fishery models built using this class of equations and demonstrate these using an Australian barramundi (\emph{Lates calcarifer}) fishery.  We highlight the additional insight the differential formalism provides on questions of scale and parameter identifiability, and discuss the characterisation of uncertainty.
 \end{abstract}
 
 %We discuss some of the differences between traditional matrix-based fishery models and the pde formalism.  And focus on the scale thing.
@@ -162,6 +162,8 @@ It will turn out to be useful to reparameterise the birth function thus
 \section{Numerical solutions}
 Equation \ref{eq:1} is a nonlinear hyperbolic partial differential equation with a nonlinear and non-local boundary condition, and in general must be solved numerically. As with all Mckendrick style PDEs it can be reduced to a coupled ODE problem by integrating along the characteristic curves \citep{Kot2001}. Following \citet{Angulo2004}, define
 
+We reiterate much of what Angulo has, because it is so fundamental.. 
+
 Even without a time-dependent term you would still need a numerical solution.
 \begin{equation}
   z^*(x,U,t)=z(x,U,t)+g_x(x)
@@ -181,7 +183,7 @@ Next, define the function
 \begin{equation}
   r(t;t^*,x^*)=u(x(t;t^*,x^*),t)
 \end{equation}
-which satisfies the folloiwng initial value problem
+which satisfies the following initial value problem
 \begin{equation}
   \begin{cases}
     \frac{d}{dt} r(t;t^*,x^*)=-z^*(x(t;t^*,x^*),U,t)r(t;t^*,x^*), & t\geq t^*,\\
@@ -192,7 +194,24 @@ and therefore can be represented by
 \begin{equation}\label{eq:2.5}
   r(t;t^*,x^*)=u(x^*,t^*)\exp\left(-\int_{t^*}^{t}z^*(x(\tau;t^*,x^*),U,t)\,d\tau\right).
 \end{equation}
-The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.1}. We use a slightly modified version of the second order numerical scheme of \citet{Angulo2014}, given in Algorithm \ref{alg:base}.
+The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.1}.  This procedure is explained in detail in .. and .. however because it is so fundamental (and unfamiliar to fishery scientists) and connects to our later work, we include it here.. 
+
+\citep{Angulo2014} developed a second order numerical scheme, given in Algorithm \ref{alg:original}.
+
+\begin{algorithm}
+  \caption{Model PDE numerical solution}\label{alg:original}
+  \begin{algorithmic}
+    \State $X_0^{n+1} \gets 0$
+    \State $X_{j+1}^{n+1} \gets X_j^n + k g(X_{j+1}^{n+1/2}), 0 \leq j \leq J$
+    \State $U_{j+1}^{n+1} \gets U_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right), 0 \leq j \leq J$
+    \State $U_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{U}^{n+1})) / g(X_{0}^{n+1})$
+    \State $X_0^{n+1/2} \gets 0$
+    \State $X_{j+1}^{n+1/2} \gets X_j^n + (k/2) g(X_j^n), 0 \leq j \leq J$
+    \State $U_{j+1}^{n+1/2} \gets U_j^n \exp\left(-(k/2) z^*(X_j^n,\mathcal{Q}(\mathbf{X}^n,\mathbf{U}^n),t^n)\right), 0 \leq j \leq J$
+    \State $U_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{U}^{n+1/2})) / g(X_{0}^{n+1/2})$
+  \end{algorithmic}
+\end{algorithm}
+
 
 Following \citet{Angulo2014} we use an adaptive mesh that keeps the number of nodes along the size dimension constant as the algorithm steps forward: at time $t^{n+1}$ we remove the grid node $X_l^{n+1}$ that satisfies
 \begin{equation}
@@ -324,44 +343,6 @@ The size structure at equilibrium is then given by
 
 We also need initial conditions for our sensitivity PDEs. These are, by definition, $d u(x)/d\theta$. The derivations for these are contained in Appendix \ref{app:2}.
 
-%\subsection{Initial parameter values}
-
-Consider now the initial values of the parameters for the optimisation algorithm. At equilibrium, the following relation holds
-%If we linearise the model by removing the density dependent natural mortality ($\gamma$) and consider the population at fished equilibrium, we have the following relation
-\begin{equation}
-  1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
-\end{equation}
-where $f$ is the constant fishing mortality and $\tilde{\beta}$ is a natural mortality term that is a mixture of density dependent and density independent effects. 
-
-%But we also have
-%\begin{equation}
-%  1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\beta + 0.4\gamma \bar{U}  + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
-%\end{equation}
-
-%\begin{equation}
-%{{2\,\left(\int_{0}^{w}{{\frac{x^2\,e^ {- {{\int_{0}^{x}{{\frac{f s(\lambda)+\beta}{\kappa(\omega-\lambda)}}\;d\lambda}}} }}{\kappa(\omega-x)}}\;dx}
-% \right)\,\left({{\int_{0}^{w}{{\frac{\left(\alpha_2 x^2+\alpha_1 x
-% \right)\,e^ {- {\int_{0}^{x}{{\frac{f\,s\left(l\right)+\beta}{\kappa(\omega-
-% \lambda)}}\;d\lambda}} }}{\kappa(\omega-x)}}\;dx}}}-1\right)}}
-%\end{equation}
-
-At this equilibrium, %we have the following size-structure
-%\begin{equation}
-%  \frac{\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
-%\int_0^\omega \left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}        
-%\end{equation}
-%and thus the following 
-the catch structure is proportional to
-\begin{equation}
-  h(x)=\frac{s(x)\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
-\int_0^\omega s(x)\left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}.        
-\end{equation}
-If we assume the population has been roughly at equilibrium for a period of time (a visual assessment should suffice), then we can compare this theoretical catch structure to the average catch structre observed over that period. Then, given a fixed $\kappa$ and $\omega$, it is possible to estimate values for $f$ and $\tilde{\beta}$ by minimising the following objective function
-\begin{equation}
-  G(\theta) = \int_0^\omega l(x) \log\left(\frac{l(x)}{h(x)}\right) \,dx.
-\end{equation}
-where $l(x)$ is the average observed size-structure for the time period. 
-
 For optimisation we use the BFGS \citep{Broyden1970,Fletcher1970,Goldfarb1970,Shanno1970conditioning,Shanno1970optimal} method, with line search due to \citet{more1994line}.
 
 The guiding philosophy is
@@ -371,18 +352,23 @@ This has a number of benefits, including
 - a small number of parameters to optimise, and therefore the applicability of Quasi-Newton methods, which can be memory intensive. 
 
 \section{Identifiability}
-
-
-
+The condition number of the Hessian at the global minima is a useful indicator of the identifiability of the model \cite{Thacker1989}. The condition number is the ratio of the largest eigenvalue to the smallest. 
 \begin{equation}
-  \Gamma 
-  \begin{cases}
-    u_t + [g(x)u(x)]_x = \mu(x,U,t) u & \\
-    g(0)u(0) = \int_x b(x)u(x)\,dx &
-  \end{cases}
+  \frac{\partial^2 K}{\partial\theta_i\partial\theta_j} \approx \frac{\psi_i(\theta + \delta_j\epsilon) - \psi_i(\theta-\delta_j \epsilon)}{4\epsilon} + \frac{\psi_j(\theta +\delta_i\epsilon) - \psi_j(\theta - \delta_i\epsilon)}{4\epsilon}
 \end{equation}
-    
+where
+\begin{equation}
+  \psi_i(\theta)=\frac{\partial K}{\partial\theta_i}
+\end{equation}
 
+
+%\begin{equation}
+%  \Gamma 
+%  \begin{cases}
+%    u_t + [g(x)u(x)]_x = \mu(x,U,t) u & \\
+%    g(0)u(0) = \int_x b(x)u(x)\,dx &
+%  \end{cases}
+%\end{equation}   
 
 \section{Scale, granularity, relationship with optimisation and computational complexity}
 
@@ -642,7 +628,7 @@ We end with a stronger, more controversial statement: if you can't get analytic 
 \end{algorithm}
 
 \clearpage
-\section{pde}\label{app:pde}
+\section{Sensitivity PDEs}\label{app:pde}
 \begin{subequations}
   \begin{align}
   \frac{d F}{d \alpha} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u = 0\\
@@ -922,7 +908,45 @@ Z_{\omega}=& \frac{3 \kappa^2 ( \alpha_1 \zeta + 4 \alpha_2  \omega \zeta - 2 \a
 \end{equation}
 
 \section{Initial parameters stuff}
-  This expression can be differentiated to assist with optimisation:
+%\subsection{Initial parameter values}
+
+Consider now the initial values of the parameters for the optimisation algorithm. At equilibrium, the following relation holds
+%If we linearise the model by removing the density dependent natural mortality ($\gamma$) and consider the population at fished equilibrium, we have the following relation
+\begin{equation}
+  1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
+\end{equation}
+where $f$ is the constant fishing mortality and $\tilde{\beta}$ is a natural mortality term that is a mixture of density dependent and density independent effects. 
+
+%But we also have
+%\begin{equation}
+%  1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\beta + 0.4\gamma \bar{U}  + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
+%\end{equation}
+
+%\begin{equation}
+%{{2\,\left(\int_{0}^{w}{{\frac{x^2\,e^ {- {{\int_{0}^{x}{{\frac{f s(\lambda)+\beta}{\kappa(\omega-\lambda)}}\;d\lambda}}} }}{\kappa(\omega-x)}}\;dx}
+% \right)\,\left({{\int_{0}^{w}{{\frac{\left(\alpha_2 x^2+\alpha_1 x
+% \right)\,e^ {- {\int_{0}^{x}{{\frac{f\,s\left(l\right)+\beta}{\kappa(\omega-
+% \lambda)}}\;d\lambda}} }}{\kappa(\omega-x)}}\;dx}}}-1\right)}}
+%\end{equation}
+
+At this equilibrium, %we have the following size-structure
+%\begin{equation}
+%  \frac{\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
+%\int_0^\omega \left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}        
+%\end{equation}
+%and thus the following 
+the catch structure is proportional to
+\begin{equation}
+  h(x)=\frac{s(x)\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
+\int_0^\omega s(x)\left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}.        
+\end{equation}
+If we assume the population has been roughly at equilibrium for a period of time (a visual assessment should suffice), then we can compare this theoretical catch structure to the average catch structre observed over that period. Then, given a fixed $\kappa$ and $\omega$, it is possible to estimate values for $f$ and $\tilde{\beta}$ by minimising the following objective function
+\begin{equation}
+  G(\theta) = \int_0^\omega l(x) \log\left(\frac{l(x)}{h(x)}\right) \,dx.
+\end{equation}
+where $l(x)$ is the average observed size-structure for the time period. 
+
+This expression can be differentiated to assist with optimisation:
 \begin{equation}
   \frac{d G}{d \beta} = \int_0^\omega -\frac{l(x)}{h(x)} \frac{ A(x) \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right) B - A(x) \int_0^\omega A(x) \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B^2}\,dx  
 \end{equation}
