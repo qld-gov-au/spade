@@ -169,6 +169,17 @@ VEC *VMGMM(
   M_FREE(p_g);
   M_FREE(p_k);
   M_FREE(p_i);
+  M_FREE(core_args.x);
+  M_FREE(core_args.u);
+  M_FREE(core_args.xh);
+  M_FREE(core_args.uh);
+  M_FREE(core_args.xn);
+  M_FREE(core_args.xhh);
+  M_FREE(core_args.un);
+  V_FREE(core_args.Ui);
+  V_FREE(core_args.Uh);
+  V_FREE(core_args.Uhh);
+  IV_FREE(core_args.idxi);
 
   return g;
 
