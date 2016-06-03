@@ -14,10 +14,11 @@ void grad_alpha(void* args)
   Grad_Args * grad_args = (Grad_Args *)args;
 
   Data *d = (*grad_args).d;
-  VEC *grad = (*grad_args).g;
-  MAT *p = (*grad_args).p;
+  //VEC *grad = (*grad_args).g;
+  //MAT *p = (*grad_args).p;
   MAT *x = ((*grad_args).core_args)->x;
   MAT *u = (*grad_args).core_args->u;
+  MAT *p = m_get(x->m,x->n);
   MAT *xhh = (*grad_args).core_args->xhh;
   MAT *xh = (*grad_args).core_args->xh;
   MAT *xn = (*grad_args).core_args->xn;
@@ -114,6 +115,9 @@ void grad_alpha(void* args)
   V_FREE(Pi);
   V_FREE(xhht);
 
-  grad->ve[parameters->alpha.index] = G_ni(p, x, u, d, parameters->iota.value);
+  parameters->alpha.gradient = G_ni(p, x, u, d, parameters->iota.value);
+  //  grad->ve[parameters->alpha.index] = G_ni(p, x, u, d, parameters->iota.value);
+
+  M_FREE(p);
 
 }

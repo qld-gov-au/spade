@@ -9,6 +9,125 @@
 #include "Q.h"
 #include "../util/util.h"
 
+double K_dr(
+
+  Parameters * parameters,
+  Data *d
+  
+  )
+{
+
+  Solve_Core_Args core_args;
+  int I = d->I;
+  int J = d->J;
+    
+  core_args.x = m_get(I,J);
+  core_args.u = m_get(I,J);
+  core_args.xh = m_get(I,J+1);
+  core_args.uh = m_get(I,J+1);
+  core_args.xn = m_get(I,J+1);
+  core_args.xhh = m_get(I,J+1);
+  core_args.un = m_get(I,J+1);
+  core_args.Ui = v_get(I);
+  core_args.Uh = v_get(I);
+  core_args.Uhh = v_get(I);
+  core_args.idxi = iv_get(I-1);   
+  
+  solve(parameters,d->eff,d->k,d->S,&core_args);
+
+  MAT *x = core_args.x;
+  MAT *u = core_args.u;
+
+  double iota = parameters->iota.value;
+
+  iota *= 1e-3;
+  int S = d->S;
+  double k = d->k;
+
+  int lfi=0;
+
+  VEC *ht = v_get(x->m);
+  VEC *tt = v_get(x->m);
+
+  for (int i=S;i<x->m;i++)
+    {
+
+      VEC *xt = v_get(x->n);
+      get_row(x,i,xt);      
+      VEC *ut = v_get(x->n);
+      get_row(u,i,ut);      
+      VEC *v = v_get(x->n);
+
+      for (int j=0;j<x->n;j++)
+  v->ve[j] = iota*e(d->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+
+      if(lfi < d->n && d->t_id[lfi]==i) 
+  {
+      
+    VEC *dt = v_get(d->t_sz[lfi]);
+
+    for (int j=0;j<dt->dim;j++)
+      dt->ve[j] = d->lf[lfi][j];
+
+    double bw = get_bw(dt);
+
+    VEC *l = v_get(xt->dim);
+
+    for (int j=0;j<xt->dim;j++)
+      for (int jj=0;jj<dt->dim;jj++)
+        l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
+
+    double al = c(d->cat,k,k*(i - S)) / Q(xt,l); //1e3*
+
+    VEC *ld = v_get(x->n);
+
+    for (int j=0;j<xt->dim;j++)
+      ld->ve[j] = pow(v->ve[j] - al*l->ve[j],2.);
+
+    ht->ve[i] = Q(xt,ld);
+
+    lfi += 1;
+
+    V_FREE(dt);
+    V_FREE(l);
+    V_FREE(ld);
+
+  } 
+      else 
+  {
+    ht->ve[i] = pow(Q(xt,v)-c(d->cat,k,k*(i - S)),2.);
+  }
+
+      tt->ve[i] = k*(i-S);
+
+      V_FREE(xt);
+      V_FREE(ut);
+      V_FREE(v);
+
+    }
+
+  double blah = Q(tt,ht);
+
+  V_FREE(ht);
+  V_FREE(tt);
+
+  M_FREE(core_args.x);
+  M_FREE(core_args.u);
+  M_FREE(core_args.xh);
+  M_FREE(core_args.uh);
+  M_FREE(core_args.xn);
+  M_FREE(core_args.xhh);
+  M_FREE(core_args.un);
+  V_FREE(core_args.Ui);
+  V_FREE(core_args.Uh);
+  V_FREE(core_args.Uhh);
+  IV_FREE(core_args.idxi);
+
+  return blah; 
+
+}
+
+
 double K(
 
      Parameters *parameters,
@@ -39,7 +158,7 @@ double K(
   for (int i=S;i<x->m;i++)
     {
 
-      VEC *xt = v_get(core_args->x->n);
+      VEC *xt = v_get(x->n);
       get_row(x,i,xt);      
       VEC *ut = v_get(x->n);
       get_row(u,i,ut);      

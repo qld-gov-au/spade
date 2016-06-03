@@ -42,17 +42,13 @@ VEC *VMGMM(
   *f = K(parameters,d,&core_args);
 
   // get the active parameters and run their grad functions
-  MAT * matrices[theta->dim];
   Grad_Args args[theta->dim];
   pthread_t threads[theta->dim];
 
   int iTheta = 0;
   for(int i = 0; i < parameters->count; i++) {
     if(parameters->parameter[i]->active == TRUE) {
-      matrices[iTheta] = m_get(I, J);
       args[iTheta].d = d;
-      args[iTheta].g = g;
-      args[iTheta].p = matrices[iTheta];
       args[iTheta].eff = d->eff;
       args[iTheta].k = d->k;
       args[iTheta].S = d->S;
@@ -92,28 +88,14 @@ VEC *VMGMM(
     }
   }
 
-
-  //printf("%g %g",grad->ve[4],ng);
-  //exit(1);
-
-  // p alpha debugging
-  //  printf("%g ", grad->ve[0]);
-
-  // p beta debugging
-  //printf("%g ", grad->ve[1]);
-
-  // p gamma debugging
-  //printf("%g ", grad->ve[2]);
-
-  // p iota debugging
-  //printf("%g ", grad->ve[3]);
-
-  //printf("%g ",theta->ve[0]);  printf("%g ",theta->ve[1]);  printf("%g ",theta->ve[2]);  printf("%g\n",theta->ve[3]);
-
-  for(int i = 0; i < theta->dim; i++) {
-    M_FREE(matrices[i]);
-  }
-
+  // load parameters[i].gradient back into g
+  iTheta=0;
+  for(int i = 0; i < parameters->count; i++) 
+    if(parameters->parameter[i]->active == TRUE) {
+      g->ve[iTheta] = parameters->parameter[i]->gradient;
+      iTheta++;
+    }
+  
   M_FREE(core_args.x);
   M_FREE(core_args.u);
   M_FREE(core_args.xh);

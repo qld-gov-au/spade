@@ -12,6 +12,12 @@ double K(
 		 	
 		 );
 
+double K_dr(
+
+  Parameters * parameters,
+  Data *data
+  );
+
 double G(
 
 	 MAT *p,

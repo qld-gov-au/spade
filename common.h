@@ -41,8 +41,8 @@ typedef struct {
   // or if it should retain a fixed value (FALSE).
   int active;
   
-  // Which active parameter are we? 
-  int index;
+  // The current value of the gradient 
+  double gradient;
   
 } Parameter;
 
@@ -65,8 +65,6 @@ typedef struct {
 
 typedef struct {
   Data *d;
-  VEC * g;
-  MAT * p;
   VEC * eff;
   double k;
   int S;

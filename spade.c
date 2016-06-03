@@ -25,6 +25,7 @@
 #include "spade.h"
 #include "common.h"
 #include "machinery/VMGMM.h"
+#include "machinery/objfns.h"
 #include "optim/optim.h"
 #include "plotting/plot.h"
 #include "machinery/alpha/grad_alpha.h"
@@ -275,32 +276,32 @@ int main(int argc, char *argv[])
   parameters.alpha.grad = &grad_alpha;
   parameters.alpha.value = alpha;
   parameters.alpha.active = TRUE;
-  parameters.alpha.index = 0;
+  parameters.alpha.gradient = 0;
 
   parameters.beta.grad = &grad_beta;
   parameters.beta.value = beta;
   parameters.beta.active = TRUE;
-  parameters.beta.index = 1;
+  parameters.beta.gradient = 0;
 
   parameters.gamma.grad = &grad_gamma;
   parameters.gamma.value = gamma;
   parameters.gamma.active = TRUE;
-  parameters.gamma.index = 2;
+  parameters.gamma.gradient = 0;
   
   parameters.iota.grad = &grad_iota;
   parameters.iota.value = iota;
   parameters.iota.active = TRUE;
-  parameters.iota.index = 3;
+  parameters.iota.gradient = 0;
 
   parameters.kappa.grad = &grad_kappa;
   parameters.kappa.value = kappa;
   parameters.kappa.active = FALSE;
-  parameters.kappa.index = -1;
+  parameters.kappa.gradient = 0;
 
   parameters.omega.grad = &grad_omega;
   parameters.omega.value = omega;
   parameters.omega.active = FALSE;
-  parameters.omega.index = -1;
+  parameters.omega.gradient = 0;
 
   // Determine the number of parameters which are active
   int activeParameterCount = 0;
@@ -323,6 +324,55 @@ int main(int argc, char *argv[])
   //printf("%f\n",cn);
   //exit(1);
 
+/*
+
+  Solve_Core_Args core_args;
+  
+  int I;
+  I = data.I;
+  
+  core_args.x = m_get(I,J);
+  core_args.u = m_get(I,J);
+  core_args.xh = m_get(I,J+1);
+  core_args.uh = m_get(I,J+1);
+  core_args.xn = m_get(I,J+1);
+  core_args.xhh = m_get(I,J+1);
+  core_args.un = m_get(I,J+1);
+  core_args.Ui = v_get(I);
+  core_args.Uh = v_get(I);
+  core_args.Uhh = v_get(I);
+  core_args.idxi = iv_get(I-1);   
+
+  double fv = K(&parameters,&data,&core_args);
+  double save = parameters.omega.value;
+
+  for (int i=-1;i>-20;i--) {
+    double delta = exp((double)i);
+    parameters.omega.value = save + delta;
+    double nfv = K_dr(&parameters,&data);
+    double ch = (nfv - fv) / delta;
+    printf("%g %g\n",delta,ch);
+    
+  }
+  
+  // get the active parameters and run their grad functions
+  MAT *p = m_get(I,J);
+  Grad_Args args;
+  args.d = &data;
+  VEC *g = v_get(theta->dim);
+  args.eff = data.eff;
+  args.k = data.k;
+  args.S = data.S;
+  args.core_args = &core_args;
+  args.parameters = &parameters;
+  
+  parameters.omega.grad((void *) &(args));
+  
+  printf("%g\n",parameters.omega.gradient);
+  
+  exit(1);
+  */
+  
   char lab1[10]="before";
   plot(&parameters,&data,lab1);
 
