@@ -8,3 +8,15 @@ bin
 spade
 plot*.txt
 plot*.pdf
+*.log
+*.lot
+*.aux
+*.bbl
+*.blg
+*.fff
+*.lof
+*.pdf
+*~
+*.ttt
+vgcore.*
+*.txt

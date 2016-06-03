@@ -16,11 +16,6 @@
 
 \title{Stock assessment using the\\ McKendrick-Gurtin-MacCamy-Murphy\\ partial differential equation}
 
-%Plasticity and stock assessment:\\
-%the partial differential approach}
-%Mckendrick style fishery models and application to density-dependent growth ...
-%Density-dependent growth effects on productivity and capacity: the case of Australian barramundi \emph{Lates calcarifer}}
-
 \author{
   Alexander Campbell\\
   Queensland Department of Agriculture and Fisheries\\
@@ -36,47 +31,21 @@
   University of Zagreb, Croatia
 }
 
-\floatstyle{boxed}
-\newfloat{code}{thp}{lop}
-\floatname{code}{Code}
-%\DeclareDelayedFloat{code}{Codes}
-
-\floatstyle{boxed}
-\newfloat{derivation}{thp}{lop}
-\floatname{derivation}{Derivation}
-%\DeclareDelayedFloat{derivation}{Derivations}
-
 \begin{document}
 \maketitle
 
 \begin{abstract}
-In 1926 Anderson McKendrick introduced a differential equation that described a mortality process for an age-structured population.  Morton Gurtin and Richard MacCamy (1974), and then Lea Murphy (1983), made key extensions such that, with the addition of a time-dependent mortality term, the equation encapsulates much of the core of modern stock assessment.  We introduce numerical and analytical techniques that enable efficient and robust parameter estimation for fishery models built using this class of equations and demonstrate these using an Australian barramundi (\emph{Lates calcarifer}) fishery.  We highlight the additional insight the differential formalism provides on questions of scale and parameter identifiability, and discuss the characterisation of uncertainty.
+In 1926 Anderson McKendrick introduced a differential equation that describes a mortality process for an age-structured population.  Morton Gurtin and Richard MacCamy (1974), and then Lea Murphy (1983), made key extensions such that, with the addition of a time-dependent mortality term, the equation encapsulates much of the core of modern stock assessment.  We introduce numerical and analytical techniques that enable efficient parameter estimation for fishery models built using this class of equations and demonstrate these using an Australian barramundi (\emph{Lates calcarifer}) fishery.  We highlight the additional insight the differential formalism provides on questions of scale and parameter identifiability, and discuss the characterisation of uncertainty.
 \end{abstract}
-
-%We discuss some of the differences between traditional matrix-based fishery models and the pde formalism.  And focus on the scale thing.
-%In this article we focus on the insight this provides into scale. 
-%We explore the insights this framework provides on many of the problems facing modern stock assessment, including growth plasticity.
-
-%In a sense it is the prototypical stock assessment model - at least for species with an extended breeding period - of which all matrix-based approaches are an approximation.
-
-%, that is to say, into a tool which can be used to inform fishery management.
-%. We discuss how this framework is best suited to dealing with many of the challenges that still face stock assessment, such as plasticity, 
-
-%Given that the final mathematical form of this model was attained more than thirty years ago, we speculate that two key technical issues have been preventing its 
-
-%the reason for its absence from the fishery modelling literature is because of a requirement for numerical solutions. 
-
-%Given that this kind of model has been well known in ecology for the last thirty years, we speculate that the reason for its absence from the fishery modelling literature is because of the necessetya
-%\end{abstract}
 
 \section{Introduction}
 Providing there is sufficient information available to calibrate them, population models that explicitly represent the size\footnote{Here we are using `size' as a shorthand for any physiologically important dimension, for example age, length, weight, body mass etc.  A general term for these models is physiologically structured population models \citep{Metz2014}.} of the individual are significantly more realistic than those that lump this dimension into one or a few state variables.  This enhanced realism is particularly important for populations which experience a forcing, or can be controlled through a behaviour, that acts along the dimension - for example a time-dependent mortality process that varies as a function of size, or a size-based management control.   
 
-Here we present a size structured population model wherein the population is subject to an external (time-dependent) mortality effect, namely fishing, and for which parameters are estimated by minimising the discrepancy between predictions of the model and data.  This is also the goal of the applied science of `stock assessment' \citep{Hilborn1992}, where the estimated parameters are used to guide the management of a fishery.  The methods we present here, however, differ somewhat from those used in stock assessment, and bear more resemblance to the mathematical ecology literature.  In particular, we represent the physiological dimension mathematically as a continuum, rather than as a discrete set of states as is done almost exclusively in stock assessment.\footnote{The only exception we are aware of is \cite{Dueri2012a,Dueri2012b}, about which more later.}  The decision to represent both time and size as a continuum means that we are dealing with partial differential equations, and brings with it some challenges as well as some advantages.  The aim of this paper is to show one of way of tackling the challenges - in particular we introduce a numerical and analytic techniques for efficient parameter estimation - and to highlight some of the advantages.  While some things are ostensibly harder in this paradigm, such as the need to solve differential equations using numerical techniques, some things are possible that are not in the discrete paradigm, and some things actually become easier.  Perhaps the main advantage though is conceptual clarity. 
+Here we present a size structured population model wherein the population is subject to a time-dependent mortality effect, namely fishing, and for which parameters are estimated by minimising the discrepancy between predictions of the model and data.  This is also the goal of the applied science of `stock assessment' \citep{Hilborn1992}, where the estimated parameters are used to guide the management of a fishery.  The methods we present here, however, differ somewhat from those used in stock assessment, and bear more resemblance to the mathematical ecology literature.  In particular, we represent the physiological dimension mathematically as a continuum, rather than as a discrete set of states as is done almost exclusively in stock assessment.\footnote{The only exception we are aware of is \cite{Dueri2012a,Dueri2012b}, about which more later.}  The decision to represent both time and size as a continuum means that we are dealing with partial differential equations, and brings with it some challenges as well as some advantages.  The aim of this paper is to show one of way of tackling the challenges and to highlight some of the advantages.  While some things are ostensibly harder in this paradigm, such as the need to solve differential equations using numerical techniques, some things are possible that are not in the discrete paradigm, and some things actually become easier.  Perhaps the main advantage though is conceptual clarity and access to powerful theoretical tools.
 
-The approach is demonstrated by fitting the model to data from a barramundi fishery in Queensland, Australia.
+In section \ref{sec:m2m} we give some context to the Murphy equation by showing how it has evolved from earlier theories.  A fishery model based on this framework is introduced in section \ref{sec:fm}, and a numerical scheme for its numerical solution is given in section \ref{sec:ns}.  Until this point nothing is particularly original.  The main technical contributions of the paper come in section \ref{sec:pe} where we introduce numerical and analytic techniques for efficient parameter estimation.  In section \ref{sec:sui} we explore the three interrelated concepts of identifiability, uncertainty and scale.  The approach is demonstrated in section \ref{sec:app} where we fit the model to data from a barramundi fishery in Queensland, Australia.  We close with a discussion in section \ref{sec:disc}.
 
-\section{From Malthus to Murphy}\label{sec:model}
+\section{From Malthus to Murphy}\label{sec:m2m}
 The simplest population model follows the Malthusian principle 
 \begin{equation}
 \dot{N} = \alpha N,
@@ -95,47 +64,76 @@ A limitation of the Verhulstian model is that it does not consider the age of th
 \begin{equation}
 \frac{\partial n(a,t)}{\partial t} + \frac{\partial n(a,t)}{\partial a} = -\mu(a,t) n(a,t)
 \end{equation}
-where $n(a,t)$ is the density of individuals of age $a$ at time $t$, and $\mu$ is rate at which they die per unit of population. 
+where $n(a,t)$ is the density of individuals of age $a$ at time $t$ ( $\int_{a_1}^{a_2}n(a,t)\,da$ gives the total number of individuals aged between $a_1$ and $a_2$ at time $t$), and $\mu$ is rate at which they die per unit of population. 
 
 This equation requires a boundary condition on $n(a,t)$ in both $t$ and $a$. The initial condition,
 \begin{equation}
 n(a,0) = f(a)
 \end{equation}
-says that the population has a given initial age distribution.  The other boundary condition is the birth rate, also known as the renewal equation, 
+says that the initial age distribution of the population is $f(a)$.  The other boundary condition is the birth rate, also known as the renewal equation, 
 \begin{equation}
 n(0,t) = \int_a b(a)n(a,t)\,da
 \end{equation}
-where $b(a)$ is the birth rate at age $a$.  This is an unusual boundary condition for a PDE in that it is prescribed but must be computed from the population at time t.
+where $b(a)$ is the birth rate at age $a$.  This is an unusual boundary condition for a PDE in that it is dynamically computed from the population at time t.
 
-However the McKendrick model has the same problem as Malthus - the death process is not dependent on the population.  Clearly a Verhulstian effect is needed.  \citet{Sinko1967} give a rigorous derivation of the McKendrick model.. and they explain its relationship to the Verhulst model by integrating equation \ref{eq:1} over age and then setting $\mu$ to .. but they do not actually write down the PDE with population dependence inside it, nor do they seem to realise such a model is a different class from \ref{eq:1} and that the existence and uniqueness proof given in \citet{Sinko1968}.  This was done by \citet{Gurtin1974},
+However the McKendrick model has the same limitation as the Malthusian one - the mortality process is not dependent on the size of the population.  Clearly a Verhulstian effect is needed.  This was not achieved until \citet{Gurtin1974} proved existence and uniqueness of solutions to equations of the form
 \begin{equation}
-\frac{\partial n(a,t)}{\partial t} + \frac{\partial n(a,t)}{\partial a} = -\mu(a,N,t) n(a,t)
+  \begin{split}
+    \frac{\partial \rho(a,t)}{\partial t} + \frac{\partial n(a,t)}{\partial a} &= -\mu\left(a,\int_a n(a,t)dz\right) n(a,t)\\
+    n(0,t) &= \int_a b(a)n(a,t)\,da\\
+%    &N(t) = \int_a n(a,t)\,da
+  \end{split}
 \end{equation}
+where the mortality term now is dependent on the size of the population. A simple model of this form, introduced in \citet{Gurtin1978}, has
+\begin{equation}
+  \begin{split}
+    \mu(a,N,t) &= \mu_0 + \mu_1 N\\
+    b(a) &= b_0 e^{-b_1 a}
+  \end{split}
+\end{equation}
+which they showed reduces to Verhulst's model (with $\alpha_0 \equiv b_0 - b_1 - \mu_0$ and $\beta_0 \equiv \mu_1$) in the special case of a population that has an initial age distribution which is balanced in a certain sense. Away from this balance the initial birth rate is either `small' relative to the initial population, and the population initially decreases; alternatively it is `large', and the population surges to a maximum which is larger than its ultimate equilibrium value. 
 
-\section{Fishery models}
-Once we introduce a time-dependent mortality function we have all the ingredients for a simple size-structured fishery model:
+While this class of models is impressively realistic, it still treats only age, which is often less appropriate than other physiological attributes \citep{Frank1960}. \citet{vanSickle1977} analysed a size-based version of the McKendrick PDE in the context of a fishery model and made the deep observation that a bump may appear in the size-frequency distribution purely due to fish growing into those size classes faster than they die or grow out of them (i.e. not because of an earlier recruitment pulse), but it wasn't until \citet{Murphy1983} that both density dependence and size were incorporated in the McKendrick PDE framework. \citet{Murphy1983}'s model is
+\begin{equation}
+  \begin{split}
+    \frac{\partial n(x,t)}{\partial t} + \frac{\partial g(x)n(x,t)}{\partial x} &= -\mu\left(x,\int_x n(x,t)dx\right) n(x,t)\\
+    g(0)n(0,t) &= \int_x b(x)n(x,t)\,dx\\
+%    &N(t) = \,dx
+  \end{split}
+\end{equation}
+where $x$ is size and $g(x)$ is the growth function. \citet{vanSickle1977} gives an intuitive derivation for the $g(0)$ term in the birth subequation. %Existence and uniqueness for the Murhpy model was finally proved by ?
+
+%Interestingly \footnote{\citet{Sinko1967} give a rigorous derivation of an age \emph{and} size structured McKendrick PDE but their formulation lacks the critical $N$ term in the death function - density dependence is not taken into account} explain its relationship to Verhulst's model by integrating equation \ref{eq:1} over age and then setting $\mu$ to .. but they do not actually write down the PDE with population dependence inside it, nor do they seem to realise such a model is a different class from \ref{eq:1} and that the existence and uniqueness proof given in \citet{Sinko1968}.
+
+\section{Fishery models}\label{sec:fm}
+Once we introduce a time-dependent mortality function we have all the ingredients for a simple size-structured fishery model,\footnote{Consistent with the fishery literature we will use $z$ for the mortality process.}
 \begin{subequations}
 \label{eq:1}
 \begin{align}
-\frac{\partial u(x,t)}{\partial t} + \frac{\partial [g(x)u(x,t)]}{\partial x} &=
--z(x,U(t),t)u(x,t) \label{eq:1.1}\\
-g(0)u(0,t) &=  \int_0^{\omega} b(x) u(x,t)\,dx\label{eq:1.2}\\ 
-U(t) &= \int_0^{\omega} u(x,t)\, dx
+\frac{\partial n(x,t)}{\partial t} + \frac{\partial [g(x)n(x,t)]}{\partial x} &=
+-z(x,N(t),t)n(x,t) \label{eq:1.1}\\
+g(0)n(0,t) &=  \int_0^{\omega} b(x) n(x,t)\,dx\label{eq:1.2}\\ 
+N(t) &= \int_0^{\omega} n(x,t)\, dx
 \end{align}
 \end{subequations}
-where $x$ is the size of the individual, $\omega$ is the maximum size, and $b$, $g$ and $z$ represent the processes of birth, growth and death respectively. The birth and growth processes can be parameterised to taste, however in the sequel we will emphasise the importance of analytically tractable parameterisations.  A choice which will turn out to be both analytically tractable and yet not overly restrictive is
-\begin{subequations}
-  \begin{align}
-    g(x) &= \kappa (\omega - x)\label{seq:2b}\\
-    b(x) &= \left(\alpha_1 x + \alpha_2 x^2\right)\label{seq:2c},%\exp\left(\psi \cos(t-\phi)\right)/ 2\pi I_0(\psi)
-  \end{align}
-\end{subequations}
-so that growth is von Bertalannfy and birth is ...
+where $x$ is the size of the individual, $\omega$ is the maximum size, and $b$, $g$ and $z$ represent the processes of birth, growth and death respectively. The birth and growth processes can be parameterised to taste, however in the sequel we will emphasise the importance of analytically tractable parameterisations.  Growth is the simplest in this regard as it will turn out that the \citet{vonBertalanffy1938} form,
+\begin{equation}
+  g(x) = \kappa (\omega - x)\label{eq:growth}
+\end{equation}
+is indeed tractable.\footnote{at least in the context of the other choices - they are interrelated.}  A tractable birth rate which is at least biologically plausible for many species is
+%\begin{subequations}
+%  \begin{align}
+\begin{equation}
+  b(x) = \left(\alpha_1 x + \alpha_2 x^2\right)\label{eq:birth}.
+\end{equation}
+  %  \end{align}
+%\end{subequations}
+
 The mortality process is given by 
 \begin{equation}
   z(x,U(t),t) = \beta + \gamma U(t) + s(x)f(t)\label{seq:2a},
 \end{equation}
-where $\beta$ and $\gamma$ are respectively density-independent, and density-dependent, natural mortalities, $s(x)$ is the `selectivity' function (different sized fish are differentially selected by the fishing gear), given by
+where $\beta$ and $\gamma$ are, respectively, density-independent and density-dependent natural mortalities, $s(x)$ is the `selectivity' function (different sized fish are differentially selected by the fishing gear), given by
 \begin{equation}
   s(x) = \exp(-(x-s_1)^2 / s_2)
 \end{equation}
@@ -143,7 +141,7 @@ and $f(t)$ is fishing mortality,
 \begin{equation}
   f(t) = \iota e(t)  
 \end{equation}
-where $\iota$ is the catchability and $e(t)$ is the observed effort. The fishing process produces a catch,
+where $\iota$ is the catchability and $e(t)$ is the fishing effort.  The fishing process produces a catch,
 \begin{equation}
   c(x,t) = w(x)s(x)f(t)u(x,t)
 \end{equation}
@@ -151,7 +149,7 @@ where $w(x)$ is the weight of a fish of size $x$, given by
 \begin{equation}
   w(x)=w_1 x^{w_2}.
 \end{equation}
-This completes the specification of a simple fishery system. The biological component of this system is a slight variant of that analysed by \citet{Murphy1983} - simpler in that growth and births are not density dependent, but more complex in that growth is size-dependent (von Bertalanffy). Another way to think of it is as the simplest modification of the first model in \citet{Gurtin1978} needed to handle size-dependent growth.  Both G\&M and Murphy had autonomous pdes, we don't, which is why we need a numerical solution.
+This completes the specification of a simple fishery system.  The biological component of this system is a slight variant of that analysed by \citet{Murphy1983} - simpler in that growth and births are not density dependent, but more complex in that growth is size-dependent.  Another way to think of it is as the simplest modification of the first model in \citet{Gurtin1978} needed to handle size-dependent growth.  The extent to which this is a non-standard fishery model is taken up in section \ref{sec:disc}.
 
 It will turn out to be useful to reparameterise the birth function thus
 \begin{equation}
@@ -159,10 +157,10 @@ It will turn out to be useful to reparameterise the birth function thus
 \end{equation}
 
 %\clearpage
-\section{Numerical solutions}
-Equation \ref{eq:1} is a nonlinear hyperbolic partial differential equation with a nonlinear and non-local boundary condition, and in general must be solved numerically. As with all Mckendrick style PDEs it can be reduced to a coupled ODE problem by integrating along the characteristic curves \citep{Kot2001}. Following \citet{Angulo2004}, define
+\section{Numerical solutions}\label{sec:ns}
+Equation \ref{eq:1} is a nonlinear hyperbolic partial differential equation with non-local terms and a nonlinear and non-local boundary condition.  Even without the time-dependent term (that is, even considering autonomous biological models of the kind described by Murphy) no analytical solutions are known. With it, a numerical approach is obviously required.  Significant research has been done in this area, for pointers into the literature see \citet{Angulo2004} and \citet{Angulo2014}. In this section we follow closely the scheme developed in \citet{Angulo2014}.
 
-Even without a time-dependent term you would still need a numerical solution.
+We start by reducing the PDE to a coupled ODE problem by integrating along the characteristic curves \citep{Courant1966} (this is analogous to following the mortality process of a particular cohort). Following \citet{Angulo2004}, define
 \begin{equation}
   z^*(x,U,t)=z(x,U,t)+g_x(x)
 \end{equation}
@@ -181,7 +179,7 @@ Next, define the function
 \begin{equation}
   r(t;t^*,x^*)=u(x(t;t^*,x^*),t)
 \end{equation}
-which satisfies the folloiwng initial value problem
+which satisfies the following initial value problem
 \begin{equation}
   \begin{cases}
     \frac{d}{dt} r(t;t^*,x^*)=-z^*(x(t;t^*,x^*),U,t)r(t;t^*,x^*), & t\geq t^*,\\
@@ -192,7 +190,26 @@ and therefore can be represented by
 \begin{equation}\label{eq:2.5}
   r(t;t^*,x^*)=u(x^*,t^*)\exp\left(-\int_{t^*}^{t}z^*(x(\tau;t^*,x^*),U,t)\,d\tau\right).
 \end{equation}
-The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.1}. We use a slightly modified version of the second order numerical scheme of \citet{Angulo2014}, given in Algorithm \ref{alg:base}.
+The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.1}.  This procedure is explained in detail in .. and .. however because it is so fundamental (and unfamiliar to fishery scientists) and connects to our later work, we include it here.. 
+
+\citep{Angulo2014} developed a second order numerical scheme, given in Algorithm \ref{alg:original}.
+
+%As with all Mckendrick style PDEs it can be reduced to a coupled ODE problem by integrating along the characteristic curves \citep{Kot2001}. 
+
+
+\begin{algorithm}
+  \caption{Numerical scheme for }\label{alg:original}
+  \begin{algorithmic}
+    \State $X_0^{n+1} \gets 0$
+    \State $X_{j+1}^{n+1} \gets X_j^n + k g(X_{j+1}^{n+1/2}), 0 \leq j \leq J$
+    \State $U_{j+1}^{n+1} \gets U_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right), 0 \leq j \leq J$
+    \State $U_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{U}^{n+1})) / g(X_{0}^{n+1})$
+    \State $X_0^{n+1/2} \gets 0$
+    \State $X_{j+1}^{n+1/2} \gets X_j^n + (k/2) g(X_j^n), 0 \leq j \leq J$
+    \State $U_{j+1}^{n+1/2} \gets U_j^n \exp\left(-(k/2) z^*(X_j^n,\mathcal{Q}(\mathbf{X}^n,\mathbf{U}^n),t^n)\right), 0 \leq j \leq J$
+    \State $U_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{U}^{n+1/2})) / g(X_{0}^{n+1/2})$
+  \end{algorithmic}
+\end{algorithm}
 
 Following \citet{Angulo2014} we use an adaptive mesh that keeps the number of nodes along the size dimension constant as the algorithm steps forward: at time $t^{n+1}$ we remove the grid node $X_l^{n+1}$ that satisfies
 \begin{equation}
@@ -201,7 +218,7 @@ Following \citet{Angulo2014} we use an adaptive mesh that keeps the number of no
 See \citet{Angulo2014} for convergence analysis and numerical experiments. 
 
 %\clearpage
-\section{Parameter Estimation}
+\section{Parameter Estimation}\label{sec:pe}
 Having solved the model, we are in a position to critique its performance.  Clearly the kind of data that is available will determine the kinds of critiques that are possible, but it is instructive to consider the what data would look like in the ideal case and work backwards.  Mathematically, the relevant discipline for this is control theory.  Control theory relates observables (data) to models, and makes statements about under what conditions the observables are sufficient/neccesary for the model states and parameters to be identified.  Given that the state of the system is given by $n(x,t)$, an ideal observation would be precisely that - a space-time continuous sheet.. however this is completely impractical, akin to using the actual geography as your map for the geography, and anyway we have a better candidate.. the effort that is put into 
 
 The model makes a prediction of the size-structured catch, $c(x,t) = s(x) \iota e(t) n(x,t)$, 
@@ -268,6 +285,8 @@ This is implemented with Algorithm \ref{alg:sens}, this is one of the two main t
 
 Sensitivity PDE solutions for the other parameters follow analagously.
 
+Look up \citep{Deng2015} and consider \citep{Banks2009}. 
+
 \subsection{Initial state}
 Unfished equilibrium can be derived analytically.
 
@@ -291,14 +310,15 @@ The model PDE (Equation \ref{eq:1}) is then integrated along the size dimension 
 %\end{subequations}
 %so that at equilibrium we have
 \begin{subequations}
+  \label{eq:eq}
   \begin{align}
-  (\beta+\gamma \bar{U}) \bar{U} &= \alpha a_1 \bar{V} + \alpha a_2 \bar{W}\\
-  (\beta + \gamma \bar{U})\bar{V}  &=  \kappa \omega \bar{U} - \kappa \bar{V}\\
-  (\beta+\gamma \bar{U})\bar{W}  &=  2\kappa\omega \bar{V} - 2\kappa \bar{W}
+  (\beta+\gamma \bar{U}) \bar{U} &= \alpha a_1 \bar{V} + \alpha a_2 \bar{W}\label{seq:eqa}\\
+  (\beta + \gamma \bar{U})\bar{V}  &=  \kappa \omega \bar{U} - \kappa \bar{V}\label{seq:eqb}\\
+  (\beta+\gamma \bar{U})\bar{W}  &=  2\kappa\omega \bar{V} - 2\kappa \bar{W}\label{seq:eqc}
   \end{align}
 \end{subequations}
 
-This can be solved (details in Appendix \ref{app:eq2}), giving
+This can be solved (details in section \ref{sec:solv}), giving
 \begin{equation}
   \bar{U} = \frac{1}{\gamma}\bigg(\frac{ \sqrt[3]{9 \alpha a_1 \kappa^2 \omega+18 \alpha a_2 \kappa^2 \omega^2+\kappa\zeta}}{3 \sqrt[3]{\frac23}} +  
   \frac{\sqrt[3]{\frac23}\,\kappa (\alpha a_1  \omega+\kappa)}{\sqrt[3]{9 \alpha a_1 \kappa^2 \omega+18 \alpha a_2 \kappa^2 \omega^2+\kappa\zeta}} - \beta - \kappa\bigg)
@@ -324,44 +344,6 @@ The size structure at equilibrium is then given by
 
 We also need initial conditions for our sensitivity PDEs. These are, by definition, $d u(x)/d\theta$. The derivations for these are contained in Appendix \ref{app:2}.
 
-%\subsection{Initial parameter values}
-
-Consider now the initial values of the parameters for the optimisation algorithm. At equilibrium, the following relation holds
-%If we linearise the model by removing the density dependent natural mortality ($\gamma$) and consider the population at fished equilibrium, we have the following relation
-\begin{equation}
-  1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
-\end{equation}
-where $f$ is the constant fishing mortality and $\tilde{\beta}$ is a natural mortality term that is a mixture of density dependent and density independent effects. 
-
-%But we also have
-%\begin{equation}
-%  1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\beta + 0.4\gamma \bar{U}  + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
-%\end{equation}
-
-%\begin{equation}
-%{{2\,\left(\int_{0}^{w}{{\frac{x^2\,e^ {- {{\int_{0}^{x}{{\frac{f s(\lambda)+\beta}{\kappa(\omega-\lambda)}}\;d\lambda}}} }}{\kappa(\omega-x)}}\;dx}
-% \right)\,\left({{\int_{0}^{w}{{\frac{\left(\alpha_2 x^2+\alpha_1 x
-% \right)\,e^ {- {\int_{0}^{x}{{\frac{f\,s\left(l\right)+\beta}{\kappa(\omega-
-% \lambda)}}\;d\lambda}} }}{\kappa(\omega-x)}}\;dx}}}-1\right)}}
-%\end{equation}
-
-At this equilibrium, %we have the following size-structure
-%\begin{equation}
-%  \frac{\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
-%\int_0^\omega \left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}        
-%\end{equation}
-%and thus the following 
-the catch structure is proportional to
-\begin{equation}
-  h(x)=\frac{s(x)\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
-\int_0^\omega s(x)\left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}.        
-\end{equation}
-If we assume the population has been roughly at equilibrium for a period of time (a visual assessment should suffice), then we can compare this theoretical catch structure to the average catch structre observed over that period. Then, given a fixed $\kappa$ and $\omega$, it is possible to estimate values for $f$ and $\tilde{\beta}$ by minimising the following objective function
-\begin{equation}
-  G(\theta) = \int_0^\omega l(x) \log\left(\frac{l(x)}{h(x)}\right) \,dx.
-\end{equation}
-where $l(x)$ is the average observed size-structure for the time period. 
-
 For optimisation we use the BFGS \citep{Broyden1970,Fletcher1970,Goldfarb1970,Shanno1970conditioning,Shanno1970optimal} method, with line search due to \citet{more1994line}.
 
 The guiding philosophy is
@@ -370,28 +352,34 @@ This has a number of benefits, including
 
 - a small number of parameters to optimise, and therefore the applicability of Quasi-Newton methods, which can be memory intensive. 
 
-\section{Identifiability}
-
-
-
+\section{Identifiability, Uncertainty and Scale}\label{sec:sui}
+The condition number of the Hessian at the global minima is a useful indicator of the identifiability of the model \cite{Thacker1989}. The condition number is the ratio of the largest eigenvalue to the smallest. 
 \begin{equation}
-  \Gamma 
-  \begin{cases}
-    u_t + [g(x)u(x)]_x = \mu(x,U,t) u & \\
-    g(0)u(0) = \int_x b(x)u(x)\,dx &
-  \end{cases}
+  \frac{\partial^2 K}{\partial\theta_i\partial\theta_j} \approx \frac{\psi_i(\theta + \delta_j\epsilon) - \psi_i(\theta-\delta_j \epsilon)}{4\epsilon} + \frac{\psi_j(\theta +\delta_i\epsilon) - \psi_j(\theta - \delta_i\epsilon)}{4\epsilon}
 \end{equation}
-    
+where
+\begin{equation}
+  \psi_i(\theta)=\frac{\partial K}{\partial\theta_i}
+\end{equation}
+
+Mention the identifiability work with the simplified model. Mention the nice aspect of the hessian approach is that excitablity is taken into account. 
+
+%\begin{equation}
+%  \Gamma 
+%  \begin{cases}
+%    u_t + [g(x)u(x)]_x = \mu(x,U,t) u & \\
+%    g(0)u(0) = \int_x b(x)u(x)\,dx &
+%  \end{cases}
+%\end{equation}   
+
+%\section{Scale, granularity, relationship with optimisation and computational complexity}
 
 
-\section{Scale, granularity, relationship with optimisation and computational complexity}
-
-Hone in on the best scale... explore as necessary.. 
-
-\section{Application}
+\section{Application}\label{sec:app}
 Increase threshold.
 Quantify uncertainty directly through the hessian - this much change in parameter x .. well, we get the eigenvalues and eigenvectors, they tell us a lot.  From this we can understand the 
 
+Hone in on the best scale... explore as necessary.. 
 
 <<code,echo=FALSE>>=
 
@@ -586,30 +574,40 @@ plot(xs,eq(xs),type='l',xlab='Size (cm)',ylab='Population (number density)')
 Process & Symbol & Units & Value\\
 \hline
 \multirow{2}{*}{Birth}
- & $\alpha_1$  & $\text{cm}^{-1}\text{yr}^{-1}$  & \\
- & $\alpha_2$  & $\text{cm}^{-1}\text{yr}^{-1}$  & \\
+ & $\alpha$  & $\text{cm}^{-1}\text{yr}^{-1}$  & \\
+% & $\alpha_2$  & $\text{cm}^{-1}\text{yr}^{-1}$  & \\
 \hline
 \multirow{2}{*}{Growth}
  & $\kappa$   & $\text{yr}^{-1}$  & \\
  & $\omega$ & $\text{cm}$ & \\
 \hline
-\multirow{2}{*}{Death}
+\multirow{2}{*}{Natural Death}
  & $\beta$  & $\text{yr}^{-1}$ & \\
  & $\gamma$  & $\text{fish}^{-1}\text{yr}^{-1}$  & \\
 \hline 
+\multirow{1}{*}{Fishing Death}
+ & $\iota$  & $\text{yr}^{-1}$ & \\
+\hline
 \end{tabular}
 \caption{Active parameters}
 \label{tbl:active}
 \end{table}
 
-\section{Discussion}
+\section{Discussion}\label{sec:disc}
 Very sensible to have an age dependent death rate. Plasticity. Incoherence of standard probabilistic growth models. Identifiability. Granularity and scale.
 
 Call for greater interaction between fishery modellers, numerical analysts, and mathematicians that specialise in reducing PDEs to ODEs, and manipulating PDEs. 
 
 There is insight.
 
+
 We end with a stronger, more controversial statement: if you can't get analytic gradients, perhaps you don't know what you're doing. (because you don't have a deep understanding of the uncertainty)
+
+As noted by \citet{Lorenzen2008}, the traditional `stock and recruitment' configuration misses the fact that significant density dependent effects occur after recruitment. 
+
+Mention the debate over mortality and whether or not it should be estimated within a stock assessment model.
+
+\citet{Schnute1991}
 
 \clearpage
 \begin{appendices}  
@@ -642,7 +640,7 @@ We end with a stronger, more controversial statement: if you can't get analytic 
 \end{algorithm}
 
 \clearpage
-\section{pde}\label{app:pde}
+\section{Sensitivity PDEs}\label{app:pde}
 \begin{subequations}
   \begin{align}
   \frac{d F}{d \alpha} &= p_t + \kappa(\omega-x)p_x - \kappa p + \left(\beta+\gamma U+s(x)\iota e(t)\right)p + \gamma P u = 0\\
@@ -667,7 +665,7 @@ The boundary conditions for each case are given by
 
 \clearpage
 \section{Analytical Equilibrium Derivations}\label{app:eq}
-\emph{Part one - Sub \ref{seq:2a} and \ref{seq:2b} into \ref{eq:1.1} and integrate over $x$ from 0 to $\omega$.}
+\emph{Part one - Sub \ref{eq:growth} and \ref{eq:birth} into \ref{eq:1.1} and integrate over $x$ from 0 to $\omega$.}
 
 \begin{subequations}
   \begin{align}
@@ -701,7 +699,7 @@ subbing back:
   \end{align}
 \end{subequations}
 
-\noindent\emph{Part two - sub \ref{seq:2a} and \ref{seq:2b} into \ref{eq:1.1}, multiply by $x$ and integrate over $x$ from 0 to $\omega$.}
+\noindent\emph{Part two - sub \ref{eq:growth} and \ref{eq:birth} into \ref{eq:1.1}, multiply by $x$ and integrate over $x$ from 0 to $\omega$.}
 
 \begin{subequations}
   \begin{align}
@@ -733,7 +731,7 @@ subbing back into \ref{eq:2pt3}
 \end{subequations}
 
 %\clearpage
-\noindent\emph{Part three - sub \ref{seq:2a} and \ref{seq:2b} into \ref{eq:1.1}, multiply by $x^2$ and integrate over $x$ from 0 to $\omega$.}
+\noindent\emph{Part three - sub \ref{eq:growth} and \ref{eq:birth} into \ref{eq:1.1}, multiply by $x^2$ and integrate over $x$ from 0 to $\omega$.}
 
 \begin{subequations}
   \begin{align}
@@ -764,13 +762,12 @@ subbing back into \ref{eq:2pt3}
   \end{align*}
 \end{subequations}
 
-\clearpage
-\section{Solving for $\bar{U}$, $\bar{V}$ and $\bar{W}$}\label{app:eq2}
-We can simplify \ref{seq:3b} to
+\subsection{Solving for $\bar{U}$, $\bar{V}$ and $\bar{W}$}\label{sec:solv}
+We can simplify \ref{seq:eqb} to
 \begin{equation}
   \bar{V} = \frac{\kappa \omega \bar{U} }{\beta + \gamma \bar{U} + \kappa}\label{eq:6}
 \end{equation}
-and \ref{seq:3c} to 
+and \ref{seq:eqc} to 
 \begin{equation}
   \bar{W} = \frac{2\kappa\omega\bar{V}}{\beta + \gamma\bar{U} + 2\kappa}\label{eq:7}
 \end{equation}
@@ -922,7 +919,45 @@ Z_{\omega}=& \frac{3 \kappa^2 ( \alpha_1 \zeta + 4 \alpha_2  \omega \zeta - 2 \a
 \end{equation}
 
 \section{Initial parameters stuff}
-  This expression can be differentiated to assist with optimisation:
+%\subsection{Initial parameter values}
+
+Consider now the initial values of the parameters for the optimisation algorithm. At equilibrium, the following relation holds
+%If we linearise the model by removing the density dependent natural mortality ($\gamma$) and consider the population at fished equilibrium, we have the following relation
+\begin{equation}
+  1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
+\end{equation}
+where $f$ is the constant fishing mortality and $\tilde{\beta}$ is a natural mortality term that is a mixture of density dependent and density independent effects. 
+
+%But we also have
+%\begin{equation}
+%  1=\int_0^\omega \frac{ \alpha_1 x + \alpha_2 x^2}{\kappa (\omega - x)} \exp\left(-\int_0^x \frac{\beta + 0.4\gamma \bar{U}  + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx
+%\end{equation}
+
+%\begin{equation}
+%{{2\,\left(\int_{0}^{w}{{\frac{x^2\,e^ {- {{\int_{0}^{x}{{\frac{f s(\lambda)+\beta}{\kappa(\omega-\lambda)}}\;d\lambda}}} }}{\kappa(\omega-x)}}\;dx}
+% \right)\,\left({{\int_{0}^{w}{{\frac{\left(\alpha_2 x^2+\alpha_1 x
+% \right)\,e^ {- {\int_{0}^{x}{{\frac{f\,s\left(l\right)+\beta}{\kappa(\omega-
+% \lambda)}}\;d\lambda}} }}{\kappa(\omega-x)}}\;dx}}}-1\right)}}
+%\end{equation}
+
+At this equilibrium, %we have the following size-structure
+%\begin{equation}
+%  \frac{\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
+%\int_0^\omega \left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}        
+%\end{equation}
+%and thus the following 
+the catch structure is proportional to
+\begin{equation}
+  h(x)=\frac{s(x)\left(\omega-x\right)^{-1}\exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)}{
+\int_0^\omega s(x)\left(\omega-x\right)^{-1} \exp\left(-\int_0^x \frac{\tilde{\beta} + f s(\lambda)}{\kappa(\omega-\lambda)}\,d\lambda\right)\,dx}.        
+\end{equation}
+If we assume the population has been roughly at equilibrium for a period of time (a visual assessment should suffice), then we can compare this theoretical catch structure to the average catch structre observed over that period. Then, given a fixed $\kappa$ and $\omega$, it is possible to estimate values for $f$ and $\tilde{\beta}$ by minimising the following objective function
+\begin{equation}
+  G(\theta) = \int_0^\omega l(x) \log\left(\frac{l(x)}{h(x)}\right) \,dx.
+\end{equation}
+where $l(x)$ is the average observed size-structure for the time period. 
+
+This expression can be differentiated to assist with optimisation:
 \begin{equation}
   \frac{d G}{d \beta} = \int_0^\omega -\frac{l(x)}{h(x)} \frac{ A(x) \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right) B - A(x) \int_0^\omega A(x) \left( - \int_0^x \frac{d\lambda}{\kappa(\omega-\lambda)}\right)\,dx }{B^2}\,dx  
 \end{equation}
@@ -989,3 +1024,34 @@ Wolf conditions:
     \nabla H(\theta_{k+1})' &\mathbf{q}_k \geq c_2 \nabla H(\theta_k)' \mathbf{q}_k\label{eq:w2}
   \end{align}
 \end{subequations}
+
+%We discuss some of the differences between traditional matrix-based fishery models and the pde formalism.  And focus on the scale thing.
+%In this article we focus on the insight this provides into scale. 
+%We explore the insights this framework provides on many of the problems facing modern stock assessment, including growth plasticity.
+
+%In a sense it is the prototypical stock assessment model - at least for species with an extended breeding period - of which all matrix-based approaches are an approximation.
+
+%, that is to say, into a tool which can be used to inform fishery management.
+%. We discuss how this framework is best suited to dealing with many of the challenges that still face stock assessment, such as plasticity, 
+
+%Given that the final mathematical form of this model was attained more than thirty years ago, we speculate that two key technical issues have been preventing its 
+
+%the reason for its absence from the fishery modelling literature is because of a requirement for numerical solutions. 
+
+%Given that this kind of model has been well known in ecology for the last thirty years, we speculate that the reason for its absence from the fishery modelling literature is because of the necessetya
+%\end{abstract}
+
+%Plasticity and stock assessment:\\
+%the partial differential approach}
+%Mckendrick style fishery models and application to density-dependent growth ...
+%Density-dependent growth effects on productivity and capacity: the case of Australian barramundi \emph{Lates calcarifer}}
+
+\floatstyle{boxed}
+\newfloat{code}{thp}{lop}
+\floatname{code}{Code}
+%\DeclareDelayedFloat{code}{Codes}
+
+\floatstyle{boxed}
+\newfloat{derivation}{thp}{lop}
+\floatname{derivation}{Derivation}
+%\DeclareDelayedFloat{derivation}{Derivations}
