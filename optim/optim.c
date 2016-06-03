@@ -8,7 +8,8 @@ VEC * bfgs(
 	   VEC * (*model)(VEC *,Data *,VEC *,double *,Parameters *),
 	   VEC *x,
 	   Data *data,
-     Parameters * parameters
+     Parameters * parameters,
+     OptimControl opt
 
 	   )   
 {
@@ -49,7 +50,7 @@ VEC * bfgs(
       v_copy(g,oldg);
 
       // More-Thuente line search
-      nfev += cvsrch(model,x,f,g,p,1e-2,1e-1,0.4,DBL_EPSILON,1e-20,1e20,60,data,parameters);
+      nfev += cvsrch(model,x,f,g,p,opt.stp,opt.ftol,opt.gtol,opt.xtol,opt.stpmin,opt.stpmax,opt.maxfev,data,parameters);
     
       v_sub(x,oldx,s);
       v_sub(g,oldg,y);

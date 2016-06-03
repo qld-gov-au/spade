@@ -58,6 +58,9 @@ VEC * VMGMM_eq(
 		  )
 {
 
+  double kappa = .1; // FIX THIS
+  double omega = 160; // FIX THIS
+
   VEC *xx = v_get(d->J);
   for (int j=0;j<xx->dim;j++)
     xx->ve[j] = h*j;

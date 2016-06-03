@@ -66,30 +66,6 @@ double K(
 
 	  double al = c(d->cat,k,k*(i - S)) / Q(xt,l); //1e3*
 
-	  if (PLOT) {
-
-	    FILE *p1 = fopen("plot1.txt","w");
-
-	    for (int j=0;j<x->n;j++)
-	      fprintf(p1,"%f %f\n",xt->ve[j],al*l->ve[j]);
-
-	    fclose(p1);
-
-	    FILE *p2 = fopen("plot2.txt","w");
-
-	    for (int j=0;j<x->n;j++)
-	      fprintf(p2,"%f %f\n",xt->ve[j],v->ve[j]);
-
-	    fclose(p2);
-
-	    char buffer[100];
-
-	    sprintf(buffer,"./plo > plotl%.3f.pdf",k*(d->t_id[lfi] - S));
-
-	    system(buffer); 
-
-	  }
-
 	  VEC *ld = v_get(x->n);
 
 	  for (int j=0;j<xt->dim;j++)
@@ -116,23 +92,6 @@ double K(
       V_FREE(v);
 
     }
-
-  if (PLOT) {
-
-    FILE *p1 = fopen("plot.txt","w");
-
-    for (int i=S;i<x->m;i++)
-      fprintf(p1,"%f %f\n",tt->ve[i],ht->ve[i]);
-
-    fclose(p1);
-
-    char buffer[100];
-
-    sprintf(buffer,"./plo1 > plotht.pdf");
-
-    system(buffer);
-
-  }
 
   double blah = Q(tt,ht);
 
@@ -201,30 +160,6 @@ double G(
 
 	  double al = c(data->cat,k,k*(i - S)) / Q(xt,l);
 
-	  if (PLOTDERIV) {
-
-	    FILE *p1 = fopen("plot1.txt","w");
-
-	    for (int j=0;j<x->n;j++)
-	      fprintf(p1,"%f %f\n",xt->ve[j],al*l->ve[j]);
-
-	    fclose(p1);
-
-	    FILE *p2 = fopen("plot2.txt","w");
-
-	    for (int j=0;j<x->n;j++)
-	      fprintf(p2,"%f %f\n",xt->ve[j],pv->ve[j]);
-
-	    fclose(p2);
-
-	    char buffer[100];
-
-	    sprintf(buffer,"./plo > plotl%.3f.pdf",k*(data->t_id[lfi] - S));
-
-	    system(buffer); 
-
-	  }
-
 	  VEC *ld = v_get(x->n);
 
 	  for (int j=0;j<xt->dim;j++)
@@ -271,24 +206,6 @@ double G(
       V_FREE(pv);
 
     }
-
-
-  if (PLOTDERIV) {
-
-    FILE *p1 = fopen("plot.txt","w");
-
-    for (int i=S;i<x->m;i++)
-      fprintf(p1,"%f %f\n",tt->ve[i],ht->ve[i]);
-
-    fclose(p1);
-
-    char buffer[100];
-
-    sprintf(buffer,"./plo1 > plotht.pdf");
-
-    system(buffer);
-
-  }
 
   double blah = Q(tt,ht);
 
@@ -454,31 +371,6 @@ double G_ni(
 
 	  double al = c(data->cat,k,k*(i - S)) / Q(xt,l);
 
-	  if (PLOTDERIV) 
-	    {
-
-	      FILE *p1 = fopen("plot1.txt","w");
-
-	      for (int j=0;j<x->n;j++)
-		fprintf(p1,"%f %f\n",xt->ve[j],al*l->ve[j]);
-
-	      fclose(p1);
-
-	      FILE *p2 = fopen("plot2.txt","w");
-
-	      for (int j=0;j<x->n;j++)
-		fprintf(p2,"%f %f\n",xt->ve[j],pv->ve[j]);
-
-	      fclose(p2);
-
-	      char buffer[100];
-
-	      sprintf(buffer,"./plo > plotl%.3f.pdf",k*(data->t_id[lfi] - S));
-
-	      system(buffer);
-
-	    }
-
 	  VEC *ld = v_get(x->n);
 
 	  for (int j=0;j<xt->dim;j++)
@@ -526,24 +418,6 @@ double G_ni(
       V_FREE(pv);
 
     }
-
-  if (PLOTDERIV) {
-
-    FILE *p1 = fopen("plot.txt","w");
-
-    for (int i=S;i<x->m;i++)
-      fprintf(p1,"%f %f\n",tt->ve[i],ht->ve[i]);
-
-    fclose(p1);
-
-    char buffer[100];
-
-    sprintf(buffer,"./plo1 > plotht.pdf");
-
-    system(buffer);
-
-  }
-
 
   double blah = Q(tt,ht);
 

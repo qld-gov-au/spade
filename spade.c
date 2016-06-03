@@ -36,8 +36,6 @@
 
 int feenableexcept(int);
 
-double gtol = 0.9;
-
 int main(int argc, char *argv[])
 {
  
@@ -45,19 +43,23 @@ int main(int argc, char *argv[])
   feenableexcept(FE_INVALID); 
   feenableexcept(FE_OVERFLOW);
 
-  float *ct; 
-  float *ti; 
-  float *ln;
-  float *tl;
+  double *ct; 
+  double *ti; 
+  double *ln;
+  double *tl;
   int Nce,Nlf;
+
   int N;
+  double beta,gamma,alpha,iota,kappa,omega;
+  int minfish;
+  double k;
 
-  float beta,gamma,alpha,iota;
-
-  int minfish = 250;
-
-  J = 400;
-  double k = 0.025;
+  FILE *fp;
+  fp = fopen("../../control.model","r");
+  fscanf(fp,"%d\n",&minfish);
+  fscanf(fp,"%d\n",&J);
+  fscanf(fp,"%lf\n",&k);
+  fclose(fp);
 
   Data data;
 
@@ -90,11 +92,11 @@ int main(int argc, char *argv[])
 	  FILE *fp1;
 	  fp1 = fopen(buffer,"r");
 	  fscanf(fp1,"%d",&Nce);
-	  ct = (float *) calloc(Nce,sizeof(float));
-	  ti = (float *) calloc(Nce,sizeof(float));
+	  ct = (double *) calloc(Nce,sizeof(double));
+	  ti = (double *) calloc(Nce,sizeof(double));
 
 	  for (int i=0;i<Nce;i++)
-	    fscanf(fp1,"%f %f", &ct[i],&ti[i]);
+	    fscanf(fp1,"%lf %lf", &ct[i],&ti[i]);
 
 	  VEC *vti = v_get(Nce);
 	  for (int i=0;i<Nce;i++)
@@ -140,11 +142,11 @@ int main(int argc, char *argv[])
 
 	  fscanf(fp1,"%d",&Nlf);
 
-	  ln = (float *) calloc(Nlf,sizeof(float));
-	  tl = (float *) calloc(Nlf,sizeof(float));
+	  ln = (double *) calloc(Nlf,sizeof(double));
+	  tl = (double *) calloc(Nlf,sizeof(double));
 
 	  for (int i=0;i<Nlf;i++)
-	    fscanf(fp1,"%f %f", &ln[i],&tl[i]);
+	    fscanf(fp1,"%lf %lf", &ln[i],&tl[i]);
 
 	  fclose(fp1);
 
@@ -198,16 +200,14 @@ int main(int argc, char *argv[])
 	  free(ln);
 	  free(tl);
 
-	  sscanf(argv[i+2],"%f",&alpha);
-	  sscanf(argv[i+3],"%f",&beta);
-	  sscanf(argv[i+4],"%f",&gamma);
-	  sscanf(argv[i+5],"%f",&iota);
-	  sscanf(argv[i+6],"%f",&kappa);
-	  //sscanf(argv[i+6],"%f",&omega);
-	  	  //kappa = .1;
-	  omega = 160;
+	  sscanf(argv[i+2],"%lf",&alpha);
+	  sscanf(argv[i+3],"%lf",&beta);
+	  sscanf(argv[i+4],"%lf",&gamma);
+	  sscanf(argv[i+5],"%lf",&iota);
+	  sscanf(argv[i+6],"%lf",&kappa);
+	  sscanf(argv[i+7],"%lf",&omega);
 
-	  i += 7;
+	  i += 8;
 
 	} 
       else
@@ -218,6 +218,18 @@ int main(int argc, char *argv[])
     }
   }
 
+  OptimControl optim;
+
+  fp = fopen("../../control.optim","r");
+  fscanf(fp,"%lf\n",&optim.stp);
+  fscanf(fp,"%lf\n",&optim.ftol);
+  fscanf(fp,"%lf\n",&optim.gtol);
+  fscanf(fp,"%lf\n",&optim.stpmin);
+  fscanf(fp,"%lf\n",&optim.stpmax);
+  fscanf(fp,"%d",&optim.maxfev);
+  fclose(fp);
+  optim.xtol = DBL_EPSILON;
+  
   h = omega / J;
 
   data.I = 2*N;
@@ -263,26 +275,32 @@ int main(int argc, char *argv[])
   parameters.alpha.grad = &grad_alpha;
   parameters.alpha.value = alpha;
   parameters.alpha.active = TRUE;
+  parameters.alpha.index = 0;
 
   parameters.beta.grad = &grad_beta;
   parameters.beta.value = beta;
   parameters.beta.active = TRUE;
+  parameters.beta.index = 1;
 
   parameters.gamma.grad = &grad_gamma;
   parameters.gamma.value = gamma;
   parameters.gamma.active = TRUE;
-
+  parameters.gamma.index = 2;
+  
   parameters.iota.grad = &grad_iota;
   parameters.iota.value = iota;
   parameters.iota.active = TRUE;
+  parameters.iota.index = 3;
 
   parameters.kappa.grad = &grad_kappa;
   parameters.kappa.value = kappa;
-  parameters.kappa.active = TRUE;
+  parameters.kappa.active = FALSE;
+  parameters.kappa.index = -1;
 
   parameters.omega.grad = &grad_omega;
   parameters.omega.value = omega;
   parameters.omega.active = FALSE;
+  parameters.omega.index = -1;
 
   // Determine the number of parameters which are active
   int activeParameterCount = 0;
@@ -308,7 +326,7 @@ int main(int argc, char *argv[])
   char lab1[10]="before";
   plot(&parameters,&data,lab1);
 
-  theta = bfgs(VMGMM,theta,&data,&parameters);
+  theta = bfgs(VMGMM,theta,&data,&parameters,optim);
 
   char lab2[10]="after";
 

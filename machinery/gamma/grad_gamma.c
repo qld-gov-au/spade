@@ -131,6 +131,6 @@ void grad_gamma(void* args)
   V_FREE(Pi);
   V_FREE(xhht);
   
-  grad->ve[2] = G_ni(p, x, u, d, parameters->iota.value);
+  grad->ve[parameters->gamma.index] = G_ni(p, x, u, d, parameters->iota.value);
 
 }

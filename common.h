@@ -4,15 +4,21 @@
 #include "meschach/matrix.h"
 
 #define PTH 1
-#define PLOT 0
-#define PLOTDERIV 0
-#define PLOTSOLVP 0
-#define GCHECK 0
 
 #define A1 8.588e-5
 #define A2 0.00144
 #define PARAMETER_COUNT 6
 
+typedef struct {
+  double stp;
+  double ftol;
+  double gtol;
+  double xtol;
+  double stpmin;
+  double stpmax;
+  int maxfev;
+} OptimControl;
+    
 typedef struct {
   VEC *eff;
   VEC *cat;
@@ -34,6 +40,10 @@ typedef struct {
   // Whether this parameter should be predicted by the model (TRUE)
   // or if it should retain a fixed value (FALSE).
   int active;
+  
+  // Which active parameter are we? 
+  int index;
+  
 } Parameter;
 
 typedef struct {
@@ -63,8 +73,6 @@ typedef struct {
   Solve_Core_Args *core_args;  
   Parameters *parameters;
 } Grad_Args;
-
-float kappa,omega;
 
 double iota1;
 double iota2;

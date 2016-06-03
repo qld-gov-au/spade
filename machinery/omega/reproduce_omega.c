@@ -4,7 +4,6 @@
 void Q2_omega(
 
 	      double a,
-	      double a2,
 	      double k,
 	      double w,
 	      VEC *x,
@@ -13,8 +12,6 @@ void Q2_omega(
 
 	      )
 {
-
-  // this function has not been updated for new birth function
 
   if (x->dim != p->dim)
     {

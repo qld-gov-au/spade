@@ -120,6 +120,6 @@ void grad_kappa(void* args)
   V_FREE(Pi);
   V_FREE(xhht);
 
-  grad->ve[4] = G_ni(p, x, u, d, parameters->iota.value);
+  grad->ve[parameters->kappa.index] = G_ni(p, x, u, d, parameters->iota.value);
 
 }

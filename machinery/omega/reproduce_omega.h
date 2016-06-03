@@ -6,7 +6,6 @@
 void Q2_omega(
 
 	      double a,
-	      double a2,
 	      double k,
 	      double w,
 	      VEC *x,

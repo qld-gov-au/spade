@@ -128,5 +128,5 @@ void grad_iota(void* args)
   V_FREE(Pi);
   V_FREE(xhht);
   
-  grad->ve[3] = G(p, x, u, d, parameters->iota.value);
+  grad->ve[parameters->iota.index] = G(p, x, u, d, parameters->iota.value);
 }

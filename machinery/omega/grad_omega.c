@@ -32,8 +32,6 @@ void grad_omega(void* args)
   int S = (*grad_args).S;
   Parameters *parameters = (*grad_args).parameters;
   
-  // this function has not been updated for new birth function
-
   VEC *xt; VEC *xht; VEC *xnt; 
   VEC *ut; VEC *uht; VEC *pt; VEC *unt;
   xt = v_get(x->n);
@@ -51,13 +49,12 @@ void grad_omega(void* args)
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
  
-  double a1 = parameters->alpha.value;
-  double a2 = 0;
+  double aa = parameters->alpha.value;
   double bb = parameters->beta.value;
   double gg = parameters->gamma.value*1e-7;
   double kk = parameters->kappa.value;
   double ww = parameters->omega.value;
-  double ii = parameters->iota.value;
+  double ii = parameters->iota.value*1e-3;
 
   VEC *Pi;
   Pi = v_get(x->m);
@@ -67,20 +64,6 @@ void grad_omega(void* args)
   set_row(p,0,pt);
   
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
-
-  if (PLOTSOLVP) 
-    {
-
-      FILE *p2 = fopen("plot.txt","w");
-
-      for (int j=0;j<x->n;j++) 
-	fprintf(p2,"%f %f\n",xt->ve[j],pt->ve[j]);
-
-      fclose(p2);
-
-      system("./plo1-nr > plotp_w_ini.pdf");
-
-    }
 
   for (int i=1;i<x->m;i++)
     { 
@@ -96,14 +79,13 @@ void grad_omega(void* args)
       get_row(uh,i-1,uht);
       get_row(xn,i-1,xnt);
 
-
       int j=1;
       ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*( gg*Pi->ve[i-1]*ut->ve[j-1] + kk*(ut->ve[j]-ut->ve[j-1])/(xt->ve[j]-xt->ve[j-1]) );
 
       for (int j=2;j<=x->n;j++)
 	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*( gg*Pi->ve[i-1]*ut->ve[j-1] + kk*.5*( (ut->ve[j]-ut->ve[j-1])/(xt->ve[j]-xt->ve[j-1]) + (ut->ve[j-1]-ut->ve[j-2])/(xt->ve[j-1]-xt->ve[j-2]) ) );
 	
-      Q2_omega(a1,a2,kk,ww,xht,uht,ph);
+      Q2_omega(aa,kk,ww,xht,uht,ph);
       double Ph = Q(xht,ph);
 
       for (int j=1;j<x->n;j++)
@@ -117,36 +99,11 @@ void grad_omega(void* args)
       pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
 
       get_row(un,i-1,unt);
-      Q2_omega(a1,a2,kk,ww,xnt,unt,pn);
+      Q2_omega(aa,kk,ww,xnt,unt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
       idxremove(pn,pt,idxi->ive[i-1]); 
       set_row(p,i,pt);
-
-    }
-
-  if (PLOTSOLVP) 
-    {
-
-      FILE *p2 = fopen("plot.txt","w");
-
-      int i=100;
-      for (int j=0;j<x->n;j++)
-	fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
-
-      fclose(p2);
-
-      system("./plo1_nr > plotp_w_100.pdf");
-
-      p2 = fopen("plot.txt","w");
-
-      i=1000;
-      for (int j=0;j<x->n;j++)
-	fprintf(p2,"%f %f\n",x->me[i][j],p->me[i][j]);
-
-      fclose(p2);
-
-      system("./plo1_nr > plotp_w_1000.pdf");
 
     }
 
@@ -160,5 +117,8 @@ void grad_omega(void* args)
   V_FREE(pn);
   V_FREE(Pi);
   V_FREE(xhht);
+
+  grad->ve[parameters->omega.index] = G_ni(p, x, u, d, parameters->iota.value);
+
 
 }

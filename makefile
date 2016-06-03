@@ -48,7 +48,7 @@ rebuild: clean build
 
 # Run a sample project
 test: rebuild
-	./spade -fn karumba .09 .09 1.1 .07 .1
+	./spade -fn karumba .09 .09 1.3 .07 .1
 
 # Remove build artifacts
 clean:

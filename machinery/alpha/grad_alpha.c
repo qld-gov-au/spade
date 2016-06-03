@@ -65,20 +65,6 @@ void grad_alpha(void* args)
   
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
 
-  if (PLOTSOLVP) 
-    {
-
-      FILE *p2 = fopen("plot.txt","w");
-
-      for (int j=0;j<x->n;j++)
-	fprintf(p2,"%f %f\n",xt->ve[j],pt->ve[j]);
-
-      fclose(p2);
-
-      system("./plo1-nr > plotp_a_ini.pdf");
-
-    }
-
   for (int i=1;i<x->m;i++)
     { 
 
@@ -111,39 +97,10 @@ void grad_alpha(void* args)
       Q2_alpha(aa,kk,ww,xnt,unt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
-      //for (int j=0;j<=x->n;j++)
-      //fprintf(ft,"%f ",pn->ve[j]);
-      //fprintf(ft,"\n");
-
       idxremove(pn,pt,idxi->ive[i-1]); 
       set_row(p,i,pt);
 
     }
-  //  fclose(ft);
-  //exit(1);   
-  /*  printf("\n");
-  for (int j=0;j<300;j++)
-    {
-      printf("%f %f\n",x->me[x->m-1][j],p->me[x->m-1][j]); //s(x->me[tmi.I+2][j])*w(x->me[tmi.I+2][j])*tmi.dp.iota*e(2*k)*); //-tmi.I+4][i]);
-      //printf("%f %f\n",x->me[x->m-1][i],s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*e(k*(x->m-9-(tmi.I+1)))*u->me[x->m-1][i] + s(x->me[x->m-1][i])*w(x->me[x->m-1][i])*tmi.dp.iota*e(k*(x->m-9-(tmi.I+1)))*p->me[x->m-1][i]);
-    }
-  printf("e\n");
-  exit(1);
-  */
-
-  /*
-  VEC *xxx = v_get(x->m);
-  for (int j=0;j<x->m;j++)
-    xxx->ve[j] = x->me[x->m-1][j];
-
-  VEC *yyy = v_get(x->m);
-  for (int j=0;j<x->m;j++)
-    yyy->ve[j] = s(x->me[x->m-59][j])*w(x->me[x->m-59][j])*e(k*(x->m-59-(tmi.I+1)))*u->me[x->m-59][j] + s(x->me[x->m-59][j])*w(x->me[x->m-59][j])*iota*e(k*(x->m-59-(tmi.I+1)))*p->me[x->m-59][j];
-
-  printf("%f\n",Q(xxx,yyy));
-
-  exit(1);  
-  */
 
   V_FREE(xt); 
   V_FREE(xht);
@@ -157,6 +114,6 @@ void grad_alpha(void* args)
   V_FREE(Pi);
   V_FREE(xhht);
 
-  grad->ve[0] = G_ni(p, x, u, d, parameters->iota.value);
+  grad->ve[parameters->alpha.index] = G_ni(p, x, u, d, parameters->iota.value);
 
 }
