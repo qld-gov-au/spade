@@ -4,7 +4,7 @@
 
 VEC *ini_gamma(
 
-	       VEC *theta,
+	       Parameters *parameters,
 	       VEC *x,
 	       VEC *p
 
@@ -13,11 +13,11 @@ VEC *ini_gamma(
 
   x->ve[x->dim-1] -= 1e-5;
 
-  double a = theta->ve[0];
-  double b = theta->ve[1];
-  double g = theta->ve[2];
-  double k = theta->ve[3];
-  double w = theta->ve[4];
+  double a = parameters->alpha.value;
+  double b = parameters->beta.value;
+  double g = parameters->gamma.value;
+  double k = parameters->kappa.value;
+  double w = parameters->omega.value;
 
   double zeta = sqrt( 81*k*k*w*w*pow(a*A1+2*a*A2*w,2.) - 12*k*pow(a*A1*w+k,3.) );
   double eta = 9*a*A1*k*k*w + 18*a*A2*k*k*w*w + k*zeta;

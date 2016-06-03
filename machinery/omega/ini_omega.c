@@ -4,7 +4,7 @@
 
 VEC *ini_omega(
 
-	       VEC *theta,
+	       Parameters *parameters,
 	       VEC *x,
 	       VEC *p
 
@@ -15,12 +15,12 @@ VEC *ini_omega(
 
   x->ve[x->dim-1] -= 1e-5;
 
-  double a1 = theta->ve[0];
-  double a2 = theta->ve[1];
-  double b = theta->ve[2];
-  double g = theta->ve[3];
-  double k = theta->ve[4];
-  double w = theta->ve[5];
+  double a1 = parameters->alpha.value;
+  double a2 = 0;
+  double b = parameters->beta.value;
+  double g = parameters->gamma.value;
+  double k = parameters->kappa.value;
+  double w = parameters->omega.value;
 
   double zeta = sqrt( 81*k*k*w*w*pow(a1+2*a2*w,2.) - 12*k*pow(a1*w+k,3.) );
   double in = 9*a1*k*k*w + 18*a2*k*k*w*w + k*zeta;

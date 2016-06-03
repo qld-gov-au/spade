@@ -5,7 +5,7 @@
 
 VEC *ini_gamma(
 
-	       VEC *theta,
+	       Parameters *parameters,
 	       VEC *x,
 	       VEC *p
 

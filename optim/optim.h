@@ -3,9 +3,10 @@
 
 VEC * bfgs(
 
-	   VEC * (*model)(VEC *,Data *,VEC *,double *),
+	   VEC * (*model)(VEC *,Data *,VEC *,double *,Parameters *),
 	   VEC *x,
-	   Data *data
+	   Data *data,
+     Parameters * parameters
 
 	   );
 
@@ -26,5 +27,5 @@ int cstep(
 
 	  );
 
-int cvsrch(VEC *(*f)(VEC *,Data *,VEC *,double *),VEC *,double,VEC *,VEC *,double,double,double,double,double,double,int,Data *); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
+int cvsrch(VEC *(*f)(VEC *,Data *,VEC *,double *,Parameters *),VEC *,double,VEC *,VEC *,double,double,double,double,double,double,int,Data *,Parameters *); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
 #endif

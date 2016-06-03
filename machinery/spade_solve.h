@@ -5,7 +5,7 @@
 
 VEC *initial(
 
-	     VEC *theta,
+	     Parameters *parameters,
 	     VEC *x,
 	     VEC *u
 
@@ -13,7 +13,7 @@ VEC *initial(
 
 void solve(
 
-		 VEC *theta,		 
+		 Parameters *parameters,
 		 VEC *eff,
 		 double k,		 
 		 int S,

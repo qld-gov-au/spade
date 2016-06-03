@@ -6,7 +6,7 @@
 
 double K(
 
-		 VEC *,		 
+     Parameters * parameters,
 		 Data *data,
 		 Solve_Core_Args *core_args
 		 	

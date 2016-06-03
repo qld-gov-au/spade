@@ -11,7 +11,7 @@
 
 void plot( 
 
-	  VEC *p,
+	  Parameters *parameters,
 	  Data *d,
 	  char * label
 
@@ -35,7 +35,7 @@ void plot(
   core_args.Uhh = v_get(I);
   core_args.idxi = iv_get(I-1);  
 
-  solve(p,d->eff,d->k,d->S,&core_args);
+  solve(parameters,d->eff,d->k,d->S,&core_args);
 
   MAT *x = core_args.x;
   MAT *u = core_args.u;
@@ -50,7 +50,7 @@ void plot(
   V_FREE(core_args.Uhh);
   IV_FREE(core_args.idxi);
 
-  double iota = p->ve[3];
+  double iota = parameters->iota.value;
   iota *= 1e-3;
 
   VEC *ctt = v_get(x->n);

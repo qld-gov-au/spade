@@ -27,6 +27,12 @@
 #include "machinery/VMGMM.h"
 #include "optim/optim.h"
 #include "plotting/plot.h"
+#include "machinery/alpha/grad_alpha.h"
+#include "machinery/beta/grad_beta.h"
+#include "machinery/gamma/grad_gamma.h"
+#include "machinery/iota/grad_iota.h"
+#include "machinery/kappa/grad_kappa.h"
+#include "machinery/omega/grad_omega.h"
 
 int feenableexcept(int);
 
@@ -245,27 +251,68 @@ int main(int argc, char *argv[])
 
   printf("%f %f\n",iota,a2);
   */
+  Parameters parameters;
+  parameters.parameter[0] = &parameters.alpha;
+  parameters.parameter[1] = &parameters.beta;
+  parameters.parameter[2] = &parameters.gamma;
+  parameters.parameter[3] = &parameters.iota;
+  parameters.parameter[4] = &parameters.kappa;
+  parameters.parameter[5] = &parameters.omega;
+  parameters.count = PARAMETER_COUNT;
 
-  VEC *theta = v_get(5);
+  parameters.alpha.grad = &grad_alpha;
+  parameters.alpha.value = alpha;
+  parameters.alpha.active = TRUE;
 
-  theta->ve[0] = alpha;
-  theta->ve[1] = beta;
-  theta->ve[2] = gamma;
-  theta->ve[3] = iota;
-  theta->ve[4] = kappa;
+  parameters.beta.grad = &grad_beta;
+  parameters.beta.value = beta;
+  parameters.beta.active = TRUE;
+
+  parameters.gamma.grad = &grad_gamma;
+  parameters.gamma.value = gamma;
+  parameters.gamma.active = TRUE;
+
+  parameters.iota.grad = &grad_iota;
+  parameters.iota.value = iota;
+  parameters.iota.active = TRUE;
+
+  parameters.kappa.grad = &grad_kappa;
+  parameters.kappa.value = kappa;
+  parameters.kappa.active = TRUE;
+
+  parameters.omega.grad = &grad_omega;
+  parameters.omega.value = omega;
+  parameters.omega.active = FALSE;
+
+  // Determine the number of parameters which are active
+  int activeParameterCount = 0;
+  for(int i = 0; i < parameters.count; i++) {
+    if(parameters.parameter[i]->active == TRUE) {
+      activeParameterCount++;
+    }
+  }
+
+  // Load all active parameter values into a theta vector
+  VEC *theta = v_get(activeParameterCount);
+  int iTheta = 0;
+  for(int i = 0; i < parameters.count; i++) {
+    if(parameters.parameter[i]->active == TRUE) {
+      theta->ve[iTheta++] = parameters.parameter[i]->value;
+    }
+  }
 
   //  double cn = ConditionNumber(theta, &data);
   //printf("%f\n",cn);
   //exit(1);
 
   char lab1[10]="before";
-  plot(theta,&data,lab1);
+  plot(&parameters,&data,lab1);
 
-  theta = bfgs(VMGMM,theta,&data);
+  theta = bfgs(VMGMM,theta,&data,&parameters);
 
   char lab2[10]="after";
 
-  plot(theta,&data,lab2);
+  plot(&parameters,&data,lab2);
 
   V_FREE(theta);
   V_FREE(data.cat);

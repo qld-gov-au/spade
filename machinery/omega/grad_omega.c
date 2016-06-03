@@ -13,7 +13,6 @@ void grad_omega(void* args)
 {
   Grad_Args * grad_args = (Grad_Args *)args;
 
-  VEC* theta = (*grad_args).theta;
   Data *d = (*grad_args).d;
   VEC *grad = (*grad_args).g;
   MAT *p = (*grad_args).p;
@@ -31,6 +30,7 @@ void grad_omega(void* args)
   VEC *eff = (*grad_args).eff;
   double k = (*grad_args).k;
   int S = (*grad_args).S;
+  Parameters *parameters = (*grad_args).parameters;
   
   // this function has not been updated for new birth function
 
@@ -51,19 +51,19 @@ void grad_omega(void* args)
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
  
-  double a1 = theta->ve[0];
+  double a1 = parameters->alpha.value;
   double a2 = 0;
-  double bb = theta->ve[1];
-  double gg = theta->ve[2]*1e-7;
-  double kk = theta->ve[3];
-  double ww = theta->ve[4];
-  double ii = theta->ve[5];
+  double bb = parameters->beta.value;
+  double gg = parameters->gamma.value*1e-7;
+  double kk = parameters->kappa.value;
+  double ww = parameters->omega.value;
+  double ii = parameters->iota.value;
 
   VEC *Pi;
   Pi = v_get(x->m);
 
   get_row(x,0,xt);
-  ini_omega(theta,xt,pt);
+  ini_omega(parameters,xt,pt);
   set_row(p,0,pt);
   
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));

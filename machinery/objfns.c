@@ -11,7 +11,7 @@
 
 double K(
 
-         VEC *p,
+     Parameters *parameters,
 		 Data *d,
 		 Solve_Core_Args *core_args
 		 
@@ -20,12 +20,12 @@ double K(
 {
 
 
-  solve(p,d->eff,d->k,d->S,core_args);
+  solve(parameters,d->eff,d->k,d->S,core_args);
 
   MAT *x = core_args->x;
   MAT *u = core_args->u;
 
-  double iota = p->ve[3];
+  double iota = parameters->iota.value;
 
   iota *= 1e-3;
   int S = d->S;

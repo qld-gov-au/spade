@@ -14,7 +14,6 @@ void grad_kappa(void* args)
 
   Grad_Args * grad_args = (Grad_Args *)args;
 
-  VEC* theta = (*grad_args).theta;
   Data *d = (*grad_args).d;
   VEC *grad = (*grad_args).g;
   MAT *p = (*grad_args).p;
@@ -32,6 +31,7 @@ void grad_kappa(void* args)
   VEC *eff = (*grad_args).eff;
   double k = (*grad_args).k;
   int S = (*grad_args).S; 
+  Parameters *parameters = (*grad_args).parameters;
 
   VEC *xt; VEC *xht; VEC *xnt; 
   VEC *ut; VEC *uht; VEC *pt; VEC *unt;
@@ -50,29 +50,19 @@ void grad_kappa(void* args)
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double aa = theta->ve[0];
-  double bb = theta->ve[1];
-  double gg = theta->ve[2]*1e-7;
-  double kk = theta->ve[4];
-  double ww = omega;
-  double ii = theta->ve[3]*1e-3;
+  double aa = parameters->alpha.value;
+  double bb = parameters->beta.value;
+  double gg = parameters->gamma.value*1e-7;
+  double kk = parameters->kappa.value;
+  double ww = parameters->omega.value;
+  double ii = parameters->iota.value*1e-3;
 
   VEC *Pi;
   Pi = v_get(x->m);
 
-  VEC *thextra = v_get(5);
-
-  thextra->ve[0] = theta->ve[0];
-  thextra->ve[1] = theta->ve[1];
-  thextra->ve[2] = theta->ve[2]*1e-7;
-  thextra->ve[3] = theta->ve[4];
-  thextra->ve[4] = omega;
-
   get_row(x,0,xt);
-  ini_kappa(thextra,xt,pt);
+  ini_kappa(parameters,xt,pt);
   set_row(p,0,pt);
-  
-  V_FREE(thextra);
 
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
 
@@ -130,6 +120,6 @@ void grad_kappa(void* args)
   V_FREE(Pi);
   V_FREE(xhht);
 
-  grad->ve[4] = G_ni(p, x, u, d, theta->ve[3]);
+  grad->ve[4] = G_ni(p, x, u, d, parameters->iota.value);
 
 }

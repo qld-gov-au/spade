@@ -5,7 +5,7 @@
 
 VEC *ini_kappa(
 
-	       VEC *theta,
+         Parameters *parameters,
 	       VEC *x,
 	       VEC *p
 

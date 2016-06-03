@@ -5,7 +5,7 @@
 
 void plot(
 	
-	  VEC *,
+    Parameters *,
 	  Data *,
 	  char *
 

@@ -6,3 +6,5 @@
 *.userprefs
 bin
 spade
+plot*.txt
+plot*.pdf

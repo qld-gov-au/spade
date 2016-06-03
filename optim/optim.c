@@ -5,9 +5,10 @@
 
 VEC * bfgs(
 
-	   VEC * (*model)(VEC *,Data *,VEC *,double *),
+	   VEC * (*model)(VEC *,Data *,VEC *,double *,Parameters *),
 	   VEC *x,
-	   Data *data
+	   Data *data,
+     Parameters * parameters
 
 	   )   
 {
@@ -30,7 +31,7 @@ VEC * bfgs(
 
   m_ident(B);
 
-  g = (*model)(x,data,g,&f); 
+  g = (*model)(x,data,g,&f,parameters);
   nfev += 1;
 
   while (1)
@@ -48,7 +49,7 @@ VEC * bfgs(
       v_copy(g,oldg);
 
       // More-Thuente line search
-      nfev += cvsrch(model,x,f,g,p,1e-2,1e-1,0.4,DBL_EPSILON,1e-20,1e20,60,data);
+      nfev += cvsrch(model,x,f,g,p,1e-2,1e-1,0.4,DBL_EPSILON,1e-20,1e20,60,data,parameters);
     
       v_sub(x,oldx,s);
       v_sub(g,oldg,y);
@@ -75,7 +76,7 @@ VEC * bfgs(
 
     }
 
-  (*model)(x,data,g,&f); 
+  (*model)(x,data,g,&f,parameters);
   printf("number function evals: %d, function value: %f\n",nfev,f);
   v_output(x);
 
@@ -382,7 +383,7 @@ int cstep(
 
 int cvsrch(
 
-	  VEC *(*fcn)(VEC *,Data *,VEC *,double *),
+	  VEC *(*fcn)(VEC *,Data *,VEC *,double *,Parameters *),
 	  VEC *x,
 	  double f,
 	  VEC *gr,
@@ -394,7 +395,8 @@ int cvsrch(
 	  double stpmin,
 	  double stpmax,
 	  int maxfev,
-	  Data *d
+	  Data *d,
+    Parameters * parameters
 
 	  )
 {
@@ -633,7 +635,16 @@ int cvsrch(
       vtmp = sv_mlt(stp,sd,vtmp);
       v_add(wa,vtmp,x);
       V_FREE(vtmp);
-      gr = (*fcn)(x,d,gr,&f);
+
+      // apply changes to theta (x) back to parameters
+      int iTheta = 0;
+      for(int i = 0; i < parameters->count; i++) {
+        if(parameters->parameter[i]->active == TRUE) {
+          parameters->parameter[i]->value = x->ve[iTheta++];
+        }
+      }
+
+      gr = (*fcn)(x,d,gr,&f,parameters);
       nfev += 1;
       double dg = in_prod(gr,sd);
       double ftest1 = finit + stp*dgtest;

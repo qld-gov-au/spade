@@ -9,8 +9,6 @@
     </Compiler>
     <Language>C</Language>
     <Target>Bin</Target>
-    <ProductVersion>12.0.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,7 +20,7 @@
     <SourceDirectory>.</SourceDirectory>
     <ExtraLinkerArguments>-lm
 -pthread</ExtraLinkerArguments>
-    <Commandlineparameters>-fn karumba .5 .5 .5 .5 .1</Commandlineparameters>
+    <Commandlineparameters>-fn karumba .09 .09 1.3 .07 .1</Commandlineparameters>
     <ExtraCompilerArguments>-std=c99</ExtraCompilerArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">

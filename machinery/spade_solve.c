@@ -9,7 +9,7 @@
 
 VEC *initial(
 
-	     VEC *theta,
+	     Parameters *parameters,
 	     VEC *x,
 	     VEC *u
 
@@ -19,11 +19,11 @@ VEC *initial(
 
   x->ve[x->dim-1] -= 1e-5;
 
-  double a = theta->ve[0];
-  double b = theta->ve[1];
-  double g = theta->ve[2];
-  double k = theta->ve[3];
-  double w = theta->ve[4];
+  double a = parameters->alpha.value;
+  double b = parameters->beta.value;
+  double g = parameters->gamma.value*1e-7;
+  double k = parameters->kappa.value;
+  double w = parameters->omega.value;
 
   double zeta = sqrt( 81*k*k*w*w*pow(a*A1+2*a*A2*w,2.) - 12*k*pow(a*A1*w+k,3.) );
   double eta = 9*a*A1*k*k*w + 18*a*A2*k*k*w*w + k*zeta;
@@ -41,7 +41,7 @@ VEC *initial(
 
 void solve(
 
-		 VEC *theta,		 
+     Parameters * parameters,
 		 VEC *eff,
 		 double k,		 
 		 int S,
@@ -75,26 +75,16 @@ void solve(
   for (int j=1;j<x->n;j++) 
     core_args->x->me[0][j] = h*j;
 
-  VEC * thextra = v_get(5);
-
-  thextra->ve[0] = theta->ve[0];
-  thextra->ve[1] = theta->ve[1];
-  thextra->ve[2] = theta->ve[2]*1e-7;
-  thextra->ve[3] = theta->ve[4];
-  thextra->ve[4] = omega;
- 
-  set_row(core_args->u,0,initial(thextra,get_row(core_args->x,0,xt),ut));
-
-  V_FREE(thextra);
+  set_row(core_args->u,0,initial(parameters,get_row(core_args->x,0,xt),ut));
  
   Ui->ve[0] = Q(xt,ut);
 
-  double aa = theta->ve[0];
-  double bb = theta->ve[1];
-  double gg = theta->ve[2]*1e-7;
-  double kk = theta->ve[4];
-  double ww = omega;
-  double ii = theta->ve[3]*1e-3;
+  double aa = parameters->alpha.value;
+  double bb = parameters->beta.value;
+  double gg = parameters->gamma.value*1e-7;
+  double kk = parameters->kappa.value;
+  double ww = parameters->omega.value;
+  double ii = parameters->iota.value*1e-3;
 
   //  printf("\n");
 
