@@ -28,5 +28,5 @@ int cstep(
 
 	  );
 
-int cvsrch(VEC *(*f)(VEC *,Data *,VEC *,double *,Parameters *),VEC *,double,VEC *,VEC *,double,double,double,double,double,double,int,Data *,Parameters *); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
+int cvsrch(VEC *(*f)(VEC *,Data *,VEC *,double *,Parameters *),VEC *,double,VEC *,VEC *,double,double,double,double,double,double,int,Data *,Parameters *,double *fv); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
 #endif

@@ -81,6 +81,7 @@ VEC *VMGMM(
 
   // single-threaded mode
   else {
+    int iTheta = 0;
     for(int i = 0; i < parameters->count; i++) {
       if(parameters->parameter[i]->active == TRUE) {
         parameters->parameter[i]->grad((void *) &(args[iTheta]));

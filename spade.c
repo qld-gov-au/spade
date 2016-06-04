@@ -34,6 +34,7 @@
 #include "machinery/iota/grad_iota.h"
 #include "machinery/kappa/grad_kappa.h"
 #include "machinery/omega/grad_omega.h"
+#include "mathprop/mathprop.h"
 
 int feenableexcept(int);
 
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
   double k;
 
   FILE *fp;
-  fp = fopen("../../control.model","r");
+  fp = fopen("control.model","r");
   fscanf(fp,"%d\n",&minfish);
   fscanf(fp,"%d\n",&J);
   fscanf(fp,"%lf\n",&k);
@@ -221,7 +222,7 @@ int main(int argc, char *argv[])
 
   OptimControl optim;
 
-  fp = fopen("../../control.optim","r");
+  fp = fopen("control.optim","r");
   fscanf(fp,"%lf\n",&optim.stp);
   fscanf(fp,"%lf\n",&optim.ftol);
   fscanf(fp,"%lf\n",&optim.gtol);
@@ -290,12 +291,12 @@ int main(int argc, char *argv[])
   
   parameters.iota.grad = &grad_iota;
   parameters.iota.value = iota;
-  parameters.iota.active = TRUE;
+  parameters.iota.active = FALSE;
   parameters.iota.gradient = 0;
 
   parameters.kappa.grad = &grad_kappa;
   parameters.kappa.value = kappa;
-  parameters.kappa.active = FALSE;
+  parameters.kappa.active = TRUE;
   parameters.kappa.gradient = 0;
 
   parameters.omega.grad = &grad_omega;
@@ -320,12 +321,12 @@ int main(int argc, char *argv[])
     }
   }
 
-  //  double cn = ConditionNumber(theta, &data);
+  //double cn = ConditionNumber(&parameters, &data);
   //printf("%f\n",cn);
-  //exit(1);
+  //exit(0);
+
 
 /*
-
   Solve_Core_Args core_args;
   
   int I;
@@ -344,17 +345,21 @@ int main(int argc, char *argv[])
   core_args.idxi = iv_get(I-1);   
 
   double fv = K(&parameters,&data,&core_args);
-  double save = parameters.omega.value;
+  double save = parameters.kappa.value;
 
-  for (int i=-1;i>-20;i--) {
-    double delta = exp((double)i);
-    parameters.omega.value = save + delta;
+
+  printf("\n");
+  for (int i=-10;i<=10;i++) {
+    double delta = (double)i*.00001; //exp((double)i);
+    parameters.kappa.value = save + delta;
     double nfv = K_dr(&parameters,&data);
-    double ch = (nfv - fv) / delta;
-    printf("%g %g\n",delta,ch);
+    //double ch = (nfv - fv) / delta;
+    printf("%f %f\n",parameters.kappa.value,nfv);
     
   }
+  */
   
+  /* 
   // get the active parameters and run their grad functions
   MAT *p = m_get(I,J);
   Grad_Args args;
@@ -366,21 +371,17 @@ int main(int argc, char *argv[])
   args.core_args = &core_args;
   args.parameters = &parameters;
   
-  parameters.omega.grad((void *) &(args));
+  parameters.kappa.grad((void *) &(args));
   
-  printf("%g\n",parameters.omega.gradient);
+  printf("%g\n",parameters.kappa.gradient);*/
+  //exit(0);
   
-  exit(1);
-  */
-  
-  char lab1[10]="before";
-  plot(&parameters,&data,lab1);
+  //char lab1[10]="before";
+  //plot(&parameters,&data,lab1);
 
   theta = bfgs(VMGMM,theta,&data,&parameters,optim);
 
-  char lab2[10]="after";
-
-  plot(&parameters,&data,lab2);
+  //char lab2[10]="after";
 
   V_FREE(theta);
   V_FREE(data.cat);

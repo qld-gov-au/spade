@@ -197,12 +197,11 @@ and therefore can be represented by
 \begin{equation}\label{eq:2.5}
   r(t;t^*,x^*)=u(x^*,t^*)\exp\left(-\int_{t^*}^{t}z^*(x(\tau;t^*,x^*),U,t)\,d\tau\right).
 \end{equation}
-The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.1}. 
+The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.2}. 
 
 \citep{Angulo2014} developed a second order numerical scheme, given in Algorithm \ref{alg:original}.
 
 %As with all Mckendrick style PDEs it can be reduced to a coupled ODE problem by integrating along the characteristic curves \citep{Kot2001}. 
-
 
 \begin{algorithm}
   \caption{Numerical scheme for }\label{alg:original}
@@ -247,14 +246,16 @@ The derivative of $K$ with respect to $\theta$ is given by
 \int_0^T \int_0^\omega
 2\big(s(x)w(x)f(t)u(x,t)-c(x,t)\big)\big(s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)\big)\,dx\,dt
 \end{equation}
-where $p(x,t)=u_\theta(x,t)$ are solutions of the the sensitivity-PDE \citep{Borggaard1997,Li2004}: %,Stanley2002}.
+where $p(x,t)=u_\theta(x,t)$ are solutions of the the sensitivity-PDE \citep{Borggaard1997}: %,Stanley2002}.
 
 \begin{equation}
   \frac{d F}{d\theta} = F_\theta + F_u p + F_{u_t} p_t + F_{u_x} p_x = 0
 \end{equation}
 with
 \begin{equation}
-  F=u_t + \left[g(x;\theta)u\right]_x + z(x,U,t;\theta)u = 0,
+  F: \begin{cases}
+    u_t + \left[g(x;\theta)u\right]_x + z(x,U,t;\theta)u = 0 &\\
+    g(0)u(x,0) = \int_x b(x)u(x,t)\,dx & \end{cases}
 \end{equation}
 so that the sensitivity PDE is given by
 \begin{equation}
@@ -269,33 +270,9 @@ with boundary condition
   g(0;\theta)_\theta u(0,t;\theta) + g(0;\theta) p(0,t;\theta) = \int_0^\omega b_\theta(x;\theta)u(x,t;\theta) + b(x;\theta)p(x,t;\theta) \,dx .
 \end{equation}
 
-Substituting in the birth, growth and death functions, we get the following sensitivity PDEs see Appendix \ref{app:pde}
-
-These PDEs can be reduced to coupled ODE problems along characteristics in a manner analogous to the original PDE case. 
-
-For all derivatives the size ODE (Equation \ref{eq:2.2}) remains unchanged. For $\iota$ the `population' ODE is
-\begin{equation}
-  \begin{split}
-    q(t&;t^*,x^*)=p(x^*,t^*)\exp\left(-\int_{t^*}^t z^*(x(\tau;x^*,t^*),U(\tau),\tau)\,d\tau\right) -\\
-    & \phantom{(;t^*,x^*)=p(x^*,t^*)}\exp\left(-\int_{t^*}^t z^*(x(\tau;x^*,t^*),U(\tau),\tau)\,d\tau\right)\times\\
-    & \int_{t^*}^t m(x(\tau;t^*,x^*),P(\tau),u(x(\tau;t^*,x^*),\tau),\tau) \exp\left(\int_{t^*}^\tau z^*(x(\zeta;x^*,t^*),U(\zeta),\zeta)\,d\zeta\right)\,d\tau
-  \end{split}
-\end{equation}
-where
-\begin{equation}
-  q(t;t^*,x^*)=p(x(t;t^*,x^*),t)
-\end{equation}
-and
-\begin{equation}
-  m(x,P(t),u(x,t),t)= \left(s(x)e(t)+\gamma P(t)\right) u(x,t).
-\end{equation}
-
-This is implemented with Algorithm \ref{alg:sens}, this is one of the two main technical contributions of this paper. The other being the analytical gradients.
-
-Sensitivity PDE solutions for the other parameters follow analagously.
+Substituting in the birth, growth and death functions, sensitivity PDEs for each parameter can be derived. These are contained in Appendix \ref{app:pde}. These PDEs can be reduced to coupled ODE problems along characteristics in a manner analogous to the original PDE case. For all parameters the size ODE (Equation \ref{eq:2.2}) remains unchanged. The integrals for the population ODEs are contained in Appendix \ref{app:sol}.  Following a similar approach to that introduced in the previous section, solutions to the sensitivity PDEs can be found by the numerical schemes given in Appendix \ref{app:num}.  
 
 Look up \citep{Deng2015} and consider \citep{Banks2009}. 
-
 
 `Infinite-dimensional effects' an issue? \citep{Ackleh2004} Also consider \citet{Picart2011}. 
 
@@ -613,35 +590,6 @@ Mention the debate over mortality and whether or not it should be estimated with
 
 \clearpage
 \begin{appendices}  
-\section{Numerics}\label{app:num}
-\begin{algorithm}
-  \caption{Model PDE numerical solution}\label{alg:base}
-  \begin{algorithmic}
-    \State $X_0^{n+1} \gets 0$
-    \State $X_{j+1}^{n+1} \gets X_j^n + k g(X_{j+1}^{n+1/2}), 0 \leq j \leq J$
-    \State $U_{j+1}^{n+1} \gets U_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right), 0 \leq j \leq J$
-    \State $U_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{U}^{n+1})) / g(X_{0}^{n+1})$
-    \State $X_0^{n+1/2} \gets 0$
-    \State $X_{j+1}^{n+1/2} \gets X_j^n + (k/2) g(X_{j+1}^{n+1/4}), 0 \leq j \leq J$
-    \State $U_{j+1}^{n+1/2} \gets U_j^n \exp\left(-(k/2) z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right), 0 \leq j \leq J$
-    \State $U_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{U}^{n+1/2})) / g(X_{0}^{n+1/2})$
-    \State $X_{j+1}^{n+1/4} \gets X_j^n + (k/4) g(X_{j}^{n}), 0 \leq j \leq J$
-    \State $U_{j+1}^{n+1/4} \gets U_j^n \exp\left(-(k/4) z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right), 0 \leq j \leq J$
-    \State $U_0^{n+1/4} \gets \mathcal{Q}(\mathbf{X}^{n+1/4},b(\mathbf{U}^{n+1/4})) / g(X_{0}^{n+1/4})$
-  \end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-  \caption{Sensitivity PDE numerical solution for $\iota$}\label{alg:sens}
-  \begin{algorithmic}
-    \State $P_{j+1}^{n+1/2} \gets P_j^n \exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)-\exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)\times$\\ \hspace{1cm} $(k/2)\left(s(X_j^n)e(t^n)+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n$
-    \State $P_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{P}^{n+1/2})) / g(X_0^{n+1/2})$
-    \State $P_{j+1}^{n+1} \gets P_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)-$\\ \hspace{1cm} $\exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)\times$\\ \hspace{1cm} $k\left(s(X_{j+1}^{n+1/2})e(t^{n+1/2})+\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_{j+1}^{n+1/2}\times$\\ \hspace{1cm} $ \exp\left((k/2)z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right)$
-    \State $P_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{P}^{n+1})) / g(X_0^{n+1})$
-  \end{algorithmic}
-\end{algorithm}
-
-\clearpage
 \section{Sensitivity PDEs}\label{app:pde}
 \begin{subequations}
   \begin{align}
@@ -664,6 +612,72 @@ The boundary conditions for each case are given by
     \kappa\omega p(0,t) &= \int_0^\omega \alpha \left(a_1 x + a_2 x^2\right) p(x,t)  \,dx  
   \end{align}
 \end{subequations}
+
+\clearpage
+\section{PDE characteristic integrals}\label{app:sol}
+\begin{equation}
+  \begin{split}
+    q(t&;t^*,x^*)=p(x^*,t^*)\exp\left(-\int_{t^*}^t z^*(x(\tau;x^*,t^*),U(\tau),\tau)\,d\tau\right) -\\
+    & \phantom{(;t^*,x^*)=p(x^*,t^*)}\exp\left(-\int_{t^*}^t z^*(x(\tau;x^*,t^*),U(\tau),\tau)\,d\tau\right)\times\\
+    & \int_{t^*}^t m(x(\tau;t^*,x^*),P(\tau),u(x(\tau;t^*,x^*),\tau),\tau) \exp\left(\int_{t^*}^\tau z^*(x(\zeta;x^*,t^*),U(\zeta),\zeta)\,d\zeta\right)\,d\tau
+  \end{split}
+\end{equation}
+where
+\begin{equation}
+  q(t;t^*,x^*)=p(x(t;t^*,x^*),t)
+\end{equation}
+and
+\begin{equation}
+  m(x,P(t),u(x,t),t)= 
+  \begin{cases}
+    \gamma P(t) u(x,t) & \text{if } \alpha \\
+    \left(1 + \gamma P(t)\right) u(x,t) & \text{if } \beta \\
+    \left(U(t) + \gamma P(t)\right) u(x,t) & \text{if } \gamma \\
+    \left(\gamma P(t) - 1\right)u(x,t) + (\omega-x) u_x(x,t) & \text{if } \kappa\\
+    \gamma P(t) u(x,t) + \kappa u_x(x,t) & \text{if } \omega \\
+    \left(s(x)e(t)+\gamma P(t)\right) u(x,t) & \text{if } \iota
+  \end{cases}
+\end{equation}
+
+\clearpage
+\section{Numerics}\label{app:num}
+\begin{algorithm}
+  \caption{Model PDE numerical solution}\label{alg:base}
+  \begin{algorithmic}
+    \State $X_0^{n+1} \gets 0$
+    \State $X_{j+1}^{n+1} \gets X_j^n + k g(X_{j+1}^{n+1/2}), 0 \leq j \leq J$
+    \State $U_{j+1}^{n+1} \gets U_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right), 0 \leq j \leq J$
+    \State $U_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{U}^{n+1})) / g(X_{0}^{n+1})$
+    \State $X_0^{n+1/2} \gets 0$
+    \State $X_{j+1}^{n+1/2} \gets X_j^n + (k/2) g(X_{j+1}^{n+1/4}), 0 \leq j \leq J$
+    \State $U_{j+1}^{n+1/2} \gets U_j^n \exp\left(-(k/2) z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right), 0 \leq j \leq J$
+    \State $U_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{U}^{n+1/2})) / g(X_{0}^{n+1/2})$
+    \State $X_{j+1}^{n+1/4} \gets X_j^n + (k/4) g(X_{j}^{n}), 0 \leq j \leq J$
+    \State $U_{j+1}^{n+1/4} \gets U_j^n \exp\left(-(k/4) z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right), 0 \leq j \leq J$
+    \State $U_0^{n+1/4} \gets \mathcal{Q}(\mathbf{X}^{n+1/4},b(\mathbf{U}^{n+1/4})) / g(X_{0}^{n+1/4})$
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+  \caption{Sensitivity PDE numerical solution for $\alpha$, $\beta$, $\gamma$ and $\iota$}\label{alg:sens1}
+  \begin{algorithmic}
+    \State $P_{j+1}^{n+1/2} \gets P_j^n \exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)-\exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)\times$\\ \hspace{1cm} 
+    $\begin{cases} (k/2)\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)U_j^n & \text{if }\alpha \\ (k/2)\left(1+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n & \text{if }\beta \\ (k/2)\left(\mathcal{Q}(\mathbf{X}^n,\mathbf{U}^n)+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n & \text{if }\gamma \\ (k/2)\left(s(X_j^n)e(t^n)+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n & \text{if }\iota\end{cases}$
+    \State $P_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{P}^{n+1/2})) / g(X_0^{n+1/2})$
+    \State $P_{j+1}^{n+1} \gets P_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)-$\\ \hspace{1cm} $\exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)\times$\\ \hspace{1cm} $\begin{cases}k\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})U_j^{n+1/2} & \text{if } \alpha \\ k\left(1+\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_j^{n+1/2} & \text{if } \beta \\ k\left(\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}) + \gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_j^{n+1/2} & \text{if } \gamma \\ k\left(s(X_{j+1}^{n+1/2})e(t^{n+1/2})+\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_{j+1}^{n+1/2} & \text{if } \iota \end{cases}$\hspace{1cm}$\times$\\ \hspace{1cm} $ \exp\left((k/2)z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right)$
+    \State $P_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{P}^{n+1})) / g(X_0^{n+1})$
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+  \caption{Sensitivity PDE numerical solution for $\iota$}\label{alg:sens}
+  \begin{algorithmic}
+    \State $P_{j+1}^{n+1/2} \gets P_j^n \exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)-\exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)\times$\\ \hspace{1cm} $(k/2)\left(s(X_j^n)e(t^n)+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n$
+    \State $P_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{P}^{n+1/2})) / g(X_0^{n+1/2})$
+    \State $P_{j+1}^{n+1} \gets P_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)-$\\ \hspace{1cm} $\exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)\times$\\ \hspace{1cm} $k\left(s(X_{j+1}^{n+1/2})e(t^{n+1/2})+\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_{j+1}^{n+1/2}\times$\\ \hspace{1cm} $ \exp\left((k/2)z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right)$
+    \State $P_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{P}^{n+1})) / g(X_0^{n+1})$
+  \end{algorithmic}
+\end{algorithm}
 
 \clearpage
 \section{Analytical Equilibrium Derivations}\label{app:eq}

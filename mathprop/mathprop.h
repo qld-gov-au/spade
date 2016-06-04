@@ -12,6 +12,6 @@ VEC *numgrad(
 
 	     );
 
-//double ConditionNumber(VEC *,Data *);
+double ConditionNumber(Parameters *,Data *);
 
  #endif
