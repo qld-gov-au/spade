@@ -374,29 +374,73 @@ Hone in on the best scale... explore as necessary..
 
 load(file='spade.RData')
 
-k <- 0.025
-I <- 1000
-J <- 400
-N <- 500
+c.m <- read.table(file='control.model')
 
-cek <- k/2
+min.fish <- c.m[1,1]
+J <- c.m[2,1]
+k <- c.m[3,1]
 
-cat <- array(0,dim=N+1)
-eff <- array(0,dim=2*N+1)
+ti <- as.numeric(karumba$Time)
+Y <- ceiling(max(ti))
+N <- Y/k
+I <- 2*N
 
-for (i in 1:nrow(karumba)) {
-    idxr <- floor((karumba$Time[i]+cek/2)/cek)
-    idxr2 <- floor((karumba$Time[i]+k/2)/k)
-    eff[idxr] <- eff[idxr] + 1.0/cek
-    cat[idxr2] <- cat[idxr2] + (karumba$RetainedWholeWeightDerived[i]/k)/1e3
+cek <- k/4
+
+#cat <- array(0,dim=N+1)
+#eff <- array(0,dim=4*N+1)
+#for (i in 1:nrow(karumba)) {
+#    idx.e<- floor((karumba$Time[i]+cek/2)/cek)
+#    idx.c <- floor((karumba$Time[i]+k/2)/k)
+#    eff[idx.e] <- eff[idx.e] + 1.0/cek
+#    cat[idx.c] <- cat[idx.c] + (karumba$RetainedWholeWeightDerived[i]/k)/1e3
+#}
+
+#save(eff,cat,file='cateff.RData')
+load(file='cateff.RData')
+
+Nlf <- nrow(csskc)
+
+ln <- csskc$Length1/10
+tl <- csskc$Time
+
+ilv <- array(0,dim=Nlf)
+cnt <- array(0,dim=I+1) 
+
+for (i in 1:Nlf) {
+    ilv[i] <- N + floor((tl[i]+k/2)/k) 
+    cnt[(Y/k + floor((tl[i]+k/2)/k))+1] <- cnt[(Y/k + floor((tl[i]+k/2)/k))+1] + 1
+}
+
+Nl <- 0
+for (i in 0:I)
+    if (cnt[i+1] > min.fish)
+        Nl <- Nl+1
+
+lf <- matrix(0,nrow=Nl,ncol=max(cnt))
+t_id <- array(0,dim=Nl)
+t_sz <- array(0,dim=Nl)
+
+kk <- 1
+for (i in 0:I) {
+    
+   if (cnt[i+1] > min.fish) {
+
+       t_id[kk] <- i
+       t_sz[kk] <- cnt[i+1]       
+
+       jj <- 1
+       for (j in 1:Nlf)
+           if (ilv[j]==i) {
+               lf[kk,jj] <- ln[j]
+               jj <- jj+1
+           }
+       kk <- kk+1
+   }
 }
 
 A1 <- 8.588e-5
 A2 <- 0.00144
-
-phi <- 17
-iota1 <- 5.2
-iota2 <- 0.619
 
 alpha <- .1
 beta <- .1
@@ -404,6 +448,12 @@ gamma <- 1.1
 iota <- .1
 kappa <- .1
 omega <- 160
+
+phi <- 17
+iota1 <- 5.2
+iota2 <- 0.619
+eta1 <- 1.703205e-8
+eta2 <- 2.9526
 
 g <- function(x) { kappa*(omega-x) }
 b <- function(x) { alpha*(A1*x + A2*x^2) }
@@ -468,12 +518,12 @@ x[1,J+1] <- x[1,J+1] - 1e-9
 a <- alpha
 bb <- beta
 gg <- gamma
-k <- kappa
-w <- omega
+kk <- kappa
+ww <- omega
 
-zeta <- sqrt( 81*k*k*w*w*(a*A1+2*a*A2*w)^2 - 12*k*(a*A1*w+k)^3 )
-eta <- 9*a*A1*k*k*w + 18*a*A2*k*k*w*w + k*zeta
-Z <- eta^(1/3) / (3*(2/3)^(1/3)) + (2/3)^(1/3)*k*(a*A1*w+k) / eta^(1/3)
+zeta <- sqrt( 81*kk*kk*ww*ww*(a*A1+2*a*A2*ww)^2 - 12*kk*(a*A1*ww+kk)^3 )
+eta <- 9*a*A1*kk*kk*ww + 18*a*A2*kk*kk*ww*ww + kk*zeta
+Z <- eta^(1/3) / (3*(2/3)^(1/3)) + (2/3)^(1/3)*kk*(a*A1*ww+kk) / eta^(1/3)
 
 ubar <- (Z-beta-kappa)/gamma
 vbar <- (kappa*omega*ubar) / (beta+gamma*ubar+kappa)
@@ -524,7 +574,64 @@ for (i in 2:(I+1)) {
 
 }
 
+l <- matrix(0,nrow=Nl,ncol=J+t_id[Nl]+1)
+    
+for (lid in 1:Nl)
+    for (j in 0:(J+t_id[lid]))
+        for (jj in 1:t_sz[lid])
+            l[lid,j+1] <- l[lid,j+1] + exp(-((x[t_id[lid],j+1] - lf[lid,jj])/2)^2 ) + 1e-190
+    
+lw <- matrix(0,nrow=Nl,ncol=J+t_id[Nl]+1)
+
+for (lid in 1:Nl) {
+    
+for (j in 0:(J+t_id[lid]))
+    lw[lid,j+1] <- l[lid,j+1]*w(x[t_id[lid],j+1])
+
+al <- cf(k*(t_id[lid]-N)) / Q(x[t_id[lid],1:(J+t_id[lid]+1)],lw[lid,1:(J+t_id[lid]+1)],J+t_id[lid]-1)
+
+xx <- array(0,dim=J+t_id[lid]+1)
+yy <- array(0,dim=J+t_id[lid]+1)
+zz <- array(0,dim=J+t_id[lid]+1)
+for (j in 1:(J+t_id[lid]+1)) {
+    xx[j] <- x[t_id[lid],j]
+    yy[j] <- al*l[lid,j]
+    zz[j] <- s(x[t_id[lid],j])*n[t_id[lid],j]*iota*e(k*(t_id[lid]-N-1))
+}
+
+}
+
 @ 
+
+<<plotlf1,echo=FALSE,fig=TRUE,include=FALSE>>=
+
+lid <- 1
+
+for (j in 0:(J+t_id[lid]))
+    lw[lid,j+1] <- l[lid,j+1]*w(x[t_id[lid],j+1])
+
+al <- cf(k*(t_id[lid]-N)) / Q(x[t_id[lid],1:(J+t_id[lid]+1)],lw[lid,1:(J+t_id[lid]+1)],J+t_id[lid]-1)
+
+xx <- array(0,dim=J+t_id[lid]+1)
+yy <- array(0,dim=J+t_id[lid]+1)
+zz <- array(0,dim=J+t_id[lid]+1)
+for (j in 1:(J+t_id[lid]+1)) {
+    xx[j] <- x[t_id[lid],j]
+    yy[j] <- al*l[lid,j]
+    zz[j] <- s(x[t_id[lid],j])*n[t_id[lid],j]*iota*e(k*(t_id[lid]-N-1))
+}
+        
+plot(xx,yy,ylim=range(c(yy,zz)),xlab="Length (cm)",ylab="Instantaneous catch rate (fish per cm per year)",main=paste(paste("Year:",1990+floor(k*(t_id[lid]-N-1))),", Model-fortnight: ",floor(20*(k*(t_id[lid]-N-1)-floor(k*(t_id[lid]-N-1)))),sep=''))
+lines(xx,zz)
+legend(x=20,y=.9*max(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
+
+@ 
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{spadernw-plotlf1.pdf}
+  \caption{Length frequency gof}
+  \label{fig:plotlfgof}
+\end{figure}
 
 <<eq,echo=FALSE>>=
 eq <- function(x) { (a*A1*vbar+a*A2*wbar)*(omega-x)^((beta+gamma*ubar)/kappa - 1) / (kappa*omega^((beta+gamma*ubar)/kappa)) }
