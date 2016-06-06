@@ -2,6 +2,7 @@
 #define SPADE_PLOT_H
 
 #include "../meschach/matrix.h"
+#include "../parameters.h"
 
 void plot(
 	

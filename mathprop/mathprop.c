@@ -1,6 +1,7 @@
 ﻿#include "../meschach/matrix.h"
 #include "../meschach/matrix2.h"
 #include "../common.h"
+#include "../parameters.h"
 #include "../machinery/spade_solve.h"
 #include "../machinery/alpha/grad_alpha.h"
 #include "../machinery/beta/grad_beta.h"

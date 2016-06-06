@@ -1,6 +1,7 @@
 ﻿#include <math.h>
 #include "../../meschach/matrix.h"
 #include "../../common.h"
+#include "../../parameters.h"
 
 VEC *ini_beta(
 

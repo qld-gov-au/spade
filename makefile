@@ -9,6 +9,7 @@ SPADE_SOURCE_DIRS = initial machinery mathprop model optim util plotting
 SPADE_SOURCES = \
 	spade.c \
 	common.c \
+	parameters.c \
 	$(wildcard $(SPADE_SOURCE_DIRS:=/*.c)) \
 	$(wildcard $(SPADE_SOURCE_DIRS:=/**/*.c)) \
 	$(wildcard $(SPADE_SOURCE_DIRS:=/**/**/*.c))
@@ -48,7 +49,7 @@ rebuild: clean build
 
 # Run a sample project
 test: rebuild
-	./spade -fn karumba .09 .09 1.3 .07 .1 160
+	./spade -fn karumba -alpha .09 -beta .09 -gamma 1.3 -iota-disabled .07 -kappa .1 -omega-disabled 160
 
 # Remove build artifacts
 clean:

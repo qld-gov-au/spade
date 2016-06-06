@@ -1,6 +1,7 @@
 ﻿#include <math.h>
 #include "../meschach/matrix.h"
 #include "../common.h"
+#include "../parameters.h"
 #include "spade_solve.h"
 #include "../model/fishing/selectivity.h"
 #include "../model/biology/weight.h"

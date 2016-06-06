@@ -2,6 +2,7 @@
 #define SPADE_MATHPROP_H
 
 #include "../meschach/matrix.h"
+#include "../parameters.h"
 
 VEC *numgrad(
 

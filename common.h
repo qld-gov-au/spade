@@ -2,12 +2,12 @@
 #define SPADE_COMMON_H
 
 #include "meschach/matrix.h"
+#include "parameters.h"
 
 #define PTH 1
 
 #define A1 8.588e-5
 #define A2 0.00144
-#define PARAMETER_COUNT 6
 
 typedef struct {
   double stp;
@@ -29,33 +29,6 @@ typedef struct {
   int I,J,S;
   double k;
 } Data;
-
-typedef struct {
-  // The gradient function for a given parameter (e.g. grad_alpha)
-  void (*grad) (void *args);
-
-  // The initial value for this parameter
-  Real value;
-
-  // Whether this parameter should be predicted by the model (TRUE)
-  // or if it should retain a fixed value (FALSE).
-  int active;
-  
-  // The current value of the gradient 
-  double gradient;
-  
-} Parameter;
-
-typedef struct {
-  Parameter alpha;
-  Parameter beta;
-  Parameter gamma;
-  Parameter iota;
-  Parameter kappa;
-  Parameter omega;
-  Parameter * parameter[PARAMETER_COUNT];
-  int count;
-} Parameters;
 
 typedef struct {
   MAT *x,*u,*xhh,*xh,*xn,*uh,*un;

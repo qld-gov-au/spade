@@ -2,6 +2,7 @@
 #define SPADE_INI_KAPPA_H
 
 #include "../../meschach/matrix.h"
+#include "../../parameters.h"
 
 VEC *ini_kappa(
 
