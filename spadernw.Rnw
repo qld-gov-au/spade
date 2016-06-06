@@ -444,8 +444,8 @@ A2 <- 0.00144
 
 alpha <- .1
 beta <- .1
-gamma <- 1.1
-iota <- .1
+gamma <- 1.1e-7
+iota <- 1e-4
 kappa <- .1
 omega <- 160
 
@@ -504,12 +504,12 @@ cf <- function(t) {
     }
 }
 
-x <- matrix(0,nrow=I+1,ncol=J+I+2)
-n <- matrix(0,nrow=I+1,ncol=J+I+2)
-xh <- matrix(0,nrow=I+1,ncol=J+I+2)
-nh <- matrix(0,nrow=I+1,ncol=J+I+2)
-spb <- matrix(0,nrow=I+1,ncol=J+I+2)
-SpB <- array(0,dim=I+1)    
+x <- matrix(0,nrow=I+1,ncol=J+1)
+n <- matrix(0,nrow=I+1,ncol=J+1)
+xh <- matrix(0,nrow=I+1,ncol=J+2)
+nh <- matrix(0,nrow=I+1,ncol=J+2)
+#spb <- matrix(0,nrow=I+1,ncol=J+2)
+#SpB <- array(0,dim=I+1)    
 
 for (j in 1:(J+1))
     x[1,j] <- (j-1)*omega/J
@@ -532,14 +532,17 @@ wbar <- (2*kappa*omega*vbar) / (beta+gamma*ubar+2*kappa)
 for (j in 1:(J+1))
     n[1,j] <- (a*A1*vbar+a*A2*wbar)*(omega-x[1,j])^((beta+gamma*ubar)/kappa - 1) / (kappa*omega^((beta+gamma*ubar)/kappa))
 
-for (j in 1:(J+1))
-    spb[1,j] <- b(x[1,j])*n[1,j]
-SpB[1] <- Q(x[1,],spb[1,],J+1)
+#for (j in 1:(J+1))
+#    spb[1,j] <- b(x[1,j])*n[1,j]
+#SpB[1] <- Q(x[1,],spb[1,],J+1)
     
 Qi <- array(0,dim=I+1)
 HF <- array(0,dim=I+1)
 
 Qi[1] <- Q(x[1,],n[1,],J+1)
+
+xn <- array(0,dim=J+2)
+nn <- array(0,dim=J+2)
 
 for (i in 2:(I+1)) {
 
@@ -547,81 +550,138 @@ for (i in 2:(I+1)) {
     th <- k*(i-N-1.5)
 
     xh[i,1] <- 1e-9
-    for (j in 2:(J+i)) 
+    for (j in 2:(J+1)) 
       xh[i,j] <- x[i-1,j-1]+(k/2)*g(x[i-1,j-1])
-    xh[i,J+i+1] <- omega
+    xh[i,J+2] <- omega
 
-    for (j in 2:(J+i+1)) 
+    for (j in 2:(J+2)) 
       nh[i,j] <- n[i-1,j-1]*exp(-(k/2)*zstar(x[i-1,j-1],Qi[i-1],t))
-    nh[i,1] <- Q2(xh[i,],nh[i,],g(0),J+i+1)
+    nh[i,1] <- Q2(xh[i,],nh[i,],g(0),J+2)
 
-    Qhalf <- Q(xh[i,],nh[i,],J+i+1)
+    Qhalf <- Q(xh[i,],nh[i,],J+2)
+    
+    xn[1] <- 1e-9
+    for (j in 2:(J+1))
+      xn[j] <- x[i-1,j-1] + k*g(xh[i,j])
+    xn[J+2] <- omega
+ 
+    for (j in 2:(J+2))
+      nn[j] <- n[i-1,j-1]*exp(-k*zstar(xh[i,j],Qhalf,th))
+    nn[1] <- Q2(xn,nn,g(0),J+2)
 
-    x[i,1] <- 1e-9
-    for (j in 2:(J+i))
-      x[i,j] <- x[i-1,j-1] + k*g(xh[i,j])
-    x[i,J+i+1] <- omega
+    Qi[i] <- Q(xn,nn,J+2)
 
-    for (j in 2:(J+i+1))
-      n[i,j] <- n[i-1,j-1]*exp(-k*zstar(xh[i,j],Qhalf,th))
-    n[i,1] <- Q2(x[i,],n[i,],g(0),J+i+1)
+    md <- omega
+    omit <- -1
+    for (j in 2:(J+1)) {
+        v <- abs(xn[j-1]-xn[j+1])
+        if (v<md) {
+            md <- v
+            omit <- j
+        }
+    }
 
-    Qi[i] <- Q(x[i,],n[i,],J+i+1)
-
-    for (j in 1:(J+i+1))
-        spb[i,j] <- b(x[i,j])*n[i,j]
-    SpB[i] <- Q(x[i,],spb[i,],J+i+1)
+    x[i,] <- xn[-omit]
+    n[i,] <- nn[-omit]    
+    
+    #for (j in 1:(J+2))
+    #    spb[i,j] <- b(x[i,j])*n[i,j]
+    #SpB[i] <- Q(x[i,],spb[i,],J+i+1)
 
 }
 
-l <- matrix(0,nrow=Nl,ncol=J+t_id[Nl]+1)
-    
-for (lid in 1:Nl)
-    for (j in 0:(J+t_id[lid]))
-        for (jj in 1:t_sz[lid])
-            l[lid,j+1] <- l[lid,j+1] + exp(-((x[t_id[lid],j+1] - lf[lid,jj])/2)^2 ) + 1e-190
-    
-lw <- matrix(0,nrow=Nl,ncol=J+t_id[Nl]+1)
+#l <- matrix(0,nrow=Nl,ncol=J+1)
+#for (lid in 1:Nl)
+#    for (j in 1:(J+2))
+#        for (jj in 1:t_s)
+#            l[lid,j+1] <- l[lid,j+1] + exp(-((x[t_id[lid],j+1] - lf[lid,jj])/2)^2 ) + 1e-190
+#lw <- matrix(0,nrow=Nl,ncol=J+t_id[Nl]+1)
 
-for (lid in 1:Nl) {
+h <- array(0,dim=(I+1))
+tt <- array(0,dim=(I+1))
+
+lfi <- 1
+for (i in (N+1):(I+1)) {
     
-for (j in 0:(J+t_id[lid]))
-    lw[lid,j+1] <- l[lid,j+1]*w(x[t_id[lid],j+1])
+    v <- array(0,J+1)
+    
+    for (j in 1:(J+1))
+        v[j] <- s(x[i,j])*n[i,j]*iota*e(k*(i-N-1))*w(x[i,j])
 
-al <- cf(k*(t_id[lid]-N)) / Q(x[t_id[lid],1:(J+t_id[lid]+1)],lw[lid,1:(J+t_id[lid]+1)],J+t_id[lid]-1)
+    if (lfi <= Nl & t_id[lfi]==i) {
+        
+        l <- array(0,dim=(J+1))
+        
+        for (j in 1:(J+1))
+            for (jj in 1:t_sz[lfi])
+                l[j] <- l[j] + exp(-((x[i,j] - lf[lfi,jj])/2)^2 ) + 1e-190
 
-xx <- array(0,dim=J+t_id[lid]+1)
-yy <- array(0,dim=J+t_id[lid]+1)
-zz <- array(0,dim=J+t_id[lid]+1)
-for (j in 1:(J+t_id[lid]+1)) {
-    xx[j] <- x[t_id[lid],j]
-    yy[j] <- al*l[lid,j]
-    zz[j] <- s(x[t_id[lid],j])*n[t_id[lid],j]*iota*e(k*(t_id[lid]-N-1))
+        #lw <- array(0,dim=(J+1))
+        
+        #for (j in 1:(J+1))
+        #    lw[j] <- l[j]*w(x[i,j])
+
+        al <- cf(k*(i-N-1)) / Q(x[i,],l,J+1)
+        
+        ld <- array(0,dim=(J+1))
+        for (j in 1:(J+1))
+            ld[j] <- (v[j]-al*l[j])^2
+        
+        h[i] <- Q(x[i,],ld,J+1)
+        
+        
+        lfi <- lfi + 1
+        
+    } else {
+        
+        h[i] <- (Q(x,v,J+1)-cf(k*(i-N-1)))^2
+
+    }
+        
+    tt[i] <- k*(i-N-1)
 }
 
-}
+Q(tt,h,I+1)
+
+#for (lid in 1:Nl) {
+#for (j in 0:(J+t_id[lid]))
+#lw[lid,j+1] <- l[lid,j+1]*w(x[t_id[lid],j+1])
+#al <- cf(k*(t_id[lid]-N)) / Q(x[t_id[lid],1:(J+t_id[lid]+1)],lw[lid,1:(J+t_id[lid]+1)],J+t_id[lid]-1)
+#xx <- array(0,dim=J+t_id[lid]+1)
+#yy <- array(0,dim=J+t_id[lid]+1)
+#zz <- array(0,dim=J+t_id[lid]+1)
+#for (j in 1:(J+t_id[lid]+1)) {
+#    xx[j] <- x[t_id[lid],j]
+#    yy[j] <- al*l[lid,j]
+#    zz[j] <- s(x[t_id[lid],j])*n[t_id[lid],j]*iota*e(k*(t_id[lid]-N-1))
+#}
+
 
 @ 
 
 <<plotlf1,echo=FALSE,fig=TRUE,include=FALSE>>=
 
-lid <- 1
+lfi <- 1
 
-for (j in 0:(J+t_id[lid]))
-    lw[lid,j+1] <- l[lid,j+1]*w(x[t_id[lid],j+1])
+l <- array(0,dim=(J+1))
 
-al <- cf(k*(t_id[lid]-N)) / Q(x[t_id[lid],1:(J+t_id[lid]+1)],lw[lid,1:(J+t_id[lid]+1)],J+t_id[lid]-1)
+for (j in 1:(J+1))
+    for (jj in 1:t_sz[lfi])
+        l[j] <- l[j] + exp(-((x[t_id[lfi],j] - lf[lfi,jj])/2)^2 ) + 1e-190
+        
+al <- cf(k*(t_id[lfi]-N-1)) / Q(x[t_id[lfi],],l,J+1)
 
-xx <- array(0,dim=J+t_id[lid]+1)
-yy <- array(0,dim=J+t_id[lid]+1)
-zz <- array(0,dim=J+t_id[lid]+1)
-for (j in 1:(J+t_id[lid]+1)) {
-    xx[j] <- x[t_id[lid],j]
-    yy[j] <- al*l[lid,j]
-    zz[j] <- s(x[t_id[lid],j])*n[t_id[lid],j]*iota*e(k*(t_id[lid]-N-1))
+xx <- array(0,dim=J+1)
+yy <- array(0,dim=J+1)
+zz <- array(0,dim=J+1)
+
+for (j in 1:(J+1)) {
+    xx[j] <- x[t_id[lfi],j]
+    yy[j] <- al*l[j]
+    zz[j] <- s(x[t_id[lfi],j])*n[t_id[lfi],j]*iota*e(k*(t_id[lfi]-N-1))*w(x[t_id[lfi],j])
 }
         
-plot(xx,yy,ylim=range(c(yy,zz)),xlab="Length (cm)",ylab="Instantaneous catch rate (fish per cm per year)",main=paste(paste("Year:",1990+floor(k*(t_id[lid]-N-1))),", Model-fortnight: ",floor(20*(k*(t_id[lid]-N-1)-floor(k*(t_id[lid]-N-1)))),sep=''))
+plot(xx,yy,ylim=range(c(yy,zz)),xlab="Length (cm)",ylab="Instantaneous catch rate (fish per cm per year)",main=paste(paste("Year:",1990+floor(k*(t_id[lfi]-N-1))),", Model-fortnight: ",floor(20*(k*(t_id[lfi]-N-1)-floor(k*(t_id[lfi]-N-1)))),sep=''))
 lines(xx,zz)
 legend(x=20,y=.9*max(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
 
@@ -629,6 +689,112 @@ legend(x=20,y=.9*max(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA
 
 \begin{figure}
   \includegraphics[width=\textwidth]{spadernw-plotlf1.pdf}
+  \caption{Length frequency gof}
+  \label{fig:plotlfgof}
+\end{figure}
+
+
+<<plotlf2,echo=FALSE,fig=TRUE,include=FALSE>>=
+
+lfi <- 2
+
+l <- array(0,dim=(J+1))
+
+for (j in 1:(J+1))
+    for (jj in 1:t_sz[lfi])
+        l[j] <- l[j] + exp(-((x[t_id[lfi],j] - lf[lfi,jj])/2)^2 ) + 1e-190
+        
+al <- cf(k*(t_id[lfi]-N-1)) / Q(x[t_id[lfi],],l,J+1)
+
+xx <- array(0,dim=J+1)
+yy <- array(0,dim=J+1)
+zz <- array(0,dim=J+1)
+
+for (j in 1:(J+1)) {
+    xx[j] <- x[t_id[lfi],j]
+    yy[j] <- al*l[j]
+    zz[j] <- s(x[t_id[lfi],j])*n[t_id[lfi],j]*iota*e(k*(t_id[lfi]-N-1))*w(x[t_id[lfi],j])
+}
+        
+plot(xx,yy,ylim=range(c(yy,zz)),xlab="Length (cm)",ylab="Instantaneous catch rate (fish per cm per year)",main=paste(paste("Year:",1990+floor(k*(t_id[lfi]-N-1))),", Model-fortnight: ",floor(20*(k*(t_id[lfi]-N-1)-floor(k*(t_id[lfi]-N-1)))),sep=''))
+lines(xx,zz)
+legend(x=20,y=.9*max(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
+
+@ 
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{spadernw-plotlf2.pdf}
+  \caption{Length frequency gof}
+  \label{fig:plotlfgof}
+\end{figure}
+
+
+<<plotlf3,echo=FALSE,fig=TRUE,include=FALSE>>=
+
+lfi <- 3
+
+l <- array(0,dim=(J+1))
+
+for (j in 1:(J+1))
+    for (jj in 1:t_sz[lfi])
+        l[j] <- l[j] + exp(-((x[t_id[lfi],j] - lf[lfi,jj])/2)^2 ) + 1e-190
+
+        
+al <- cf(k*(t_id[lfi]-N-1)) / Q(x[t_id[lfi],],l,J+1)
+
+xx <- array(0,dim=J+1)
+yy <- array(0,dim=J+1)
+zz <- array(0,dim=J+1)
+
+for (j in 1:(J+1)) {
+    xx[j] <- x[t_id[lfi],j]
+    yy[j] <- al*l[j]
+    zz[j] <- s(x[t_id[lfi],j])*n[t_id[lfi],j]*iota*e(k*(t_id[lfi]-N-1))*w(x[t_id[lfi],j])
+}
+        
+plot(xx,yy,ylim=range(c(yy,zz)),xlab="Length (cm)",ylab="Instantaneous catch rate (fish per cm per year)",main=paste(paste("Year:",1990+floor(k*(t_id[lfi]-N-1))),", Model-fortnight: ",floor(20*(k*(t_id[lfi]-N-1)-floor(k*(t_id[lfi]-N-1)))),sep=''))
+lines(xx,zz)
+legend(x=20,y=.9*max(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
+
+@ 
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{spadernw-plotlf3.pdf}
+  \caption{Length frequency gof}
+  \label{fig:plotlfgof}
+\end{figure}
+
+
+<<plotlf4,echo=FALSE,fig=TRUE,include=FALSE>>=
+
+lfi <- 4
+
+l <- array(0,dim=(J+1))
+
+for (j in 1:(J+1))
+    for (jj in 1:t_sz[lfi])
+        l[j] <- l[j] + exp(-((x[t_id[lfi],j] - lf[lfi,jj])/2)^2 ) + 1e-190
+       
+al <- cf(k*(t_id[lfi]-N-1)) / Q(x[t_id[lfi],],l,J+1)
+
+xx <- array(0,dim=J+1)
+yy <- array(0,dim=J+1)
+zz <- array(0,dim=J+1)
+
+for (j in 1:(J+1)) {
+    xx[j] <- x[t_id[lfi],j]
+    yy[j] <- al*l[j]
+    zz[j] <- s(x[t_id[lfi],j])*n[t_id[lfi],j]*iota*e(k*(t_id[lfi]-N-1))*w(x[t_id[lfi],j])
+}
+        
+plot(xx,yy,ylim=range(c(yy,zz)),xlab="Length (cm)",ylab="Instantaneous catch rate (fish per cm per year)",main=paste(paste("Year:",1990+floor(k*(t_id[lfi]-N-1))),", Model-fortnight: ",floor(20*(k*(t_id[lfi]-N-1)-floor(k*(t_id[lfi]-N-1)))),sep=''))
+lines(xx,zz)
+legend(x=20,y=.9*max(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
+
+@ 
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{spadernw-plotlf4.pdf}
   \caption{Length frequency gof}
   \label{fig:plotlfgof}
 \end{figure}
