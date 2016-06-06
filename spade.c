@@ -24,17 +24,18 @@
 #include <math.h>
 #include "spade.h"
 #include "common.h"
+#include "parameters.h"
 #include "machinery/VMGMM.h"
 #include "machinery/objfns.h"
 #include "optim/optim.h"
 #include "plotting/plot.h"
+#include "mathprop/mathprop.h"
 #include "machinery/alpha/grad_alpha.h"
 #include "machinery/beta/grad_beta.h"
 #include "machinery/gamma/grad_gamma.h"
 #include "machinery/iota/grad_iota.h"
 #include "machinery/kappa/grad_kappa.h"
 #include "machinery/omega/grad_omega.h"
-#include "mathprop/mathprop.h"
 
 int feenableexcept(int);
 
@@ -52,7 +53,6 @@ int main(int argc, char *argv[])
   int Nce,Nlf;
 
   int N;
-  double beta,gamma,alpha,iota,kappa,omega;
   int minfish;
   double k;
 
@@ -202,20 +202,20 @@ int main(int argc, char *argv[])
 	  free(ln);
 	  free(tl);
 
-	  sscanf(argv[i+2],"%lf",&alpha);
-	  sscanf(argv[i+3],"%lf",&beta);
-	  sscanf(argv[i+4],"%lf",&gamma);
-	  sscanf(argv[i+5],"%lf",&iota);
-	  sscanf(argv[i+6],"%lf",&kappa);
-	  sscanf(argv[i+7],"%lf",&omega);
+	  //sscanf(argv[i+2],"%lf",&alpha);
+	  //sscanf(argv[i+3],"%lf",&beta);
+	  //sscanf(argv[i+4],"%lf",&gamma);
+	  //sscanf(argv[i+5],"%lf",&iota);
+	  //sscanf(argv[i+6],"%lf",&kappa);
+	  //sscanf(argv[i+7],"%lf",&omega);
 
 	  i += 8;
 
 	} 
       else
 	{
-	  printf("problem\n");
-          exit(1);
+	  //printf("problem\n");
+          //exit(1);
 	}
     }
   }
@@ -231,8 +231,6 @@ int main(int argc, char *argv[])
   fscanf(fp,"%d",&optim.maxfev);
   fclose(fp);
   optim.xtol = DBL_EPSILON;
-  
-  h = omega / J;
 
   data.I = 2*N;
   data.S = N;
@@ -265,7 +263,20 @@ int main(int argc, char *argv[])
 
   printf("%f %f\n",iota,a2);
   */
-  Parameters parameters;
+
+  // Configure each parameter. This must be updated when a
+  // new parameter is created.
+  Parameters parameters = {
+   .alpha = { .name = "alpha", .grad = &grad_alpha },
+   .beta = { .name = "beta", .grad = &grad_beta },
+   .gamma = { .name = "gamma", .grad = &grad_gamma },
+   .iota = { .name = "iota", .grad = &grad_iota },
+   .kappa = { .name = "kappa", .grad = &grad_kappa },
+   .omega = { .name = "omega", .grad = &grad_omega }
+  };
+
+  // Map all parameters to the parameter array. This must
+  // be updated when a new parameter is created.
   parameters.parameter[0] = &parameters.alpha;
   parameters.parameter[1] = &parameters.beta;
   parameters.parameter[2] = &parameters.gamma;
@@ -274,52 +285,16 @@ int main(int argc, char *argv[])
   parameters.parameter[5] = &parameters.omega;
   parameters.count = PARAMETER_COUNT;
 
-  parameters.alpha.grad = &grad_alpha;
-  parameters.alpha.value = alpha;
-  parameters.alpha.active = TRUE;
-  parameters.alpha.gradient = 0;
-
-  parameters.beta.grad = &grad_beta;
-  parameters.beta.value = beta;
-  parameters.beta.active = TRUE;
-  parameters.beta.gradient = 0;
-
-  parameters.gamma.grad = &grad_gamma;
-  parameters.gamma.value = gamma;
-  parameters.gamma.active = TRUE;
-  parameters.gamma.gradient = 0;
-  
-  parameters.iota.grad = &grad_iota;
-  parameters.iota.value = iota;
-  parameters.iota.active = FALSE;
-  parameters.iota.gradient = 0;
-
-  parameters.kappa.grad = &grad_kappa;
-  parameters.kappa.value = kappa;
-  parameters.kappa.active = TRUE;
-  parameters.kappa.gradient = 0;
-
-  parameters.omega.grad = &grad_omega;
-  parameters.omega.value = omega;
-  parameters.omega.active = FALSE;
-  parameters.omega.gradient = 0;
-
-  // Determine the number of parameters which are active
-  int activeParameterCount = 0;
-  for(int i = 0; i < parameters.count; i++) {
-    if(parameters.parameter[i]->active == TRUE) {
-      activeParameterCount++;
-    }
+  // Read all parameter values from the command line.
+  if(!parameters_read(&parameters, argc, argv)) {
+    printf("Usage: spade -fn <datafile> -alpha <alpha> -beta <beta> -gamma <gamma> -iota <iota> -kappa <kappa> -omega <omega>\n\n");
+    printf("  To disable a parameter suffix the parameter name with '-disabled' e.g. '-alpha-disabled'\n");
+    exit(1);
   }
 
-  // Load all active parameter values into a theta vector
-  VEC *theta = v_get(activeParameterCount);
-  int iTheta = 0;
-  for(int i = 0; i < parameters.count; i++) {
-    if(parameters.parameter[i]->active == TRUE) {
-      theta->ve[iTheta++] = parameters.parameter[i]->value;
-    }
-  }
+  VEC *theta = parameters_to_vec(&parameters);
+
+  h = parameters.omega.value / J;
 
   //double cn = ConditionNumber(&parameters, &data);
   //printf("%f\n",cn);

@@ -1,6 +1,7 @@
 ﻿#include <math.h>
 #include "../meschach/matrix.h"
 #include "../common.h"
+#include "../parameters.h"
 #include "../model/biology/growth.h"
 #include "zstar.h"
 #include "Q.h"

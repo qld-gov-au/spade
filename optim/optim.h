@@ -1,6 +1,8 @@
 ﻿#ifndef SPADE_OPTIM_H
 #define SPADE_OPTIM_H
 
+#include "../parameters.h"
+
 VEC * bfgs(
 
 	   VEC * (*model)(VEC *,Data *,VEC *,double *,Parameters *),

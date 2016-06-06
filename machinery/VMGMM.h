@@ -2,7 +2,7 @@
 #define SPADE_MACHINERY_H
 
 #include "../meschach/matrix.h"
-#include "../common.h"
+#include "../parameters.h"
 
 VEC *VMGMM(
 

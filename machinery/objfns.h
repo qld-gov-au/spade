@@ -3,6 +3,7 @@
 
 #include "../meschach/matrix.h"
 #include "../common.h"
+#include "../parameters.h"
 
 double K(
 

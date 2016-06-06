@@ -9,8 +9,6 @@
     </Compiler>
     <Language>C</Language>
     <Target>Bin</Target>
-    <ProductVersion>12.0.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,7 +20,7 @@
     <SourceDirectory>.</SourceDirectory>
     <ExtraLinkerArguments>-lm
 -pthread</ExtraLinkerArguments>
-    <Commandlineparameters>-fn karumba .09 .09 1.3 .07 .1 160</Commandlineparameters>
+    <Commandlineparameters>-fn karumba -alpha .09 -beta .09 -gamma 1.3 -iota-disabled .07 -kappa .1 -omega-disabled 160</Commandlineparameters>
     <ExtraCompilerArguments>-std=c99</ExtraCompilerArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -102,6 +100,7 @@
     <Compile Include="model\fishing\effort.c" />
     <Compile Include="model\fishing\catch.c" />
     <Compile Include="model\death.c" />
+    <Compile Include="parameters.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="meschach\err.h" />
@@ -151,6 +150,7 @@
     <None Include="model\fishing\effort.h" />
     <None Include="model\fishing\catch.h" />
     <None Include="model\death.h" />
+    <None Include="parameters.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="optim\" />

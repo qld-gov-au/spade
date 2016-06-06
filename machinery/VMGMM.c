@@ -1,6 +1,7 @@
 ﻿#include <pthread.h>
 #include "../meschach/matrix.h"
 #include "../common.h"
+#include "../parameters.h"
 #include "spade_solve.h"
 #include "alpha/grad_alpha.h"
 #include "beta/grad_beta.h"

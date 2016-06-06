@@ -2,6 +2,8 @@
 #define SPADE_SOLVE_H
 
 #include "../meschach/matrix.h"
+#include "../common.h"
+#include "../parameters.h"
 
 VEC *initial(
 
