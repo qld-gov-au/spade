@@ -33,7 +33,7 @@ OBJECTS := $(SPADE_OBJECTS) $(MESCHACH_OBJECTS)
 all: build
 
 # Generate executable
-build: $(OBJECTS)
+build: clean $(OBJECTS)
 	$(CC) $(OBJECTS) $(LINKER_FLAGS) -o $(OUTPUT_NAME)
 	@echo "Build successful"
 
