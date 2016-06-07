@@ -37,7 +37,20 @@ VEC * bfgs(
   g = (*model)(x,data,g,&f,parameters);
   //exit(0);
   nfev += 1;
+/*
+  double dx = 1e-3;
+  x->ve[0] += dx;
+  parameters->parameter[0]->value = x->ve[0];
 
+  double fnew;
+  g = (*model)(x,data,g,&fnew,parameters);
+
+  double dy = fnew-f;
+  double ng = dy / dx;
+  printf("%g %g\n",ng,g->ve[0]);
+  
+  exit(0);
+*/
   fv = f;
 
   int count = 0;
@@ -45,9 +58,9 @@ VEC * bfgs(
   while (1)
     {
 
-      printf("infnorm: %g fv: %g p1: %g p2: %g p3: %g p4: %g p5: %g\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value);
+      //printf("infnorm: %g fv: %g p1: %g p2: %g p3: %g p4: %g p5: %g\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value);
 
-      if (v_norm_inf(g) < 1e-4)
+      if (v_norm_inf(g) < 1e-2)
 	break;
 
       mv_mlt(B,g,p);      
@@ -55,13 +68,13 @@ VEC * bfgs(
 
       //VEC * p_copy = v_get(n);
       //v_copy(p,p_copy);
-/*
-      if (count==1) {      
+
+      if (count==0) {      
       
       
         printf("\n");
         //for (int i=-20;i<=-3;i++) {       
-        for (int i=1;i<=20;i++) {       
+        for (int i=-20;i<=20;i++) {       
         
           double stp = (double)i*0.001; //exp((double)i);
           //double stp = (double)i*0.0001; //exp((double)i);
@@ -69,29 +82,33 @@ VEC * bfgs(
           double nfv;
           
           VEC *newx = v_get(n);
-          VEC *ptmp = v_get(n);
-          ptmp = sv_mlt(stp,p,ptmp);
-          v_add(x,ptmp,newx);         
+          //VEC *ptmp = v_get(n);
+          //ptmp = sv_mlt(stp,p,ptmp);
+          //v_add(x,ptmp,newx);         
           
-          //v_copy(x,newx);
+          v_copy(x,newx);
           //newx->ve[4] = newx->ve[4] + stp;
           
           //v_output(newx);
-          V_FREE(ptmp);
+          //V_FREE(ptmp);
           
           // apply changes to theta (x) back to parameters
-          int iTheta = 0;
-          for(int i = 0; i < parameters->count; i++) {
-            if(parameters->parameter[i]->active == TRUE) {
-              parameters->parameter[i]->value = newx->ve[iTheta++];
-            }
-          }
+          //int iTheta = 0;
+          //for(int i = 0; i < parameters->count; i++) {
+          //  if(parameters->parameter[i]->active == TRUE) {
+          //    parameters->parameter[i]->value = newx->ve[iTheta++];
+          //  }
+          //}
+
+          newx->ve[3] += stp;
+          parameters->parameter[3]->value = newx->ve[3];
 
           g = (*model)(newx,data,g,&nfv,parameters);
           
-          double dg = in_prod(g,p);
+          //double dg = in_prod(g,p);
           //printf("dg: %f\n",dg);
-          printf("%g %g %g %g %g\n",stp,nfv,dg,newx->ve[4],g->ve[4]);
+          //printf("%g %g %g %g %g\n",stp,nfv,dg,newx->ve[4],g->ve[4]);
+          printf("%g %.15g\n",newx->ve[3],parameters->parameter[3]->gradient);
           //printf("%g %g\n",newx->ve[4],g->ve[4]); //,dg,newx->ve[4],g->ve[4]);
 
               
@@ -99,11 +116,10 @@ VEC * bfgs(
              
         }
 
-
         exit(0);
         
       }
-           */       
+                 
 
       v_copy(x,oldx);
       v_copy(g,oldg);

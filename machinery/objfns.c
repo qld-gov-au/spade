@@ -78,7 +78,7 @@ double K_dr(
       for (int jj=0;jj<dt->dim;jj++)
         l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-    double al = c(d->cat,k,k*(i - S)) / Q(xt,l); //1e3*
+    double al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
 
     VEC *ld = v_get(x->n);
 
@@ -96,7 +96,7 @@ double K_dr(
   } 
       else 
   {
-    ht->ve[i] = pow(Q(xt,v)-c(d->cat,k,k*(i - S)),2.);
+    ht->ve[i] = pow(Q(xt,v)-1e3*c(d->cat,k,k*(i - S)),2.);
   }
 
       tt->ve[i] = k*(i-S);
@@ -184,7 +184,7 @@ double K(
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-	  double al = c(d->cat,k,k*(i - S)) / Q(xt,l); //1e3*
+	  double al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); //1e3*
 
 	  VEC *ld = v_get(x->n);
 
@@ -202,7 +202,7 @@ double K(
 	} 
       else 
 	{
-	  ht->ve[i] = pow(Q(xt,v)-c(d->cat,k,k*(i - S)),2.);
+	  ht->ve[i] = pow(Q(xt,v)-1e3*c(d->cat,k,k*(i - S)),2.);
 	}
 
       tt->ve[i] = k*(i-S);
@@ -278,7 +278,7 @@ double G(
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-	  double al = c(data->cat,k,k*(i - S)) / Q(xt,l);
+	  double al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
 	  VEC *ld = v_get(x->n);
 
@@ -309,7 +309,7 @@ double G(
           //printf("%f\n",Q(xt,v));
           //printf("%f\n",c(k*(i-tmi.I)));
 
-	  ht->ve[i] = 2*(Q(xt,v)-c(data->cat,k,k*(i-S)))*Q(xt,pv);
+	  ht->ve[i] = 2*(Q(xt,v)-1e3*c(data->cat,k,k*(i-S)))*Q(xt,pv);
 	  /*    
 	  if (Q(xt,v)<1e3*c(data->cat,k,k*(i-S)))
 	    ht->ve[i] = -Q(xt,pv);//*(Q(xt,v)-1e3*c(k*(i - tmi.I)))/fabs(Q(xt,v)-1e3*c(k*(i - tmi.I)));
@@ -489,7 +489,7 @@ double G_ni(
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-	  double al = c(data->cat,k,k*(i - S)) / Q(xt,l);
+	  double al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
 	  VEC *ld = v_get(x->n);
 
@@ -521,7 +521,7 @@ double G_ni(
           //printf("%f\n",Q(xt,v));
           //printf("%f\n",c(k*(i-tmi.I)));
 
-	  ht->ve[i] = 2*(Q(xt,v)-c(data->cat,k,k*(i-S)))*Q(xt,pv);
+	  ht->ve[i] = 2*(Q(xt,v)-1e3*c(data->cat,k,k*(i-S)))*Q(xt,pv);
 	  /*        
 	  if (Q(xt,v)<1e3*c(data->cat,k,k*(i-S)))
 	    ht->ve[i] = -Q(xt,pv);//*(Q(xt,v)-1e3*c(k*(i - tmi.I)))/fabs(Q(xt,v)-1e3*c(k*(i - tmi.I)));
