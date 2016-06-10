@@ -80,6 +80,7 @@ void grad_alpha(void* args)
       get_row(xhh,i-1,xhht);
       get_row(uh,i-1,uht);
       get_row(xn,i-1,xnt);
+      get_row(u,i-1,ut);
 
       for (int j=1;j<=x->n;j++)
 	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*gg*Pi->ve[i-1]*ut->ve[j-1];
