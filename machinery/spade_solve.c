@@ -20,19 +20,19 @@ VEC *initial(
 
   x->ve[x->dim-1] -= 1e-5;
 
-  double a = parameters->alpha.value;
-  double b = parameters->beta.value;
-  double g = parameters->gamma.value*1e-7;
-  double k = parameters->kappa.value;
-  double w = parameters->omega.value;
+  Real a = parameters->alpha.value;
+  Real b = parameters->beta.value;
+  Real g = parameters->gamma.value*1e-7;
+  Real k = parameters->kappa.value;
+  Real w = parameters->omega.value;
 
-  double zeta = sqrt( 81*k*k*w*w*pow(a*A1+2*a*A2*w,2.) - 12*k*pow(a*A1*w+k,3.) );
-  double eta = 9*a*A1*k*k*w + 18*a*A2*k*k*w*w + k*zeta;
-  double Z = pow(eta,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a*A1*w+k) / pow(eta,1./3);
+  Real zeta = sqrt( 81*k*k*w*w*pow(a*A1+2*a*A2*w,2.) - 12*k*pow(a*A1*w+k,3.) );
+  Real eta = 9*a*A1*k*k*w + 18*a*A2*k*k*w*w + k*zeta;
+  Real Z = pow(eta,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*k*(a*A1*w+k) / pow(eta,1./3);
 
-  double ubar = (Z - b - k) / g; 
-  double vbar = (k*w*ubar) / (b+g*ubar+k);
-  double wbar = (2*k*w*vbar) / (b+g*ubar+2*k);  
+  Real ubar = (Z - b - k) / g; 
+  Real vbar = (k*w*ubar) / (b+g*ubar+k);
+  Real wbar = (2*k*w*vbar) / (b+g*ubar+2*k);  
 
   for (int j=0;j<x->dim;j++) 
     u->ve[j] = (a*A1*vbar+a*A2*wbar)*pow(w-x->ve[j],(b+g*ubar)/k-1) / (k*pow(w,(b+g*ubar)/k));
@@ -44,7 +44,7 @@ void solve(
 
      Parameters * parameters,
 		 VEC *eff,
-		 double k,		 
+		 Real k,		 
 		 int S,
 		 Solve_Core_Args *core_args  // modified
 
@@ -80,21 +80,21 @@ void solve(
  
   Ui->ve[0] = Q(xt,ut);
 
-  double aa = parameters->alpha.value;
-  double bb = parameters->beta.value;
-  double gg = parameters->gamma.value*1e-7;
-  double kk = parameters->kappa.value;
-  double ww = parameters->omega.value;
-  double ii = parameters->iota.value*1e-3;
+  Real aa = parameters->alpha.value;
+  Real bb = parameters->beta.value;
+  Real gg = parameters->gamma.value*1e-7;
+  Real kk = parameters->kappa.value;
+  Real ww = parameters->omega.value;
+  Real ii = parameters->iota.value*1e-3;
 
   //  printf("\n");
 
   for (int i=1;i<x->m;i++)
     {
 
-      double t = k*(i-S-1);
-      double th = k*(i-S-.5);
-      double thh = k*(i-S-.75);
+      Real t = k*(i-S-1);
+      Real th = k*(i-S-.5);
+      Real thh = k*(i-S-.75);
 
       get_row(core_args->x,i-1,xt);
       get_row(core_args->u,i-1,ut);

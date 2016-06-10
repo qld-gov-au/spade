@@ -17,7 +17,7 @@ void solve(
 
 		 Parameters *parameters,
 		 VEC *eff,
-		 double k,		 
+		 Real k,		 
 		 int S,
 		 Solve_Core_Args *core_args  // modified
 

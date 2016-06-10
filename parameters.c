@@ -29,7 +29,7 @@ int parameter_read(Parameter * parameter, int argc, char * argv[]) {
   // or "-alpha-disabled" (whichever appears first)
   for(int i = 0; i < argc; i++) {
     char *arg = argv[i];
-    double value;
+    Real value;
 
     // If argument matches "-alpha"
     if(strcmp(arg, arg_name) == 0) {
@@ -56,14 +56,23 @@ int parameter_read(Parameter * parameter, int argc, char * argv[]) {
 }
 
 // Attempts to read a command line argument at the given index as a
-// numeric (double) value. Returns TRUE if the argument could be read,
-// FALSE if the argument couldnot be read as a double or if it was unspecified.
-int parse_argument_value(int argc, char *argv[], int i, double * value) {
+// numeric (Real) value. Returns TRUE if the argument could be read,
+// FALSE if the argument couldnot be read as a Real or if it was unspecified.
+int parse_argument_value(int argc, char *argv[], int i, Real * value) {
   if(i >= argc) {
     return 0;
   }
 
-  if(sscanf(argv[i], "%lf", value) != 1) {
+  #if REAL == DOUBLE
+    // lf
+    if(sscanf(argv[i], "%lf", value) != 1) {
+  #elif REAL == FLOAT
+    // f
+    if(sscanf(argv[i], "%f", value) != 1) {
+  #elif REAL == LONGDOUBLE
+    // Lf
+    if(sscanf(argv[i], "%Lf", value) != 1) {
+  #endif
     return 0;
   }
 

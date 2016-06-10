@@ -150,6 +150,8 @@ double	fin_double(FILE *fp, const char *s, double low, double high)
 		if ( (retcode=fscanf(fp,"%lf",&x)) == EOF )
 #elif REAL == FLOAT
 		if ( (retcode=fscanf(fp,"%f",&x)) == EOF )
+#elif REAL == LONGDOUBLE
+    if ( (retcode=fscanf(fp,"%Lf",&x)) == EOF )  
 #endif
 			error(E_INPUT,"fin_double");
 		if ( retcode <= 0 )
@@ -168,6 +170,8 @@ double	fin_double(FILE *fp, const char *s, double low, double high)
 		retcode = sscanf(scratch,"%lf",&x);
 #elif REAL == FLOAT 
 		retcode = sscanf(scratch,"%f",&x);
+  #elif REAL == LONGDOUBLE 
+    retcode = sscanf(scratch,"%Lf",&x);
 #endif
 		if ( ( retcode==1 && low > high ) ||
 					( x >= low && x <= high ) )

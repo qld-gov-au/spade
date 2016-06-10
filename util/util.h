@@ -13,14 +13,14 @@ VEC *idxremove(
 
 	       );
 
-double idxselect(
+Real idxselect(
 
-		 double omega,
+		 Real omega,
 		 VEC *xn
 
 		 );
 
-double get_bw(
+Real get_bw(
 
 	      VEC *dt
 

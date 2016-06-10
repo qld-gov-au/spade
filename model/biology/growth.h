@@ -1,11 +1,11 @@
 ﻿#ifndef SPADE_GROWTH_H
 #define SPADE_GROWTH_H
 
-double g(
+Real g(
 
-	 const double k,
-	 const double w,
-	 const double x
+	 const Real k,
+	 const Real w,
+	 const Real x
 
 	 );
 

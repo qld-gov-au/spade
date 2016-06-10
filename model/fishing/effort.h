@@ -1,11 +1,11 @@
 ﻿#ifndef SPADE_EFFORT_H
 #define SPADE_EFFORT_H
 
-double e(
+Real e(
 
 	  VEC * ef,
-	  double r,
-	  double t
+	  Real r,
+	  Real t
 
 	  );
 

@@ -5,7 +5,7 @@
 
 VEC * bfgs(
 
-	   VEC * (*model)(VEC *,Data *,VEC *,double *,Parameters *),
+	   VEC * (*model)(VEC *,Data *,VEC *,Real *,Parameters *),
 	   VEC *x,
 	   Data *data,
      Parameters * parameters,
@@ -15,20 +15,20 @@ VEC * bfgs(
 
 int cstep(
 
-	  double *stx,
-	  double *fx,
-	  double *dx,
-	  double *sty,
-	  double *fy,
-	  double *dy,
-	  double *stp,
-	  double fp,
-	  double dp,
+	  Real *stx,
+	  Real *fx,
+	  Real *dx,
+	  Real *sty,
+	  Real *fy,
+	  Real *dy,
+	  Real *stp,
+	  Real fp,
+	  Real dp,
 	  int *brackt,
-	  double stpmin,
-	  double stpmax
+	  Real stpmin,
+	  Real stpmax
 
 	  );
 
-int cvsrch(VEC *(*f)(VEC *,Data *,VEC *,double *,Parameters *),VEC *,double,VEC *,VEC *,double,double,double,double,double,double,int,Data *,Parameters *,double *fv); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
+int cvsrch(VEC *(*f)(VEC *,Data *,VEC *,Real *,Parameters *),VEC *,Real,VEC *,VEC *,Real,Real,Real,Real,Real,Real,int,Data *,Parameters *,Real *fv); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
 #endif

@@ -3,17 +3,17 @@
 
 #include "../meschach/matrix.h"
 
-double zstar(
+Real zstar(
 
 	      VEC *eff,
-	      double b,
-	      double g,
-	      double k,
-	      double i,
-	      double t,
-	      double x,
-	      double U,
-	      double r
+	      Real b,
+	      Real g,
+	      Real k,
+	      Real i,
+	      Real t,
+	      Real x,
+	      Real U,
+	      Real r
 
 	     );
 

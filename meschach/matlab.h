@@ -55,6 +55,7 @@ typedef struct {
 
 #define DOUBLE_PREC  0       /* double precision */
 #define SINGLE_PREC  1       /* single precision */
+#define LONGDOUBLE_PREC  2       /* long double precision */
 #define INT_32  2       /* 32 bit integers (signed) */
 #define INT_16  3       /* 16 bit integers (signed) */
 #define INT_16u 4       /* 16 bit integers (unsigned) */
@@ -70,6 +71,8 @@ typedef struct {
 #define PRECISION       DOUBLE_PREC
 #elif REAL == FLOAT
 #define PRECISION  	SINGLE_PREC
+#elif REAL == LONGDOUBLE
+#define PRECISION   LONGDOUBLE_PREC
 #endif
 
 

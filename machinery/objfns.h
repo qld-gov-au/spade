@@ -5,7 +5,7 @@
 #include "../common.h"
 #include "../parameters.h"
 
-double K(
+Real K(
 
      Parameters * parameters,
 		 Data *data,
@@ -13,29 +13,29 @@ double K(
 		 	
 		 );
 
-double K_dr(
+Real K_dr(
 
   Parameters * parameters,
   Data *data
   );
 
-double G(
+Real G(
 
 	 MAT *p,
 	 MAT *x,
 	 MAT *u,
 	 Data *data,
-	 double iota
+	 Real iota
 	
 	 );
 
-double G_ni(
+Real G_ni(
 
 	    MAT *p,
 	    MAT *x,
 	    MAT *u,
 	    Data *data,
-	    double iota
+	    Real iota
 
 	    );
 

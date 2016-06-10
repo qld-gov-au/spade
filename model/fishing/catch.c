@@ -1,11 +1,11 @@
 ﻿#include <math.h>
 #include "../../meschach/matrix.h"
 
-double c(
+Real c(
 
 	  VEC * ca,
-	  double r,
-	  double t
+	  Real r,
+	  Real t
 
 	  )
 {
@@ -14,7 +14,14 @@ double c(
     return 0;
   else
     {
-      int idx = floor((t + (r/2) - 1e-12)/r); // better to use double epsilon?
+      #if REAL == DOUBLE
+          int idx = floor((t + (r/2) - DBL_EPSILON)/r);
+      #elif REAL == FLOAT
+          int idx = floor((t + (r/2) - FLT_EPSILON)/r);
+      #elif REAL == LONGDOUBLE
+          int idx = floor((t + (r/2) - LDBL_EPSILON)/r);
+      #endif
+
       return ca->ve[idx];
     }
 }

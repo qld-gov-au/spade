@@ -145,6 +145,8 @@ MAT     *im_finput(FILE *fp,MAT *mat)
 	       } while ( *line=='\0' || sscanf(line,"%lf",&mat->me[i][j])<1 );
 #elif REAL == FLOAT
 	       } while ( *line=='\0' || sscanf(line,"%f",&mat->me[i][j])<1 );
+#elif REAL == LONGDOUBLE
+         } while ( *line=='\0' || sscanf(line,"%Lf",&mat->me[i][j])<1 );
 #endif
 	  fprintf(stderr,"Continue: ");
 	  fscanf(fp,"%c",&c);
@@ -193,6 +195,8 @@ MAT     *bm_finput(FILE *fp,MAT *mat)
 	       if ((io_code=fscanf(fp,"%lf",&mat->me[i][j])) < 1 )
 #elif REAL == FLOAT
 	       if ((io_code=fscanf(fp,"%f",&mat->me[i][j])) < 1 )
+#elif REAL == FLOAT
+         if ((io_code=fscanf(fp,"%Lf",&mat->me[i][j])) < 1 )
 #endif
 		    error(io_code==EOF ? 7 : 6,"bm_finput");
      }
@@ -391,6 +395,8 @@ VEC     *ifin_vec(FILE *fp,VEC *vec)
 	  } while ( *line=='\0' || sscanf(line,"%lf",&vec->ve[i]) < 1 );
 #elif REAL == FLOAT
           } while ( *line=='\0' || sscanf(line,"%f",&vec->ve[i]) < 1 );
+#elif REAL == LONGDOUBLE
+          } while ( *line=='\0' || sscanf(line,"%Lf",&vec->ve[i]) < 1 );
 #endif
      
      return (vec);
@@ -425,6 +431,8 @@ VEC     *bfin_vec(FILE *fp,VEC *vec)
 	  if ((io_code=fscanf(fp,"%lf",&vec->ve[i])) < 1 )
 #elif REAL == FLOAT
 	  if ((io_code=fscanf(fp,"%f",&vec->ve[i])) < 1 )
+ #elif REAL == LONGDOUBLE
+    if ((io_code=fscanf(fp,"%Lf",&vec->ve[i])) < 1 )
 #endif
 	       error(io_code==EOF ? 7 : 6,"bfin_vec");
      

@@ -1,6 +1,6 @@
 ﻿#include "../meschach/matrix.h"
 
-double Qn(
+Real Qn(
 
 	  VEC * x,
 	  VEC * u,
@@ -12,7 +12,7 @@ double Qn(
   //if (x->dim != u->dim)
   //  error(E_SIZES,"Q");
 
-  double rt = 0.;
+  Real rt = 0.;
 
   for (int i=0;i<n-1;i++) 
     rt = rt + .5 * (x->ve[i+1] - x->ve[i]) * (u->ve[i] + u->ve[i+1]);

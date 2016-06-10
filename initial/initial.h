@@ -6,11 +6,11 @@
 
 VEC * calc_alpha(
 
-			double a,
-			double k,
-			double w,
-			double bt,
-			double f
+			Real a,
+			Real k,
+			Real w,
+			Real bt,
+			Real f
 
 			);
 
@@ -19,7 +19,7 @@ VEC * VMGMM_eq(
 		  VEC *x,
 		  Data *d,
 		  VEC *grad,
-		  double *f
+		  Real *f
 
 		  );
 

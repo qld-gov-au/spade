@@ -140,15 +140,20 @@
 
 #define FLOAT 		1
 #define DOUBLE 		2
-#define LONG_DOUBLE 	3
+#define LONGDOUBLE 	3
 
 #undef REAL_FLT
 #undef REAL_DBL
+#undef REAL_LONG_DBL
+
+#define REAL_LONG_DBL 1
 
 /* if nothing is defined, choose double precision */
 #ifndef REAL_DBL
 #ifndef REAL_FLT
+#ifndef REAL_LONG_DBL
 #define REAL_DBL 1
+#endif
 #endif
 #endif
 
@@ -168,6 +173,13 @@
 #define LONGREAL DOUBLE
 #endif
 
+/* long double precision */
+#ifdef REAL_LONG_DBL
+#define Real long double
+#define LongReal long double
+#define REAL LONGDOUBLE
+#define LONGREAL LONGDOUBLE
+#endif
 
 /* machine epsilon or unit roundoff error */
 /* This is correct on most IEEE Real precision systems */

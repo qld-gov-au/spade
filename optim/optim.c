@@ -6,7 +6,7 @@
 
 VEC * bfgs(
 
-	   VEC * (*model)(VEC *,Data *,VEC *,double *,Parameters *),
+	   VEC * (*model)(VEC *,Data *,VEC *,Real *,Parameters *),
 	   VEC *x,
 	   Data *data,
      Parameters * parameters,
@@ -18,8 +18,8 @@ VEC * bfgs(
   int n = x->dim;
   int nfev = 0;
 
-  double f;
-  double fv;
+  Real f;
+  Real fv;
 
   VEC *s = v_get(n);
   VEC *y = v_get(n);
@@ -38,15 +38,15 @@ VEC * bfgs(
   //exit(0);
   nfev += 1;
 /*
-  double dx = 1e-7;
+  Real dx = 1e-7;
   x->ve[3] += dx;
   parameters->parameter[4]->value = x->ve[3];
 
-  double fnew;
+  Real fnew;
   g = (*model)(x,data,g,&fnew,parameters);
 
-  double dy = fnew-f;
-  double ng = dy / dx;
+  Real dy = fnew-f;
+  Real ng = dy / dx;
   printf("%g %g\n",ng,g->ve[3]);
   
   exit(0);
@@ -58,9 +58,15 @@ VEC * bfgs(
   while (1)
     {
 
-      printf("infnorm: %g fv: %g p1: %g p2: %g p3: %g p4: %g p5: %g\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value);
+    #if REAL == DOUBLE
+         printf("infnorm: %g fv: %lf p1: %lf p2: %lf p3: %lf p4: %lf p5: %lf\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value);
+    #elif REAL == FLOAT
+             printf("infnorm: %g fv: %f p1: %f p2: %f p3: %f p4: %f p5: %f\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value);
+    #elif REAL == LONGDOUBLE
+             printf("infnorm: %g fv: %Lf p1: %Lf p2: %Lf p3: %Lf p4: %Lf p5: %Lf\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value);
+    #endif
 
-      if (v_norm_inf(g) < 1e-2)
+      if (v_norm_inf(g) < 1e-8)
 	break;
 
       mv_mlt(B,g,p);      
@@ -68,7 +74,7 @@ VEC * bfgs(
 
       //VEC * p_copy = v_get(n);
       //v_copy(p,p_copy);
-
+      /*
       if (count==0) {      
       
       
@@ -76,10 +82,10 @@ VEC * bfgs(
         //for (int i=-20;i<=-3;i++) {       
         for (int i=-10;i<=10;i++) {       
         
-          double stp = (double)i*0.0001; //exp((double)i);
-          //double stp = (double)i*0.0001; //exp((double)i);
+          Real stp = (Real)i*0.0001; //exp((Real)i);
+          //Real stp = (Real)i*0.0001; //exp((Real)i);
 
-          double nfv;
+          Real nfv;
           
           VEC *newx = v_get(n);
           VEC *ptmp = v_get(n);
@@ -106,10 +112,10 @@ VEC * bfgs(
 
           g = (*model)(newx,data,g,&nfv,parameters);
           
-          //double dg = in_prod(g,p);
+          //Real dg = in_prod(g,p);
           //printf("dg: %f\n",dg);
           //printf("%g %g %g %g %g\n",stp,nfv,dg,newx->ve[4],g->ve[4]);
-          printf("%g %.15g\n",stp,nfv); // newx->ve[3],g->ve[3]);
+          printf("%Lf %.15Lf\n",stp,nfv); // newx->ve[3],g->ve[3]);
           //printf("%g %g\n",newx->ve[4],g->ve[4]); //,dg,newx->ve[4],g->ve[4]);
 
               
@@ -119,7 +125,7 @@ VEC * bfgs(
 
         exit(0);
         
-      }
+      }*/
                 
 
       v_copy(x,oldx);
@@ -132,7 +138,7 @@ VEC * bfgs(
       v_sub(g,oldg,y);
 
       // update inverse hessian based on julia code
-      double sy = in_prod(s,y);
+      Real sy = in_prod(s,y);
 
       if (sy==0)
 	{
@@ -142,9 +148,9 @@ VEC * bfgs(
 
       mv_mlt(B,y,u);
 
-      double yBy = in_prod(u,y);
-      double c1 = (sy + yBy) / (sy*sy);
-      double c2 = 1/sy;
+      Real yBy = in_prod(u,y);
+      Real c1 = (sy + yBy) / (sy*sy);
+      Real c2 = 1/sy;
 
       // not using meschach for this - overcomplicates it.
       for (int i=0;i<n;i++)
@@ -158,7 +164,17 @@ VEC * bfgs(
     }
 
   (*model)(x,data,g,&f,parameters);
-  printf("number function evals: %d, function value: %f\n",nfev,f);
+  #if REAL == DOUBLE
+    // lf
+    printf("number function evals: %d, function value: %lf\n",nfev,f);
+  #elif REAL == FLOAT
+    // f
+    printf("number function evals: %d, function value: %f\n",nfev,f);
+  #elif REAL == LONGDOUBLE
+    // Lf
+    printf("number function evals: %d, function value: %Lf\n",nfev,f);
+  #endif
+
   v_output(x);
 
   V_FREE(oldx);
@@ -176,21 +192,21 @@ VEC * bfgs(
 
 int cvsrch(
 
-    VEC *(*fcn)(VEC *,Data *,VEC *,double *,Parameters *),
+    VEC *(*fcn)(VEC *,Data *,VEC *,Real *,Parameters *),
     VEC *x,
-    double f,
+    Real f,
     VEC *gr,
     VEC *sd,
-    double stp,
-    double ftol,
-    double gtol,
-    double xtol,
-    double stpmin,
-    double stpmax,
+    Real stp,
+    Real ftol,
+    Real gtol,
+    Real xtol,
+    Real stpmin,
+    Real stpmax,
     int maxfev,
     Data *d,
     Parameters * parameters,
-    double *fv
+    Real *fv
 
     )
 {
@@ -348,7 +364,7 @@ int cvsrch(
   //%     Compute the initial gradient in the search direction
   //%     and check that s is a descent direction.
 
-  double dginit = in_prod(gr,sd); 
+  Real dginit = in_prod(gr,sd); 
   if (dginit >= 0.)
     {
       printf("initial gradient in the search direction must be a descent\n");
@@ -358,10 +374,10 @@ int cvsrch(
   int brackt = 0;
   int stage1 = 1;
   int nfev = 0;
-  double finit = f;
-  double dgtest = ftol*dginit;
-  double width = stpmax - stpmin;
-  double width1 = 2*width;
+  Real finit = f;
+  Real dgtest = ftol*dginit;
+  Real width = stpmax - stpmin;
+  Real width1 = 2*width;
   VEC *wa = v_get(x->dim);
   v_copy(x,wa);
 
@@ -373,12 +389,12 @@ int cvsrch(
   //%     The variables stp, f, dg contain the values of the step,
   //%     function, and derivative at the current step.
 
-  double stx = 0;
-  double fx = finit;
-  double dgx = dginit;
-  double sty = 0;
-  double fy = finit;
-  double dgy = dginit;
+  Real stx = 0;
+  Real fx = finit;
+  Real dgx = dginit;
+  Real sty = 0;
+  Real fy = finit;
+  Real dgy = dginit;
 
   //%
   //%     Start of iteration.
@@ -392,7 +408,7 @@ int cvsrch(
       //%        to the present interval of uncertainty.
       //%
 
-      double stmin,stmax;
+      Real stmin,stmax;
 
       if (brackt)
   {
@@ -440,9 +456,9 @@ int cvsrch(
 
       gr = (*fcn)(x,d,gr,&f,parameters);
       nfev += 1;
-      double dg = in_prod(gr,sd);
+      Real dg = in_prod(gr,sd);
       //printf("dg: %f\n",dg);
-      double ftest1 = finit + stp*dgtest;
+      Real ftest1 = finit + stp*dgtest;
 
       //%
       //%        Test for convergence.
@@ -501,12 +517,12 @@ int cvsrch(
     //%           Define the modified function and derivative values.
     //%
 
-    double fm = f - stp*dgtest;
-    double fxm = fx - stx*dgtest;
-    double fym = fy - sty*dgtest;
-    double dgm = dg - dgtest;
-    double dgxm = dgx - dgtest;
-    double dgym = dgy - dgtest;
+    Real fm = f - stp*dgtest;
+    Real fxm = fx - stx*dgtest;
+    Real fym = fy - sty*dgtest;
+    Real dgm = dg - dgtest;
+    Real dgxm = dgx - dgtest;
+    Real dgym = dgy - dgtest;
  
     //% 
     //%           Call cstep to update the interval of uncertainty 
@@ -564,18 +580,18 @@ int cvsrch(
 
 int cstep(
 
-	  double *stx,
-	  double *fx,
-	  double *dx,
-	  double *sty,
-	  double *fy,
-	  double *dy,
-	  double *stp,
-	  double fp,
-	  double dp,
+	  Real *stx,
+	  Real *fx,
+	  Real *dx,
+	  Real *sty,
+	  Real *fy,
+	  Real *dy,
+	  Real *stp,
+	  Real fp,
+	  Real dp,
 	  int *brackt,
-	  double stpmin,
-	  double stpmax
+	  Real stpmin,
+	  Real stpmax
 
 	  )
 {
@@ -654,16 +670,16 @@ int cstep(
 
   //% Determine if the derivatives have opposite sign.
 
-  double sgnd = dp*((*dx)/fabs((*dx)));
+  Real sgnd = dp*((*dx)/fabs((*dx)));
 
   //% First case. A higher function value.
   //% The minimum is bracketed. If the cubic step is closer to stx than the quadratic step, the cubic step is taken, else the average of the cubic and quadratic steps is taken.
 
   int bound;
-  double theta;
-  double ss;
-  double gamma;
-  double stpf;
+  Real theta;
+  Real ss;
+  Real gamma;
+  Real stpf;
 
   if (fp > (*fx)) 
     {
@@ -681,11 +697,11 @@ int cstep(
       if ((*stp) < (*stx)) 
 	gamma = -gamma;
 
-      double p = (gamma - (*dx)) + theta;
-      double q = ((gamma - (*dx)) + gamma) + dp;
-      double r = p/q;
-      double stpc = (*stx) + r*((*stp) - (*stx));
-      double stpq = (*stx) + (((*dx)/(((*fx)-fp)/((*stp)-(*stx))+(*dx)))/2)*((*stp) - (*stx));
+      Real p = (gamma - (*dx)) + theta;
+      Real q = ((gamma - (*dx)) + gamma) + dp;
+      Real r = p/q;
+      Real stpc = (*stx) + r*((*stp) - (*stx));
+      Real stpq = (*stx) + (((*dx)/(((*fx)-fp)/((*stp)-(*stx))+(*dx)))/2)*((*stp) - (*stx));
       if (fabs(stpc-(*stx)) < fabs(stpq-(*stx)))
 	stpf = stpc;
       else
@@ -714,12 +730,12 @@ int cstep(
       if ((*stp) > (*stx)) 
 	gamma = -gamma;
          
-      double p = (gamma - dp) + theta;
-      double q = ((gamma - dp) + gamma) + (*dx);
-      double r = p/q;
+      Real p = (gamma - dp) + theta;
+      Real q = ((gamma - dp) + gamma) + (*dx);
+      Real r = p/q;
 
-      double stpc = (*stp) + r*((*stx) - (*stp));
-      double stpq = (*stp) + (dp/(dp-(*dx)))*((*stx) - (*stp));
+      Real stpc = (*stp) + r*((*stx) - (*stp));
+      Real stpq = (*stp) + (dp/(dp-(*dx)))*((*stx) - (*stp));
       if (fabs(stpc-(*stp)) > fabs(stpq-(*stp)))
 	stpf = stpc;
       else
@@ -750,11 +766,11 @@ int cstep(
       if ((*stp) > (*stx)) 
 	gamma = -gamma;
          
-      double p = (gamma - dp) + theta;
-      double q = (gamma + ((*dx) - dp)) + gamma;
-      double r = p/q;
+      Real p = (gamma - dp) + theta;
+      Real q = (gamma + ((*dx) - dp)) + gamma;
+      Real r = p/q;
 
-      double stpc,stpq;
+      Real stpc,stpq;
 
       if (r < 0.0 && gamma != 0.0)
 	stpc = (*stp) + r*((*stx) - (*stp));
@@ -799,10 +815,10 @@ int cstep(
 	  if (*stp > (*sty))
 	    gamma = -gamma;
             
-          double p = (gamma - dp) + theta;
-          double q = ((gamma - dp) + gamma) + (*dy);
-          double r = p/q;
-          double stpc = *stp + r*((*sty) - *stp);
+          Real p = (gamma - dp) + theta;
+          Real q = ((gamma - dp) + gamma) + (*dy);
+          Real r = p/q;
+          Real stpc = *stp + r*((*sty) - *stp);
           stpf = stpc;
 	}
       else if (*stp > (*stx))

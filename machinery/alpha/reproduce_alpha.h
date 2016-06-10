@@ -5,9 +5,9 @@
 
 void Q2_alpha(
 
-	       double a,
-	       double k,
-	       double w,
+	       Real a,
+	       Real k,
+	       Real w,
 	       VEC *x,
 	       VEC *u,
 	       VEC *p

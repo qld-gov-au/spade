@@ -10,7 +10,7 @@
 #include "Q.h"
 #include "../util/util.h"
 
-double K_dr(
+Real K_dr(
 
   Parameters * parameters,
   Data *d
@@ -39,11 +39,11 @@ double K_dr(
   MAT *x = core_args.x;
   MAT *u = core_args.u;
 
-  double iota = parameters->iota.value;
+  Real iota = parameters->iota.value;
 
   iota *= 1e-3;
   int S = d->S;
-  double k = d->k;
+  Real k = d->k;
 
   int lfi=0;
 
@@ -70,7 +70,7 @@ double K_dr(
     for (int j=0;j<dt->dim;j++)
       dt->ve[j] = d->lf[lfi][j];
 
-    double bw = get_bw(dt);
+    Real bw = get_bw(dt);
 
     VEC *l = v_get(xt->dim);
 
@@ -78,7 +78,7 @@ double K_dr(
       for (int jj=0;jj<dt->dim;jj++)
         l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-    double al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
+    Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
 
     VEC *ld = v_get(x->n);
 
@@ -107,7 +107,7 @@ double K_dr(
 
     }
 
-  double blah = Q(tt,ht);
+  Real blah = Q(tt,ht);
 
   V_FREE(ht);
   V_FREE(tt);
@@ -129,7 +129,7 @@ double K_dr(
 }
 
 
-double K(
+Real K(
 
      Parameters *parameters,
 		 Data *d,
@@ -145,11 +145,11 @@ double K(
   MAT *x = core_args->x;
   MAT *u = core_args->u;
 
-  double iota = parameters->iota.value;
+  Real iota = parameters->iota.value;
 
   iota *= 1e-3;
   int S = d->S;
-  double k = d->k;
+  Real k = d->k;
 
   int lfi=0;
 
@@ -176,7 +176,7 @@ double K(
 	  for (int j=0;j<dt->dim;j++)
 	    dt->ve[j] = d->lf[lfi][j];
 
-	  double bw = get_bw(dt);
+	  Real bw = get_bw(dt);
 
 	  VEC *l = v_get(xt->dim);
 
@@ -184,7 +184,7 @@ double K(
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-	  double al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); //1e3*
+	  Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); //1e3*
 
 	  VEC *ld = v_get(x->n);
 
@@ -213,7 +213,7 @@ double K(
 
     }
 
-  double blah = Q(tt,ht);
+  Real blah = Q(tt,ht);
 
   V_FREE(ht);
   V_FREE(tt);
@@ -222,13 +222,13 @@ double K(
 
 }
 
-double G(
+Real G(
 
 	 MAT *p,
 	 MAT *x,
 	 MAT *u,
 	 Data *data,
-	 double iota
+	 Real iota
 	
 	 )
 {
@@ -237,7 +237,7 @@ double G(
   int lfi=0;
 
   int S = data->S;
-  double k = data->k;
+  Real k = data->k;
 
   VEC *ht = v_get(x->m);
   VEC *tt = v_get(x->m);
@@ -270,7 +270,7 @@ double G(
 	  for (int j=0;j<dt->dim;j++)
 	    dt->ve[j] = data->lf[lfi][j];
 
-	  double bw = get_bw(dt);
+	  Real bw = get_bw(dt);
 
 	  VEC *l = v_get(xt->dim);
 
@@ -278,7 +278,7 @@ double G(
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-	  double al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
+	  Real al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
 	  VEC *ld = v_get(x->n);
 
@@ -327,7 +327,7 @@ double G(
 
     }
 
-  double blah = Q(tt,ht);
+  Real blah = Q(tt,ht);
 
   V_FREE(ht);
   V_FREE(tt);
@@ -337,19 +337,19 @@ double G(
 }
 
 
-/*double G_ni_for_condition_number(
+/*Real G_ni_for_condition_number(
 
 	    MAT *p,
 	    MAT *x,
 	    MAT *u,
 	    Data *data,
-	    double iota
+	    Real iota
 
 	    )
 {
 
   int S = data->S;
-  double k = data->k;
+  Real k = data->k;
 
   int lfi=0;
 
@@ -434,20 +434,20 @@ double G(
 }
 */
 
-double G_ni(
+Real G_ni(
 
 	    MAT *p,
 	    MAT *x,
 	    MAT *u,
 	    Data *data,
-	    double iota
+	    Real iota
 
 	    )
 {
 
   iota *=1e-3;
   int S = data->S;
-  double k = data->k;
+  Real k = data->k;
 
   int lfi=0;
 
@@ -481,7 +481,7 @@ double G_ni(
 	  for (int j=0;j<dt->dim;j++)
 	    dt->ve[j] = data->lf[lfi][j];
 
-	  double bw = get_bw(dt);
+	  Real bw = get_bw(dt);
 
 	  VEC *l = v_get(xt->dim);
 
@@ -489,7 +489,7 @@ double G_ni(
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-	  double al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
+	  Real al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
 	  VEC *ld = v_get(x->n);
 
@@ -539,7 +539,7 @@ double G_ni(
 
     }
 
-  double blah = Q(tt,ht);
+  Real blah = Q(tt,ht);
 
   V_FREE(ht);
   V_FREE(tt);
