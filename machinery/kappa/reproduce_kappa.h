@@ -6,9 +6,9 @@
 
 void Q2_kappa(
 
-	      double a,
-	      double k,
-	      double w,
+	      Real a,
+	      Real k,
+	      Real w,
 	      VEC *x,
 	      VEC *u,
 	      VEC *p

@@ -17,7 +17,7 @@ typedef struct {
   int active;
   
   // The current value of the gradient 
-  double gradient;
+  Real gradient;
 
   // A string identifier for this parameter. This is used when
   // reading values from the command line.
@@ -42,5 +42,5 @@ VEC * parameters_to_vec(Parameters * parameters);
 
 int parameter_read(Parameter * parameter, int argc, char * argv[]);
 
-int parse_argument_value(int argc, char *argv[], int i, double * value);
+int parse_argument_value(int argc, char *argv[], int i, Real * value);
 #endif

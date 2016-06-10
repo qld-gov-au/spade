@@ -1,9 +1,10 @@
-﻿
-double g(
+﻿#include "../../meschach/matrix.h"
 
-	 const double kappa,
-	 const double w,
-	 const double x
+Real g(
+
+	 const Real kappa,
+	 const Real w,
+	 const Real x
 
 	 )
 { /* von-Bertalanffy growth */

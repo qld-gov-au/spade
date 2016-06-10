@@ -1,7 +1,7 @@
 ﻿#ifndef SPADE_QN_H
 #define SPADE_QN_H
 
-double Qn(
+Real Qn(
 
 	  VEC * x,
 	  VEC * u,

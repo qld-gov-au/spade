@@ -3,16 +3,16 @@
 
 #include "../meschach/matrix.h"
 
-double death(
+Real death(
 
 	      VEC *eff,
-	      double b,
-	      double g,
-	      double i,
-	      double t,
-	      double x,
-	      double U,
-	      double r
+	      Real b,
+	      Real g,
+	      Real i,
+	      Real t,
+	      Real x,
+	      Real U,
+	      Real r
 
 	     );
 	     

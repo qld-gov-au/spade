@@ -16,7 +16,7 @@ VEC *VMGMM(
 		  VEC *theta,
 		  Data *d,
 		  VEC *g,
-		  double *f,
+		  Real *f,
       Parameters * parameters
 
 		  )

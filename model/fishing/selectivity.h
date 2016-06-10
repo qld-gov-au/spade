@@ -1,6 +1,8 @@
-﻿#ifndef SPADE_SELECTIVITY_H
+#ifndef SPADE_SELECTIVITY_H
 #define SPADE_SELECTIVITY_H
 
-double s(double x);
+#include "../../meschach/matrix.h"
+
+Real s(Real x);
 
 #endif

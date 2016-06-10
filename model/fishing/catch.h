@@ -3,11 +3,11 @@
 
 #include "../../meschach/matrix.h"
 
-double c(
+Real c(
 
 	  VEC * ca,
-	  double r,
-	  double t
+	  Real r,
+	  Real t
 
 	  );
 

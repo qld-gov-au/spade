@@ -27,7 +27,7 @@ void grad_gamma(void* args)
   VEC *Uhh = (*grad_args).core_args->Uhh;
   IVEC *idxi = (*grad_args).core_args->idxi;
   VEC *eff = (*grad_args).eff;
-  double k = (*grad_args).k;
+  Real k = (*grad_args).k;
   int S = (*grad_args).S; 
   Parameters *parameters = (*grad_args).parameters;
 
@@ -47,12 +47,12 @@ void grad_gamma(void* args)
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double aa = parameters->alpha.value;
-  double bb = parameters->beta.value;
-  double gg = parameters->gamma.value*1e-7;
-  double kk = parameters->kappa.value;
-  double ww = parameters->omega.value;
-  double ii = parameters->iota.value*1e-3;
+  Real aa = parameters->alpha.value;
+  Real bb = parameters->beta.value;
+  Real gg = parameters->gamma.value*1e-7;
+  Real kk = parameters->kappa.value;
+  Real ww = parameters->omega.value;
+  Real ii = parameters->iota.value*1e-3;
  
   VEC *Pi;
   Pi = v_get(x->m);
@@ -66,9 +66,9 @@ void grad_gamma(void* args)
   for (int i=1;i<x->m;i++)
     { 
 
-      double t = k*(i-S-1);
-      double th = k*(i-S-.5);
-      double thh = k*(i-S-.75);
+      Real t = k*(i-S-1);
+      Real th = k*(i-S-.5);
+      Real thh = k*(i-S-.75);
 
       get_row(x,i-1,xt);
       get_row(p,i-1,pt);
@@ -81,11 +81,11 @@ void grad_gamma(void* args)
 	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*(1e-7*Ui->ve[i-1]+gg*Pi->ve[i-1])*ut->ve[j-1];
 	 
       Q2(aa,kk,ww,xht,ph);
-      double Ph = Q(xht,ph);
+      Real Ph = Q(xht,ph);
 
       for (int j=1;j<=x->n;j++)
 	{
-	  double b = k*(1e-7*Uh->ve[i-1]+gg*Ph)*uht->ve[j];
+	  Real b = k*(1e-7*Uh->ve[i-1]+gg*Ph)*uht->ve[j];
 	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
 	}
 

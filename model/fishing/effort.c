@@ -1,27 +1,27 @@
 ﻿#include <math.h>
 #include "../../meschach/matrix.h"
 
-double e(
+Real e(
 
 	  VEC * ef,
-	  double r,
-	  double t
+	  Real r,
+	  Real t
 
 	  )
 {
 
   if (t<0)
     {
-      double cek = r/4;
-      double ept5 = ef->ve[(int)floor((.5 + (cek/2) - 1e-12)/cek)];
-      double m = ept5/24;
+      Real cek = r/4;
+      Real ept5 = ef->ve[(int)floor((.5 + (cek/2) - 1e-12)/cek)];
+      Real m = ept5/24;
 
       return m*t+ ept5;
     }
   else
     {
-      double cek = r/4;
-      int idx = floor((t + (cek/2) - 1e-12)/cek); // better to use double epsilon?
+      Real cek = r/4;
+      int idx = floor((t + (cek/2) - 1e-12)/cek); // better to use Real epsilon?
       return ef->ve[idx];
     }
 }

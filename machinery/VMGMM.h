@@ -9,7 +9,7 @@ VEC *VMGMM(
 		  VEC *,
 		  Data *,
 		  VEC *,
-		  double *,
+		  Real *,
       Parameters * parameters
 
 		  );

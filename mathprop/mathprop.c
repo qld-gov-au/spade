@@ -13,15 +13,15 @@
 
 VEC *numgrad(
 
-	     double (*model)(VEC *,void *),
+	     Real (*model)(VEC *,void *),
 	     void *stuff,
 	     VEC *par,
-	     double epsilon
+	     Real epsilon
 
 	     )
 {
 
-  double f0 = (*model)(par,stuff);
+  Real f0 = (*model)(par,stuff);
 
   VEC *ei = v_get(par->dim);
   VEC *d = v_get(par->dim);
@@ -31,7 +31,7 @@ VEC *numgrad(
     {
       ei->ve[i] = 1;
       sv_mlt(epsilon,ei,d);
-      double f1 = (*model)(v_add(par,d,VNULL),stuff);
+      Real f1 = (*model)(v_add(par,d,VNULL),stuff);
       fg->ve[i] = (f1 - f0) / d->ve[i];
       ei->ve[i] = 0;
     }
@@ -41,7 +41,7 @@ VEC *numgrad(
 }
 
 
-double ConditionNumber(
+Real ConditionNumber(
 
 		       Parameters *parameters,
 		       Data *d
@@ -67,7 +67,7 @@ double ConditionNumber(
   core_args.Uhh = v_get(I);
   core_args.idxi = iv_get(I-1);   
 
-  double fv = K(parameters,d,&core_args);
+  Real fv = K(parameters,d,&core_args);
   
   // get the active parameters and run their grad functions
   Grad_Args args;
@@ -78,7 +78,7 @@ double ConditionNumber(
   args.core_args = &core_args;
   args.parameters = parameters;
   
-  double epsilon = 1e-6;
+  Real epsilon = 1e-6;
   
   // Determine the number of parameters which are active
   int activeParameterCount = 0;

@@ -29,7 +29,7 @@ void grad_kappa(void* args)
   VEC *Uhh = (*grad_args).core_args->Uhh;
   IVEC *idxi = (*grad_args).core_args->idxi;
   VEC *eff = (*grad_args).eff;
-  double k = (*grad_args).k;
+  Real k = (*grad_args).k;
   int S = (*grad_args).S; 
   Parameters *parameters = (*grad_args).parameters;
 
@@ -50,12 +50,12 @@ void grad_kappa(void* args)
   ph = v_get(x->n+1);
   pn = v_get(x->n+1);
 
-  double aa = parameters->alpha.value;
-  double bb = parameters->beta.value;
-  double gg = parameters->gamma.value*1e-7;
-  double kk = parameters->kappa.value;
-  double ww = parameters->omega.value;
-  double ii = parameters->iota.value*1e-3;
+  Real aa = parameters->alpha.value;
+  Real bb = parameters->beta.value;
+  Real gg = parameters->gamma.value*1e-7;
+  Real kk = parameters->kappa.value;
+  Real ww = parameters->omega.value;
+  Real ii = parameters->iota.value*1e-3;
 
   VEC *Pi;
   Pi = v_get(x->m);
@@ -69,9 +69,9 @@ void grad_kappa(void* args)
   for (int i=1;i<x->m;i++)
     { 
 
-      double t = k*(i-S-1);
-      double th = k*(i-S-.5);
-      double thh = k*(i-S-.75);
+      Real t = k*(i-S-1);
+      Real th = k*(i-S-.5);
+      Real thh = k*(i-S-.75);
 
       get_row(x,i-1,xt);
       get_row(p,i-1,pt);
@@ -83,25 +83,53 @@ void grad_kappa(void* args)
       int j=1;
       ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j-1] + (ww - xt->ve[j-1])*(ut->ve[j]-ut->ve[j-1])/(xt->ve[j]-xt->ve[j-1]) );
 
-      for (int j=2;j<=x->n;j++)
-	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j-1] + (ww - xt->ve[j-1])*.5*( (ut->ve[j]-ut->ve[j-1])/(xt->ve[j]-xt->ve[j-1]) + (ut->ve[j-1]-ut->ve[j-2])/(xt->ve[j-1]-xt->ve[j-2]) ) );
-	
+      for (int j=2;j<=x->n;j++) {
+        Real z_star_result = zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k);
+        Real z_star_result_2 = zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k);
+        Real expression1 = pt->ve[j-1];
+        Real expression2 = exp(-(k/2)*z_star_result);
+        Real expression3 = exp(-(k/2)*z_star_result_2);
+        Real expression4 = (gg*Pi->ve[i-1]-1);
+        Real expression5 = ut->ve[j-1];
+        Real expression6 = (ww - xt->ve[j-1]);
+
+        Real expression7 = (uht->ve[j]-uht->ve[j-1]);
+        Real expression8 = (xht->ve[j]-xht->ve[j-1]);
+        Real expression9 = (uht->ve[j-1]-uht->ve[j-2]);
+        Real expression10 = (xht->ve[j-1]-xht->ve[j-2]) ;
+
+
+	      ph->ve[j] = expression1*expression2 - expression3*(k/2)*(
+          expression4 *
+          expression5 +
+          expression6 *
+          .5*
+          (
+            expression7/
+            expression8 +
+            expression9/
+            expression10
+          )
+        );
+      }
+
       Q2_kappa(aa,kk,ww,xht,uht,ph);
-      double Ph = Q(xht,ph);
+
+      Real Ph = Q(xht,ph);
 
       for (int j=1;j<x->n;j++)
 	     {
-          double b = k*( (gg*Ph-1)*uht->ve[j] + (ww - xht->ve[j])*.5*( (uht->ve[j]-uht->ve[j-1])/(xht->ve[j]-xht->ve[j-1]) + (uht->ve[j+1]-uht->ve[j])/(xht->ve[j+1]-xht->ve[j]) ) );
+          Real b = k*( (gg*Ph-1)*uht->ve[j] + (ww - xht->ve[j])*.5*( (uht->ve[j]-uht->ve[j-1])/(xht->ve[j]-xht->ve[j-1]) + (uht->ve[j+1]-uht->ve[j])/(xht->ve[j+1]-xht->ve[j]) ) );
           pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
     
-        //double tmp = (k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k);
+        //Real tmp = (k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k);
         //printf("%g\n",tmp);
 	      //pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp(tmp);
 
   	   }
 
       j= x->n;
-      double b = k*(gg*Ph-1)*uht->ve[j];
+      Real b = k*(gg*Ph-1)*uht->ve[j];
       pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
 
       get_row(un,i-1,unt);

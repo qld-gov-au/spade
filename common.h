@@ -10,24 +10,24 @@
 #define A2 0.00144
 
 typedef struct {
-  double stp;
-  double ftol;
-  double gtol;
-  double xtol;
-  double stpmin;
-  double stpmax;
+  Real stp;
+  Real ftol;
+  Real gtol;
+  Real xtol;
+  Real stpmin;
+  Real stpmax;
   int maxfev;
 } OptimControl;
     
 typedef struct {
   VEC *eff;
   VEC *cat;
-  double **lf; 
+  Real **lf; 
   int n; 
   int *t_id; 
   int *t_sz;
   int I,J,S;
-  double k;
+  Real k;
 } Data;
 
 typedef struct {
@@ -39,19 +39,19 @@ typedef struct {
 typedef struct {
   Data *d;
   VEC * eff;
-  double k;
+  Real k;
   int S;
   Solve_Core_Args *core_args;  
   Parameters *parameters;
 } Grad_Args;
 
-double iota1;
-double iota2;
-double phi;
-double eta1;
-double eta2;
+Real iota1;
+Real iota2;
+Real phi;
+Real eta1;
+Real eta2;
 
-double h;
+Real h;
 int J;
 
 #endif

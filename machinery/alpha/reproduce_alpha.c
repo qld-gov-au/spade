@@ -4,9 +4,9 @@
 /* Quadrature plus implicit.. */
 void Q2_alpha(
 
-	       double a,
-	       double k,
-	       double w,
+	       Real a,
+	       Real k,
+	       Real w,
 	       VEC *x,
 	       VEC *u,
 	       VEC *p
@@ -20,16 +20,16 @@ void Q2_alpha(
       error(E_SIZES,"Q2");
     }
 
-  double x0 = x->ve[0];
-  double x1 = x->ve[1];
+  Real x0 = x->ve[0];
+  Real x1 = x->ve[1];
 
-  double u0 = u->ve[0];
-  double u1 = u->ve[1];
+  Real u0 = u->ve[0];
+  Real u1 = u->ve[1];
 
-  double p0 = p->ve[0];
-  double p1 = p->ve[1];
+  Real p0 = p->ve[0];
+  Real p1 = p->ve[1];
 
-  double rt = A1*x0*u0*x1 + A2*x0*x0*u0*x1 + a*A1*x1*p1*x1 + a*A2*x1*x1*p1*x1 + A1*x1*u1*x1 + A2*x1*x1*u1*x1 - A1*x0*u0*x0 - A2*x0*x0*u0*x0 - a*A1*x1*p1*x0 - a*A2*x1*x1*p1*x0 - A1*x1*u1*x0 - A2*x1*x1*u1*x0;
+  Real rt = A1*x0*u0*x1 + A2*x0*x0*u0*x1 + a*A1*x1*p1*x1 + a*A2*x1*x1*p1*x1 + A1*x1*u1*x1 + A2*x1*x1*u1*x1 - A1*x0*u0*x0 - A2*x0*x0*u0*x0 - a*A1*x1*p1*x0 - a*A2*x1*x1*p1*x0 - A1*x1*u1*x0 - A2*x1*x1*u1*x0;
 
   for (int j=1;j<x->dim-1;j++) 
     {

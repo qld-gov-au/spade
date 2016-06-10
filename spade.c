@@ -46,21 +46,32 @@ int main(int argc, char *argv[])
   feenableexcept(FE_INVALID); 
   feenableexcept(FE_OVERFLOW);
 
-  double *ct; 
-  double *ti; 
-  double *ln;
-  double *tl;
+  Real *ct; 
+  Real *ti; 
+  Real *ln;
+  Real *tl;
   int Nce,Nlf;
 
   int N;
   int minfish;
-  double k;
+  Real k;
 
   FILE *fp;
   fp = fopen("control.model","r");
   fscanf(fp,"%d\n",&minfish);
   fscanf(fp,"%d\n",&J);
-  fscanf(fp,"%lf\n",&k);
+
+  #if REAL == DOUBLE
+    // lf
+    fscanf(fp,"%lf\n",&k);
+  #elif REAL == FLOAT
+    // f
+    fscanf(fp,"%f\n",&k);
+  #elif REAL == LONGDOUBLE
+    // Lf
+    fscanf(fp,"%Lf\n",&k);
+  #endif
+
   fclose(fp);
 
   Data data;
@@ -94,11 +105,20 @@ int main(int argc, char *argv[])
 	  FILE *fp1;
 	  fp1 = fopen(buffer,"r");
 	  fscanf(fp1,"%d",&Nce);
-	  ct = (double *) calloc(Nce,sizeof(double));
-	  ti = (double *) calloc(Nce,sizeof(double));
+	  ct = (Real *) calloc(Nce,sizeof(Real));
+	  ti = (Real *) calloc(Nce,sizeof(Real));
 
 	  for (int i=0;i<Nce;i++)
-	    fscanf(fp1,"%lf %lf", &ct[i],&ti[i]);
+    #if REAL == DOUBLE
+      // lf
+      fscanf(fp1,"%lf %lf", &ct[i],&ti[i]);
+    #elif REAL == FLOAT
+      // f
+      fscanf(fp1,"%f %f", &ct[i],&ti[i]);
+    #elif REAL == LONGDOUBLE
+      // Lf
+      fscanf(fp1,"%Lf %Lf", &ct[i],&ti[i]);
+    #endif
 
 	  VEC *vti = v_get(Nce);
 	  for (int i=0;i<Nce;i++)
@@ -116,7 +136,7 @@ int main(int argc, char *argv[])
           data.cat = v_get(N+1);
           data.eff = v_get(4*N+1);
 
-	  double cek = k/4;
+	  Real cek = k/4;
 
 	  for (int i=0;i<Nce;i++)
 	    {
@@ -144,11 +164,20 @@ int main(int argc, char *argv[])
 
 	  fscanf(fp1,"%d",&Nlf);
 
-	  ln = (double *) calloc(Nlf,sizeof(double));
-	  tl = (double *) calloc(Nlf,sizeof(double));
+	  ln = (Real *) calloc(Nlf,sizeof(Real));
+	  tl = (Real *) calloc(Nlf,sizeof(Real));
 
 	  for (int i=0;i<Nlf;i++)
-	    fscanf(fp1,"%lf %lf", &ln[i],&tl[i]);
+      #if REAL == DOUBLE
+          // lf
+          fscanf(fp1,"%lf %lf", &ln[i],&tl[i]);
+      #elif REAL == FLOAT
+          // f
+          fscanf(fp1,"%f %f", &ln[i],&tl[i]);
+      #elif REAL == LONGDOUBLE
+          // Lf
+          fscanf(fp1,"%Lf %Lf", &ln[i],&tl[i]);
+      #endif
 
 	  fclose(fp1);
 
@@ -158,7 +187,7 @@ int main(int argc, char *argv[])
 
 	  for (int i=0;i<Nlf;i++)
 	    {
-	      lfv->ve[i] = (double)ln[i];
+	      lfv->ve[i] = (Real)ln[i];
 	      ilv->ve[i] = (int)(Y/k + floor((tl[i]+k/2)/k));
 	      cnt->ve[(int)(Y/k + floor((tl[i]+k/2)/k))] += 1;
 	    }
@@ -168,7 +197,7 @@ int main(int argc, char *argv[])
 	    if (cnt->ve[i] > minfish)
 	      data.n += 1;
 
-          data.lf = (double **) calloc(data.n,sizeof(double *));
+          data.lf = (Real **) calloc(data.n,sizeof(Real *));
 	  data.t_id = (int *) calloc(data.n,sizeof(int));
 	  data.t_sz = (int *) calloc(data.n,sizeof(int));
 
@@ -180,7 +209,7 @@ int main(int argc, char *argv[])
 
 		  data.t_id[kk] = i;
 		  data.t_sz[kk] = cnt->ve[i];		
-		  data.lf[kk] = calloc(data.t_sz[kk],sizeof(double));
+		  data.lf[kk] = calloc(data.t_sz[kk],sizeof(Real));
 
 		  int jj=0;
 		  for (int j=0;j<Nlf;j++)
@@ -223,11 +252,29 @@ int main(int argc, char *argv[])
   OptimControl optim;
 
   fp = fopen("control.optim","r");
-  fscanf(fp,"%lf\n",&optim.stp);
-  fscanf(fp,"%lf\n",&optim.ftol);
-  fscanf(fp,"%lf\n",&optim.gtol);
-  fscanf(fp,"%lf\n",&optim.stpmin);
-  fscanf(fp,"%lf\n",&optim.stpmax);
+  #if REAL == DOUBLE
+    // lf
+    fscanf(fp,"%lf\n",&optim.stp);
+    fscanf(fp,"%lf\n",&optim.ftol);
+    fscanf(fp,"%lf\n",&optim.gtol);
+    fscanf(fp,"%lf\n",&optim.stpmin);
+    fscanf(fp,"%lf\n",&optim.stpmax);
+  #elif REAL == FLOAT
+    // f
+    fscanf(fp,"%f\n",&optim.stp);
+    fscanf(fp,"%f\n",&optim.ftol);
+    fscanf(fp,"%f\n",&optim.gtol);
+    fscanf(fp,"%f\n",&optim.stpmin);
+    fscanf(fp,"%f\n",&optim.stpmax);
+  #elif REAL == LONGDOUBLE
+    // Lf
+    fscanf(fp,"%Lf\n",&optim.stp);
+    fscanf(fp,"%Lf\n",&optim.ftol);
+    fscanf(fp,"%Lf\n",&optim.gtol);
+    fscanf(fp,"%Lf\n",&optim.stpmin);
+    fscanf(fp,"%Lf\n",&optim.stpmax);
+  #endif
+
   fscanf(fp,"%d",&optim.maxfev);
   fclose(fp);
   optim.xtol = DBL_EPSILON;
@@ -246,12 +293,12 @@ int main(int argc, char *argv[])
 
   //v_output(result);
 
-  double e_bar = v_sum(data.eff)/data.eff->dim;
-  double iota = result->ve[1]/e_bar;
+  Real e_bar = v_sum(data.eff)/data.eff->dim;
+  Real iota = result->ve[1]/e_bar;
 
   //printf("%f %f\n",e_bar,est_iota);
 
-  double a2 = alpha2;
+  Real a2 = alpha2;
   VEC *out = v_get(2);
 
   for (int i=0;i<10;i++) 
@@ -296,7 +343,7 @@ int main(int argc, char *argv[])
 
   h = parameters.omega.value / J;
 
-  //double cn = ConditionNumber(&parameters, &data);
+  //Real cn = ConditionNumber(&parameters, &data);
   //printf("%f\n",cn);
   //exit(0);
 
@@ -319,16 +366,16 @@ int main(int argc, char *argv[])
   core_args.Uhh = v_get(I);
   core_args.idxi = iv_get(I-1);   
 
-  double fv = K(&parameters,&data,&core_args);
-  double save = parameters.kappa.value;
+  Real fv = K(&parameters,&data,&core_args);
+  Real save = parameters.kappa.value;
 
 
   printf("\n");
   for (int i=-10;i<=10;i++) {
-    double delta = (double)i*.00001; //exp((double)i);
+    Real delta = (Real)i*.00001; //exp((Real)i);
     parameters.kappa.value = save + delta;
-    double nfv = K_dr(&parameters,&data);
-    //double ch = (nfv - fv) / delta;
+    Real nfv = K_dr(&parameters,&data);
+    //Real ch = (nfv - fv) / delta;
     printf("%f %f\n",parameters.kappa.value,nfv);
     
   }
@@ -371,7 +418,7 @@ int main(int argc, char *argv[])
   return(0);
 
   //  VEC *gr = v_get(2);
-  //double f;
+  //Real f;
   //  gr = VMGMM_linear_eq(th,&data,gr,&f);
   // printf("%f\n",f);
   //v_output(gr);

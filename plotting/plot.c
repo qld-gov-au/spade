@@ -51,7 +51,7 @@ void plot(
   V_FREE(core_args.Uhh);
   IV_FREE(core_args.idxi);
 
-  double iota = parameters->iota.value;
+  Real iota = parameters->iota.value;
   iota *= 1e-3;
 
   VEC *ctt = v_get(x->n);
@@ -65,7 +65,7 @@ void plot(
       xt = get_row(x,i,xt);
       for (int j=0;j<x->n;j++)
 	ctt->ve[j] = s(x->me[i][j])*iota*e(d->eff,d->k,d->k*(i-d->S))*w(x->me[i][j])*u->me[i][j];
-      fprintf(sp1,"%f %f\n",d->k*(i-d->S),Q(xt,ctt));
+      fprintf(sp1,"%Lf %Lf\n",d->k*(i-d->S),Q(xt,ctt));
 
     }
 
@@ -74,7 +74,7 @@ void plot(
   FILE *sp2 = fopen("plot2.txt","w");
 
   for (int i=0;i<x->m;i++) 
-    fprintf(sp2,"%f %f\n",d->k*(i-d->S),c(d->cat,d->k,d->k*(i-d->S)));
+    fprintf(sp2,"%Lf %Lf\n",d->k*(i-d->S),c(d->cat,d->k,d->k*(i-d->S)));
 
   fclose(sp2);
 
@@ -87,7 +87,7 @@ void plot(
   V_FREE(xt);
 
   int S = d->S;
-  double k = d->k;
+  Real k = d->k;
 
   int lfi=0;
 
@@ -111,7 +111,7 @@ void plot(
 	  for (int j=0;j<dt->dim;j++)
 	    dt->ve[j] = d->lf[lfi][j];
 
-	  double bw = get_bw(dt);
+	  Real bw = get_bw(dt);
 
 	  VEC *l = v_get(xt->dim);
 
@@ -119,25 +119,25 @@ void plot(
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-	  double al = c(d->cat,k,k*(i - S)) / Q(xt,l); 
+	  Real al = c(d->cat,k,k*(i - S)) / Q(xt,l); 
 
 	  FILE *p1 = fopen("plot1.txt","w");
 
 	  for (int j=0;j<x->n;j++)
-	    fprintf(p1,"%f %f\n",xt->ve[j],al*l->ve[j]);
+	    fprintf(p1,"%Lf %Lf\n",xt->ve[j],al*l->ve[j]);
 
 	  fclose(p1);
 
 	  FILE *p2 = fopen("plot2.txt","w");
 
 	  for (int j=0;j<x->n;j++)
-	    fprintf(p2,"%f %f\n",xt->ve[j],v->ve[j]);
+	    fprintf(p2,"%Lf %Lf\n",xt->ve[j],v->ve[j]);
 
 	  fclose(p2);
 
 	  char buffer[100];
 
-	  sprintf(buffer,"./plo > plotl%.3f_%s.pdf",k*(d->t_id[lfi] - S),label);	
+	  sprintf(buffer,"./plo > plotl%.3Lf_%s.pdf",k*(d->t_id[lfi] - S),label);	
 
 	  system(buffer);
 

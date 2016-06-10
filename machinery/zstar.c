@@ -1,17 +1,17 @@
 ﻿#include "../meschach/matrix.h"
 #include "../model/death.h"
 
-double zstar(
+Real zstar(
 
 	      VEC *eff,
-	      double b,
-	      double g,
-	      double kappa,
-	      double i,
-	      double t,
-	      double x,
-	      double U,
-	      double r
+	      Real b,
+	      Real g,
+	      Real kappa,
+	      Real i,
+	      Real t,
+	      Real x,
+	      Real U,
+	      Real r
 
 	     )
 { // equation X in Y

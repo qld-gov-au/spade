@@ -1,13 +1,14 @@
-﻿#include <math.h>
+#include <math.h>
 #include "../../common.h"
+#include "../../meschach/matrix.h"
 
-double s(double x) 
+Real s(Real x) 
 { 
   if (x<58)
     return 0;
   else if (x <=60)
     {
-      double m = exp(-pow(60-phi*iota1,2.)/(2*iota2*pow(phi,2.)))/2;
+      Real m = exp(-pow(60-phi*iota1,2.)/(2*iota2*pow(phi,2.)))/2;
       return m*(x-58);
     }
   else

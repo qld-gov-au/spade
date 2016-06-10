@@ -6,13 +6,13 @@
 
 VEC *numgrad(
 
-	     double (*model)(VEC *,void *),
+	     Real (*model)(VEC *,void *),
 	     void *stuff,
 	     VEC *par,
-	     double epsilon
+	     Real epsilon
 
 	     );
 
-double ConditionNumber(Parameters *,Data *);
+Real ConditionNumber(Parameters *,Data *);
 
  #endif
