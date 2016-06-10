@@ -83,7 +83,7 @@ void grad_kappa(void* args)
       int j=1;
       ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j-1] + (ww - xt->ve[j-1])*(ut->ve[j]-ut->ve[j-1])/(xt->ve[j]-xt->ve[j-1]) );
 
-      for (int j=2;j<=x->n;j++) {
+      for (int j=2;j<x->n;j++) {
         Real z_star_result = zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k);
         Real z_star_result_2 = zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k);
         Real expression1 = pt->ve[j-1];
@@ -93,10 +93,10 @@ void grad_kappa(void* args)
         Real expression5 = ut->ve[j-1];
         Real expression6 = (ww - xt->ve[j-1]);
 
-        Real expression7 = (uht->ve[j]-uht->ve[j-1]);
-        Real expression8 = (xht->ve[j]-xht->ve[j-1]);
-        Real expression9 = (uht->ve[j-1]-uht->ve[j-2]);
-        Real expression10 = (xht->ve[j-1]-xht->ve[j-2]) ;
+        Real expression7 = (ut->ve[j]-ut->ve[j-1]);
+        Real expression8 = (xt->ve[j]-xt->ve[j-1]);
+        Real expression9 = (ut->ve[j-1]-ut->ve[j-2]);
+        Real expression10 = (xt->ve[j-1]-xt->ve[j-2]) ;
 
 
 	      ph->ve[j] = expression1*expression2 - expression3*(k/2)*(
@@ -112,6 +112,8 @@ void grad_kappa(void* args)
           )
         );
       }
+      j=x->n;
+      ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j-1] );
 
       Q2_kappa(aa,kk,ww,xht,uht,ph);
 

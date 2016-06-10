@@ -54,4 +54,6 @@ Real eta2;
 Real h;
 int J;
 
+void spade_v_output(VEC* vec);
+
 #endif
