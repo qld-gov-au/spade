@@ -12,7 +12,8 @@ Real death(
 	      Real t,
 	      Real x,
 	      Real U,
-	      Real r
+	      Real r,
+        int Y
 
 	     );
 	     

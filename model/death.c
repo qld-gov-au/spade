@@ -11,11 +11,12 @@ Real death(
 	      Real t,
 	      Real x,
 	      Real U,
-	      Real r
+	      Real r,
+        int Y
 
 	     )
 { /* death function: beta + gamma U +  s(x) f(t) */
 
-  return b + g*U + s(x)*i*e(eff,r,t);
+  return b + g*U + s(x)*i*e(eff,r,t,Y);
   
 }

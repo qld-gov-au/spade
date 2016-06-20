@@ -49,13 +49,30 @@ void print_usage() {
       "        -omega <w>\n"
       "\n"
       "Options:\n"
+      "  -fn <file>\n"
+      "      Specifies the common name of the input data files. SPADE will attempt\n"
+      "      to read the files <file>-ce.dat and <file>-lf.dat from disk. This\n"
+      "      option is required.\n"
+      "\n"
       "  -minfish <minfish>      Default: 250\n"
+      "\n"
       "  -j <j>                  Default: 400\n"
+      "\n"
       "  -timestep <timestep>    Default: 0.025\n"
+      "      The model timestep interval represented as a fraction of one year.\n"
+      "\n"
+      "  -warmup-ratio <ratio>   Default: 1\n"
+      "      The SPADE model consists of two stages: a warmup stage followed by\n"
+      "      a model stage. This option specifies the number of warmup steps as\n"
+      "      a function of the number of model steps. For example, a warmup ratio\n"
+      "      of 1 specified the same number of warmup steps as model steps. A warmup\n"
+      "      ratio of 0.5 specifies half the number of warmup steps as compared to\n"
+      "      model steps. Any numeric value greater than or equal to zero is an\n"
+      "      acceptable warmup ratio.\n"
       "\n"
       "Parameters:\n"
-      "  To disable a parameter suffix the parameter name with '-disabled'\n"
-      "  For example 'spade -alpha-disabled <a> ...'\n"
+      "  To disable a parameter suffix the parameter name with '-disabled'.\n"
+      "  Example: 'spade -alpha-disabled <a> ...'\n"
   );
 }
 
@@ -68,6 +85,7 @@ int main(int argc, char *argv[])
   int N;
   int minfish;
   Real k;
+  Real warmup_ratio;
 
   // Read model-related command line args and set defaults if
   // arguments have not been provided
@@ -83,6 +101,16 @@ int main(int argc, char *argv[])
     k = 0.025;
   }
 
+  if(arg_read_real("warmup-ratio", &warmup_ratio, argc, argv) == FALSE) {
+    // By default we have an equal number of warmup and model steps
+    warmup_ratio = 1;
+  }
+
+  if(warmup_ratio < 0) {
+    print_usage();
+    exit(EXIT_FAILURE);
+  }
+
   // Read and parse data files
   char * data_file_name;
   if(arg_read_string("fn", &data_file_name, argc, argv) == FALSE) {
@@ -93,8 +121,17 @@ int main(int argc, char *argv[])
   Data data;
   data_read_ce(data_file_name, &data, &N, k);
   data_read_lf(data_file_name, &data, N, k, minfish);
-  data.I = 2*N;
-  data.S = N;
+
+  // The model consists of two stages - a warmup stage followed by the model stage.
+  // I (total number of time steps) = warmup_steps + N (number of time steps for model)
+  //   * warmup_steps = N (number of time steps for model) * warmup_ratio
+  //       For example a warmup_ratio of 1 would imply an equal number of warmup steps and model steps
+  //   * warmup_ratio = number of warmup steps as a fraction of number of model steps
+  //   * Number of time steps for model is determined by k (time step as fraction of a year) and  data->Y (number of years of data)
+
+  int warmup_steps = floor(N * warmup_ratio);
+  data.I = warmup_steps + N;
+  data.S = warmup_steps;
   data.J = J;
   data.k = k;
 

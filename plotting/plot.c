@@ -36,7 +36,7 @@ void plot(
   core_args.Uhh = v_get(I);
   core_args.idxi = iv_get(I-1);  
 
-  solve(parameters,d->eff,d->k,d->S,&core_args);
+  solve(parameters,d->eff,d->k,d->S,d->Y,&core_args);
 
   MAT *x = core_args.x;
   MAT *u = core_args.u;
@@ -64,7 +64,7 @@ void plot(
 
       xt = get_row(x,i,xt);
       for (int j=0;j<x->n;j++)
-	ctt->ve[j] = s(x->me[i][j])*iota*e(d->eff,d->k,d->k*(i-d->S))*w(x->me[i][j])*u->me[i][j];
+	ctt->ve[j] = s(x->me[i][j])*iota*e(d->eff,d->k,d->k*(i-d->S),d->Y)*w(x->me[i][j])*u->me[i][j];
       fprintf(sp1,"%Lf %Lf\n",d->k*(i-d->S),Q(xt,ctt));
 
     }
@@ -101,7 +101,7 @@ void plot(
       VEC *v = v_get(x->n);
 
       for (int j=0;j<x->n;j++)
-	v->ve[j] = iota*e(d->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+	v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 
       if(lfi < d->n && d->t_id[lfi]==i) 
 	{

@@ -46,6 +46,7 @@ void solve(
 		 VEC *eff,
 		 Real k,		 
 		 int S,
+     int Y,
 		 Solve_Core_Args *core_args  // modified
 
 		 )
@@ -102,7 +103,7 @@ void solve(
       for (int j=1;j<=x->n;j++)
 	{
 	  xhht->ve[j] = xt->ve[j-1] + (k/4)*g(kk,ww,xt->ve[j-1]);
-	  uhh->ve[j] = ut->ve[j-1]*exp(-(k/4)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],core_args->Ui->ve[i-1],k));
+	  uhh->ve[j] = ut->ve[j-1]*exp(-(k/4)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],core_args->Ui->ve[i-1],k,Y));
 	}
 
       Q2(aa,kk,ww,xhht,uhh);
@@ -112,7 +113,7 @@ void solve(
       for (int j=1;j<=x->n;j++)
 	{
 	  xht->ve[j] = xt->ve[j-1] + (k/2)*g(kk,ww,xhht->ve[j]);
-	  uht->ve[j] = ut->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],core_args->Uhh->ve[i-1],k));
+	  uht->ve[j] = ut->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],core_args->Uhh->ve[i-1],k,Y));
 	}
 
       Q2(aa,kk,ww,xht,uht);
@@ -123,7 +124,7 @@ void solve(
       for (int j=1;j<=x->n;j++)
 	{
 	  xnt->ve[j] = xt->ve[j-1] + k*g(kk,ww,xht->ve[j]);
-	  unt->ve[j] = ut->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],core_args->Uh->ve[i-1],k));
+	  unt->ve[j] = ut->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],core_args->Uh->ve[i-1],k,Y));
 	}
 
       Q2(aa,kk,ww,xnt,unt);

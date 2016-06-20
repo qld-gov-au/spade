@@ -5,7 +5,8 @@ Real e(
 
 	  VEC * ef,
 	  Real r,
-	  Real t
+	  Real t,
+    int Y
 
 	  )
 {
@@ -13,15 +14,15 @@ Real e(
   if (t<0)
     {
       Real cek = r/4;
-      Real ept5 = ef->ve[(int)floor((.5 + (cek/2) - 1e-12)/cek)];
-      Real m = ept5/24;
+      Real ept5 = ef->ve[(int)floor((.5 + (cek/2) - MACHEPS)/cek)];
+      Real m = ept5/Y;
 
       return m*t+ ept5;
     }
   else
     {
       Real cek = r/4;
-      int idx = floor((t + (cek/2) - 1e-12)/cek); // better to use Real epsilon?
+      int idx = floor((t + (cek/2) - MACHEPS)/cek);
       return ef->ve[idx];
     }
 }

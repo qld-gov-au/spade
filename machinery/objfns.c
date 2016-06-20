@@ -34,7 +34,7 @@ Real K_dr(
   core_args.Uhh = v_get(I);
   core_args.idxi = iv_get(I-1);   
   
-  solve(parameters,d->eff,d->k,d->S,&core_args);
+  solve(parameters,d->eff,d->k,d->S,d->Y,&core_args);
 
   MAT *x = core_args.x;
   MAT *u = core_args.u;
@@ -60,7 +60,7 @@ Real K_dr(
       VEC *v = v_get(x->n);
 
       for (int j=0;j<x->n;j++)
-  v->ve[j] = iota*e(d->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+  v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 
       if(lfi < d->n && d->t_id[lfi]==i) 
   {
@@ -140,7 +140,7 @@ Real K(
 {
 
 
-  solve(parameters,d->eff,d->k,d->S,core_args);
+  solve(parameters,d->eff,d->k,d->S,d->Y,core_args);
 
   MAT *x = core_args->x;
   MAT *u = core_args->u;
@@ -166,7 +166,7 @@ Real K(
       VEC *v = v_get(x->n);
 
       for (int j=0;j<x->n;j++)
-	v->ve[j] = iota*e(d->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+	v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 
       if(lfi < d->n && d->t_id[lfi]==i) 
 	{
@@ -257,8 +257,8 @@ Real G(
 
       for (int j=0;j<x->n;j++) 
 	{
-	  pv->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*pt->ve[j] + 1e-3*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
-	  v->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+	  pv->ve[j] = iota*e(data->eff,k,k*(i-S),data->Y)*s(xt->ve[j])*w(xt->ve[j])*pt->ve[j] + 1e-3*e(data->eff,k,k*(i-S),data->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+	  v->ve[j] = iota*e(data->eff,k,k*(i-S),data->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 	}
 
       //      if(data->t_id[lfi]==i) 
@@ -469,8 +469,8 @@ Real G_ni(
 
       for (int j=0;j<x->n;j++) 
 	{
-	  pv->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*pt->ve[j];
-	  v->ve[j] = iota*e(data->eff,k,k*(i-S))*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+	  pv->ve[j] = iota*e(data->eff,k,k*(i-S),data->Y)*s(xt->ve[j])*w(xt->ve[j])*pt->ve[j];
+	  v->ve[j] = iota*e(data->eff,k,k*(i-S),data->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 	}
 
       if(lfi < data->n && data->t_id[lfi]==i) 

@@ -79,7 +79,7 @@ void grad_gamma(void* args)
       get_row(u,i-1,ut);
 
       for (int j=1;j<=x->n;j++)
-	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k))*(k/2)*(1e-7*Ui->ve[i-1]+gg*Pi->ve[i-1])*ut->ve[j-1];
+	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,d->Y))*(k/2)*(1e-7*Ui->ve[i-1]+gg*Pi->ve[i-1])*ut->ve[j-1];
 	 
       Q2(aa,kk,ww,xht,ph);
       Real Ph = Q(xht,ph);
@@ -87,7 +87,7 @@ void grad_gamma(void* args)
       for (int j=1;j<=x->n;j++)
 	{
 	  Real b = k*(1e-7*Uh->ve[i-1]+gg*Ph)*uht->ve[j];
-	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k));
+	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,d->Y));
 	}
 
       Q2(aa,kk,ww,xnt,pn);

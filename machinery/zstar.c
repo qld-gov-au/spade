@@ -11,11 +11,12 @@ Real zstar(
 	      Real t,
 	      Real x,
 	      Real U,
-	      Real r
+	      Real r,
+        int Y
 
 	     )
 { // equation X in Y
 
-  return death(eff,b,g,i,t,x,U,r) - kappa;
+  return death(eff,b,g,i,t,x,U,r,Y) - kappa;
 
 }

@@ -19,6 +19,7 @@ void solve(
 		 VEC *eff,
 		 Real k,		 
 		 int S,
+     int Y,
 		 Solve_Core_Args *core_args  // modified
 
 		 );

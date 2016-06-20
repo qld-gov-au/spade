@@ -28,6 +28,7 @@ typedef struct {
   int *t_sz;
   int I,J,S;
   Real k;
+  int Y; // Number of years of input data
 } Data;
 
 typedef struct {
