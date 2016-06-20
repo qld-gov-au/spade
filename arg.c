@@ -56,7 +56,7 @@ int arg_read_real(char * name, Real * value, int argc, char * argv[]) {
 
 // Attempts to read in an argument with the specified name into the specified value.
 // Returns FALSE if the argument was missing or invalid. Returns TRUE if the argument was read.
-int arg_read_string(char * name, char * value, int argc, char * argv[]) {
+int arg_read_string(char * name, char ** value, int argc, char * argv[]) {
   // Convert "arg" to "-arg"
   char arg_name[32];
   snprintf(arg_name, sizeof(arg_name), "%s%s", "-", name);
@@ -67,7 +67,7 @@ int arg_read_string(char * name, char * value, int argc, char * argv[]) {
 
     // If argument matches "-arg"
     if(strcmp(arg, arg_name) == 0) {
-      value = arg;
+      *value = argv[i + 1];
       return 1;
     }
   }

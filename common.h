@@ -56,4 +56,9 @@ int J;
 
 void spade_v_output(VEC* vec);
 
+void data_read_ce(char * data_file_name, Data * data, int * N, Real k);
+
+void data_read_lf(char * data_file_name, Data * data, int N, Real k, int minfish);
+
+void optim_control_read(char * optim_file_name, OptimControl * optim);
 #endif

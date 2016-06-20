@@ -10,6 +10,7 @@ SPADE_SOURCES = \
 	spade.c \
 	common.c \
 	parameters.c \
+	arg.c \
 	$(wildcard $(SPADE_SOURCE_DIRS:=/*.c)) \
 	$(wildcard $(SPADE_SOURCE_DIRS:=/**/*.c)) \
 	$(wildcard $(SPADE_SOURCE_DIRS:=/**/**/*.c))

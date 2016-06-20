@@ -40,18 +40,30 @@
 
 int feenableexcept(int);
 
+void print_usage() {
+    printf(
+      "SPADE: Stock assessment using PArtial Differential Equations.\n"
+      "\n"
+      "Usage:\n"
+      "  spade -fn <file> -alpha <a> -beta <b> -gamma <g> -iota <i> -kappa <k>\n"
+      "        -omega <w>\n"
+      "\n"
+      "Options:\n"
+      "  -minfish <minfish>      Default: 250\n"
+      "  -j <j>                  Default: 400\n"
+      "  -timestep <timestep>    Default: 0.025\n"
+      "\n"
+      "Parameters:\n"
+      "  To disable a parameter suffix the parameter name with '-disabled'\n"
+      "  For example 'spade -alpha-disabled <a> ...'\n"
+  );
+}
+
 int main(int argc, char *argv[])
 {
- 
   feenableexcept(FE_DIVBYZERO); 
   feenableexcept(FE_INVALID); 
   feenableexcept(FE_OVERFLOW);
-
-  Real *ct; 
-  Real *ti; 
-  Real *ln;
-  Real *tl;
-  int Nce,Nlf;
 
   int N;
   int minfish;
@@ -71,216 +83,24 @@ int main(int argc, char *argv[])
     k = 0.025;
   }
 
-  Data data;
-
-  if (argc < 2)
-    {
-      printf("\n");
-      printf("	proper usage requires at least one filename specified\n");
-      printf("		e.g. spade -ce ce.dat or ... \n");
-      printf("\n");
-      printf("	Other arguments:\n");
-      printf("			-ce   [no default] catch effort data file\n");
-      exit(0);
-    }
-
-  for (int i = 1; i < argc; i++) { 
-    if (i != argc) {      // Check that we haven't finished parsing already
-      if (!strcmp(argv[i], "-fn")) 
-	{
-
-	  if (i+1 == argc)
-	    {
-	      printf("\n no file specified\n");
-	      exit(0);
-	    }
-
-	  char buffer[30];
-
-	  sprintf(buffer,"%s-ce.dat",argv[i+1]);
-
-	  FILE *fp1;
-	  fp1 = fopen(buffer,"r");
-	  fscanf(fp1,"%d",&Nce);
-	  ct = (Real *) calloc(Nce,sizeof(Real));
-	  ti = (Real *) calloc(Nce,sizeof(Real));
-
-	  for (int i=0;i<Nce;i++)
-    #if REAL == DOUBLE
-      // lf
-      fscanf(fp1,"%lf %lf", &ct[i],&ti[i]);
-    #elif REAL == FLOAT
-      // f
-      fscanf(fp1,"%f %f", &ct[i],&ti[i]);
-    #elif REAL == LONGDOUBLE
-      // Lf
-      fscanf(fp1,"%Lf %Lf", &ct[i],&ti[i]);
-    #endif
-
-	  VEC *vti = v_get(Nce);
-	  for (int i=0;i<Nce;i++)
-	    vti->ve[i] = ti[i];
-
-	  PERM *order = px_get(vti->dim);
-	  v_sort(vti,order);
-
-	  int Y = ceil(vti->ve[Nce-1]);
-	  N = Y/k;
-
-	  PX_FREE(order);
-	  V_FREE(vti);
-
-          data.cat = v_get(N+1);
-          data.eff = v_get(4*N+1);
-
-	  Real cek = k/4;
-
-	  for (int i=0;i<Nce;i++)
-	    {
-	      int idx_e = floor((ti[i]+cek/2)/cek);
-	      int idx_c = floor((ti[i]+k/2)/k);
-	      data.cat->ve[idx_c] += (ct[i]/k)/1e3;
-	      data.eff->ve[idx_e] += 1.0/cek;
-	    }
-  
-	  free(ct);
-	  free(ti);
-
-	  fclose(fp1);
-
-	  /*
-	  printf("\n");
-	  for (int i=0;i<data.eff->dim;i++)
-	    printf("%f\n",data.eff->ve[i]);
-	  exit(1);
-	  */
-
-	  sprintf(buffer,"%s-lf.dat",argv[i+1]);
-
-	  fp1 = fopen(buffer,"r");
-
-	  fscanf(fp1,"%d",&Nlf);
-
-	  ln = (Real *) calloc(Nlf,sizeof(Real));
-	  tl = (Real *) calloc(Nlf,sizeof(Real));
-
-	  for (int i=0;i<Nlf;i++)
-      #if REAL == DOUBLE
-          // lf
-          fscanf(fp1,"%lf %lf", &ln[i],&tl[i]);
-      #elif REAL == FLOAT
-          // f
-          fscanf(fp1,"%f %f", &ln[i],&tl[i]);
-      #elif REAL == LONGDOUBLE
-          // Lf
-          fscanf(fp1,"%Lf %Lf", &ln[i],&tl[i]);
-      #endif
-
-	  fclose(fp1);
-
-	  VEC *lfv = v_get(Nlf);
-	  VEC *ilv = v_get(Nlf);
-	  VEC *cnt = v_get((int)2*Y/k);
-
-	  for (int i=0;i<Nlf;i++)
-	    {
-	      lfv->ve[i] = (Real)ln[i];
-	      ilv->ve[i] = (int)(Y/k + floor((tl[i]+k/2)/k));
-	      cnt->ve[(int)(Y/k + floor((tl[i]+k/2)/k))] += 1;
-	    }
-
-	  data.n = 0;
-	  for (int i=0;i<cnt->dim;i++)	   
-	    if (cnt->ve[i] > minfish)
-	      data.n += 1;
-
-          data.lf = (Real **) calloc(data.n,sizeof(Real *));
-	  data.t_id = (int *) calloc(data.n,sizeof(int));
-	  data.t_sz = (int *) calloc(data.n,sizeof(int));
-
-	  int kk=0;
-	  for (int i=0;i<cnt->dim;i++)
-	    {
-	      if (cnt->ve[i] > minfish)
-		{
-
-		  data.t_id[kk] = i;
-		  data.t_sz[kk] = cnt->ve[i];		
-		  data.lf[kk] = calloc(data.t_sz[kk],sizeof(Real));
-
-		  int jj=0;
-		  for (int j=0;j<Nlf;j++)
-		    if (ilv->ve[j]==i)
-		      {
-			data.lf[kk][jj] = lfv->ve[j];
-			jj += 1;
-		      }
-
-		  kk+=1;
-
-		}
-	    }
-
-	  V_FREE(lfv);
-	  V_FREE(ilv);
-	  V_FREE(cnt);
-
-	  free(ln);
-	  free(tl);
-
-	  //sscanf(argv[i+2],"%lf",&alpha);
-	  //sscanf(argv[i+3],"%lf",&beta);
-	  //sscanf(argv[i+4],"%lf",&gamma);
-	  //sscanf(argv[i+5],"%lf",&iota);
-	  //sscanf(argv[i+6],"%lf",&kappa);
-	  //sscanf(argv[i+7],"%lf",&omega);
-
-	  i += 8;
-
-	} 
-      else
-	{
-	  //printf("problem\n");
-          //exit(1);
-	}
-    }
+  // Read and parse data files
+  char * data_file_name;
+  if(arg_read_string("fn", &data_file_name, argc, argv) == FALSE) {
+    print_usage();
+    exit(EXIT_FAILURE);
   }
 
-  OptimControl optim;
-
-  FILE * fp;
-  fp = fopen("control.optim","r");
-  #if REAL == DOUBLE
-    // lf
-    fscanf(fp,"%lf\n",&optim.stp);
-    fscanf(fp,"%lf\n",&optim.ftol);
-    fscanf(fp,"%lf\n",&optim.gtol);
-    fscanf(fp,"%lf\n",&optim.stpmin);
-    fscanf(fp,"%lf\n",&optim.stpmax);
-  #elif REAL == FLOAT
-    // f
-    fscanf(fp,"%f\n",&optim.stp);
-    fscanf(fp,"%f\n",&optim.ftol);
-    fscanf(fp,"%f\n",&optim.gtol);
-    fscanf(fp,"%f\n",&optim.stpmin);
-    fscanf(fp,"%f\n",&optim.stpmax);
-  #elif REAL == LONGDOUBLE
-    // Lf
-    fscanf(fp,"%Lf\n",&optim.stp);
-    fscanf(fp,"%Lf\n",&optim.ftol);
-    fscanf(fp,"%Lf\n",&optim.gtol);
-    fscanf(fp,"%Lf\n",&optim.stpmin);
-    fscanf(fp,"%Lf\n",&optim.stpmax);
-  #endif
-
-  fscanf(fp,"%d",&optim.maxfev);
-  fclose(fp);
-  optim.xtol = DBL_EPSILON;
-
+  Data data;
+  data_read_ce(data_file_name, &data, &N, k);
+  data_read_lf(data_file_name, &data, N, k, minfish);
   data.I = 2*N;
   data.S = N;
   data.J = J;
   data.k = k;
+
+  // Read optim options
+  OptimControl optim;
+  optim_control_read("control.optim", &optim);
 
   /*
   VEC *th = v_get(2);
@@ -332,9 +152,8 @@ int main(int argc, char *argv[])
 
   // Read all parameter values from the command line.
   if(!parameters_read(&parameters, argc, argv)) {
-    printf("Usage: spade -fn <datafile> -alpha <alpha> -beta <beta> -gamma <gamma> -iota <iota> -kappa <kappa> -omega <omega>\n\n");
-    printf("  To disable a parameter suffix the parameter name with '-disabled' e.g. '-alpha-disabled'\n");
-    exit(1);
+    print_usage();
+    exit(EXIT_FAILURE);
   }
 
   VEC *theta = parameters_to_vec(&parameters);
