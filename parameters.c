@@ -27,13 +27,13 @@ int parameter_read(Parameter * parameter, int argc, char * argv[]) {
 
   // Attempt to find an argument that matches either "-alpha"
   // or "-alpha-disabled" (whichever appears first)
-  for(int i = 0; i < argc; i++) {
+  for(int i = 0; i < argc - 1; i++) {
     char *arg = argv[i];
     Real value;
 
     // If argument matches "-alpha"
     if(strcmp(arg, arg_name) == 0) {
-      if(!parse_argument_value(argc, argv, i+1, &value)) {
+      if(!parse_argument_value(argc, argv, i + 1, &value)) {
         return 0;
       }
       parameter->value = value;
@@ -43,7 +43,7 @@ int parameter_read(Parameter * parameter, int argc, char * argv[]) {
 
     // If argument matches "-alpha-disabled"
     if(strcmp(arg, arg_name_disabled) == 0) {
-      if(!parse_argument_value(argc, argv, i+1, &value)) {
+      if(!parse_argument_value(argc, argv, i + 1, &value)) {
         return 0;
       }
       parameter->value = value;
@@ -59,10 +59,6 @@ int parameter_read(Parameter * parameter, int argc, char * argv[]) {
 // numeric (Real) value. Returns TRUE if the argument could be read,
 // FALSE if the argument couldnot be read as a Real or if it was unspecified.
 int parse_argument_value(int argc, char *argv[], int i, Real * value) {
-  if(i >= argc) {
-    return 0;
-  }
-
   #if REAL == DOUBLE
     // lf
     if(sscanf(argv[i], "%lf", value) != 1) {

@@ -24,6 +24,7 @@
 #include <math.h>
 #include "spade.h"
 #include "common.h"
+#include "arg.h"
 #include "parameters.h"
 #include "machinery/VMGMM.h"
 #include "machinery/objfns.h"
@@ -56,23 +57,19 @@ int main(int argc, char *argv[])
   int minfish;
   Real k;
 
-  FILE *fp;
-  fp = fopen("control.model","r");
-  fscanf(fp,"%d\n",&minfish);
-  fscanf(fp,"%d\n",&J);
+  // Read model-related command line args and set defaults if
+  // arguments have not been provided
+  if(arg_read_int("minfish", &minfish, argc, argv) == FALSE) {
+    minfish = 250;
+  }
 
-  #if REAL == DOUBLE
-    // lf
-    fscanf(fp,"%lf\n",&k);
-  #elif REAL == FLOAT
-    // f
-    fscanf(fp,"%f\n",&k);
-  #elif REAL == LONGDOUBLE
-    // Lf
-    fscanf(fp,"%Lf\n",&k);
-  #endif
+  if(arg_read_int("j", &J, argc, argv) == FALSE) {
+    J = 400;
+  }
 
-  fclose(fp);
+  if(arg_read_real("timestep", &k, argc, argv) == FALSE) {
+    k = 0.025;
+  }
 
   Data data;
 
@@ -251,6 +248,7 @@ int main(int argc, char *argv[])
 
   OptimControl optim;
 
+  FILE * fp;
   fp = fopen("control.optim","r");
   #if REAL == DOUBLE
     // lf

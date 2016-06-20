@@ -101,6 +101,7 @@
     <Compile Include="model\fishing\catch.c" />
     <Compile Include="model\death.c" />
     <Compile Include="parameters.c" />
+    <Compile Include="arg.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="meschach\err.h" />
@@ -151,6 +152,7 @@
     <None Include="model\fishing\catch.h" />
     <None Include="model\death.h" />
     <None Include="parameters.h" />
+    <None Include="arg.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="optim\" />
