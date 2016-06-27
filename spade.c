@@ -56,7 +56,7 @@ void print_usage() {
       "\n"
       "  -minfish <minfish>      Default: 250\n"
       "\n"
-      "  -j <j>                  Default: 400\n"
+      "  -J <J>                  Default: 400\n"
       "\n"
       "  -timestep <timestep>    Default: 0.025\n"
       "      The model timestep interval represented as a fraction of one year.\n"
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
     minfish = 250;
   }
 
-  if(arg_read_int("j", &J, argc, argv) == FALSE) {
+  if(arg_read_int("J", &J, argc, argv) == FALSE) {
     J = 400;
   }
 
@@ -132,39 +132,18 @@ int main(int argc, char *argv[])
   int warmup_steps = floor(N * warmup_ratio);
   data.I = warmup_steps + N;
   data.S = warmup_steps;
-  data.J = J;
+
+  if(BIGMATRICES) {
+    data.J = J + data.I;
+  } else {
+    data.J = J;
+  }
+
   data.k = k;
 
   // Read optim options
   OptimControl optim;
   optim_control_read("control.optim", &optim);
-
-  /*
-  VEC *th = v_get(2);
-  th->ve[0] = .44;
-  th->ve[1] = .92;
-
-  VEC *result = bfgs(VMGMM_eq,th,&data);
-
-  //v_output(result);
-
-  Real e_bar = v_sum(data.eff)/data.eff->dim;
-  Real iota = result->ve[1]/e_bar;
-
-  //printf("%f %f\n",e_bar,est_iota);
-
-  Real a2 = alpha2;
-  VEC *out = v_get(2);
-
-  for (int i=0;i<10;i++) 
-    { 
-
-      out = calc_alpha2(alpha1,a2,kappa,omega,result->ve[0],result->ve[1]);
-      a2 = a2 - out->ve[0]/out->ve[1];      
-    }
-
-  printf("%f %f\n",iota,a2);
-  */
 
   // Configure each parameter. This must be updated when a
   // new parameter is created.
@@ -195,69 +174,9 @@ int main(int argc, char *argv[])
 
   VEC *theta = parameters_to_vec(&parameters);
 
-  h = parameters.omega.value / J;
-
-  //Real cn = ConditionNumber(&parameters, &data);
-  //printf("%f\n",cn);
-  //exit(0);
-
-
-/*
-  Solve_Core_Args core_args;
-  
-  int I;
-  I = data.I;
-  
-  core_args.x = m_get(I,J);
-  core_args.u = m_get(I,J);
-  core_args.xh = m_get(I,J+1);
-  core_args.uh = m_get(I,J+1);
-  core_args.xn = m_get(I,J+1);
-  core_args.xhh = m_get(I,J+1);
-  core_args.un = m_get(I,J+1);
-  core_args.Ui = v_get(I);
-  core_args.Uh = v_get(I);
-  core_args.Uhh = v_get(I);
-  core_args.idxi = iv_get(I-1);   
-
-  Real fv = K(&parameters,&data,&core_args);
-  Real save = parameters.kappa.value;
-
-
-  printf("\n");
-  for (int i=-10;i<=10;i++) {
-    Real delta = (Real)i*.00001; //exp((Real)i);
-    parameters.kappa.value = save + delta;
-    Real nfv = K_dr(&parameters,&data);
-    //Real ch = (nfv - fv) / delta;
-    printf("%f %f\n",parameters.kappa.value,nfv);
-    
-  }
-  */
-  
-  /* 
-  // get the active parameters and run their grad functions
-  MAT *p = m_get(I,J);
-  Grad_Args args;
-  args.d = &data;
-  VEC *g = v_get(theta->dim);
-  args.eff = data.eff;
-  args.k = data.k;
-  args.S = data.S;
-  args.core_args = &core_args;
-  args.parameters = &parameters;
-  
-  parameters.kappa.grad((void *) &(args));
-  
-  printf("%g\n",parameters.kappa.gradient);*/
-  //exit(0);
-  
-  //char lab1[10]="before";
-  //plot(&parameters,&data,lab1);
+  h = parameters.omega.value / data.J;
 
   theta = bfgs(VMGMM,theta,&data,&parameters,optim);
-
-  //char lab2[10]="after";
 
   V_FREE(theta);
   V_FREE(data.cat);
@@ -270,12 +189,4 @@ int main(int argc, char *argv[])
   free(data.lf);
 
   return(0);
-
-  //  VEC *gr = v_get(2);
-  //Real f;
-  //  gr = VMGMM_linear_eq(th,&data,gr,&f);
-  // printf("%f\n",f);
-  //v_output(gr);
-  //exit(1);
-
 }

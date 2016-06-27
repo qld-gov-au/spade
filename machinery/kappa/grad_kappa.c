@@ -14,10 +14,8 @@ void grad_kappa(void* args)
 {
 
   Grad_Args * grad_args = (Grad_Args *)args;
-
   Data *d = (*grad_args).d;
   MAT *x = (*grad_args).core_args->x;
-  MAT *p = m_get(x->m,x->n);
   MAT *u = (*grad_args).core_args->u;
   MAT *xhh = (*grad_args).core_args->xhh;
   MAT *xh = (*grad_args).core_args->xh;
@@ -32,23 +30,34 @@ void grad_kappa(void* args)
   Real k = (*grad_args).k;
   int S = (*grad_args).S; 
   Parameters *parameters = (*grad_args).parameters;
+  MAT *p = m_get(x->m,x->n);
 
-  VEC *xt; VEC *xht; VEC *xnt; 
+  VEC *xt; VEC *xht; VEC *xnt;
   VEC *ut; VEC *uht; VEC *pt; VEC *unt;
-  xt = v_get(x->n);
-  xht = v_get(x->n+1);
-  xnt = v_get(x->n+1);
-  ut = v_get(x->n);
-  uht = v_get(x->n+1);
-  unt = v_get(x->n+1);
-  pt = v_get(x->n);
+  VEC *xhht; VEC *ph; VEC *pn;
+  
+  int J;
+  if (BIGMATRICES)
+    J = x->n - x->m;
+  else
+    J = x->n - 1;
+  
+  xt = v_get(J+1); ut = v_get(J+1); pt = v_get(J+1);
 
-  VEC *xhht; 
-  xhht = v_get(x->n+1);
-
-  VEC *ph; VEC *pn;
-  ph = v_get(x->n+1);
-  pn = v_get(x->n+1);
+  if (BIGMATRICES)
+    {        
+      xnt = v_get(J+1);  unt = v_get(J+1);
+      xht = v_get(J+1);  uht = v_get(J+1);
+      xhht = v_get(J+1); ph = v_get(J+1);
+      pn = v_get(J+1);
+    }
+  else
+    {        
+      xnt = v_get(J+2);  unt = v_get(J+2);
+      xht = v_get(J+2);  uht = v_get(J+2);
+      xhht = v_get(J+2); ph = v_get(J+2);
+      pn = v_get(J+2);
+    }
 
   Real aa = parameters->alpha.value;
   Real bb = parameters->beta.value;
@@ -61,10 +70,22 @@ void grad_kappa(void* args)
   Pi = v_get(x->m);
 
   get_row(x,0,xt);
+
+  if (BIGMATRICES) 
+    {
+      xt->dim = J+1;
+      pt->dim = J+1;
+    }
+
   ini_kappa(parameters,xt,pt);
   set_row(p,0,pt);
 
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
+
+
+  if (BIGMATRICES)
+    pt = v_resize(pt,p->n);
+
 
   for (int i=1;i<x->m;i++)
     { 
@@ -81,26 +102,47 @@ void grad_kappa(void* args)
       get_row(xn,i-1,xnt);
       get_row(u,i-1,ut);
 
-      int j=1;
-      ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,d->Y))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j-1] + (ww - xt->ve[j-1])*(ut->ve[j]-ut->ve[j-1])/(xt->ve[j]-xt->ve[j-1]) );
+      int terminator;
+      if(BIGMATRICES) 
+        {
+          terminator = J+i-1;
+          xt = v_resize(xt,terminator+1);
+          ut = v_resize(ut,terminator+1);
+          pt = v_resize(pt,terminator+1);        
+          xhht = v_resize(xhht,terminator+2);
+          xht = v_resize(xht,terminator+2);
+          uht = v_resize(uht,terminator+2);
+          xnt = v_resize(xnt,terminator+2);
+          unt = v_resize(unt,terminator+2);
+          ph = v_resize(ph,terminator+2);
+          pn = v_resize(pn,terminator+2);
+        } 
+      else 
+        {
+          terminator = J;
+        }
 
-      for (int j=2;j<x->n;j++) {
-        Real z_star_result = zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,d->Y);
-        Real z_star_result_2 = zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,d->Y);
-        Real expression1 = pt->ve[j-1];
+      int j=0;
+      ph->ve[j+1] = pt->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j] + (ww - xt->ve[j])*(ut->ve[j+1]-ut->ve[j])/(xt->ve[j+1]-xt->ve[j]) );
+
+      for (int j=1;j<=terminator - 1;j++) {
+
+        Real z_star_result = zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y);
+        Real z_star_result_2 = zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y);
+        Real expression1 = pt->ve[j];
         Real expression2 = exp(-(k/2)*z_star_result);
         Real expression3 = exp(-(k/2)*z_star_result_2);
         Real expression4 = (gg*Pi->ve[i-1]-1);
-        Real expression5 = ut->ve[j-1];
-        Real expression6 = (ww - xt->ve[j-1]);
+        Real expression5 = ut->ve[j];
+        Real expression6 = (ww - xt->ve[j]);
 
-        Real expression7 = (ut->ve[j]-ut->ve[j-1]);
-        Real expression8 = (xt->ve[j]-xt->ve[j-1]);
-        Real expression9 = (ut->ve[j-1]-ut->ve[j-2]);
-        Real expression10 = (xt->ve[j-1]-xt->ve[j-2]) ;
+        Real expression7 = (ut->ve[j + 1]-ut->ve[j]); // todo: Review this
+        Real expression8 = (xt->ve[j + 1]-xt->ve[j]);
+        Real expression9 = (ut->ve[j]-ut->ve[j-1]);
+        Real expression10 = (xt->ve[j]-xt->ve[j-1]) ;
 
 
-	      ph->ve[j] = expression1*expression2 - expression3*(k/2)*(
+	      ph->ve[j + 1] = expression1*expression2 - expression3*(k/2)*(
           expression4 *
           expression5 +
           expression6 *
@@ -113,34 +155,37 @@ void grad_kappa(void* args)
           )
         );
       }
-      j=x->n;
-      ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,d->Y))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j-1] );
+      j=terminator;
+      ph->ve[j+1] = pt->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y))*(k/2)*( (gg*Pi->ve[i-1]-1)*ut->ve[j] );
 
       Q2_kappa(aa,kk,ww,xht,uht,ph);
 
       Real Ph = Q(xht,ph);
 
-      for (int j=1;j<x->n;j++)
+      for (int j=0;j<=terminator - 1;j++)
 	     {
-          Real b = k*( (gg*Ph-1)*uht->ve[j] + (ww - xht->ve[j])*.5*( (uht->ve[j]-uht->ve[j-1])/(xht->ve[j]-xht->ve[j-1]) + (uht->ve[j+1]-uht->ve[j])/(xht->ve[j+1]-xht->ve[j]) ) );
-          pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,d->Y));
-    
-        //Real tmp = (k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,d->Y);
-        //printf("%g\n",tmp);
-	      //pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,d->Y)) - b*exp(tmp);
-
-  	   }
-
-      j= x->n;
-      Real b = k*(gg*Ph-1)*uht->ve[j];
-      pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,d->Y));
+          Real b = k*( (gg*Ph-1)*uht->ve[j+1] + (ww - xht->ve[j+1])*.5*( (uht->ve[j+1]-uht->ve[j])/(xht->ve[j+1]-xht->ve[j]) + (uht->ve[j+2]-uht->ve[j+1])/(xht->ve[j+2]-xht->ve[j+1]) ) );
+          pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
+   	     }
+ 
+      j = terminator;
+      Real b = k*(gg*Ph-1)*uht->ve[j+1];
+      pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
 
       get_row(un,i-1,unt);
       Q2_kappa(aa,kk,ww,xnt,unt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
-      idxremove(pn,pt,idxi->ive[i-1]); 
-      set_row(p,i,pt);
+      if(BIGMATRICES) 
+        {
+          pn = v_resize(pn,p->n);
+          set_row(p,i,pn);
+        } 
+      else 
+        {
+          idxremove(pn,pt,idxi->ive[i-1]); 
+          set_row(p,i,pt);
+        }
 
     }
 

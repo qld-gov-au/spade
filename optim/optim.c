@@ -59,14 +59,14 @@ VEC * bfgs(
     {
 
     #if REAL == DOUBLE
-         printf("infnorm: %g fv: %lf p1: %lf p2: %lf p3: %lf p4: %lf p5: %lf\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value);
+         printf("infnorm: %g fv: %lf a: %lf b: %lf g: %lf i: %lf k: %lf w: %lf\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
     #elif REAL == FLOAT
-             printf("infnorm: %g fv: %f p1: %f p2: %f p3: %f p4: %f p5: %f\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value);
+         printf("infnorm: %g fv: %f a: %f b: %f g: %f i: %f k: %f w: %f\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
     #elif REAL == LONGDOUBLE
-             printf("infnorm: %g fv: %Lf p1: %Lf p2: %Lf p3: %Lf p4: %Lf p5: %Lf\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value);
+         printf("infnorm: %g fv: %Lf a: %Lf b: %Lf g: %Lf i: %Lf k: %Lf w: %Lf\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
     #endif
 
-      if (v_norm_inf(g) < 1e-8)
+      if (v_norm_inf(g) < 1e-2)
 	break;
 
       mv_mlt(B,g,p);      

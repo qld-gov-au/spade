@@ -69,17 +69,59 @@ void solve(
   VEC *Uhh = core_args->Uhh;  
   IVEC *idxi = core_args->idxi;
 
-  xnt = v_get(x->n+1);  unt = v_get(x->n+1);
-  xht = v_get(x->n+1);  uht = v_get(x->n+1);
-  xhht = v_get(x->n+1); uhh = v_get(x->n+1);
-  xt = v_get(x->n);     ut = v_get(x->n);
+  int J; 
+  int bigJ;
+  if (BIGMATRICES){
+    bigJ = x->n - 1;
+    J = x->n - x->m;
 
-  for (int j=1;j<x->n;j++) 
+  } else {
+    J = x->n - 1;
+   
+  }
+
+
+
+  if (BIGMATRICES)
+    {        
+    xt = v_get(bigJ+1); ut = v_get(bigJ+1);
+      xnt = v_get(bigJ+1);  unt = v_get(bigJ+1);
+      xht = v_get(bigJ+1);  uht = v_get(bigJ+1);
+      xhht = v_get(bigJ+1); uhh = v_get(bigJ+1);
+    }
+  else
+    {       
+      xnt = v_get(J+2);  unt = v_get(J+2);
+      xht = v_get(J+2);  uht = v_get(J+2);
+      xhht = v_get(J+2); uhh = v_get(J+2);
+      xt = v_get(J+1); ut = v_get(J+1); 
+    }
+                           
+  for (int j=0;j<=J;j++) 
     core_args->x->me[0][j] = h*j;
 
-  set_row(core_args->u,0,initial(parameters,get_row(core_args->x,0,xt),ut));
- 
+
+  get_row(core_args->x,0,xt);
+
+  if (BIGMATRICES) 
+    {
+      v_resize(xt,J+1);
+      v_resize(ut,J+1);
+    }
+
+
+  initial(parameters,xt,ut);
+
+  set_row(core_args->u,0,ut);
+
   Ui->ve[0] = Q(xt,ut);
+
+  if (BIGMATRICES)
+    {
+      v_resize(ut,u->n);
+    }
+      
+ 
 
   Real aa = parameters->alpha.value;
   Real bb = parameters->beta.value;
@@ -88,8 +130,6 @@ void solve(
   Real ww = parameters->omega.value;
   Real ii = parameters->iota.value*1e-3;
 
-  //  printf("\n");
-
   for (int i=1;i<x->m;i++)
     {
 
@@ -97,52 +137,83 @@ void solve(
       Real th = k*(i-S-.5);
       Real thh = k*(i-S-.75);
 
-      get_row(core_args->x,i-1,xt);
-      get_row(core_args->u,i-1,ut);
+      int terminator;
+      if(BIGMATRICES) 
+        {
+          terminator = J+i-1;
+          xt = v_resize(xt,terminator+1);
+          ut = v_resize(ut,terminator+1);        
+          xhht = v_resize(xhht,terminator+2);
+          uhh = v_resize(uhh,terminator+2);
+          xht = v_resize(xht,terminator+2);
+          uht = v_resize(uht,terminator+2);
+          xnt = v_resize(xnt,terminator+2);
+          unt = v_resize(unt,terminator+2);
+        } 
+      else 
+        {
+          terminator = J;
+        }
 
-      for (int j=1;j<=x->n;j++)
-	{
-	  xhht->ve[j] = xt->ve[j-1] + (k/4)*g(kk,ww,xt->ve[j-1]);
-	  uhh->ve[j] = ut->ve[j-1]*exp(-(k/4)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],core_args->Ui->ve[i-1],k,Y));
-	}
+      get_row(x,i-1,xt);
+      get_row(u,i-1,ut);
+
+      for (int j=0;j<=terminator;j++)
+	    {
+	      xhht->ve[j+1] = xt->ve[j] + (k/4)*g(kk,ww,xt->ve[j]);
+	      uhh->ve[j+1] = ut->ve[j]*exp(-(k/4)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,Y));
+	    }      
 
       Q2(aa,kk,ww,xhht,uhh);
-      core_args->Uhh->ve[i-1] = Q(xhht,uhh);
-      set_row(core_args->xhh,i-1,xhht);
+      Uhh->ve[i-1] = Q(xhht,uhh);
+            
+      set_row(xhh,i-1,xhht);
       
-      for (int j=1;j<=x->n;j++)
-	{
-	  xht->ve[j] = xt->ve[j-1] + (k/2)*g(kk,ww,xhht->ve[j]);
-	  uht->ve[j] = ut->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],core_args->Uhh->ve[i-1],k,Y));
-	}
+      for (int j=0;j<=terminator;j++)
+	    {
+	      xht->ve[j+1] = xt->ve[j] + (k/2)*g(kk,ww,xhht->ve[j+1]);
+	      uht->ve[j+1] = ut->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,Y));
+	    }
 
       Q2(aa,kk,ww,xht,uht);
-      core_args->Uh->ve[i-1] = Q(xht,uht);
-      set_row(core_args->xh,i-1,xht);
-      set_row(core_args->uh,i-1,uht);
+      Uh->ve[i-1] = Q(xht,uht);
+         
+      set_row(xh,i-1,xht);
+      set_row(uh,i-1,uht);
 
-      for (int j=1;j<=x->n;j++)
-	{
-	  xnt->ve[j] = xt->ve[j-1] + k*g(kk,ww,xht->ve[j]);
-	  unt->ve[j] = ut->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],core_args->Uh->ve[i-1],k,Y));
-	}
-
+      for (int j=0;j<=terminator;j++)
+	    {
+	      xnt->ve[j+1] = xt->ve[j] + k*g(kk,ww,xht->ve[j+1]);
+	      unt->ve[j+1] = ut->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,Y));
+        }
+        
       Q2(aa,kk,ww,xnt,unt);
-      core_args->Ui->ve[i] = Q(xnt,unt);
-      set_row(xn,i-1,xnt);
-      set_row(un,i-1,unt);
-            
-      int idx = idxselect(ww,xnt);
-      core_args->idxi->ive[i-1] = idx;
 
-      set_row(core_args->x,i,idxremove(xnt,xt,idx));
-      set_row(core_args->u,i,idxremove(unt,ut,idx));
+      Ui->ve[i] = Q(xnt,unt);      
 
-      //      printf("%f\n",Ui->ve[i]);
+      if(BIGMATRICES) 
+        {
+          xnt = v_resize(xnt,xn->n);
+          unt = v_resize(unt,un->n);
 
+          set_row(x,i,xnt); // todo: test this.
+          set_row(u,i,unt);
+        }
+      else
+        {
+          set_row(xn,i-1,xnt);
+          set_row(un,i-1,unt);
+
+          int idx = idxselect(ww,xnt);
+          idxi->ive[i-1] = idx;
+        
+          xt = idxremove(xnt,xt,idx);
+          ut = idxremove(unt,ut,idx);
+
+          set_row(x,i,xt);
+          set_row(u,i,ut);
+        }
     }
-
-  //exit(1);
 
   V_FREE(xt);
   V_FREE(xnt); 

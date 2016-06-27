@@ -50,7 +50,7 @@ void data_read_ce(char * data_file_name, Data * data, int * N, Real k) {
   // we want to take floor of vti->ve[0] and subtract it from the ceil of vti->ve[Nce-1]
   // to ensure we are getting the correct Y (total number of years).
   data->Y = ceil(vti->ve[Nce-1]) - floor(vti->ve[0]);
-  *N = data->Y/k;
+  *N = round(data->Y/k);
 
   PX_FREE(order);
   V_FREE(vti);

@@ -503,6 +503,7 @@ VEC	*v_resize(VEC *x, int new_dim)
       }
 
       x->ve = RENEW(x->ve,new_dim,Real);
+
       if ( ! x->ve )
 	error(E_MEM,"v_resize");
       x->max_dim = new_dim;

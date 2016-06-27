@@ -15,11 +15,8 @@ void grad_alpha(void* args)
   Grad_Args * grad_args = (Grad_Args *)args;
 
   Data *d = (*grad_args).d;
-  //VEC *grad = (*grad_args).g;
-  //MAT *p = (*grad_args).p;
   MAT *x = ((*grad_args).core_args)->x;
   MAT *u = (*grad_args).core_args->u;
-  MAT *p = m_get(x->m,x->n);
   MAT *xhh = (*grad_args).core_args->xhh;
   MAT *xh = (*grad_args).core_args->xh;
   MAT *xn = (*grad_args).core_args->xn;
@@ -33,23 +30,34 @@ void grad_alpha(void* args)
   Real k = (*grad_args).k;
   int S = (*grad_args).S;
   Parameters *parameters = (*grad_args).parameters;
-
+  MAT *p = m_get(x->m,x->n);
+  
   VEC *xt; VEC *xht; VEC *xnt;
   VEC *ut; VEC *uht; VEC *pt; VEC *unt;
-  xt = v_get(x->n);
-  xht = v_get(x->n+1);
-  xnt = v_get(x->n+1);
-  ut = v_get(x->n);
-  uht = v_get(x->n+1);
-  unt = v_get(x->n+1);
-  pt = v_get(x->n);
+  VEC *xhht; VEC *ph; VEC *pn;
+  
+  int J;
+  if (BIGMATRICES)
+    J = x->n - x->m;
+  else
+    J = x->n - 1;
+  
+  xt = v_get(J+1); ut = v_get(J+1); pt = v_get(J+1);
 
-  VEC *xhht; 
-  xhht = v_get(x->n+1);
-
-  VEC *ph; VEC *pn;
-  ph = v_get(x->n+1);
-  pn = v_get(x->n+1);
+  if (BIGMATRICES)
+    {
+      xnt = v_get(J+1);  unt = v_get(J+1);
+      xht = v_get(J+1);  uht = v_get(J+1);
+      xhht = v_get(J+1); ph = v_get(J+1);
+      pn = v_get(J+1);
+    }
+  else
+    {
+      xnt = v_get(J+2);  unt = v_get(J+2);
+      xht = v_get(J+2);  uht = v_get(J+2);
+      xhht = v_get(J+2); ph = v_get(J+2);
+      pn = v_get(J+2);
+    }
  
   Real aa = parameters->alpha.value;
   Real bb = parameters->beta.value;
@@ -62,10 +70,21 @@ void grad_alpha(void* args)
   Pi = v_get(x->m);
 
   get_row(x,0,xt);
+
+  if (BIGMATRICES)
+    {
+      xt->dim = J+1;
+      pt->dim = J+1;
+    }
+
   ini_alpha(parameters,xt,pt);
   set_row(p,0,pt);
-  
+
   Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
+
+  if (BIGMATRICES)
+    pt = v_resize(pt,p->n);
+
 
   for (int i=1;i<x->m;i++)
     { 
@@ -82,26 +101,58 @@ void grad_alpha(void* args)
       get_row(xn,i-1,xnt);
       get_row(u,i-1,ut);
 
-      for (int j=1;j<=x->n;j++)
-	ph->ve[j] = pt->ve[j-1]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j-1],Ui->ve[i-1],k,d->Y))*(k/2)*gg*Pi->ve[i-1]*ut->ve[j-1];
-	 
+      int terminator;
+      if(BIGMATRICES)
+        {
+          terminator = J+i-1;
+          xt = v_resize(xt,terminator+1);
+          ut = v_resize(ut,terminator+1);
+          pt = v_resize(pt,terminator+1);
+          xhht = v_resize(xhht,terminator+2);
+          xht = v_resize(xht,terminator+2);
+          uht = v_resize(uht,terminator+2);
+          xnt = v_resize(xnt,terminator+2);
+          unt = v_resize(unt,terminator+2);
+          ph = v_resize(ph,terminator+2);
+          pn = v_resize(pn,terminator+2);
+        }
+      else 
+        {
+          terminator = J;
+        }
+
+      for (int j=0;j<=terminator;j++)
+        {
+          ph->ve[j+1] = pt->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y))*(k/2)*gg*Pi->ve[i-1]*ut->ve[j];
+        }
+        
       Q2_alpha(aa,kk,ww,xht,uht,ph);
       Real Ph = Q(xht,ph);
 
-      for (int j=1;j<=x->n;j++)
-	{
-
-	  Real b = k*gg*Ph*uht->ve[j];
-	  pn->ve[j] = pt->ve[j-1]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j],Uh->ve[i-1],k,d->Y));
-
-	}
-
+      for (int j=0;j<=terminator;j++)
+        {
+          Real b = k*gg*Ph*uht->ve[j+1];
+          pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
+        }
       get_row(un,i-1,unt);
+
+      if(BIGMATRICES) {
+        v_resize(unt,terminator+2);
+      }
+
       Q2_alpha(aa,kk,ww,xnt,unt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
-      idxremove(pn,pt,idxi->ive[i-1]); 
-      set_row(p,i,pt);
+      if(BIGMATRICES) 
+        {
+          pn = v_resize(pn,p->n);
+          set_row(p,i,pn);
+        } 
+      else 
+        {
+          idxremove(pn,pt,idxi->ive[i-1]); 
+          set_row(p,i,pt);
+        }
 
     }
 

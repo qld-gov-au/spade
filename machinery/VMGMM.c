@@ -27,18 +27,34 @@ VEC *VMGMM(
   int I,J;
   I = d->I;
   J = d->J;
-  
-  core_args.x = m_get(I,J);
-  core_args.u = m_get(I,J);
-  core_args.xh = m_get(I,J+1);
-  core_args.uh = m_get(I,J+1);
-  core_args.xn = m_get(I,J+1);
-  core_args.xhh = m_get(I,J+1);
-  core_args.un = m_get(I,J+1);
-  core_args.Ui = v_get(I);
-  core_args.Uh = v_get(I);
-  core_args.Uhh = v_get(I);
-  core_args.idxi = iv_get(I-1);   
+
+  core_args.x = m_get(I+1,J+1);
+  core_args.u = m_get(I+1,J+1);
+
+  // todo: Review this. Condition has been flipped to maintain same functionality as last commit
+  // in non-bigmatrices mode but may not be correct for bigmatrices mode. Affects xh in particular
+  // as it was of dimension 401 here but was of dimension 402 in working copy.
+  if (!BIGMATRICES)
+    {
+       core_args.xh = m_get(I+1,J+2);
+       core_args.uh = m_get(I+1,J+2);
+       core_args.xn = m_get(I+1,J+2);
+       core_args.xhh = m_get(I+1,J+2);
+       core_args.un = m_get(I+1,J+2);
+     }
+  else
+    {
+       core_args.xh = m_get(I+1,J+1);
+       core_args.uh = m_get(I+1,J+1);
+       core_args.xn = m_get(I+1,J+1);
+       core_args.xhh = m_get(I+1,J+1);
+       core_args.un = m_get(I+1,J+1);
+    }
+
+  core_args.Ui = v_get(I+1);
+  core_args.Uh = v_get(I+1);
+  core_args.Uhh = v_get(I+1);
+  core_args.idxi = iv_get(I);
 
   *f = K(parameters,d,&core_args);
 

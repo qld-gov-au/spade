@@ -4,6 +4,12 @@
 #include "meschach/matrix.h"
 #include "parameters.h"
 
+
+// Whether to create full-size matrices or to 
+// dynamically add and remove rows from the matrices
+#define BIGMATRICES 0
+
+// Whether to run grad_* methods concurrently
 #define PTH 1
 
 #define A1 8.588e-5
