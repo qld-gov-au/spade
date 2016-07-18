@@ -9,7 +9,7 @@ VEC * bfgs(
 	   VEC * (*model)(VEC *,Data *,VEC *,Real *,Parameters *),
 	   VEC *x,
 	   Data *data,
-     Parameters * parameters,
+	   Parameters * parameters,
      OptimControl opt
 
 	   )   

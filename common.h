@@ -7,7 +7,7 @@
 
 // Whether to create full-size matrices or to 
 // dynamically add and remove rows from the matrices
-#define BIGMATRICES 0
+#define BIGMATRICES 1
 
 // Whether to run grad_* methods concurrently
 #define PTH 1

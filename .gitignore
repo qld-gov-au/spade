@@ -20,3 +20,4 @@ plot*.pdf
 *.ttt
 vgcore.*
 *.txt
+*.toc
