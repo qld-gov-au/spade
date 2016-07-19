@@ -32,9 +32,10 @@ void grad_alpha(void* args)
   Parameters *parameters = (*grad_args).parameters;
   MAT *p = m_get(x->m,x->n);
   
-  VEC *xt; VEC *xht; VEC *xnt;
-  VEC *ut; VEC *uht; VEC *pt; VEC *unt;
+  VEC *xt; VEC *xht; 
+  VEC *ut; VEC *uht; VEC *pt; 
   VEC *xhht; VEC *ph; VEC *pn;
+  VEC *xnt; VEC *unt;
   
   int J;
   if (BIGMATRICES)
@@ -46,13 +47,14 @@ void grad_alpha(void* args)
 
   if (BIGMATRICES)
     {
-      xnt = v_get(J+1);  unt = v_get(J+1);
+      xnt = v_get(J+1); unt = v_get(J+1);
       xht = v_get(J+1);  uht = v_get(J+1);
       xhht = v_get(J+1); ph = v_get(J+1);
       pn = v_get(J+1);
     }
   else
     {
+      
       xnt = v_get(J+2);  unt = v_get(J+2);
       xht = v_get(J+2);  uht = v_get(J+2);
       xhht = v_get(J+2); ph = v_get(J+2);
@@ -72,19 +74,12 @@ void grad_alpha(void* args)
   get_row(x,0,xt);
 
   if (BIGMATRICES)
-    {
-      xt->dim = J+1;
-      pt->dim = J+1;
-    }
+    xt = v_resize(xt,J+1);
 
   ini_alpha(parameters,xt,pt);
   set_row(p,0,pt);
 
-  Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
-
-  if (BIGMATRICES)
-    pt = v_resize(pt,p->n);
-
+  Pi->ve[0] = Q(xt,pt);
 
   for (int i=1;i<x->m;i++)
     { 
@@ -98,9 +93,20 @@ void grad_alpha(void* args)
       get_row(xh,i-1,xht);
       get_row(xhh,i-1,xhht);
       get_row(uh,i-1,uht);
-      get_row(xn,i-1,xnt);
       get_row(u,i-1,ut);
 
+      if (BIGMATRICES)
+	{
+	  get_row(x,i,xnt);
+	  get_row(u,i,unt);	  
+	}
+      else
+	{
+	  get_row(xn,i-1,xnt);
+	  get_row(un,i-1,unt);	  
+	}	  
+	  
+      
       int terminator;
       if(BIGMATRICES)
         {
@@ -134,12 +140,7 @@ void grad_alpha(void* args)
           Real b = k*gg*Ph*uht->ve[j+1];
           pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
         }
-      get_row(un,i-1,unt);
-
-      if(BIGMATRICES) {
-        v_resize(unt,terminator+2);
-      }
-
+      
       Q2_alpha(aa,kk,ww,xnt,unt,pn);
       Pi->ve[i] = Q(xnt,pn);
 

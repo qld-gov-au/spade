@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 
   VEC *theta = parameters_to_vec(&parameters);
 
-  h = parameters.omega.value / data.J;
+  h = parameters.omega.value / J;
 
   theta = bfgs(VMGMM,theta,&data,&parameters,optim);
 

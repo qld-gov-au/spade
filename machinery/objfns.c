@@ -156,16 +156,40 @@ Real K(
   VEC *ht = v_get(x->m);
   VEC *tt = v_get(x->m);
 
+  int J; 
+  int bigJ;
+  if (BIGMATRICES){
+    bigJ = x->n - 1;
+    J = x->n - x->m;
+
+  } else {
+    J = x->n - 1;
+   
+  }
+  
   for (int i=S;i<x->m;i++)
     {
 
-      VEC *xt = v_get(x->n);
-      get_row(x,i,xt);      
-      VEC *ut = v_get(x->n);
-      get_row(u,i,ut);      
-      VEC *v = v_get(x->n);
+      int terminator;
+      if(BIGMATRICES)
+	terminator = J+i;
+      else
+	terminator = J;
 
-      for (int j=0;j<x->n;j++)
+      VEC *xt = v_get(terminator+1);
+      get_row(x,i,xt);      
+      VEC *ut = v_get(terminator+1);
+      get_row(u,i,ut);
+      
+      if (BIGMATRICES)
+	{
+	  xt = v_resize(xt,terminator+1);
+	  ut = v_resize(ut,terminator+1);
+	}
+      
+      VEC *v = v_get(terminator+1);
+
+      for (int j=0;j<=terminator;j++)
 	v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 
       if(lfi < d->n && d->t_id[lfi]==i) 
@@ -178,19 +202,24 @@ Real K(
 
 	  Real bw = get_bw(dt);
 
-	  VEC *l = v_get(xt->dim);
+	  VEC *l = v_get(terminator+1);
 
-	  for (int j=0;j<xt->dim;j++)
+	  for (int j=0;j<=terminator;j++)
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-	  Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); //1e3*
+	  Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
 
-	  VEC *ld = v_get(x->n);
+	  VEC *ld = v_get(terminator+1);
 
-	  for (int j=0;j<xt->dim;j++)
+	  //printf("\n");
+	  for (int j=0;j<=terminator;j++){
+	    
 	    ld->ve[j] = pow(v->ve[j] - al*l->ve[j],2.);
-
+	    //printf("%Lf %Lf\n",xt->ve[j],ld->ve[j]);
+	  }
+	  //exit(1);
+	  
 	  ht->ve[i] = Q(xt,ld);
 
 	  lfi += 1;
@@ -242,20 +271,45 @@ Real G(
   VEC *ht = v_get(x->m);
   VEC *tt = v_get(x->m);
 
+  int J; 
+  int bigJ;
+  if (BIGMATRICES){
+    bigJ = x->n - 1;
+    J = x->n - x->m;
+
+  } else {
+    J = x->n - 1;
+   
+  }
+
+  
   for (int i=S;i<x->m;i++)
     {
 
-      VEC *xt = v_get(x->n);
+      int terminator;
+      if(BIGMATRICES)
+	terminator = J+i;
+      else
+	terminator = J;
+
+      VEC *xt = v_get(terminator+1);
       get_row(x,i,xt);      
-      VEC *ut = v_get(x->n);
+      VEC *ut = v_get(terminator+1);
       get_row(u,i,ut);      
-      VEC *pt = v_get(x->n);
+      VEC *pt = v_get(terminator+1);
       get_row(p,i,pt); 
 
-      VEC *v = v_get(x->n);
-      VEC *pv = v_get(x->n);
+      if (BIGMATRICES)
+	{
+	  xt = v_resize(xt,terminator+1);
+	  ut = v_resize(ut,terminator+1);
+	  pt = v_resize(pt,terminator+1);
+	}
+      
+      VEC *v = v_get(terminator+1);
+      VEC *pv = v_get(terminator+1);
 
-      for (int j=0;j<x->n;j++) 
+      for (int j=0;j<=terminator;j++) 
 	{
 	  pv->ve[j] = iota*e(data->eff,k,k*(i-S),data->Y)*s(xt->ve[j])*w(xt->ve[j])*pt->ve[j] + 1e-3*e(data->eff,k,k*(i-S),data->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 	  v->ve[j] = iota*e(data->eff,k,k*(i-S),data->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
@@ -272,17 +326,17 @@ Real G(
 
 	  Real bw = get_bw(dt);
 
-	  VEC *l = v_get(xt->dim);
+	  VEC *l = v_get(terminator+1);
 
-	  for (int j=0;j<xt->dim;j++)
+	  for (int j=0;j<=terminator;j++)
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
 	  Real al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
-	  VEC *ld = v_get(x->n);
+	  VEC *ld = v_get(terminator+1);
 
-	  for (int j=0;j<xt->dim;j++)
+	  for (int j=0;j<=terminator;j++)
 	    ld->ve[j] = 2*(v->ve[j] - al*l->ve[j])*pv->ve[j];
 
 	  /*
@@ -454,20 +508,45 @@ Real G_ni(
   VEC *ht = v_get(x->m);
   VEC *tt = v_get(x->m);
 
+  int J; 
+  int bigJ;
+  
+  if (BIGMATRICES){
+    bigJ = x->n - 1;
+    J = x->n - x->m;
+
+  } else {
+    J = x->n - 1;
+   
+  }
+
   for (int i=S;i<x->m;i++)
     {
 
-      VEC *xt = v_get(x->n);
+      int terminator;
+      if(BIGMATRICES)
+	terminator = J+i;
+      else
+	terminator = J;
+
+      VEC *xt = v_get(terminator+1);
       get_row(x,i,xt);      
-      VEC *ut = v_get(x->n);
+      VEC *ut = v_get(terminator+1);
       get_row(u,i,ut);      
-      VEC *pt = v_get(x->n);
+      VEC *pt = v_get(terminator+1);
       get_row(p,i,pt); 
 
-      VEC *v = v_get(x->n);
-      VEC *pv = v_get(x->n);
-
-      for (int j=0;j<x->n;j++) 
+      if (BIGMATRICES)
+	{
+	  xt = v_resize(xt,terminator+1);
+	  ut = v_resize(ut,terminator+1);
+	  pt = v_resize(pt,terminator+1);
+	}
+      
+      VEC *v = v_get(terminator+1);
+      VEC *pv = v_get(terminator+1);
+      
+      for (int j=0;j<=terminator;j++) 
 	{
 	  pv->ve[j] = iota*e(data->eff,k,k*(i-S),data->Y)*s(xt->ve[j])*w(xt->ve[j])*pt->ve[j];
 	  v->ve[j] = iota*e(data->eff,k,k*(i-S),data->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
@@ -483,18 +562,23 @@ Real G_ni(
 
 	  Real bw = get_bw(dt);
 
-	  VEC *l = v_get(xt->dim);
+	  VEC *l = v_get(terminator+1);
 
-	  for (int j=0;j<xt->dim;j++)
+	  for (int j=0;j<=terminator;j++)
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
 	  Real al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
-	  VEC *ld = v_get(x->n);
+	  VEC *ld = v_get(terminator+1);
 
-	  for (int j=0;j<xt->dim;j++)
+	  //printf("\n");
+	  for (int j=0;j<=terminator;j++){
+	    
 	    ld->ve[j] = 2*(v->ve[j] - al*l->ve[j])*pv->ve[j];
+	    //printf("%Lf %Lf\n",xt->ve[j],pv->ve[j]);
+	  }
+	  //exit(1);
 
 	  /*
 	  for (int j=0;j<xt->dim;j++)
