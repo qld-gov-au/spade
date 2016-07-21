@@ -71,7 +71,7 @@ void solve(
 
   int J; 
   int bigJ;
-  if (BIGMATRICES){
+  if (!SGNM){
     bigJ = x->n - 1;
     J = x->n - x->m;
 
@@ -82,7 +82,7 @@ void solve(
 
 
 
-  if (BIGMATRICES)
+  if (!SGNM)
     {        
     xt = v_get(bigJ+1); ut = v_get(bigJ+1);
       xnt = v_get(bigJ+1);  unt = v_get(bigJ+1);
@@ -103,7 +103,7 @@ void solve(
 
   get_row(core_args->x,0,xt);
 
-  if (BIGMATRICES) 
+  if (!SGNM) 
     {
       v_resize(xt,J+1);
       v_resize(ut,J+1);
@@ -116,7 +116,7 @@ void solve(
 
   Ui->ve[0] = Q(xt,ut);
 
-  if (BIGMATRICES)
+  if (!SGNM)
     {
       v_resize(ut,u->n);
     }
@@ -138,7 +138,7 @@ void solve(
       Real thh = k*(i-S-.75);
 
       int terminator;
-      if(BIGMATRICES) 
+      if(!SGNM) 
         {
           terminator = J+i-1;
           xt = v_resize(xt,terminator+1);
@@ -191,7 +191,7 @@ void solve(
 
       Ui->ve[i] = Q(xnt,unt);      
 
-      if(BIGMATRICES) 
+      if(!SGNM) 
         {
           xnt = v_resize(xnt,xn->n);
           unt = v_resize(unt,un->n);

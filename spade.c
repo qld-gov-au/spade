@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
   data.I = warmup_steps + N;
   data.S = warmup_steps;
 
-  if(BIGMATRICES) {
+  if(!SGNM) {
     data.J = J + data.I;
   } else {
     data.J = J;

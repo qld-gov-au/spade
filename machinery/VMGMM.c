@@ -32,9 +32,9 @@ VEC *VMGMM(
   core_args.u = m_get(I+1,J+1);
 
   // todo: Review this. Condition has been flipped to maintain same functionality as last commit
-  // in non-bigmatrices mode but may not be correct for bigmatrices mode. Affects xh in particular
+  // in SGNM mode but may not be correct for non-SGNM mode. Affects xh in particular
   // as it was of dimension 401 here but was of dimension 402 in working copy.
-  if (!BIGMATRICES)
+  if (SGNM)
     {
        core_args.xh = m_get(I+1,J+2);
        core_args.uh = m_get(I+1,J+2);

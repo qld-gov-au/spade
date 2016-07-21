@@ -5,9 +5,15 @@
 #include "parameters.h"
 
 
-// Whether to create full-size matrices or to 
-// dynamically add and remove rows from the matrices
-#define BIGMATRICES 1
+// SGNM: Selection Grid Nodes Method
+// 
+// Determines whether to create full-size matrices
+// or to dynamically add and remove rows from the
+// matrices.
+//
+// Set to 0 to use full-size matrices
+// Set to 1 to dynamically add and remove rows
+#define SGNM 0
 
 // Whether to run grad_* methods concurrently
 #define PTH 1
