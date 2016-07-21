@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
   data.I = warmup_steps + N;
   data.S = warmup_steps;
 
-  if(BIGMATRICES) {
+  if(!SGNM) {
     data.J = J + data.I;
   } else {
     data.J = J;
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 
   VEC *theta = parameters_to_vec(&parameters);
 
-  h = parameters.omega.value / data.J;
+  h = parameters.omega.value / J;
 
   theta = bfgs(VMGMM,theta,&data,&parameters,optim);
 
