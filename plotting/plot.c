@@ -31,7 +31,7 @@ void plot(
   // todo: Review this. Condition has been flipped to maintain same functionality as last commit
   // in non-bigmatrices mode but may not be correct for bigmatrices mode. Affects xh in particular
   // as it was of dimension 401 here but was of dimension 402 in working copy.
-  if (!BIGMATRICES)
+  if (SGNM)
     {
        core_args.xh = m_get(I+1,J+2);
        core_args.uh = m_get(I+1,J+2);
@@ -72,7 +72,7 @@ void plot(
   iota *= 1e-3;
 
   int bigJ;
-  if (BIGMATRICES){
+  if (!SGNM){
     bigJ = x->n - 1;
     J = x->n - x->m;
 
@@ -86,7 +86,7 @@ void plot(
     {
 
       int terminator;
-      if(BIGMATRICES)
+      if(!SGNM)
 	terminator = J+i;
       else
 	terminator = J;
@@ -96,7 +96,7 @@ void plot(
       
       xt = get_row(x,i,xt);
 
-      if (BIGMATRICES)
+      if (!SGNM)
 	xt = v_resize(xt,terminator+1);
       
       for (int j=0;j<=terminator;j++)
@@ -131,7 +131,7 @@ void plot(
     {
 
       int terminator;
-      if(BIGMATRICES)
+      if(!SGNM)
 	terminator = J+i;
       else
 	terminator = J;
@@ -142,7 +142,7 @@ void plot(
       VEC *ut = v_get(terminator+1);
       get_row(u,i,ut);
       
-      if (BIGMATRICES)
+      if (!SGNM)
 	{
 	  xt = v_resize(xt,terminator+1);
 	  ut = v_resize(ut,terminator+1);

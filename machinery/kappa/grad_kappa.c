@@ -37,14 +37,14 @@ void grad_kappa(void* args)
   VEC *xhht; VEC *ph; VEC *pn;
   
   int J;
-  if (BIGMATRICES)
+  if (!SGNM)
     J = x->n - x->m;
   else
     J = x->n - 1;
   
   xt = v_get(J+1); ut = v_get(J+1); pt = v_get(J+1);
 
-  if (BIGMATRICES)
+  if (!SGNM)
     {        
       xnt = v_get(J+1);  unt = v_get(J+1);
       xht = v_get(J+1);  uht = v_get(J+1);
@@ -71,7 +71,7 @@ void grad_kappa(void* args)
 
   get_row(x,0,xt);
 
-  if (BIGMATRICES) 
+  if (!SGNM) 
       xt->dim = J+1;
 
   ini_kappa(parameters,xt,pt);
@@ -93,7 +93,7 @@ void grad_kappa(void* args)
       get_row(uh,i-1,uht);
       get_row(u,i-1,ut);
 
-      if (BIGMATRICES)
+      if (!SGNM)
 	{
 	  get_row(x,i,xnt);
 	  get_row(u,i,unt);	  
@@ -105,7 +105,7 @@ void grad_kappa(void* args)
 	}	  
 
       int terminator;
-      if(BIGMATRICES) 
+      if(!SGNM) 
         {
           terminator = J+i-1;
           xt = v_resize(xt,terminator+1);
@@ -177,7 +177,7 @@ void grad_kappa(void* args)
       Q2_kappa(aa,kk,ww,xnt,unt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
-      if(BIGMATRICES) 
+      if(!SGNM) 
         {
           pn = v_resize(pn,p->n);
           set_row(p,i,pn);

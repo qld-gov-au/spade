@@ -66,7 +66,7 @@ VEC * bfgs(
          printf("infnorm: %g fv: %Lf a: %Lf b: %Lf g: %Lf i: %Lf k: %Lf w: %Lf\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
     #endif
 
-      if (v_norm_inf(g) < 1e-2)
+      if (v_norm_inf(g) < 1)
 	break;
 
       mv_mlt(B,g,p);      

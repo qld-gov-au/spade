@@ -261,7 +261,7 @@ Real K(
 
   int J; 
   int bigJ;
-  if (BIGMATRICES){
+  if (!SGNM){
     bigJ = x->n - 1;
     J = x->n - x->m;
 
@@ -274,7 +274,7 @@ Real K(
     {
 
       int terminator;
-      if(BIGMATRICES)
+      if(!SGNM)
 	terminator = J+i;
       else
 	terminator = J;
@@ -284,7 +284,7 @@ Real K(
       VEC *ut = v_get(terminator+1);
       get_row(u,i,ut);
       
-      if (BIGMATRICES)
+      if (!SGNM)
 	{
 	  xt = v_resize(xt,terminator+1);
 	  ut = v_resize(ut,terminator+1);
@@ -378,7 +378,7 @@ Real G(
 
   int J; 
   int bigJ;
-  if (BIGMATRICES){
+  if (!SGNM){
     bigJ = x->n - 1;
     J = x->n - x->m;
 
@@ -392,7 +392,7 @@ Real G(
     {
 
       int terminator;
-      if(BIGMATRICES)
+      if(!SGNM)
 	terminator = J+i;
       else
 	terminator = J;
@@ -404,7 +404,7 @@ Real G(
       VEC *pt = v_get(terminator+1);
       get_row(p,i,pt); 
 
-      if (BIGMATRICES)
+      if (!SGNM)
 	{
 	  xt = v_resize(xt,terminator+1);
 	  ut = v_resize(ut,terminator+1);
@@ -618,7 +618,7 @@ Real G_ni(
   int J; 
   int bigJ;
   
-  if (BIGMATRICES){
+  if (!SGNM){
     bigJ = x->n - 1;
     J = x->n - x->m;
 
@@ -631,7 +631,7 @@ Real G_ni(
     {
 
       int terminator;
-      if(BIGMATRICES)
+      if(!SGNM)
 	terminator = J+i;
       else
 	terminator = J;
@@ -643,7 +643,7 @@ Real G_ni(
       VEC *pt = v_get(terminator+1);
       get_row(p,i,pt); 
 
-      if (BIGMATRICES)
+      if (!SGNM)
 	{
 	  xt = v_resize(xt,terminator+1);
 	  ut = v_resize(ut,terminator+1);
