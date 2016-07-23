@@ -19,22 +19,39 @@ void plot(
 	   )
 {
 
-  int I = d->I+1;
-  int J = d->J+1;
-
   Solve_Core_Args core_args;
   
-  core_args.x = m_get(I,J);
-  core_args.u = m_get(I,J);
-  core_args.xh = m_get(I,J+1);
-  core_args.uh = m_get(I,J+1);
-  core_args.xn = m_get(I,J+1);
-  core_args.xhh = m_get(I,J+1);
-  core_args.un = m_get(I,J+1);
-  core_args.Ui = v_get(I);
-  core_args.Uh = v_get(I);
-  core_args.Uhh = v_get(I);
-  core_args.idxi = iv_get(I-1);  
+  int I,J;
+  I = d->I;
+  J = d->J;
+
+  core_args.x = m_get(I+1,J+1);
+  core_args.u = m_get(I+1,J+1);
+
+  // todo: Review this. Condition has been flipped to maintain same functionality as last commit
+  // in non-bigmatrices mode but may not be correct for bigmatrices mode. Affects xh in particular
+  // as it was of dimension 401 here but was of dimension 402 in working copy.
+  if (!BIGMATRICES)
+    {
+       core_args.xh = m_get(I+1,J+2);
+       core_args.uh = m_get(I+1,J+2);
+       core_args.xn = m_get(I+1,J+2);
+       core_args.xhh = m_get(I+1,J+2);
+       core_args.un = m_get(I+1,J+2);
+     }
+  else
+    {
+       core_args.xh = m_get(I+1,J+1);
+       core_args.uh = m_get(I+1,J+1);
+       core_args.xn = m_get(I+1,J+1);
+       core_args.xhh = m_get(I+1,J+1);
+       core_args.un = m_get(I+1,J+1);
+    }
+
+  core_args.Ui = v_get(I+1);
+  core_args.Uh = v_get(I+1);
+  core_args.Uhh = v_get(I+1);
+  core_args.idxi = iv_get(I);
 
   solve(parameters,d->eff,d->k,d->S,d->Y,&core_args);
 
@@ -54,18 +71,40 @@ void plot(
   Real iota = parameters->iota.value;
   iota *= 1e-3;
 
-  VEC *ctt = v_get(x->n);
-  VEC *xt = v_get(x->n);
+  int bigJ;
+  if (BIGMATRICES){
+    bigJ = x->n - 1;
+    J = x->n - x->m;
 
+  } else {
+    J = x->n - 1;   
+  }
+  
   FILE *sp1 = fopen("plot1.txt","w");
 
   for (int i=0;i<x->m;i++)
     {
 
+      int terminator;
+      if(BIGMATRICES)
+	terminator = J+i;
+      else
+	terminator = J;
+
+      VEC *ctt = v_get(terminator+1);
+      VEC *xt = v_get(terminator+1);      
+      
       xt = get_row(x,i,xt);
-      for (int j=0;j<x->n;j++)
+
+      if (BIGMATRICES)
+	xt = v_resize(xt,terminator+1);
+      
+      for (int j=0;j<=terminator;j++)
 	ctt->ve[j] = s(x->me[i][j])*iota*e(d->eff,d->k,d->k*(i-d->S),d->Y)*w(x->me[i][j])*u->me[i][j];
-      fprintf(sp1,"%Lf %Lf\n",d->k*(i-d->S),Q(xt,ctt));
+      fprintf(sp1,"%lf %lf\n",d->k*(i-d->S),Q(xt,ctt));
+
+      V_FREE(ctt);
+      V_FREE(xt);
 
     }
 
@@ -74,7 +113,7 @@ void plot(
   FILE *sp2 = fopen("plot2.txt","w");
 
   for (int i=0;i<x->m;i++) 
-    fprintf(sp2,"%Lf %Lf\n",d->k*(i-d->S),c(d->cat,d->k,d->k*(i-d->S)));
+    fprintf(sp2,"%lf %lf\n",d->k*(i-d->S),1e3*c(d->cat,d->k,d->k*(i-d->S)));
 
   fclose(sp2);
 
@@ -82,9 +121,6 @@ void plot(
   sprintf(sbuffer,"./plo > plotc_%s.pdf",label);
   system(sbuffer); 
   //free(sbuffer);
-
-  V_FREE(ctt);
-  V_FREE(xt);
 
   int S = d->S;
   Real k = d->k;
@@ -94,13 +130,27 @@ void plot(
   for (int i=S;i<x->m;i++)
     {
 
-      VEC *xt = v_get(x->n);
-      get_row(x,i,xt);      
-      VEC *ut = v_get(x->n);
-      get_row(u,i,ut);      
-      VEC *v = v_get(x->n);
+      int terminator;
+      if(BIGMATRICES)
+	terminator = J+i;
+      else
+	terminator = J;
 
-      for (int j=0;j<x->n;j++)
+
+      VEC *xt = v_get(terminator+1);
+      get_row(x,i,xt);      
+      VEC *ut = v_get(terminator+1);
+      get_row(u,i,ut);
+      
+      if (BIGMATRICES)
+	{
+	  xt = v_resize(xt,terminator+1);
+	  ut = v_resize(ut,terminator+1);
+	}
+      
+      VEC *v = v_get(terminator+1);
+
+      for (int j=0;j<=terminator;j++)
 	v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
 
       if(lfi < d->n && d->t_id[lfi]==i) 
@@ -113,31 +163,31 @@ void plot(
 
 	  Real bw = get_bw(dt);
 
-	  VEC *l = v_get(xt->dim);
+	  VEC *l = v_get(terminator+1);
 
-	  for (int j=0;j<xt->dim;j++)
+	  for (int j=0;j<=terminator;j++)
 	    for (int jj=0;jj<dt->dim;jj++)
 	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
 
-	  Real al = c(d->cat,k,k*(i - S)) / Q(xt,l); 
+	  Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
 
 	  FILE *p1 = fopen("plot1.txt","w");
 
-	  for (int j=0;j<x->n;j++)
-	    fprintf(p1,"%Lf %Lf\n",xt->ve[j],al*l->ve[j]);
+	  for (int j=0;j<=terminator;j++)
+	    fprintf(p1,"%lf %lf\n",xt->ve[j],al*l->ve[j]);
 
 	  fclose(p1);
 
 	  FILE *p2 = fopen("plot2.txt","w");
 
-	  for (int j=0;j<x->n;j++)
-	    fprintf(p2,"%Lf %Lf\n",xt->ve[j],v->ve[j]);
+	  for (int j=0;j<=terminator;j++)
+	    fprintf(p2,"%lf %lf\n",xt->ve[j],v->ve[j]);
 
 	  fclose(p2);
 
 	  char buffer[100];
 
-	  sprintf(buffer,"./plo > plotl%.3Lf_%s.pdf",k*(d->t_id[lfi] - S),label);	
+	  sprintf(buffer,"./plo > plotl%.3lf_%s.pdf",k*(d->t_id[lfi] - S),label);	
 
 	  system(buffer);
 
