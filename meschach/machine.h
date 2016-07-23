@@ -146,7 +146,7 @@
 #undef REAL_DBL
 #undef REAL_LONG_DBL
 
-#define REAL_LONG_DBL 1
+#define REAL_DBL 1
 
 /* if nothing is defined, choose double precision */
 #ifndef REAL_DBL

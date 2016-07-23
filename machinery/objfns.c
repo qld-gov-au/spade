@@ -128,7 +128,7 @@ Real K_dr(
 
 }
 
-
+/*
 Real newK(
 	  
      Parameters *parameters,
@@ -230,7 +230,7 @@ Real newK(
 	  V_FREE(ld);
 
 	}
-
+*/
 	  
 Real K(
 

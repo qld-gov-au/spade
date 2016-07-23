@@ -4,6 +4,9 @@
 #include "meschach/matrix.h"
 #include "parameters.h"
 
+// Whether to run the derivative checker or not
+//   (to be brought in as ctrl-c interrupt
+#define DCHECK 0
 
 // Whether to create full-size matrices or to 
 // dynamically add and remove rows from the matrices

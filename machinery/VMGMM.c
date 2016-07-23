@@ -76,27 +76,32 @@ VEC *VMGMM(
     }
   }
 
-  parameters->parameter[4]->grad((void *) &(args[4]));
 
-  printf("analytic: %Lf\n",parameters->parameter[4]->gradient);
+  if (DCHECK)
+    {
+      
+      parameters->parameter[0]->grad((void *) &(args[0]));
 
-  Real par_save = parameters->parameter[4]->value;
+      printf("analytic: %Lf\n",parameters->parameter[0]->gradient);
+
+      Real par_save = parameters->parameter[0]->value;
   
-  for (int i=-4;i>=-20;i--) {
+      for (int i=-4;i>=-20;i--) {
 
-    parameters->parameter[4]->value = par_save + exp((Real)i);
+      parameters->parameter[0]->value = par_save + exp((Real)i);
 
-    Real dY = K(parameters,d,&core_args) - *f;
+      Real dY = K(parameters,d,&core_args) - *f;
 
-    Real dX = exp((Real)i);
+      Real dX = exp((Real)i);
     
-    printf("%Lf %Lf\n",dX,dY/dX); 
+      printf("%Lf %Lf\n",dX,dY/dX);
+      }
 
-  }
+      exit(1);
+      
+    }
 
-  exit(1);
-  
-  
+ 
   // multi-threaded mode
   if(PTH) {
     // launch a thread for each gradient function

@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
   // Read model-related command line args and set defaults if
   // arguments have not been provided
   if(arg_read_int("minfish", &minfish, argc, argv) == FALSE) {
-    minfish = 150;
+    minfish = 250;
   }
 
   if(arg_read_int("J", &J, argc, argv) == FALSE) {
@@ -178,13 +178,13 @@ int main(int argc, char *argv[])
 
   char labbuffer[10];
   sprintf(labbuffer,"before");
-  plot(&parameters,&data,labbuffer);
+  //plot(&parameters,&data,labbuffer);
   
   theta = bfgs(VMGMM,theta,&data,&parameters,optim);
 
   char labbuffer2[10];
   sprintf(labbuffer2,"after");
-  plot(&parameters,&data,labbuffer2);
+  //plot(&parameters,&data,labbuffer2);
   
   V_FREE(theta);
   V_FREE(data.cat);
