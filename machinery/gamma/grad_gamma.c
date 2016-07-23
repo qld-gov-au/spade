@@ -65,20 +65,13 @@ void grad_gamma(void* args)
 
   get_row(x,0,xt);
 
-  if (BIGMATRICES) 
-    {
+  if (BIGMATRICES)     
       xt = v_resize(xt,J+1);
-      pt = v_resize(pt,J+1);
-    }
 
   ini_gamma(parameters,xt,pt);
   set_row(p,0,pt);
 
-  Pi->ve[0] = Q(get_row(x,0,xt),get_row(p,0,pt));
-
-
-  if (BIGMATRICES)
-    pt = v_resize(pt,p->n);
+  Pi->ve[0] = Q(xt,pt);
 
   for (int i=1;i<x->m;i++)
     { 
@@ -92,9 +85,18 @@ void grad_gamma(void* args)
       get_row(xh,i-1,xht);
       get_row(xhh,i-1,xhht);
       get_row(uh,i-1,uht);
-      get_row(xn,i-1,xnt);
       get_row(u,i-1,ut);
 
+      if (BIGMATRICES)
+	{
+	  get_row(x,i,xnt);
+	}
+      else
+	{
+	  get_row(xn,i-1,xnt);
+	}	  
+
+      
       int terminator;
       if(BIGMATRICES) 
         {

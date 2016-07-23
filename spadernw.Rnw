@@ -241,13 +241,26 @@ Control theory asks what are the inputs to the model and what are the outputs. I
 
 The model is calibrated against fishery catch-at-size data. This comes from two sources: commercial catch data (a scalar time series representing removals from the population), and scientific monitoring program data on the size structure of the commercial catch. These are combined to produce the `observation', $c(x,t)$: the catch rate (in kilograms per centimetre) at time $t$ and size $x$. It is this observation to which the model is fit:
 \begin{equation}
-K(\theta) = \int_0^T \int_0^\omega \big(s(x)w(x)f(t)u(x,t) - c(x,t)\big)^2 \,dx\,dt
+K(\theta) = \int_0^T \int_0^\omega |s(x)w(x)f(t)u(x,t) - c(x,t)| \,dx\,dt
 \end{equation}
-The derivative of $K$ with respect to $\theta$ is given by
+The gradient of $K$ with respect to $\theta$ is given by
 \begin{equation}
 \int_0^T \int_0^\omega
-2\big(s(x)w(x)f(t)u(x,t)-c(x,t)\big)\big(s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)\big)\,dx\,dt
+\left(s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)\right)\times 
+\begin{cases}
+-1, &  s(x)w(x)f(t)u(x,t) < c(x,t)\\
+\phantom{-}1, & s(x)w(x)f(t)u(x,t)>c(x,t) 
+\end{cases}\,dx\,dt
 \end{equation}
+
+%\begin{equation}
+%K(\theta) = \int_0^T \int_0^\omega \big(s(x)w(x)f(t)u(x,t) - c(x,t)\big)^2 \,dx\,dt
+%\end{equation}
+%The derivative of $K$ with respect to $\theta$ is given by
+%\begin{equation}
+%\int_0^T \int_0^\omega
+%2\big(s(x)w(x)f(t)u(x,t)-c(x,t)\big)\big(s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)\big)\,dx\,dt
+%\end{equation}
 where $p(x,t)=u_\theta(x,t)$ are solutions of the the sensitivity-PDE \citep{Borggaard1997}: %,Stanley2002}.
 
 \begin{equation}
@@ -376,35 +389,81 @@ Hone in on the best scale... explore as necessary..
 
 load(file='spade.RData')
 
-c.m <- read.table(file='control.model')
 
-min.fish <- c.m[1,1]
-J <- c.m[2,1]
-k <- c.m[3,1]
+#c.m <- read.table(file='control.model')
+
+J <- 400 #c.m[2,1]
+k <- 0.025 #c.m[3,1]
+
+newk <- 1/360
 
 ti <- as.numeric(karumba$Time)
 Y <- ceiling(max(ti))
 N <- Y/k
 I <- 2*N
 
+newN <- Y/newk
+
 cek <- k/4
 
-#cat <- array(0,dim=N+1)
-#eff <- array(0,dim=4*N+1)
-#for (i in 1:nrow(karumba)) {
-#    idx.e<- floor((karumba$Time[i]+cek/2)/cek)
-#    idx.c <- floor((karumba$Time[i]+k/2)/k)
-#    eff[idx.e] <- eff[idx.e] + 1.0/cek
-#    cat[idx.c] <- cat[idx.c] + (karumba$RetainedWholeWeightDerived[i]/k)/1e3
-#}
+newcat <- array(0,dim=newN+1)
+for (i in 1:nrow(karumba)) {
+    idx.c <- floor((karumba$Time[i]+newk/2)/newk)
+    newcat[idx.c] <- newcat[idx.c] + (karumba$RetainedWholeWeightDerived[i]/newk)/1e3
+}
+
+
+
+cat <- array(0,dim=N+1)
+eff <- array(0,dim=4*N+1)
+for (i in 1:nrow(karumba)) {
+    idx.e<- floor((karumba$Time[i]+cek/2)/cek)
+    idx.c <- floor((karumba$Time[i]+k/2)/k)
+    eff[idx.e] <- eff[idx.e] + 1.0/cek
+    cat[idx.c] <- cat[idx.c] + (karumba$RetainedWholeWeightDerived[i]/k)/1e3
+}
 
 #save(eff,cat,file='cateff.RData')
-load(file='cateff.RData')
+#load(file='cateff.RData')
+
+plot((1:(N+1)-1)*k,cat[1:(N+1)],type='l')
+
+spl <- smooth.spline((1:(newN+1)-1)*newk,newcat[1:(newN+1)],nknots=500,spar=.4)
+bspl.basis <- create.bspline.basis(unique(spl$fit$knot))
+
+outx <- seq(0,1,length=newN+1)
+mut <- array(0,newN+1)
+for (j in 1:(newN+1))
+    mut[j] <- eval.basis(outx[j],bspl.basis) %*% spl$fit$coef
+      
+x11(); plot(outx,mut,type='l')
 
 Nlf <- nrow(csskc)
 
 ln <- csskc$Length1/10
 tl <- csskc$Time
+
+bw <- bw.nrd(ln)
+bwt <- bw.nrd(tl)
+
+x <- seq(0,160,length.out=500)
+l <- array(0,500)
+
+div <- sum(exp(-((23 - tl)/bwt)^2))
+
+for (j in 1:500)
+    for (jj in 1:Nlf)
+        l[j] <- l[j] + (1/div)*exp(-((23 - tl[jj])/bwt)^2) * exp( - ((x[j] - ln[jj])/bw)^2 )/Nlf
+
+xt <- seq(0,23,length.out=300)
+tt <- array(0,300)
+for (j in 1:300)
+    for (jj in 1:Nlf)
+        tt[j] <- tt[j] + (1/div)*exp(-((xt[j]- tl[jj])/.55)^2)/Nlf
+
+
+
+
 
 ilv <- array(0,dim=Nlf)
 cnt <- array(0,dim=I+1) 

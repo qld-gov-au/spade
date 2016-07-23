@@ -4,7 +4,7 @@ CC = cc
 LINKER_FLAGS = -lm -pthread
 
 # Spade options
-SPADE_CFLAGS = -g -lm -pthread -std=c99
+SPADE_CFLAGS = -O3 -lm -pthread -std=c99 -fopt-info-vec-missed
 SPADE_SOURCE_DIRS = initial machinery mathprop model optim util plotting
 SPADE_SOURCES = \
 	spade.c \
@@ -17,7 +17,7 @@ SPADE_SOURCES = \
 SPADE_OBJECTS := $(patsubst %.c,%_SPADE.o,$(SPADE_SOURCES))
 
 # Meschach options
-MESCHACH_CFLAGS = -g
+MESCHACH_CFLAGS = -O3
 MESCHACH_SOURCES := \
 	copy.c err.c matrixio.c memory.c vecop.c matop.c pxop.c submat.c \
 	init.c otherio.c machine.c matlab.c ivecop.c version.c meminfo.c \
