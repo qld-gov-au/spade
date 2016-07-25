@@ -10,6 +10,7 @@
 #include "kappa/grad_kappa.h"
 #include "omega/grad_omega.h"
 #include "objfns.h"
+#include <math.h>
 
 VEC *VMGMM(
 
@@ -82,7 +83,16 @@ VEC *VMGMM(
       
       parameters->parameter[0]->grad((void *) &(args[0]));
 
+  #if REAL == DOUBLE
+    // lf
+    printf("analytic: %lf\n",parameters->parameter[0]->gradient);
+  #elif REAL == FLOAT
+    // f
+    printf("analytic: %f\n",parameters->parameter[0]->gradient);
+  #elif REAL == LONGDOUBLE
+    // Lf
       printf("analytic: %Lf\n",parameters->parameter[0]->gradient);
+  #endif
 
       Real par_save = parameters->parameter[0]->value;
   
@@ -93,8 +103,18 @@ VEC *VMGMM(
       Real dY = K(parameters,d,&core_args) - *f;
 
       Real dX = exp((Real)i);
-    
+
+#if REAL == DOUBLE
+        // lf
+      printf("%lf %lf\n",dX,dY/dX);
+#elif REAL == FLOAT
+        // f
+      printf("%f %f\n",dX,dY/dX);
+#elif REAL == LONGDOUBLE
+        // Lf
       printf("%Lf %Lf\n",dX,dY/dX);
+#endif
+
       }
 
       exit(1);

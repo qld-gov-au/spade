@@ -37,6 +37,7 @@
 #include "machinery/iota/grad_iota.h"
 #include "machinery/kappa/grad_kappa.h"
 #include "machinery/omega/grad_omega.h"
+#include "util/util.h"
 
 int feenableexcept(int);
 
@@ -87,10 +88,12 @@ int main(int argc, char *argv[])
   Real k;
   Real warmup_ratio;
 
-  // Read model-related command line args and set defaults if
-  // arguments have not been provided
-  if(arg_read_int("minfish", &minfish, argc, argv) == FALSE) {
-    minfish = 250;
+  if (!NEWOBJ) {
+    // Read model-related command line args and set defaults if
+    // arguments have not been provided
+    if(arg_read_int("minfish", &minfish, argc, argv) == FALSE) {
+      minfish = 250;
+    }
   }
 
   if(arg_read_int("J", &J, argc, argv) == FALSE) {
@@ -119,9 +122,55 @@ int main(int argc, char *argv[])
   }
 
   Data data;
-  data_read_ce(data_file_name, &data, &N, k);
-  data_read_lf(data_file_name, &data, N, k, minfish);
+  NewData newdata; 
+  
+  if (!NEWOBJ) {
 
+      data_read_ce(data_file_name, &data, &N, k);
+      data_read_lf(data_file_name, &data, N, k, minfish);
+  }
+  else
+    {
+      data_read_ce_new(data_file_name,&newdata);
+      data_read_lf_new(data_file_name,&newdata);
+
+      // graph catch spline
+      /*
+  printf("\n");
+  VEC *mut = v_get(5000);
+  for (int i=1;i<5000;i++) {
+    mut->ve[i] = sple(newdata.nK,i/5000.0,newdata.knots_c,newdata.splcoef_c);
+    printf("%lf\n",mut->ve[i]);
+    }
+
+    exit(1);*/
+
+      // graph size structure kde
+      /*
+  Real bw = get_bw(newdata.ln);
+  Real bwt = get_bw(newdata.tl);
+  
+  VEC *x = v_get(1000);
+  for (int i=0;i<1000;i++)
+    x->ve[i] = 160.0*i/1000.0;
+  VEC *l  = v_get(1000);
+
+  Real div = 0;
+  for (int i=0;i<newdata.Nlf;i++)
+    div += exp(-pow((23 - newdata.tl->ve[i])/bwt,2.0));
+
+  for (int j=0;j<1000;j++)
+    for (int jj = 0;jj<newdata.Nlf;jj++)
+      l->ve[j] += (1.0/div)*exp(-pow((23 - newdata.tl->ve[jj])/bwt,2.0)) * exp( -pow((x->ve[j] - newdata.ln->ve[jj])/bw,2.0))/newdata.Nlf;
+
+  printf("\n");
+  for (int j=0;j<1000;j++)
+    printf("%lf %lf\n",x->ve[j],l->ve[j]);
+    exit(1);*/
+      
+    }
+
+		       
   // The model consists of two stages - a warmup stage followed by the model stage.
   // I (total number of time steps) = warmup_steps + N (number of time steps for model)
   //   * warmup_steps = N (number of time steps for model) * warmup_ratio
@@ -445,7 +494,6 @@ in tpl file:
   init_vector start1(1,T1)
   init_vector stop1(1,T1)
 
-
   lf1=0;
   p1.initialize();
   sn.initialize();
@@ -506,7 +554,7 @@ FUNCTION dvariable sple(const int nk, const dvar_vector& knots, const dvariable&
       break;
 
   l = j - 4;
-  offset = l-1;
+  offsxet = l-1;
 
   for (q=0;q<=(4-2);q++) {
     rdel(q+1) = knots(j+q) - xval;

@@ -4,6 +4,9 @@
 #include "meschach/matrix.h"
 #include "parameters.h"
 
+// Whether to use the new objective funtion or not
+#define NEWOBJ 0
+
 // Whether to run the derivative checker or not
 //   (to be brought in as ctrl-c interrupt
 #define DCHECK 0
@@ -33,7 +36,19 @@ typedef struct {
   Real stpmax;
   int maxfev;
 } OptimControl;
-    
+
+typedef struct {
+  int nK;          // number knots
+  int B;
+  VEC *knots_e;    // knots effort
+  VEC *knots_c;    // knots catch
+  VEC *splcoef_e;    // knots effort
+  VEC *splcoef_c;    // knots catch
+  int Nlf;
+  VEC *ln;
+  VEC *tl;
+} NewData;
+
 typedef struct {
   VEC *eff;
   VEC *cat;
@@ -44,6 +59,7 @@ typedef struct {
   int I,J,S;
   Real k;
   int Y; // Number of years of input data
+  
 } Data;
 
 typedef struct {
@@ -75,6 +91,10 @@ void spade_v_output(VEC* vec);
 void data_read_ce(char * data_file_name, Data * data, int * N, Real k);
 
 void data_read_lf(char * data_file_name, Data * data, int N, Real k, int minfish);
+
+void data_read_ce_new(char * data_file_name, NewData * newdata);
+
+void data_read_lf_new(char * data_file_name, NewData * newdata);
 
 void optim_control_read(char * optim_file_name, OptimControl * optim);
 #endif

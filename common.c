@@ -73,6 +73,164 @@ void data_read_ce(char * data_file_name, Data * data, int * N, Real k) {
   fclose(fp);
 }
 
+void data_read_ce_new(char * data_file_name, NewData * newdata) {
+  char buffer[30];
+  sprintf(buffer,"%s-ce-new.dat",data_file_name);
+
+  int Nk,B;
+  FILE *fp = fopen(buffer,"r");
+  fscanf(fp,"%d",&Nk);
+  Real *knots = (Real *) calloc(Nk,sizeof(Real));
+
+  for (int i=0;i<Nk;i++) {
+  #if REAL == DOUBLE
+    // lf
+    fscanf(fp,"%lf", &knots[i]);
+  #elif REAL == FLOAT
+    // f
+    fscanf(fp,"%f", &knots[i]);
+  #elif REAL == LONGDOUBLE
+    // Lf
+    fscanf(fp,"%Lf", &knots[i]);
+  #endif
+  }
+
+  newdata->nK = Nk;
+  newdata->knots_c = v_get(Nk);
+
+  for (int i=0;i<Nk;i++)
+    newdata->knots_c->ve[i] = knots[i];
+  
+  free(knots);
+
+  Real *knots_e = (Real *) calloc(Nk,sizeof(Real));
+
+  for (int i=0;i<Nk;i++) {
+  #if REAL == DOUBLE
+    // lf
+    fscanf(fp,"%lf", &knots_e[i]);
+  #elif REAL == FLOAT
+    // f
+    fscanf(fp,"%f", &knots_e[i]);
+  #elif REAL == LONGDOUBLE
+    // Lf
+    fscanf(fp,"%Lf", &knots_e[i]);
+  #endif
+  }
+
+  newdata->knots_e = v_get(Nk);
+
+  for (int i=0;i<Nk;i++)
+    newdata->knots_e->ve[i] = knots_e[i];
+  
+  free(knots_e);
+  
+  fscanf(fp,"%d",&B);
+  newdata->B = B;
+  
+  Real *splcoef = (Real *) calloc(B,sizeof(Real));
+
+  for (int i=0;i<B;i++) {
+  #if REAL == DOUBLE
+    // lf
+    fscanf(fp,"%lf", &splcoef[i]);
+  #elif REAL == FLOAT
+    // f
+    fscanf(fp,"%f", &splcoef[i]);
+  #elif REAL == LONGDOUBLE
+    // Lf
+    fscanf(fp,"%Lf", &splcoef[i]);
+  #endif
+  }
+  
+  newdata->splcoef_c = v_get(B);
+  for (int i=0;i<B;i++)
+    newdata->splcoef_c->ve[i] = splcoef[i];
+
+  free(splcoef);
+
+
+  Real *splcoef_e = (Real *) calloc(B,sizeof(Real));
+
+  for (int i=0;i<B;i++) {
+  #if REAL == DOUBLE
+    // lf
+    fscanf(fp,"%lf", &splcoef_e[i]);
+  #elif REAL == FLOAT
+    // f
+    fscanf(fp,"%f", &splcoef_e[i]);
+  #elif REAL == LONGDOUBLE
+    // Lf
+    fscanf(fp,"%Lf", &splcoef_e[i]);
+  #endif
+  }
+  
+  newdata->splcoef_e = v_get(B);
+  for (int i=0;i<B;i++)
+    newdata->splcoef_e->ve[i] = splcoef_e[i];
+
+  free(splcoef_e);
+
+  fclose(fp);
+}
+
+
+void data_read_lf_new(char * data_file_name, NewData * newdata) {
+  char buffer[30];
+  sprintf(buffer,"%s-lf-new.dat",data_file_name);
+
+  int Nlf;
+  FILE *fp = fopen(buffer,"r");
+  fscanf(fp,"%d",&Nlf);
+  Real *ln = (Real *) calloc(Nlf,sizeof(Real));
+
+  for (int i=0;i<Nlf;i++) {
+  #if REAL == DOUBLE
+    // lf
+    fscanf(fp,"%lf", &ln[i]);
+  #elif REAL == FLOAT
+    // f
+    fscanf(fp,"%f", &ln[i]);
+  #elif REAL == LONGDOUBLE
+    // Lf
+    fscanf(fp,"%Lf", &ln[i]);
+  #endif
+  }
+
+  newdata->Nlf = Nlf;
+  newdata->ln = v_get(Nlf);
+
+  for (int i=0;i<Nlf;i++)
+    newdata->ln->ve[i] = ln[i];
+  
+  free(ln);
+
+  Real *tl = (Real *) calloc(Nlf,sizeof(Real));
+
+  for (int i=0;i<Nlf;i++) {
+  #if REAL == DOUBLE
+    // lf
+    fscanf(fp,"%lf", &tl[i]);
+  #elif REAL == FLOAT
+    // f
+    fscanf(fp,"%f", &tl[i]);
+  #elif REAL == LONGDOUBLE
+    // Lf
+    fscanf(fp,"%Lf", &tl[i]);
+  #endif
+  }
+
+  newdata->tl = v_get(Nlf);
+
+  for (int i=0;i<Nlf;i++)
+    newdata->tl->ve[i] = tl[i];
+  
+  free(tl);
+  
+  fclose(fp);
+}
+
+
 void data_read_lf(char * data_file_name, Data * data, int N, Real k, int minfish) {
   char buffer[30];
   sprintf(buffer,"%s-lf.dat",data_file_name);

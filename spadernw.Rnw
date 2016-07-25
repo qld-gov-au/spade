@@ -389,7 +389,6 @@ Hone in on the best scale... explore as necessary..
 
 load(file='spade.RData')
 
-
 #c.m <- read.table(file='control.model')
 
 J <- 400 #c.m[2,1]
@@ -412,6 +411,38 @@ for (i in 1:nrow(karumba)) {
     newcat[idx.c] <- newcat[idx.c] + (karumba$RetainedWholeWeightDerived[i]/newk)/1e3
 }
 
+plot((1:(newN+1)-1)*newk,newcat[1:(newN+1)],type='l')
+
+spl <- smooth.spline((1:(newN+1)-1)*newk,newcat[1:(newN+1)],nknots=500,spar=.4)
+library(fda)
+bspl.basis <- create.bspline.basis(unique(spl$fit$knot))
+
+#outx <- seq(0,1,length=newN+1)
+#mut <- array(0,newN+1)
+#for (j in 1:(newN+1))
+#    mut[j] <- eval.basis(outx[j],bspl.basis) %*% spl$fit$coef
+      
+#x11(); plot(outx,mut,type='l'
+
+nbasis <- bspl.basis$nbasis
+params <- bspl.basis$params
+rangeval <- bspl.basis$rangeval
+breaks <- c(rangeval[1], params, rangeval[2])
+norder <- nbasis - length(breaks) + 2
+nbreaks <- length(breaks)
+knots<- c(rep(breaks[1], norder -1), breaks, rep(breaks[nbreaks], norder -1))
+nbasis <- nbreaks + norder - 2
+nk <- length(knots)
+splcoef <- spl$fit$coef
+
+sink('karumba-ce-new.dat')
+cat(sprintf('%d\n',nk))
+for (i in 1:nk)
+    cat(sprintf('%f\n',knots[i]))
+cat(sprintf('%d\n',nbasis))
+for (i in 1:nbasis)
+    cat(sprintf('%f\n',splcoef[i]))
+sink()
 
 
 cat <- array(0,dim=N+1)
@@ -426,17 +457,6 @@ for (i in 1:nrow(karumba)) {
 #save(eff,cat,file='cateff.RData')
 #load(file='cateff.RData')
 
-plot((1:(N+1)-1)*k,cat[1:(N+1)],type='l')
-
-spl <- smooth.spline((1:(newN+1)-1)*newk,newcat[1:(newN+1)],nknots=500,spar=.4)
-bspl.basis <- create.bspline.basis(unique(spl$fit$knot))
-
-outx <- seq(0,1,length=newN+1)
-mut <- array(0,newN+1)
-for (j in 1:(newN+1))
-    mut[j] <- eval.basis(outx[j],bspl.basis) %*% spl$fit$coef
-      
-x11(); plot(outx,mut,type='l')
 
 Nlf <- nrow(csskc)
 

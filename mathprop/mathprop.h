@@ -4,6 +4,17 @@
 #include "../meschach/matrix.h"
 #include "../parameters.h"
 
+Real sple(
+
+	  const int nk,
+	  const Real xval,
+	  const VEC *knots,
+	  const VEC *coef
+
+	  );
+
+
+
 VEC *numgrad(
 
 	     Real (*model)(VEC *,void *),

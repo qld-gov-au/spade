@@ -11,6 +11,65 @@
 #include "../machinery/omega/grad_omega.h"
 #include "../machinery/objfns.h"
 
+Real sple(
+
+	  const int nk,
+	  const Real xval,
+	  const VEC *knots,
+	  const VEC *coef
+
+	  )
+{
+ 
+  int j,q,r,l,offset;
+  VEC *val = v_get(4);
+  VEC *rdel = v_get(3);
+  VEC *ldel = v_get(3); 
+
+  for (j=1;j<=nk;j++)
+    if (knots->ve[j-1] >= xval)
+      break;
+
+  l = j - 4;
+  offset = l-1;
+
+  for (q=0;q<=(4-2);q++) {
+    rdel->ve[q] = knots->ve[j+q-1] - xval;
+    ldel->ve[q] = xval - knots->ve[j - (q+1) -1];
+  }
+
+  val->ve[1-1] = 1;
+  Real saved;
+  Real term;
+  for (q=1;q<=(4-1);q++) {
+    saved=0;
+    for (r=0;r<=(q-1);r++) {
+      term = val->ve[r+1-1] / (rdel->ve[r+1-1] + ldel->ve[q-1-r+1-1]);
+      val->ve[r+1-1] = saved + rdel->ve[r+1-1] * term;
+      saved = ldel->ve[q-1-r+1-1] * term;
+    }
+    val->ve[q+1-1] = saved;
+  }
+
+  int ncoef = nk - 4;
+
+  VEC *design = v_get(ncoef);
+  design->ve[offset+1-1] = val->ve[1-1];
+  design->ve[offset+2-1] = val->ve[2-1];
+  design->ve[offset+3-1] = val->ve[3-1];
+  design->ve[offset+4-1] = val->ve[4-1];
+
+  Real rt = in_prod(design,coef);
+
+  V_FREE(val);
+  V_FREE(rdel);
+  V_FREE(ldel);
+  V_FREE(design);
+  
+  return rt;
+
+}
+
 VEC *numgrad(
 
 	     Real (*model)(VEC *,void *),
