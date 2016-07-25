@@ -1,0 +1,63 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\title{Objective function}
+
+\begin{document}
+\maketitle
+
+
+The model is calibrated against fishery catch-at-size data. We seek to minimise
+\begin{equation}
+K(\theta) = \int_0^T \int_0^\omega \left(\hat{c}(x,t) - c(x,t)\right)^2 \,dx\,dt
+\end{equation}
+where $\hat{c}(x,t) = s(x)w(x)f(t)u(x,t)$ is the model predicted catch-at-size (in units of kilograms per centimetre per year), and $c(x,t)$ is the `observed' catch-at-size. The latter is constructed from two sources of data. Firstly, commercial catch data consisting a set of pairs $(c_i,d_i)$, $i=1,2..n$, representing individual daily catches (in kilograms) and the associated date.  Secondly, scientific monitoring program data on the size structure of the commercial catch, consisting of a set of pairs $(x_j,t_j)$, $j=1,2,..m$, representing the size of a monitored fish (in centimetre) and the associated timestamp.  These are combined through the following procedure.
+
+First the individual daily catches are processed to produce a catch rate (in kilograms per year) for each date $d$ in the whole time period, 
+\begin{equation}
+  c_d = \begin{cases}
+    \sum_{\{i|d_i = d\}} c_i / \tau & \text{if } \text{card}\{i|d_i=d\}>0\\
+    0 & \text{else}
+  \end{cases}
+\end{equation}
+where $\tau$ is the average day duration as a fraction of a year.  Then we use a cubic smoothing spline to construct the continuous catch rate, $c(t)$ (\emph{note: this smoothing should be constrained such that the integral of $c(t)$ over time is roughly equal to the sum of individual catch records, also it would be nice to preserve some other properties; this has not been implemented yet}).  Then a kernel density estimation procedure is used to smooth the size structure data over size and time.  The final $c(x,t)$ is the smoothed catch rate $c(t)$ multplied by a weighted combination of the smoothed observed size structure and the predicted size structure, with the weighting determined by the amount of size structure data present near to the current time:
+\begin{equation}
+  \begin{split}
+    c(x,t) &= c(t)\left(\frac{p(t)}{m h_x\sum_{j=1}^m \phi_t((t-t_j)/h_t)} \sum_{j=1}^m \phi_t((t-t_j)/h_t) \phi_x((x - x_j)/h_x)\right.\\
+    & \phantom{\frac{\hat{\mu}(t)}{h_x\sum_{j=1}^m \phi_t((t-t_j)/h_t)}} + (1-p(t)) \left.\frac{\hat{c}(x,t)}{\int_0^\omega \hat{c}(x,t)\,dx}\right)
+  \end{split}
+\end{equation}
+where $\phi_t$ and $\phi_x$ are kernels, and the weighting
+\begin{equation}
+  p(t) = \frac{\sum_{j=1}^m\phi_t((t-t_j)/h_t)}{\text{max}_t\sum_{j=1}^m\phi_t((t-t_j)/h_t)}.
+\end{equation}
+
+
+
+
+
+\end{document}
+
+\begin{equation}
+K(\theta) = \int_0^T \int_0^\omega \left(c(x,t) - \hat{c}(x,t)\right)^2 \,dx\,dt
+\end{equation}
+where $c(x,t) = s(x)w(x)f(t)u(x,t)$ and 
+\begin{equation}
+  \begin{split}
+    \hat{c}(x,t) &= \hat{\mu}(t)\left(\frac{p(t)}{h_x\sum_{i=1}^n \phi_t((t-t_i)/h_t)} \sum_{i=1}^n \phi_t((t-t_i)/h_t) \phi_x((x - x_i)/h_x)\right.\\
+    & \phantom{\frac{\hat{\mu}(t)}{h_x\sum_{i=1}^n \phi_t((t-t_i)/h_t)}} + (1-p(t)) \left.\frac{c(x,t)}{\int_0^\omega c(x,t)\,dx}\right)
+  \end{split}
+\end{equation}
+where $\phi_t$ and $\phi_x$ are kernels, and 
+\begin{equation}
+  p(t) = \frac{\sum_{i=1}^n\phi_t((t-t_i)/h_t)}{\text{max}_t\sum_{i=1}^n\phi_t((t-t_i)/h_t)}
+\end{equation}
+and $\hat{\mu}(t)$ is the result of the spline smoother applied to the observed total catch.
+
+The gradient of $K$ with respect to $\theta$ is given by
+\begin{equation}
+\int_0^T \int_0^\omega
+2\left[s(x)w(x)f(t)u(x,t)-c(x,t)\right]\left[s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)\right]\,dx\,dt
+\end{equation}
+where $p(x,t)=u_\theta(x,t)$ are solutions of the the sensitivity-PDE \citep{Borggaard19

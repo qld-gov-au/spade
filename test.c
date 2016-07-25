@@ -1,4 +1,86 @@
-int a[256], b[256], c[256];
+#include <math.h>
+#include <stdlib.h>
+
+#define A1 8.588e-5
+#define A2 0.00144
+
+double iota1=5.2;
+double iota2=0.619;
+double phi=17;
+double eta1=1.703205e-5;
+double eta2=2.9526;
+
+double h = 1./160;
+
+double s(double x) 
+{ 
+  if (x<58)
+    return 0;
+  else if (x <=60)
+    {
+      double m = exp(-pow(60-phi*iota1,2.)/(2*iota2*pow(phi,2.)))/2;
+      return m*(x-58);
+    }
+  else
+    return exp(-pow(x-phi*iota1,2.)/(2*iota2*pow(phi,2.)));
+}
+
+double e(
+
+	  const double * ef,
+	  double r,
+	  double t,
+    int Y
+
+	  )
+{
+
+  if (t<0)
+    {
+      double cek = r/4;
+      double ept5 = ef[(int)floor((.5 + (cek/2) - 1e-12)/cek)];
+      double m = ept5/Y;
+
+      return m*t+ ept5;
+    }
+  else
+    {
+      double cek = r/4;
+      int idx = floor((t + (cek/2) - 1e-12)/cek);
+      return ef[idx];
+    }
+}
+
+double zstar(
+
+	      const double *eff,
+	      double b,
+	      double g,
+	      double kappa,
+	      double i,
+	      double t,
+	      double x,
+	      double U,
+	      double r,
+              int Y
+
+	     )
+{ // equation X in Y
+
+  return b + g*U + s(x)*i*e(eff,r,t,Y) - kappa;
+
+}
+
+double g(
+
+	 const double kappa,
+	 const double w,
+	 const double x
+
+	 )
+{ /* von-Bertalanffy growth */
+  return kappa*(w - x);
+}
 
 
 double b(
@@ -10,7 +92,6 @@ double b(
 { /* birth function */
   return a*(A1*x + A2*pow(x,2.));
 }
-
 
 double Q(
 	 
@@ -62,8 +143,6 @@ void initial(
 
 {
 
-  x[J] -= 1e-5;
-
   double a = parameters[0];
   double b = parameters[1];
   double g = parameters[2];
@@ -79,27 +158,8 @@ void initial(
   double wbar = (2*k*w*vbar) / (b+g*ubar+2*k);  
 
   for (int j=0;j<=terminator;j++) 
-    u[j] = (a*A1*vbar+a*A2*wbar)*pow(w-x[j],(b+g*ubar)/k-1) / (k*pow(w,(b+g*ubar)/k));
+    u[j] = (a*A1*vbar+a*A2*wbar)*pow(w-(x[j]-1e-5),(b+g*ubar)/k-1) / (k*pow(w,(b+g*ubar)/k));
 
-}
-
-
-int foo (int n, int x) {
-   int i;
-
-   /* feature: support for unknown loop bound  */
-   /* feature: support for loop invariants  */
-   for (i=0; i<n; i++){
-      b[i] = x;
-   }
-
-   /* feature: general loop exit condition  */
-   /* feature: support for bitwise operations  */
-   while (n--){
-      a[i] = b[i]&c[i]; i++;
-   }
-
-   return(0);
 }
 
 void loop(
@@ -115,19 +175,20 @@ void loop(
 
   int N = Y*SPY;
   int I = 2*N;
-
+  int S = N;
+  
   double k = 1./SPY;
 
   double **x; 
   double **u; 
   
-  x = (double **) malloc((I+1) * sizeof(double *));
+  x = (double **) calloc((I+1),sizeof(double *));
   for (int i=0;i<=I;i++)
-    x[i] = (double *) malloc( (J+i+1) * sizeof(double));
+    x[i] = (double *) calloc( (J+i+1),sizeof(double));
 
-  u = (double **) malloc((I+1) * sizeof(double *));
+  u = (double **) calloc((I+1),sizeof(double *));
   for (int i=0;i<=I;i++)
-    u[i] = (double *) malloc( (J+i+1) * sizeof(double));
+    u[i] = (double *) calloc( (J+i+1),sizeof(double));
   
   for (int j=0;j<=J;j++) 
     x[0][j] = h*j;
@@ -145,10 +206,12 @@ void loop(
   double ww = parameters[4];
   double ii = parameters[5];
 
-  double * xhht = (double *) malloc((I+1+J) * sizeof(double));
-  double * uhh = (double *) malloc((I+1+J) * sizeof(double));
-  double * xht = (double *) malloc((I+1+J) * sizeof(double));
-  double * uht = (double *) malloc((I+1+J) * sizeof(double));
+  double * xhht = (double *) calloc((I+1+J),sizeof(double));
+  double * uhh = (double *) calloc((I+1+J),sizeof(double));
+  double * xht = (double *) calloc((I+1+J),sizeof(double));
+  double * uht = (double *) calloc((I+1+J),sizeof(double));
+  double * xnt = (double *) calloc((I+1+J),sizeof(double));
+  double * unt = (double *) calloc((I+1+J),sizeof(double));
   
   for (int i=1;i<=I;i++)
     {
@@ -167,70 +230,66 @@ void loop(
 
       Q2(aa,kk,ww,xhht,uhh,terminator);
       double Uhh = Q(xhht,uhh,terminator);
-            
-      set_row(xhh,i-1,xhht);
-      
+                  
       for (int j=0;j<=terminator;j++)
-	    {
-	      xht->ve[j+1] = xt->ve[j] + (k/2)*g(kk,ww,xhht->ve[j+1]);
-	      uht->ve[j+1] = ut->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,Y));
-	    }
+	{
+	  xht[j+1] = x[i-1][j] + (k/2)*g(kk,ww,xhht[j+1]);
+	  uht[j+1] = u[i-1][j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht[j+1],Uhh,k,Y));
+	}
 
-      Q2(aa,kk,ww,xht,uht);
-      Uh->ve[i-1] = Q(xht,uht);
+      Q2(aa,kk,ww,xht,uht,terminator);
+      double Uh = Q(xht,uht,terminator);
          
-      set_row(xh,i-1,xht);
-      set_row(uh,i-1,uht);
+      for (int j=0;j<=terminator;j++)
+	{
+	  xnt[j+1] = x[i-1][j] + k*g(kk,ww,xht[j+1]);
+	  unt[j+1] = u[i-1][j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht[j+1],Uh,k,Y));
+        }
+        
+      Q2(aa,kk,ww,xnt,unt,terminator);
 
       for (int j=0;j<=terminator;j++)
-	    {
-	      xnt->ve[j+1] = xt->ve[j] + k*g(kk,ww,xht->ve[j+1]);
-	      unt->ve[j+1] = ut->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,Y));
+	{
+	  x[i][j] = xnt[j];
+	  u[i][j] = unt[j];
         }
-        
-      Q2(aa,kk,ww,xnt,unt);
+      
+      Ui = Q(xnt,unt,terminator);      
 
-      Ui->ve[i] = Q(xnt,unt);      
-
-      if(!SGNM) 
-        {
-          xnt = v_resize(xnt,xn->n);
-          unt = v_resize(unt,un->n);
-
-          set_row(x,i,xnt); // todo: test this.
-          set_row(u,i,unt);
-        }
-      else
-        {
-          set_row(xn,i-1,xnt);
-          set_row(un,i-1,unt);
-
-          int idx = idxselect(ww,xnt);
-          idxi->ive[i-1] = idx;
-        
-          xt = idxremove(xnt,xt,idx);
-          ut = idxremove(unt,ut,idx);
-
-          set_row(x,i,xt);
-          set_row(u,i,ut);
-        }
     }
 
-  V_FREE(xt);
-  V_FREE(xnt); 
-  V_FREE(unt); 
-  V_FREE(xht); 
-  V_FREE(uht);
-  V_FREE(xhht); 
-  V_FREE(uhh);
-  V_FREE(ut);
+  free(xnt); 
+  free(unt); 
+  free(xht); 
+  free(uht);
+  free(xhht); 
+  free(uhh);
 
+}
 
 int main(void)
 {
 
-  foo(256,256);
+  double *parameters = (double *) calloc(6,sizeof(double));
 
+  parameters[0] = .1;
+  parameters[1] = .1;
+  parameters[2] = 1.1;
+  parameters[3] = .1;
+  parameters[4] = .1;
+  parameters[5] = 160;
+    
+  int J = 400;
+  int Y = 24;
+  int SPY = 20;
+
+  int N = Y*SPY;
+  int I = 2*N;
+
+  double *eff = (double *) calloc((2*I+1),sizeof(double));
+
+  loop(parameters,eff,J,Y,SPY);
+  
   return(0);
 }
       
