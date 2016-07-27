@@ -4,10 +4,6 @@
 #include "meschach/matrix.h"
 #include "parameters.h"
 
-// Whether to run the derivative checker or not
-//   (to be brought in as ctrl-c interrupt
-#define DCHECK 0
-
 // SGNM: Selection Grid Nodes Method
 // 
 // Determines whether to create full-size matrices
@@ -69,6 +65,9 @@ Real eta2;
 
 Real h;
 int J;
+int interactive_mode_requested;
+
+void request_interactive_mode(int a);
 
 void spade_v_output(VEC* vec);
 
