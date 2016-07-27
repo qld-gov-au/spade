@@ -1,5 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
+#include <assert.h>
+
 
 #define A1 8.588e-5
 #define A2 0.00144
@@ -12,20 +14,21 @@ double eta2=2.9526;
 
 double h = 1./160;
 
-double s(double x) 
+
+double __attribute__((always_inline)) s(double x) 
 { 
-  if (x<58)
-    return 0;
-  else if (x <=60)
-    {
-      double m = exp(-pow(60-phi*iota1,2.)/(2*iota2*pow(phi,2.)))/2;
-      return m*(x-58);
-    }
-  else
+  //if (x<58)
+  //  return 0;
+  //else if (x <=60)
+  //  {
+  //    double m = exp(-pow(60-phi*iota1,2.)/(2*iota2*pow(phi,2.)))/2;
+  //    return m*(x-58);
+  //  }
+  //else
     return exp(-pow(x-phi*iota1,2.)/(2*iota2*pow(phi,2.)));
 }
 
-double e(
+double __attribute__((always_inline)) e(
 
 	  const double * ef,
 	  double r,
@@ -35,23 +38,23 @@ double e(
 	  )
 {
 
-  if (t<0)
-    {
-      double cek = r/4;
-      double ept5 = ef[(int)floor((.5 + (cek/2) - 1e-12)/cek)];
-      double m = ept5/Y;
-
-      return m*t+ ept5;
-    }
-  else
-    {
+  //if (t<0)
+  //  {
+  //    double cek = r/4;
+  //    double ept5 = ef[(int)floor((.5 + (cek/2) - 1e-12)/cek)];
+  //    double m = ept5/Y;
+  //
+  //    return m*t+ ept5;
+  //  }
+  //else
+  //  {
       double cek = r/4;
       int idx = floor((t + (cek/2) - 1e-12)/cek);
       return ef[idx];
-    }
+      //  }
 }
 
-double zstar(
+double __attribute__((always_inline)) zstar(
 
 	      const double *eff,
 	      double b,
@@ -71,7 +74,7 @@ double zstar(
 
 }
 
-double g(
+double __attribute__((always_inline)) g(
 
 	 const double kappa,
 	 const double w,
@@ -83,7 +86,7 @@ double g(
 }
 
 
-double b(
+double __attribute__((always_inline)) b(
 
 	 const double a,
 	 const double x
@@ -92,6 +95,7 @@ double b(
 { /* birth function */
   return a*(A1*x + A2*pow(x,2.));
 }
+
 
 double Q(
 	 
@@ -184,20 +188,18 @@ void loop(
   
   x = (double **) calloc((I+1),sizeof(double *));
   for (int i=0;i<=I;i++)
-    x[i] = (double *) calloc( (J+i+1),sizeof(double));
+    x[i] = (double *) calloc(J+1,sizeof(double));
 
   u = (double **) calloc((I+1),sizeof(double *));
   for (int i=0;i<=I;i++)
-    u[i] = (double *) calloc( (J+i+1),sizeof(double));
+    u[i] = (double *) calloc(J+1,sizeof(double));
   
   for (int j=0;j<=J;j++) 
     x[0][j] = h*j;
 
-  int terminator = J;
+  initial(parameters,x[0],u[0],J);
 
-  initial(parameters,x[0],u[0],terminator);
-
-  double Ui = Q(x[0],u[0],terminator);
+  double Ui = Q(x[0],u[0],J);
       
   double aa = parameters[0];
   double bb = parameters[1];
@@ -206,12 +208,12 @@ void loop(
   double ww = parameters[4];
   double ii = parameters[5];
 
-  double * xhht = (double *) calloc((I+1+J),sizeof(double));
-  double * uhh = (double *) calloc((I+1+J),sizeof(double));
-  double * xht = (double *) calloc((I+1+J),sizeof(double));
-  double * uht = (double *) calloc((I+1+J),sizeof(double));
-  double * xnt = (double *) calloc((I+1+J),sizeof(double));
-  double * unt = (double *) calloc((I+1+J),sizeof(double));
+  double * xhht = (double *) calloc((J+1),sizeof(double));
+  double * uhh = (double *) calloc((J+1),sizeof(double));
+  double * xht = (double *) calloc((J+1),sizeof(double));
+  double * uht = (double *) calloc((J+1),sizeof(double));
+  double * xnt = (double *) calloc((J+1),sizeof(double));
+  double * unt = (double *) calloc((J+1),sizeof(double));
   
   for (int i=1;i<=I;i++)
     {
@@ -220,41 +222,41 @@ void loop(
       double th = k*(i-S-.5);
       double thh = k*(i-S-.75);
 
-      int terminator = J + i-1;
-
-      for (int j=0;j<=terminator;j++)
+      assert((unsigned long int)xhht & 31 == 0 && "xhht is not 32-byte aligned");
+      
+      for (int j=0;j<J;j++)
 	{
-	  xhht[j+1] = x[i-1][j] + (k/4)*g(kk,ww,x[i-1][j]);
-	  uhh[j+1] = u[i-1][j]*exp(-(k/4)*zstar(eff,bb,gg,kk,ii,t,x[i-1][j],Ui,k,Y));
+	  xhht[j+1] = x[i-1][j] + (k/4); //*g(kk,ww,x[i-1][j]);
+	  uhh[j+1] = u[i-1][j]*exp(-(k/4)); //*zstar(eff,bb,gg,kk,ii,t,x[i-1][j],Ui,k,Y));
 	}
 
-      Q2(aa,kk,ww,xhht,uhh,terminator);
-      double Uhh = Q(xhht,uhh,terminator);
+      Q2(aa,kk,ww,xhht,uhh,J-1);
+      double Uhh = Q(xhht,uhh,J-1);
                   
-      for (int j=0;j<=terminator;j++)
+      for (int j=0;j<J;j++)
 	{
 	  xht[j+1] = x[i-1][j] + (k/2)*g(kk,ww,xhht[j+1]);
 	  uht[j+1] = u[i-1][j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht[j+1],Uhh,k,Y));
 	}
 
-      Q2(aa,kk,ww,xht,uht,terminator);
-      double Uh = Q(xht,uht,terminator);
+      Q2(aa,kk,ww,xht,uht,J-1);
+      double Uh = Q(xht,uht,J-1);
          
-      for (int j=0;j<=terminator;j++)
+      for (int j=0;j<J;j++)
 	{
 	  xnt[j+1] = x[i-1][j] + k*g(kk,ww,xht[j+1]);
 	  unt[j+1] = u[i-1][j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht[j+1],Uh,k,Y));
         }
         
-      Q2(aa,kk,ww,xnt,unt,terminator);
+      Q2(aa,kk,ww,xnt,unt,J-1);
 
-      for (int j=0;j<=terminator;j++)
+      for (int j=0;j<J;j++)
 	{
 	  x[i][j] = xnt[j];
 	  u[i][j] = unt[j];
         }
       
-      Ui = Q(xnt,unt,terminator);      
+      Ui = Q(xnt,unt,J-1);      
 
     }
 
@@ -279,9 +281,9 @@ int main(void)
   parameters[4] = .1;
   parameters[5] = 160;
     
-  int J = 400;
+  int J = 256;
   int Y = 24;
-  int SPY = 20;
+  int SPY = 16;
 
   int N = Y*SPY;
   int I = 2*N;
