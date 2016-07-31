@@ -13,4 +13,6 @@ VEC *VMGMM(
       Parameters * parameters
 
 		  );
+
+void check_derivative(Parameters * parameters, Grad_Args * args, Data * d, Real * f, Solve_Core_Args core_args);
 #endif

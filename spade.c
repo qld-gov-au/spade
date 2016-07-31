@@ -22,6 +22,7 @@
 
 #include <fenv.h>
 #include <math.h>
+#include <signal.h>
 #include "spade.h"
 #include "common.h"
 #include "arg.h"
@@ -82,6 +83,11 @@ int main(int argc, char *argv[])
   feenableexcept(FE_DIVBYZERO); 
   feenableexcept(FE_INVALID); 
   feenableexcept(FE_OVERFLOW);
+  signal(SIGINT, request_interactive_mode);
+
+  // To test interactive mode in the debug environment,
+  // uncomment this line
+  //request_interactive_mode(1);
 
   int N;
   int minfish;

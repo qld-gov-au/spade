@@ -188,17 +188,17 @@ The real solution of this is
 \end{equation}  
 where
 \begin{equation}
-\zeta= \sqrt{ 81 \kappa^2 \omega^2 (\alpha a_1 +2 \alpha a_2 \omega)^2 - 12\kappa( \alpha a_1  \omega+ \kappa)^3}.
+\zeta= \sqrt{ 81 \kappa^2 \omega^2 (\alpha a_1 +2 \alpha a_2 \omega)^2 - 12\kappa( \alpha a_1  \omega+ \kappa)^3}
 \end{equation}  
 giving
 \begin{equation}
   \bar{U} = \frac{1}{\gamma}\bigg(\frac{ \sqrt[3]{9 \alpha a_1 \kappa^2 \omega+18 \alpha a_2 \kappa^2 \omega^2+\kappa\zeta}}{3 \sqrt[3]{\frac23}} +  
-  \frac{\sqrt[3]{\frac23}\,\kappa (\alpha a_1  \omega+\kappa)}{\sqrt[3]{9 \alpha a_1 \kappa^2 \omega+18 \alpha a_2 \kappa^2 \omega^2+\kappa\zeta}} - \beta - \kappa\bigg)
+  \frac{\sqrt[3]{\frac23}\,\kappa (\alpha a_1  \omega+\kappa)}{\sqrt[3]{9 \alpha a_1 \kappa^2 \omega+18 \alpha a_2 \kappa^2 \omega^2+\kappa\zeta}} - \beta - \kappa\bigg).
 \end{equation}  
-where
-\begin{equation}
-\zeta= \sqrt{ 81 \kappa^2 \omega^2 (\alpha a_1 +2 \alpha a_2 \omega)^2 - 12\kappa( \alpha a_1  \omega+ \kappa)^3}.
-\end{equation}  
+%where
+%\begin{equation}
+%\zeta= \sqrt{ 81 \kappa^2 \omega^2 (\alpha a_1 +2 \alpha a_2 \omega)^2 - 12\kappa( \alpha a_1  \omega+ \kappa)^3}.
+%\end{equation}  
 
 The size structure at equilibrium is then given by
 \begin{equation}\label{eq:equi}
@@ -235,7 +235,12 @@ and therefore can be represented by
 \begin{equation}\label{eq:2.5}
   r(t;t^*,x^*)=u(x^*,t^*)\exp\left(-\int_{t^*}^{t}z^*(x(\tau;t^*,x^*),U,t)\,d\tau\right).
 \end{equation}
-The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.2}. To do this, let $k$ be the constant step size, and introduce discrete time leves $t^n = nk$, $n=0,1,2..$. Let $J$ be the number of points in the solution grid along the size axis. Initially (at $n=0$) the grid is uniform in the size axis with step given by $h=\omega / J$, and the initial values for $x$ are $X_j^0 = jh$, $0\leq j\leq J$. The initial values for $u$ are given by \ref{eq:equi}. For $n=0,1,2..$ the numerical solution at time $t^{n+1}=t^n+k$ is obtained from the known values at time $t^n$ as given in Algorithm \ref{alg:original}.
+The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integrated together with boundary condition \ref{eq:1.2}. To do this, let $k$ be the constant step size, and introduce discrete time levels $t^n = nk$, $n=0,1,2..$. Let $J$ be the number of points in the solution grid along the size axis. Initially (at $n=0$) the grid is uniform in the size axis with step given by $h=\omega / J$, and the initial values for $x$ are $X_j^0 = jh$, $0\leq j\leq J$. The initial values for $u$ are given by \ref{eq:equi}. For $n=0,1,2..$ the numerical solution at time $t^{n+1}=t^n+k$ is obtained from the known values at time $t^n$ as given in Algorithm \ref{alg:original} where $\mathcal{Q}(\mathbf{X}^n,\mathbf{V}^n)$ is an integral operation using the composite trapezoidal quadrature rule based on the grid points $\mathbf{X}^n = [X_0^n,X_1^n,...,X_J^n]$,
+\begin{equation}
+  \mathcal{Q}\left(\mathbf{X}^n,\mathbf{V}^n\right) = \sum_{j=1}^J \frac{ X_j^n - X_{j-1}^n}{2}\left(V_{j-1}^n + V_j^n\right)
+\end{equation}
+Note the implicit calculation of the numerical density at the first grid point, $U_0^n$ (`birth'). 
+
 \begin{algorithm}
   \caption{Numerical scheme for equation \ref{eq:1}}\label{alg:original}
   \begin{algorithmic}
@@ -250,10 +255,10 @@ The coupled problems \ref{eq:2.2} and \ref{eq:2.5} are then simultaneously integ
   \end{algorithmic}
 \end{algorithm}
 
-An adaptive mesh keeps the number of nodes along the size dimension constant as the algorithm steps forward: at time $t^{n+1}$ we remove the grid node $X_l^{n+1}$ that satisfies
-\begin{equation}
-  |X_{l+1}^{n+1} - X_{l-1}^{n+1}| = \text{min}_{1\leq j\leq J+1} |X_{j+1}^{n+1} - X_{j-1}^{n+1}|
-\end{equation}
+%An adaptive mesh keeps the number of nodes along the size dimension constant as the algorithm steps forward: at time $t^{n+1}$ we remove the grid node $X_l^{n+1}$ that satisfies
+%\begin{equation}
+%  |X_{l+1}^{n+1} - X_{l-1}^{n+1}| = \text{min}_{1\leq j\leq J+1} |X_{j+1}^{n+1} - X_{j-1}^{n+1}|
+%\end{equation}
 
 The model is calibrated against fishery catch-at-size data. We seek to minimise
 \begin{equation}
@@ -261,21 +266,32 @@ K(\theta) = \int_0^T \int_0^\omega \left(\hat{c}(x,t) - c(x,t)\right)^2 \,dx\,dt
 \end{equation}
 where $\hat{c}(x,t) = s(x)w(x)f(t)u(x,t)$ is the model predicted catch-at-size (in units of kilograms per centimetre per year), and $c(x,t)$ is the `observed' catch-at-size. The latter is constructed from two sources of data. Firstly, commercial catch data consisting a set of pairs $(c_i,d_i)$, $i=1,2..n$, representing individual daily catches (in kilograms) and the associated date.  Secondly, scientific monitoring program data on the size structure of the commercial catch, consisting of a set of pairs $(x_j,t_j)$, $j=1,2,..m$, representing the size of a monitored fish (in centimetre) and the associated timestamp.  These are combined through the following procedure.
 
-First the individual daily catches are processed to produce a catch rate (in kilograms per year) for each date $d$ in the whole time period, 
+First the individual daily catches are processed using a kernel density approach to produce a smooth catch rate (in kilograms per year)
 \begin{equation}
-  c_d = \begin{cases}
-    \sum_{\{i|d_i = d\}} c_i / \tau & \text{if } \text{card}\{i|d_i=d\}>0\\
-    0 & \text{else}
-  \end{cases}
+  c(t) = \frac{1}{n h_c} \sum_{i=1}^n \phi_c( (t-t(d_i)) / h_c ) \frac{c_i}{\tau}
 \end{equation}
-where $\tau$ is the average day duration as a fraction of a year.  Then we use a cubic smoothing spline to construct the continuous catch rate, $c(t)$ (\emph{note: this smoothing should be constrained such that the integral of $c(t)$ over time is roughly equal to the sum of individual catch records, also it would be nice to preserve some other properties; this has not been implemented yet}).  Then a kernel density estimation procedure is used to smooth the size structure data over size and time.  The final $c(x,t)$ is the smoothed catch rate $c(t)$ multplied by a weighted combination of the smoothed observed size structure and the predicted size structure, with the weighting determined by the amount of size structure data present near to the current time:
+where $t(d_i)$ gives the continuous time approximation for date $d_i$, $\tau$ is the average day duration as a fraction of a year, $\phi_c$ is the kernel, and $h_c$ is the bandwidth.
+  
+%for each date $d$ in the whole time period, 
+%\begin{equation}
+%  c_d = \begin{cases}
+%    \sum_{\{i|d_i = d\}} c_i / \tau & \text{if } \text{card}\{i|d_i=d\}>0\\
+%    0 & \text{else}
+%  \end{cases}
+%\end{equation}
+%Then we use a cubic smoothing spline to construct the continuous catch rate, $c(t)$ (\emph{note: this smoothing should be constrained such that the integral of $c(t)$ over time is roughly equal to the sum of individual catch records, also it would be nice to preserve some other properties; this has not been implemented yet}).
+
+Then we use another kernel density estimation procedure to smooth the size structure data over size and time
 \begin{equation}
-  \begin{split}
-    c(x,t) &= c(t)\left(\frac{p(t)}{m h_x\sum_{j=1}^m \phi_t((t-t_j)/h_t)} \sum_{j=1}^m \phi_t((t-t_j)/h_t) \phi_x((x - x_j)/h_x)\right.\\
-    & \phantom{\frac{\hat{\mu}(t)}{h_x\sum_{j=1}^m \phi_t((t-t_j)/h_t)}} + (1-p(t)) \left.\frac{\hat{c}(x,t)}{\int_0^\omega \hat{c}(x,t)\,dx}\right)
-  \end{split}
+  \bar{c}(x,t) = \frac{1}{m h_x\sum_{j=1}^m \phi_t((t-t_j)/h_t)} \sum_{j=1}^m \phi_t((t-t_j)/h_t) \phi_x((x - x_j)/h_x).
 \end{equation}
-where $\phi_t$ and $\phi_x$ are kernels, and the weighting
+note that time only influences the density indirectly through the weighting of data points used in the size-smoothing. 
+
+The final $c(x,t)$ is the smoothed catch rate $c(t)$ multiplied by a weighted combination of the smoothed observed size structure and the predicted size structure, with the weighting determined by the amount of size structure data present near to the current time:
+\begin{equation}
+    c(x,t) = c(t)\left(p(t) \bar{c}(x,t) + (1-p(t)) \frac{\hat{c}(x,t)}{\int_0^\omega \hat{c}(x,t)\,dx}\right)
+\end{equation}
+where the weighting is given by
 \begin{equation}
   p(t) = \frac{\sum_{j=1}^m\phi_t((t-t_j)/h_t)}{\text{max}_t\sum_{j=1}^m\phi_t((t-t_j)/h_t)}.
 \end{equation}
@@ -283,9 +299,12 @@ where $\phi_t$ and $\phi_x$ are kernels, and the weighting
 The derivative of $K$ with respect to $\theta$ is given by
 \begin{equation}
 \int_0^T \int_0^\omega
-2\big(s(x)w(x)f(t)u(x,t)-c(x,t)\big)\big(s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)\big)\,dx\,dt
+2\big( \hat{c}(x,t)-c(x,t)\big)\big(\hat{c}_\theta(x,t)- c(t)(1-p(t))
+\frac{\hat{c}_\theta(x,t)\int_0^\omega \hat{c}(x,t)\,dx - \hat{c}(x,t)\int_0^\omega \hat{c}_\theta(x,t)\,dx  }{(\int_0^\omega \hat{c}(x,t)\,dx)^2}   \big)\,dx\,dt
 \end{equation}
-where $p(x,t)=u_\theta(x,t)$ are solutions of the the sensitivity-PDE %\citep{Borggaard1997}: 
+
+where $$\hat{c}_\theta(x,t)=s(x)w(x)f_\theta(t)u(x,t)+s(x)w(x)f(t)p(x,t)$$
+and $p(x,t)=u_\theta(x,t)$ are solutions of the the sensitivity-PDE %\citep{Borggaard1997}: 
 \begin{equation}
   \frac{d F}{d\theta} = F_\theta + F_u p + F_{u_t} p_t + F_{u_x} p_x = 0
 \end{equation}
@@ -355,24 +374,30 @@ and
   \end{cases}
 \end{equation}
 
-Following a similar approach to that for the solution of the original model, solutions to the sensitivity PDEs can be found. This numerical solution requires a quarter step, so Algorithm \ref{alg:original} is updated to Algorithm \ref{alg:base}, and the numerical solutions for $\alpha$, $\beta$, $\gamma$ and $\iota$ are given in Algorithm \ref{alg:sens1} and the solutions for $\kappa$ and $\omega$ are given in Algorithm \ref{alg:sens2}. The initial condition, $P_j^0$, $j=0,1,2..$ is obtained from $d u(x) / d\theta$ and these are given in Appendix \ref{app:spdei}. 
+Following a similar approach to that for the solution of the original model, solutions to the sensitivity PDEs can be found. %This numerical solution requires a quarter step, so Algorithm \ref{alg:original} is updated to Algorithm \ref{alg:base}, 
+The numerical solutions for $\alpha$, $\beta$, $\gamma$ and $\iota$ are given in Algorithm \ref{alg:sens1} and the solutions for $\kappa$ and $\omega$ are given in Algorithm \ref{alg:sens2}. The initial condition, $P_j^0$, $j=0,1,2..$ is obtained from $d u(x) / d\theta$ and these are given in Appendix \ref{app:spdei}. 
 
-\begin{algorithm}
-  \caption{Updated numerical solution for equation \ref{eq:1}}\label{alg:base}
-  \begin{algorithmic}
-    \State $X_0^{n+1} \gets 0$
-    \State $X_{j+1}^{n+1} \gets X_j^n + k g(X_{j+1}^{n+1/2}), 0 \leq j \leq J$
-    \State $U_{j+1}^{n+1} \gets U_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right), 0 \leq j \leq J$
-    \State $U_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{U}^{n+1})) / g(X_{0}^{n+1})$
-    \State $X_0^{n+1/2} \gets 0$
-    \State $X_{j+1}^{n+1/2} \gets X_j^n + (k/2) g(X_{j+1}^{n+1/4}), 0 \leq j \leq J$
-    \State $U_{j+1}^{n+1/2} \gets U_j^n \exp\left(-(k/2) z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right), 0 \leq j \leq J$
-    \State $U_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{U}^{n+1/2})) / g(X_{0}^{n+1/2})$
-    \State $X_{j+1}^{n+1/4} \gets X_j^n + (k/4) g(X_{j}^{n}), 0 \leq j \leq J$
-    \State $U_{j+1}^{n+1/4} \gets U_j^n \exp\left(-(k/4) z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right), 0 \leq j \leq J$
-    \State $U_0^{n+1/4} \gets \mathcal{Q}(\mathbf{X}^{n+1/4},b(\mathbf{U}^{n+1/4})) / g(X_{0}^{n+1/4})$
-  \end{algorithmic}
-\end{algorithm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\begin{algorithm}
+%  \caption{Updated numerical solution for equation \ref{eq:1}}\label{alg:base}
+%  \begin{algorithmic}
+%    \State $X_0^{n+1} \gets 0$
+%    \State $X_{j+1}^{n+1} \gets X_j^n + k g(X_{j+1}^{n+1/2}), 0 \leq j \leq J$
+%    \State $U_{j+1}^{n+1} \gets U_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right), 0 \leq j \leq J$
+%    \State $U_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{U}^{n+1})) / g(X_{0}^{n+1})$
+%    \State $X_0^{n+1/2} \gets 0$
+%    \State $X_{j+1}^{n+1/2} \gets X_j^n + (k/2) g(X_{j+1}^{n+1/4}), 0 \leq j \leq J$
+%    \State $U_{j+1}^{n+1/2} \gets U_j^n \exp\left(-(k/2) z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right), 0 \leq j \leq J$
+%    \State $U_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{U}^{n+1/2})) / g(X_{0}^{n%+1/2})$
+%    \State $X_{j+1}^{n+1/4} \gets X_j^n + (k/4) g(X_{j}^{n}), 0 \leq j \leq J$
+%    \State $U_{j+1}^{n+1/4} \gets U_j^n \exp\left(-(k/4) z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right), 0 \leq j \leq J$
+%    \State $U_0^{n+1/4} \gets \mathcal{Q}(\mathbf{X}^{n+1/4},b(\mathbf{U}^{n+1/4})) / g(X_{0}^{n+1/4})$
+%  \end{algorithmic}
+%\end{algorithm}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{algorithm}
   \caption{Sensitivity PDE numerical solution for $\alpha$, $\beta$, $\gamma$ and $\iota$}\label{alg:sens1}
@@ -380,7 +405,7 @@ Following a similar approach to that for the solution of the original model, sol
     \State $P_{j+1}^{n+1/2} \gets P_j^n \exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)-\exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)\times$\\ \hspace{1cm} 
     $\begin{cases} (k/2)\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)U_j^n & \text{if }\alpha \\ (k/2)\left(1+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n & \text{if }\beta \\ (k/2)\left(\mathcal{Q}(\mathbf{X}^n,\mathbf{U}^n)+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n & \text{if }\gamma \\ (k/2)\left(s(X_j^n)e(t^n)+\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)\right)U_j^n & \text{if }\iota\end{cases}$
     \State $P_0^{n+1/2} \gets \mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{P}^{n+1/2})) / g(X_0^{n+1/2})$
-    \State $P_{j+1}^{n+1} \gets P_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)-$\\ \hspace{1cm} $\exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)\times$\\ \hspace{1cm} $\begin{cases}k\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})U_j^{n+1/2} & \text{if } \alpha \\ k\left(1+\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_j^{n+1/2} & \text{if } \beta \\ k\left(\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}) + \gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_j^{n+1/2} & \text{if } \gamma \\ k\left(s(X_{j+1}^{n+1/2})e(t^{n+1/2})+\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_{j+1}^{n+1/2} & \text{if } \iota \end{cases}$\hspace{1cm}$\times$\\ \hspace{1cm} $ \exp\left((k/2)z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right)$
+    \State $P_{j+1}^{n+1} \gets P_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)-$\\ \hspace{1cm} $\exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)\times$\\ \hspace{1cm} $\begin{cases}k\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})U_j^{n+1/2} & \text{if } \alpha \\ k\left(1+\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_j^{n+1/2} & \text{if } \beta \\ k\left(\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}) + \gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_j^{n+1/2} & \text{if } \gamma \\ k\left(s(X_{j+1}^{n+1/2})e(t^{n+1/2})+\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})\right)U_{j+1}^{n+1/2} & \text{if } \iota \end{cases}$\hspace{1cm}$\times$\\ \hspace{1cm} $ \exp\left((k/2)z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)$
     \State $P_0^{n+1} \gets \mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{P}^{n+1})) / g(X_0^{n+1})$
   \end{algorithmic}
 \end{algorithm}
@@ -392,8 +417,8 @@ Following a similar approach to that for the solution of the original model, sol
     \State $P_{j+1}^{n+1/2} \gets P_j^n \exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)-\exp\left(-(k/2)z^*(X_{j}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)\times$\\ \hspace{.2cm} $(k/2)\begin{cases} \bigg(\left(\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)-1\right)U_j^n + \\ \left(\omega-X_j^n\right).5\left( (U_{j+1}^n - U_{j}^n) / (X_{j+1}^n - X_{j}^n) + (U_{j}^n - U_{j-1}^n) / (X_{j}^n - X_{j-1}^n)\right) \bigg) & \text{if } \kappa \\ \gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)U_j^n + \kappa .5\left( (U_{j+1}^n - U_{j}^n) / (X_{j+1}^n - X_{j}^n) + (U_{j}^n - U_{j-1}^n) / (X_{j}^n - X_{j-1}^n)\right) & \text{if } \omega \end{cases}$\\ \hspace{.5cm},$1 \leq j \leq J-1$
     \State $P_{J+1}^{n+1/2} \gets P_J^n \exp\left(-(k/2)z^*(X_{J}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)-\exp\left(-(k/2)z^*(X_{J}^{n},\mathcal{Q}(\mathbf{X}^{n},\mathbf{U}^{n}),t^{n})\right)\times$\\ \hspace{1cm} $(k/2)\begin{cases}\left(\left(\gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)-1\right)U_J^n + \left(\omega-X_J^n\right)\left(U_J^n - U_{J-1}^n\right) / (X_J^n - X_{J-1}^n)\right) & \text{if } \kappa \\ \gamma\mathcal{Q}(\mathbf{X}^n,\mathbf{P}^n)U_J^n + \kappa(U_J^n - U_{J-1}^n) / (X_J^n - X_{J-1}^n) & \text{if } \omega \end{cases}$
     \State $P_0^{n+1/2} \gets \begin{cases} \left(\mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{P}^{n+1/2})) - \omega U_0^{n+1/2} \right) / g(X_0^{n+1/2}) & \text{if } \kappa \\ \left(\mathcal{Q}(\mathbf{X}^{n+1/2},b(\mathbf{P}^{n+1/2})) - \kappa U_0^{n+1/2} \right) / g(X_0^{n+1/2}) & \text{if } \omega \end{cases}$  
-    \State $P_{j+1}^{n+1} \gets P_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)-$\\ \hspace{1cm} $\exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)\times$\\ \hspace{.5cm} $k\begin{cases}\bigg(\left(\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})-1\right)U_{j+1}^{n+1/2} + \\ \left(\omega-X_j^n\right).5\left( (U_{j+1}^{n+1/2} - U_{j}^{n+1/2}) / (X_{j+1}^{n+1/2} - X_{j}^{n+1/2}) + (U_{j}^{n+1/2} - U_{j-1}^{n+1/2}) / (X_{j}^{n+1/2} - X_{j-1}^{n+1/2})\right) \bigg) & \text{if } \kappa \\  \bigg(\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})U_{j+1}^{n+1/2} + \\ \kappa .5\left( (U_{j+1}^{n+1/2} - U_{j}^{n+1/2}) / (X_{j+1}^{n+1/2} - X_{j}^{n+1/2}) + (U_{j}^{n+1/2} - U_{j-1}^{n+1/2}) / (X_{j}^{n+1/2} - X_{j-1}^{n+1/2})\right) \bigg) & \text{if } \omega \end{cases}   \times$\\ \hspace{1cm} $ \exp\left((k/2)z^*(X_{j+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right)$\hspace{.5cm},$0 \leq j \leq J-1$
-    \State $P_{J+1}^{n+1} \gets P_J^n \exp\left(-k z^*(X_{J+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)-$\\ \hspace{1cm} $\exp\left(-k z^*(X_{J+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)\times$\\ \hspace{1cm} $k\begin{cases}\left(\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})-1\right)U_{J+1}^{n+1/2} & \text{if } \kappa \\ \gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})U_{J+1}^{n+1/2} & \text{if } \omega \end{cases}$\hspace{.2cm} $\times$\\ \hspace{1cm} $ \exp\left((k/2)z^*(X_{J+1}^{n+1/4},\mathcal{Q}(\mathbf{X}^{n+1/4},\mathbf{U}^{n+1/4}),t^{n+1/4})\right)$
+    \State $P_{j+1}^{n+1} \gets P_j^n \exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)-$\\ \hspace{1cm} $\exp\left(-k z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)\times$\\ \hspace{.5cm} $k\begin{cases}\bigg(\left(\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})-1\right)U_{j+1}^{n+1/2} + \\ \left(\omega-X_j^n\right).5\left( (U_{j+1}^{n+1/2} - U_{j}^{n+1/2}) / (X_{j+1}^{n+1/2} - X_{j}^{n+1/2}) + (U_{j}^{n+1/2} - U_{j-1}^{n+1/2}) / (X_{j}^{n+1/2} - X_{j-1}^{n+1/2})\right) \bigg) & \text{if } \kappa \\  \bigg(\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})U_{j+1}^{n+1/2} + \\ \kappa .5\left( (U_{j+1}^{n+1/2} - U_{j}^{n+1/2}) / (X_{j+1}^{n+1/2} - X_{j}^{n+1/2}) + (U_{j}^{n+1/2} - U_{j-1}^{n+1/2}) / (X_{j}^{n+1/2} - X_{j-1}^{n+1/2})\right) \bigg) & \text{if } \omega \end{cases}   \times$\\ \hspace{1cm} $ \exp\left((k/2)z^*(X_{j+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)$\hspace{.5cm},$0 \leq j \leq J-1$
+    \State $P_{J+1}^{n+1} \gets P_J^n \exp\left(-k z^*(X_{J+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)-$\\ \hspace{1cm} $\exp\left(-k z^*(X_{J+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)\times$\\ \hspace{1cm} $k\begin{cases}\left(\gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})-1\right)U_{J+1}^{n+1/2} & \text{if } \kappa \\ \gamma\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{P}^{n+1/2})U_{J+1}^{n+1/2} & \text{if } \omega \end{cases}$\hspace{.2cm} $\times$\\ \hspace{1cm} $ \exp\left((k/2)z^*(X_{J+1}^{n+1/2},\mathcal{Q}(\mathbf{X}^{n+1/2},\mathbf{U}^{n+1/2}),t^{n+1/2})\right)$
     \State $P_0^{n+1} \gets \begin{cases} \left(\mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{P}^{n+1})) - \omega U_0^{n+1} \right) / g(X_0^{n+1}) & \text{if } \kappa \\ \left(\mathcal{Q}(\mathbf{X}^{n+1},b(\mathbf{P}^{n+1})) - \kappa U_0^{n+1} \right) / g(X_0^{n+1}) & \text{if } \omega \end{cases}$
   \end{algorithmic}
 \end{algorithm}
