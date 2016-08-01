@@ -17,14 +17,18 @@ void grad_alpha(void* args)
   Data *d = (*grad_args).d;
   MAT *x = ((*grad_args).core_args)->x;
   MAT *u = (*grad_args).core_args->u;
-  MAT *xhh = (*grad_args).core_args->xhh;
+  MAT *xhh;
+  if (QUARTER)
+    xhh = (*grad_args).core_args->xhh;
   MAT *xh = (*grad_args).core_args->xh;
   MAT *xn = (*grad_args).core_args->xn;
   MAT *uh = (*grad_args).core_args->uh;
   MAT *un = (*grad_args).core_args->un;
   VEC *Ui = (*grad_args).core_args->Ui;
   VEC *Uh = (*grad_args).core_args->Uh;
-  VEC *Uhh = (*grad_args).core_args->Uhh;
+  VEC *Uhh;
+  if (QUARTER)
+    Uhh = (*grad_args).core_args->Uhh;
   IVEC *idxi = (*grad_args).core_args->idxi;
   VEC *eff = (*grad_args).eff;
   Real k = (*grad_args).k;
@@ -49,7 +53,9 @@ void grad_alpha(void* args)
     {
       xnt = v_get(J+1); unt = v_get(J+1);
       xht = v_get(J+1);  uht = v_get(J+1);
-      xhht = v_get(J+1); ph = v_get(J+1);
+      if (QUARTER)
+	xhht = v_get(J+1);
+      ph = v_get(J+1);
       pn = v_get(J+1);
     }
   else
@@ -57,7 +63,9 @@ void grad_alpha(void* args)
       
       xnt = v_get(J+2);  unt = v_get(J+2);
       xht = v_get(J+2);  uht = v_get(J+2);
-      xhht = v_get(J+2); ph = v_get(J+2);
+      if (QUARTER)
+	xhht = v_get(J+2);
+      ph = v_get(J+2);
       pn = v_get(J+2);
     }
  
@@ -91,7 +99,8 @@ void grad_alpha(void* args)
       get_row(x,i-1,xt);
       get_row(p,i-1,pt);
       get_row(xh,i-1,xht);
-      get_row(xhh,i-1,xhht);
+      if (QUARTER)
+	get_row(xhh,i-1,xhht);
       get_row(uh,i-1,uht);
       get_row(u,i-1,ut);
 
@@ -104,8 +113,7 @@ void grad_alpha(void* args)
 	{
 	  get_row(xn,i-1,xnt);
 	  get_row(un,i-1,unt);	  
-	}	  
-	  
+	}	  	  
       
       int terminator;
       if(!SGNM)
@@ -114,7 +122,8 @@ void grad_alpha(void* args)
           xt = v_resize(xt,terminator+1);
           ut = v_resize(ut,terminator+1);
           pt = v_resize(pt,terminator+1);
-          xhht = v_resize(xhht,terminator+2);
+	  if (QUARTER)
+	    xhht = v_resize(xhht,terminator+2);
           xht = v_resize(xht,terminator+2);
           uht = v_resize(uht,terminator+2);
           xnt = v_resize(xnt,terminator+2);
@@ -128,19 +137,24 @@ void grad_alpha(void* args)
         }
 
       for (int j=0;j<=terminator;j++)
-        {
-          ph->ve[j+1] = pt->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y))*(k/2)*gg*Pi->ve[i-1]*ut->ve[j];
-        }
+	ph->ve[j+1] = pt->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y))*(k/2)*gg*Pi->ve[i-1]*ut->ve[j];
         
       Q2_alpha(aa,kk,ww,xht,uht,ph);
       Real Ph = Q(xht,ph);
 
-      for (int j=0;j<=terminator;j++)
-        {
-          Real b = k*gg*Ph*uht->ve[j+1];
-          pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
-        }
-      
+      if (QUARTER)
+	for (int j=0;j<=terminator;j++)
+	  {
+	    Real b = k*gg*Ph*uht->ve[j+1];
+	    pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));	    
+	  }
+      else
+	for (int j=0;j<=terminator;j++)
+	  {
+	    Real b = k*gg*Ph*uht->ve[j+1];
+	    pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));	    
+	  }
+    
       Q2_alpha(aa,kk,ww,xnt,unt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
@@ -167,7 +181,8 @@ void grad_alpha(void* args)
   V_FREE(ph);
   V_FREE(pn);
   V_FREE(Pi);
-  V_FREE(xhht);
+  if (QUARTER)    
+    V_FREE(xhht);
 
   parameters->alpha.gradient = G_ni(p, x, u, d, parameters->iota.value);
   //  grad->ve[parameters->alpha.index] = G_ni(p, x, u, d, parameters->iota.value);

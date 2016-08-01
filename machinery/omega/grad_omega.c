@@ -16,14 +16,18 @@ void grad_omega(void* args)
   Data *d = (*grad_args).d;
   MAT *x = (*grad_args).core_args->x;
   MAT *u = (*grad_args).core_args->u;
-  MAT *xhh = (*grad_args).core_args->xhh;
+  MAT *xhh;
+  if (QUARTER)
+    xhh = (*grad_args).core_args->xhh;
   MAT *xh = (*grad_args).core_args->xh;
   MAT *xn = (*grad_args).core_args->xn;
   MAT *uh = (*grad_args).core_args->uh;
   MAT *un = (*grad_args).core_args->un;
   VEC *Ui = (*grad_args).core_args->Ui;
   VEC *Uh = (*grad_args).core_args->Uh;
-  VEC *Uhh = (*grad_args).core_args->Uhh;
+  VEC *Uhh;
+  if (QUARTER)
+    Uhh = (*grad_args).core_args->Uhh;
   IVEC *idxi = (*grad_args).core_args->idxi;
   VEC *eff = (*grad_args).eff;
   Real k = (*grad_args).k;
@@ -36,26 +40,28 @@ void grad_omega(void* args)
   VEC *xhht; VEC *ph; VEC *pn;
   
   int J;
-  if (!SGNM)
-    J = x->n - x->m;
-  else
+  if (SGNM)
     J = x->n - 1;
+  else
+    J = x->n - x->m;
   
   xt = v_get(J+1); ut = v_get(J+1); pt = v_get(J+1);
 
-  if (!SGNM)
-    {        
-      xnt = v_get(J+1);  unt = v_get(J+1);
-      xht = v_get(J+1);  uht = v_get(J+1);
-      xhht = v_get(J+1); ph = v_get(J+1);
-      pn = v_get(J+1);
-    }
-  else
+  if (SGNM)
     {        
       xnt = v_get(J+2);  unt = v_get(J+2);
       xht = v_get(J+2);  uht = v_get(J+2);
       xhht = v_get(J+2); ph = v_get(J+2);
       pn = v_get(J+2);
+    }
+  else
+    {        
+      xnt = v_get(J+1);  unt = v_get(J+1);
+      xht = v_get(J+1);  uht = v_get(J+1);
+      if (QUARTER)
+	xhht = v_get(J+1);
+      ph = v_get(J+1);
+      pn = v_get(J+1);
     }
   
   Real aa = parameters->alpha.value;
@@ -94,65 +100,75 @@ void grad_omega(void* args)
       get_row(x,i-1,xt);
       get_row(p,i-1,pt);
       get_row(xh,i-1,xht);
-      get_row(xhh,i-1,xhht);
+      if (QUARTER)
+	get_row(xhh,i-1,xhht);
       get_row(uh,i-1,uht);
       get_row(xn,i-1,xnt);
       get_row(u,i-1,ut);
 
       int terminator;
-      if(!SGNM) 
+      if(SGNM) 
+        {
+          terminator = J;	  
+        } 
+      else 
         {
           terminator = J+i-1;
           xt = v_resize(xt,terminator+1);
           ut = v_resize(ut,terminator+1);
-          pt = v_resize(pt,terminator+1);        
-          xhht = v_resize(xhht,terminator+2);
+          pt = v_resize(pt,terminator+1);
+	  if (QUARTER)
+	    xhht = v_resize(xhht,terminator+2);
           xht = v_resize(xht,terminator+2);
           uht = v_resize(uht,terminator+2);
           xnt = v_resize(xnt,terminator+2);
           unt = v_resize(unt,terminator+2);
           ph = v_resize(ph,terminator+2);
           pn = v_resize(pn,terminator+2);
-        } 
-      else 
-        {
-          terminator = J;
-        }
+	}
 
       int j=0;
       ph->ve[j+1] = pt->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y))*(k/2)*( gg*Pi->ve[i-1]*ut->ve[j] + kk*(ut->ve[j+1]-ut->ve[j])/(xt->ve[j+1]-xt->ve[j]) );
 
       for (int j=1;j<=terminator;j++)
-        {
-   	      ph->ve[j+1] = pt->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y))*(k/2)*( gg*Pi->ve[i-1]*ut->ve[j] + kk*.5*( (ut->ve[j+1]-ut->ve[j])/(xt->ve[j+1]-xt->ve[j]) + (ut->ve[j]-ut->ve[j-1])/(xt->ve[j]-xt->ve[j-1]) ) );
-	    }
-  
+	ph->ve[j+1] = pt->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y))*(k/2)*( gg*Pi->ve[i-1]*ut->ve[j] + kk*.5*( (ut->ve[j+1]-ut->ve[j])/(xt->ve[j+1]-xt->ve[j]) + (ut->ve[j]-ut->ve[j-1])/(xt->ve[j]-xt->ve[j-1]) ) );
+	    
       Q2_omega(aa,kk,ww,xht,uht,ph);
       Real Ph = Q(xht,ph);
 
-      for (int j=0;j<=terminator - 1;j++)
-	    {
-	      Real b = k*( gg*Ph*uht->ve[j+1] + kk*.5*( (uht->ve[j+1]-uht->ve[j])/(xht->ve[j+1]-xht->ve[j]) + (uht->ve[j+2]-uht->ve[j+1])/(xht->ve[j+2]-xht->ve[j+1]) ) );
-	      pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
-	    }
-
+      if (QUARTER)
+	for (int j=0;j<=terminator - 1;j++)
+	  {
+	    Real b = k*( gg*Ph*uht->ve[j+1] + kk*.5*( (uht->ve[j+1]-uht->ve[j])/(xht->ve[j+1]-xht->ve[j]) + (uht->ve[j+2]-uht->ve[j+1])/(xht->ve[j+2]-xht->ve[j+1]) ) );
+	    pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
+	  }
+      else
+	for (int j=0;j<=terminator - 1;j++)
+	  {
+	    Real b = k*( gg*Ph*uht->ve[j+1] + kk*.5*( (uht->ve[j+1]-uht->ve[j])/(xht->ve[j+1]-xht->ve[j]) + (uht->ve[j+2]-uht->ve[j+1])/(xht->ve[j+2]-xht->ve[j+1]) ) );
+	    pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
+	  }
+	
       j = terminator;
       Real b = k*gg*Ph*uht->ve[j+1];
-      pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
-
+      if (QUARTER)
+	pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
+      else
+	pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
+	
       get_row(un,i-1,unt);
       Q2_omega(aa,kk,ww,xnt,unt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
-      if(!SGNM) 
-        {
-          pn = v_resize(pn,p->n);
-          set_row(p,i,pn);
-        } 
-      else 
+      if(SGNM) 
         {
           idxremove(pn,pt,idxi->ive[i-1]); 
           set_row(p,i,pt);
+        } 
+      else 
+        {
+          pn = v_resize(pn,p->n);
+          set_row(p,i,pn);	  	  
         }
 
     }
@@ -166,7 +182,8 @@ void grad_omega(void* args)
   V_FREE(ph);
   V_FREE(pn);
   V_FREE(Pi);
-  V_FREE(xhht);
+  if (QUARTER)
+    V_FREE(xhht);
 
   parameters->omega.gradient = G_ni(p, x, u, d, parameters->iota.value);
 

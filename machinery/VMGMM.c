@@ -42,7 +42,8 @@ VEC *VMGMM(
        core_args.xh = m_get(I+1,J+2);
        core_args.uh = m_get(I+1,J+2);
        core_args.xn = m_get(I+1,J+2);
-       core_args.xhh = m_get(I+1,J+2);
+       if (QUARTER)
+	 core_args.xhh = m_get(I+1,J+2);
        core_args.un = m_get(I+1,J+2);
      }
   else
@@ -50,13 +51,15 @@ VEC *VMGMM(
        core_args.xh = m_get(I+1,J+1);
        core_args.uh = m_get(I+1,J+1);
        core_args.xn = m_get(I+1,J+1);
-       core_args.xhh = m_get(I+1,J+1);
+       if (QUARTER)
+	 core_args.xhh = m_get(I+1,J+1);
        core_args.un = m_get(I+1,J+1);
     }
 
   core_args.Ui = v_get(I+1);
   core_args.Uh = v_get(I+1);
-  core_args.Uhh = v_get(I+1);
+  if (QUARTER)
+    core_args.Uhh = v_get(I+1);
   core_args.idxi = iv_get(I);
 
   *f = K(parameters,d,&core_args);
@@ -130,11 +133,14 @@ VEC *VMGMM(
   M_FREE(core_args.xh);
   M_FREE(core_args.uh);
   M_FREE(core_args.xn);
-  M_FREE(core_args.xhh);
+  if (QUARTER)
+    {
+      M_FREE(core_args.xhh);
+      V_FREE(core_args.Uhh);
+    }
   M_FREE(core_args.un);
   V_FREE(core_args.Ui);
   V_FREE(core_args.Uh);
-  V_FREE(core_args.Uhh);
   IV_FREE(core_args.idxi);
 
   return g;

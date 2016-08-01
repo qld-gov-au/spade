@@ -70,9 +70,17 @@ void data_read_ce(char * data_file_name, Data * data, int * N, Real k) {
   V_FREE(vti);
 
   data->cat = v_get((*N)+1);
-  data->eff = v_get(4*(*N)+1);
 
-  Real cek = k/4;
+  Real cek;
+  
+  if (QUARTER){
+    cek = k/4;
+    data->eff = v_get(4*(*N)+1);
+  }
+  else {
+    cek = k/2;
+    data->eff = v_get(2*(*N)+1);
+  }
 
   for (int i=0;i<Nce;i++) {
     int idx_e = floor((ti[i]+cek/2)/cek);

@@ -59,7 +59,9 @@ void solve(
 
   MAT *x = core_args->x;
   MAT *u = core_args->u; 
-  MAT *xhh = core_args->xhh;
+  MAT *xhh;
+  if (QUARTER)
+    xhh = core_args->xhh;
   MAT *xh = core_args->xh;
   MAT *xn = core_args->xn;
   MAT *uh = core_args->uh;
@@ -80,20 +82,24 @@ void solve(
    
   }
 
-
-
   if (!SGNM)
     {        
     xt = v_get(bigJ+1); ut = v_get(bigJ+1);
       xnt = v_get(bigJ+1);  unt = v_get(bigJ+1);
       xht = v_get(bigJ+1);  uht = v_get(bigJ+1);
-      xhht = v_get(bigJ+1); uhh = v_get(bigJ+1);
+      if (QUARTER)	{
+	xhht = v_get(bigJ+1);
+	uhh = v_get(bigJ+1);
+      }
     }
   else
     {       
       xnt = v_get(J+2);  unt = v_get(J+2);
       xht = v_get(J+2);  uht = v_get(J+2);
-      xhht = v_get(J+2); uhh = v_get(J+2);
+      if (QUARTER) {
+	xhht = v_get(J+2);
+	uhh = v_get(J+2);
+      }
       xt = v_get(J+1); ut = v_get(J+1); 
     }
                            
@@ -130,21 +136,31 @@ void solve(
   Real ww = parameters->omega.value;
   Real ii = parameters->iota.value*1e-3;
 
+  //printf("\n");
+  //for (int i=0;i<eff->dim;i++)
+  //  printf("%lf\n",eff->ve[i]);
+  //exit(1);
+  
   for (int i=1;i<x->m;i++)
     {
 
       Real t = k*(i-S-1);
       Real th = k*(i-S-.5);
-      Real thh = k*(i-S-.75);
+      Real thh;
 
+      if (QUARTER)
+	thh = k*(i-S-.75);
+      
       int terminator;
       if(!SGNM) 
         {
           terminator = J+i-1;
           xt = v_resize(xt,terminator+1);
-          ut = v_resize(ut,terminator+1);        
-          xhht = v_resize(xhht,terminator+2);
-          uhh = v_resize(uhh,terminator+2);
+          ut = v_resize(ut,terminator+1);
+	  if (QUARTER){
+	    xhht = v_resize(xhht,terminator+2);
+	    uhh = v_resize(uhh,terminator+2);
+	  }
           xht = v_resize(xht,terminator+2);
           uht = v_resize(uht,terminator+2);
           xnt = v_resize(xnt,terminator+2);
@@ -158,23 +174,39 @@ void solve(
       get_row(x,i-1,xt);
       get_row(u,i-1,ut);
 
-      for (int j=0;j<=terminator;j++)
+      if (QUARTER)
+	{
+	
+	  for (int j=0;j<=terminator;j++)
 	    {
 	      xhht->ve[j+1] = xt->ve[j] + (k/4)*g(kk,ww,xt->ve[j]);
 	      uhh->ve[j+1] = ut->ve[j]*exp(-(k/4)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,Y));
 	    }      
 
-      Q2(aa,kk,ww,xhht,uhh);
-      Uhh->ve[i-1] = Q(xhht,uhh);
+	  Q2(aa,kk,ww,xhht,uhh);
+	  Uhh->ve[i-1] = Q(xhht,uhh);
             
-      set_row(xhh,i-1,xhht);
-      
-      for (int j=0;j<=terminator;j++)
+	  set_row(xhh,i-1,xhht);
+	      
+	  for (int j=0;j<=terminator;j++)
 	    {
 	      xht->ve[j+1] = xt->ve[j] + (k/2)*g(kk,ww,xhht->ve[j+1]);
 	      uht->ve[j+1] = ut->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,Y));
 	    }
+	}
 
+      else
+
+	{
+
+	  for (int j=0;j<=terminator;j++)
+	    {
+	      xht->ve[j+1] = xt->ve[j] + (k/2)*g(kk,ww,xt->ve[j]);
+	      uht->ve[j+1] = ut->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,Y));
+	    }
+	  
+	}		
+      
       Q2(aa,kk,ww,xht,uht);
       Uh->ve[i-1] = Q(xht,uht);
          
@@ -191,6 +223,8 @@ void solve(
 
       Ui->ve[i] = Q(xnt,unt);      
 
+      //printf("%lf\n",Ui->ve[i]);
+      
       if(!SGNM) 
         {
           xnt = v_resize(xnt,xn->n);
@@ -214,14 +248,17 @@ void solve(
           set_row(u,i,ut);
         }
     }
+  //  exit(1);
 
   V_FREE(xt);
   V_FREE(xnt); 
   V_FREE(unt); 
   V_FREE(xht); 
   V_FREE(uht);
-  V_FREE(xhht); 
-  V_FREE(uhh);
+  if (QUARTER) {
+    V_FREE(xhht);
+    V_FREE(uhh);
+  }
   V_FREE(ut);
 
 }

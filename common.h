@@ -4,6 +4,9 @@
 #include "meschach/matrix.h"
 #include "parameters.h"
 
+// Whether to use a quarter step in the numerics
+#define QUARTER 0
+
 // Whether to use the new objective funtion or not
 #define NEWOBJ 0
 

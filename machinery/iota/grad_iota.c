@@ -17,13 +17,17 @@ void grad_iota(void* args) {
   Data *d = (*grad_args).d;
   MAT *x = (*grad_args).core_args->x;
   MAT *u = (*grad_args).core_args->u;
-  MAT *xhh = (*grad_args).core_args->xhh;
+  MAT *xhh;
+  if (QUARTER)
+    xhh = (*grad_args).core_args->xhh;
   MAT *xh = (*grad_args).core_args->xh;
   MAT *xn = (*grad_args).core_args->xn;
   MAT *uh = (*grad_args).core_args->uh;
   VEC *Ui = (*grad_args).core_args->Ui;
   VEC *Uh = (*grad_args).core_args->Uh;
-  VEC *Uhh = (*grad_args).core_args->Uhh;
+  VEC *Uhh;
+  if (QUARTER)
+    Uhh = (*grad_args).core_args->Uhh;
   IVEC *idxi = (*grad_args).core_args->idxi;
   VEC *eff = (*grad_args).eff;
   Real k = (*grad_args).k;
@@ -31,28 +35,29 @@ void grad_iota(void* args) {
   Parameters *parameters = (*grad_args).parameters;
   MAT *p = m_get(x->m,x->n);
 
-
   VEC *xt; VEC *ut; VEC *pt;
   VEC *xhht; VEC *xht; VEC *xnt; 
   VEC *uht; VEC *ph; VEC *pn;
 
   int J;
   if (!SGNM)
-    J = x->n - x->m;
-  else
     J = x->n - 1;
+  else
+    J = x->n - x->m;
   
    xt = v_get(J+1); ut = v_get(J+1); pt = v_get(J+1);
 
-  if (!SGNM)
-    {        
-      xhht = v_get(J+1); xht = v_get(J+1); xnt = v_get(J+1);
-      uht = v_get(J+1); ph = v_get(J+1); pn = v_get(J+1);
-    }
-  else
+  if (SGNM)
     {        
       xhht = v_get(J+2); xht = v_get(J+2); xnt = v_get(J+2);
       uht = v_get(J+2); ph = v_get(J+2); pn = v_get(J+2);
+    }
+  else
+    {        
+      if (QUARTER)
+	xhht = v_get(J+1);
+      xht = v_get(J+1); xnt = v_get(J+1);
+      uht = v_get(J+1); ph = v_get(J+1); pn = v_get(J+1);
     }
 
   Real aa = parameters->alpha.value;
@@ -85,66 +90,73 @@ void grad_iota(void* args) {
       get_row(x,i-1,xt);
       get_row(p,i-1,pt);
       get_row(xh,i-1,xht);
-      get_row(xhh,i-1,xhht);
+      if (QUARTER)
+	get_row(xhh,i-1,xhht);
       get_row(uh,i-1,uht);
       get_row(u,i-1,ut);
 
-      if (!SGNM)
+      if (SGNM)
 	{
-	  get_row(x,i,xnt);
+	  get_row(xn,i-1,xnt);
 	}
       else
 	{
-	  get_row(xn,i-1,xnt);
+	  get_row(x,i,xnt);
 	}	  
 
       int terminator;
-      if(!SGNM) 
+      if(SGNM) 
+        {
+          terminator = J;
+        } 
+      else 
         {
           terminator = J+i-1;
           xt = v_resize(xt,terminator+1);
           ut = v_resize(ut,terminator+1);
-          pt = v_resize(pt,terminator+1);        
-          xhht = v_resize(xhht,terminator+2);
+          pt = v_resize(pt,terminator+1);
+	  if (QUARTER)
+	    xhht = v_resize(xhht,terminator+2);
           xht = v_resize(xht,terminator+2);
           uht = v_resize(uht,terminator+2);
           xnt = v_resize(xnt,terminator+2);
           ph = v_resize(ph,terminator+2);
           pn = v_resize(pn,terminator+2);
-        } 
-      else 
-        {
-          terminator = J;
-        }
 
-      for (int j=0;j<=terminator;j++)
-        {
-	      ph->ve[j+1] = pt->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y))*(k/2)*(1e-3*s(xt->ve[j])*e(eff,k,t,d->Y)+gg*Pi->ve[i-1])*ut->ve[j];
-        }	 
+	}
+
+      for (int j=0;j<=terminator;j++)        
+	ph->ve[j+1] = pt->ve[j]*exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y)) - exp(-(k/2)*zstar(eff,bb,gg,kk,ii,t,xt->ve[j],Ui->ve[i-1],k,d->Y))*(k/2)*(1e-3*s(xt->ve[j])*e(eff,k,t,d->Y)+gg*Pi->ve[i-1])*ut->ve[j];
         
       Q2(aa,kk,ww,xht,ph);
       Real Ph = Q(xht,ph);
 
-      for (int j=0;j<=terminator;j++)
-        {
-	      Real b = k*(1e-3*s(xht->ve[j+1])*e(eff,k,th,d->Y)+gg*Ph)*uht->ve[j+1];
-	      pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
-	    }
-
+      if (QUARTER)
+	for (int j=0;j<=terminator;j++)
+	  {
+	    Real b = k*(1e-3*s(xht->ve[j+1])*e(eff,k,th,d->Y)+gg*Ph)*uht->ve[j+1];
+	    pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,thh,xhht->ve[j+1],Uhh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
+	  }
+      else
+	for (int j=0;j<=terminator;j++)
+	  {
+	    Real b = k*(1e-3*s(xht->ve[j+1])*e(eff,k,th,d->Y)+gg*Ph)*uht->ve[j+1];
+	    pn->ve[j+1] = pt->ve[j]*exp(-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)) - b*exp((k/2)*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y)-k*zstar(eff,bb,gg,kk,ii,th,xht->ve[j+1],Uh->ve[i-1],k,d->Y));
+	  }
+	
       Q2(aa,kk,ww,xnt,pn);
       Pi->ve[i] = Q(xnt,pn);
 
-      if(!SGNM) 
-        {
-          pn = v_resize(pn,p->n);
-          set_row(p,i,pn);
-        } 
-      else 
+      if(SGNM) 
         {
           idxremove(pn,pt,idxi->ive[i-1]); 
           set_row(p,i,pt);
+        } 
+      else 
+        {
+          pn = v_resize(pn,p->n);
+          set_row(p,i,pn);	  	  
         }
-
 
     }
    
