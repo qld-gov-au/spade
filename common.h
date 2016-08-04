@@ -4,6 +4,9 @@
 #include "meschach/matrix.h"
 #include "parameters.h"
 
+// Whether to use MESCHACH for the solvers
+#define MESCHACH 0
+
 // Whether to use a quarter step in the numerics
 #define QUARTER 0
 
@@ -60,6 +63,14 @@ typedef struct {
   int Y; // Number of years of input data
   
 } Data;
+
+typedef struct {
+  Data *d;
+  VEC * eff;
+  Real k;
+  int S;
+  Parameters *parameters;
+} Grad_Args_No_MESCHACH;
 
 typedef struct {
   MAT *x,*u,*xhh,*xh,*xn,*uh,*un;

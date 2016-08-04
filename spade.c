@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
 
   // Configure each parameter. This must be updated when a
   // new parameter is created.
-  Parameters parameters = {
+  Parameters parameters= {
    .alpha = { .name = "alpha", .grad = &grad_alpha },
    .beta = { .name = "beta", .grad = &grad_beta },
    .gamma = { .name = "gamma", .grad = &grad_gamma },
@@ -211,6 +211,18 @@ int main(int argc, char *argv[])
    .omega = { .name = "omega", .grad = &grad_omega }
   };
 
+  if (!MESCHACH)
+    {
+
+  parameters.alpha.grad = &grad_alpha_clean;
+  parameters.beta.grad = &grad_beta_clean;
+  parameters.gamma.grad = &grad_gamma_clean;
+  parameters.iota.grad = &grad_iota_clean;
+  parameters.kappa.grad = &grad_kappa_clean;
+  parameters.omega.grad = &grad_omega_clean;
+
+    }
+  
   // Map all parameters to the parameter array. This must
   // be updated when a new parameter is created.
   parameters.parameter[0] = &parameters.alpha;

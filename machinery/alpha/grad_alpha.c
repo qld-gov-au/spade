@@ -9,6 +9,211 @@
 #include "reproduce_alpha.h"
 #include "ini_alpha.h"
 #include "../../util/util.h"
+#include "../../model/fishing/selectivity.h"
+#include "../../model/fishing/effort.h"
+#include "../../model/biology/birth.h"
+
+
+void grad_alpha_clean(void* args)
+{
+
+  // only valid for models where fish are size zero at birth
+  
+  Grad_Args_No_MESCHACH * grad_args = (Grad_Args_No_MESCHACH *)args;
+
+  Data *d = (*grad_args).d;
+
+  int I,J;
+  I = d->I;
+  J = d->J;
+
+  MAT *core_x = m_get(I+1,J+1);
+  MAT *core_u = m_get(I+1,J+1);
+  MAT *core_p = m_get(I+1,J+1);
+  
+  VEC *eff = (*grad_args).eff;
+  Real k = (*grad_args).k;
+  int S = (*grad_args).S;
+  Parameters *parameters = (*grad_args).parameters;
+     
+  Real aa = parameters->alpha.value;
+  Real bb = parameters->beta.value;
+  Real gg = parameters->gamma.value*1e-7;
+  Real kk = parameters->kappa.value;
+  Real ww = parameters->omega.value;
+  Real ii = parameters->iota.value*1e-3;
+  
+  Real * restrict x = (Real *)calloc(core_x->n-1,sizeof(Real));
+  Real * restrict u = (Real *)calloc(core_x->n-1,sizeof(Real));
+  Real * restrict p = (Real *)calloc(core_x->n-1,sizeof(Real));
+    
+  /* 
+     initialize x
+  */
+  J = core_x->n - core_x->m;
+
+  // 'active': first J values in first 'row'
+  for (int j=0;j<J;j++) 
+    x[j] = h*j;
+
+  // 'neutral': all the rest (J+1.. I+J)
+  for (int j=J;j<core_x->n;j++)
+    x[j] = ww-1e-9;  // !! should be ww but that causes a divide by zero in equation 34: 
+  //   for (int j=0;j<core_x->n;j++)
+  //    p[j] = pow(1-x[j]/ww,Z/kk - 2.) * ( (Z-bb-kk)/(gg*Z) * (A1 + 2*A2*kk*ww/(Z+kk) - 2*aa*A2*kk*ww/pow(Z+kk,2.) * Za) + (Za/(gg*Z))*(aa*A1 + 2*aa*A2*kk*ww/(Z+kk))*((bb+kk)/Z + log(1 - x[j]/ww)* (Z-bb-kk)/kk) );
+
+
+  /*
+     ok, now initialize u and p
+  */
+  
+  // prelims
+  Real zeta = sqrt( 81*kk*kk*ww*ww*pow(aa*A1+2*aa*A2*ww,2.) - 12*kk*pow(aa*A1*ww+kk,3.) );
+  Real eta = 9*aa*A1*kk*kk*ww + 18*aa*A2*kk*kk*ww*ww + kk*zeta;
+  Real Z = pow(eta,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*kk*(aa*A1*ww+kk) / pow(eta,1./3);
+
+  Real ubar = (Z - bb - kk) / gg; 
+  Real vbar = (kk*ww*ubar) / (bb+gg*ubar+kk);
+  Real wbar = (2*kk*ww*vbar) / (bb+gg*ubar+2*kk);  
+  
+  // set
+  for (int j=0;j<core_x->n;j++) 
+    u[j] = (aa*A1*vbar+aa*A2*wbar)*pow(ww-x[j],(bb+gg*ubar)/kk-1) / (kk*pow(ww,(bb+gg*ubar)/kk));
+
+  Real Za = ( kk*kk*ww*(3*A1*zeta+6*A2*ww*zeta-6*A1*pow(kk+aa*A1*ww,2.)+27*kk*ww*(A1+2*A2*ww)*(aa*A1+2*aa*A2*ww)) / ( zeta*pow(eta,2/3.) ) ) * ( (1/ (pow(2,1/3.) * pow(3,2/3.) )) - ( pow(2/3.,1/3.)*kk*(kk+aa*A1*ww) / pow(eta,2/3.) ) ) + ( pow(2/3.,1/3.)*A1*kk*ww / pow(eta,1/3.) );
+
+  for (int j=0;j<core_x->n;j++)
+    p[j] = pow(1-x[j]/ww,Z/kk - 2.) * ( (Z-bb-kk)/(gg*Z) * (A1 + 2*A2*kk*ww/(Z+kk) - 2*aa*A2*kk*ww/pow(Z+kk,2.) * Za) + (Za/(gg*Z))*(aa*A1 + 2*aa*A2*kk*ww/(Z+kk))*((bb+kk)/Z + log(1 - x[j]/ww)* (Z-bb-kk)/kk) );
+
+  for (int j=0;j<core_x->n;j++)     // load
+    {
+      core_x->me[0][j] = x[j];
+      core_u->me[0][j] = u[j];
+      core_p->me[0][j] = p[j];
+    }
+  
+  // integrate sequentially
+  Real U = 0;
+  for (int j=0;j<core_x->n;j++) 
+    U += .5 * (x[j+1] - x[j]) * (u[j+1] + u[j]);
+
+  Real P = 0;
+  for (int j=0;j<core_x->n;j++) 
+    P += .5 * (x[j+1] - x[j]) * (p[j+1] + p[j]);
+  
+  Real * restrict xh = (Real *) calloc(core_x->n,sizeof(Real));  
+  Real * restrict uh = (Real *) calloc(core_x->n,sizeof(Real));  
+  Real * restrict ph = (Real *) calloc(core_x->n,sizeof(Real));  
+  
+  for (int i=1;i<core_x->m;i++)
+    {
+  
+      Real t = k*(i-S-1);
+      Real th = k*(i-S-.5);
+
+      // calculate uh
+      for (int j=0;j<core_x->n;j++)
+	{	  
+	  xh[j] = x[j] + k/2 * kk*(ww - x[j]);
+	  uh[j] = u[j] * exp( -k/2 * (bb + gg*U + s(x[j])* ii * e(eff,k,t,d->Y) - kk) );
+	}
+
+      // reproduce uh
+      Real uh_0 = xh[0] * b(aa,xh[0])*uh[0];
+
+      for (int j=0;j<core_x->n-1;j++)
+	uh_0 += (b(aa,xh[j])*uh[j] + b(aa,xh[j+1])*uh[j+1]) * (xh[j+1]-xh[j]);
+
+      uh_0 /= (2*kk*ww - xh[0]*b(aa,0));
+
+      // integrate uh
+      Real Uh = .5 * xh[0] * (uh_0 + uh[0]);
+      for (int j=0;j<core_x->n-1;j++)
+	Uh += .5 * (xh[j+1] - xh[j]) * (uh[j+1] + uh[j]);
+
+      // calculate ph
+      for (int j=0;j<core_x->n;j++)
+	ph[j] = p[j]*exp(-(k/2)*(bb + gg*U + s(x[j]) * ii * e(eff,k,t,d->Y) - kk)) - exp(-(k/2)*(bb + gg*U + s(x[j]) * ii * e(eff,k,t,d->Y) - kk))*(k/2)*gg*P*u[j];
+
+      // reproduce ph
+      Real ph_0 = aa*A1*xh[0]*ph[0]*xh[0] + aa*A2*xh[0]*xh[0]*ph[0]*xh[0] + A1*xh[0]*uh[0]*xh[0] + A2*xh[0]*xh[0]*uh[0]*xh[0];
+
+      for (int j=0;j<core_x->n-1;j++)
+	ph_0 += ( aa*A1*xh[j]*ph[j] + aa*A2*xh[j]*xh[j]*ph[j] + A1*xh[j]*uh[j] + A2*xh[j]*xh[j]*uh[j] + aa*A1*xh[j+1]*ph[j+1] + aa*A2*xh[j+1]*xh[j+1]*ph[j+1] + A1*xh[j+1]*uh[j+1] + A2*xh[j+1]*xh[j+1]*uh[j+1] ) * (xh[j+1]-xh[j]);
+
+      ph_0 /= 2*kk*ww;
+                  
+      // integrate ph
+      Real Ph = .5 * xh[0] * (ph_0 + ph[0]);
+      for (int j=0;j<core_x->n-1;j++)
+	Ph += .5 * (xh[j+1] - xh[j]) * (ph[j+1] + ph[j]);
+
+      // calculate p      
+      for (int j=core_x->n-1;j>0;j--)
+	{
+
+	  x[j] = x[j-1] + k * kk*(ww - xh[j-1]);
+	  u[j] = u[j-1] * exp ( -k * (bb + gg*Uh + s(xh[j]) * ii * e(eff,k,th,d->Y) - kk));
+	  Real xxh = xh[j-1];
+	  Real uUh = Uh;
+	  Real zstr = (bb+gg*Uh+s(xh[j-1])*ii*e(eff,k,th,d->Y));
+	  Real bbb = k*gg*Ph*uh[j-1];
+	  Real tmp1 = exp(-k*(bb+gg*Uh+s(xh[j-1])*ii*e(eff,k,th,d->Y)-kk));
+	  Real tmp2 = exp((k/2)*(bb+gg*Uh+s(xh[j-1])*ii*e(eff,k,th,d->Y)-kk));
+	  p[j] = p[j-1]*tmp1 - tmp1 * k*gg*Ph*uh[j-1] * tmp2;
+	}
+      
+      x[0] = 0;
+
+      // reproduce u
+      u[0] = x[1] * b(aa,x[1])*u[1];
+
+      for (int j=1;j<core_x->n-1;j++)
+	u[0] += (b(aa,x[j])*u[j] + b(aa,x[j+1])*u[j+1]) * (x[j+1]-x[j]);
+
+      u[0] /= (2*kk*ww - x[1]*b(aa,0));      
+      
+      // reproduce p
+      p[0] = aa*A1*x[1]*p[1]*x[1] + aa*A2*x[1]*x[1]*p[1]*x[1] + A1*x[1]*u[1]*x[1] + A2*x[1]*x[1]*u[1]*x[1];
+
+      for (int j=1;j<core_x->n-1;j++)
+	p[0] += ( aa*A1*x[j]*p[j] + aa*A2*x[j]*x[j]*p[j] + A1*x[j]*u[j] + A2*x[j]*x[j]*u[j] + aa*A1*x[j+1]*p[j+1] + aa*A2*x[j+1]*x[j+1]*p[j+1] + A1*x[j+1]*u[j+1] + A2*x[j+1]*x[j+1]*u[j+1] ) * (x[j+1]-x[j]);
+
+      p[0] /= 2*kk*ww;
+
+      // integrate u
+      U = .5 * x[0] * (u[0] + u[1]);
+      for (int j=1;j<core_x->n-1;j++)
+	U += .5 * (x[j+1] - x[j]) * (u[j+1] + u[j]);
+      
+      // integrate p
+      P = .5 * x[1] * (p[0] + p[1]);
+      for (int j=1;j<core_x->n-1;j++)
+	P += .5 * (x[j+1] - x[j]) * (p[j+1] + p[j]);
+      
+      for (int j=0;j<core_x->n;j++)     // load
+	{
+	  core_x->me[i][j] = x[j];
+	  core_u->me[i][j] = u[j];
+	  core_p->me[i][j] = p[j];
+	}
+
+    }
+  
+  parameters->alpha.gradient = G_ni(core_p, core_x, core_u, d, parameters->iota.value);
+
+  free(x);
+  free(u);
+  free(p);
+  free(xh);
+  free(uh);
+  free(ph);
+  
+  M_FREE(core_p);
+  M_FREE(core_x);
+  M_FREE(core_u);
+
+}
 
 void grad_alpha(void* args)
 {

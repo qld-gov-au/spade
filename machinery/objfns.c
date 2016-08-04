@@ -234,16 +234,18 @@ Real newK(
 	  
 Real K(
 
-     Parameters *parameters,
-		 Data *d,
-		 Solve_Core_Args *core_args
-		 
-	
-		 )
+       Parameters *parameters,
+       Data *d,
+       Solve_Core_Args *core_args
+		 	
+       )
 {
 
 
-  solve(parameters,d->eff,d->k,d->S,d->Y,core_args);
+  if (MESCHACH)
+    solve(parameters,d->eff,d->k,d->S,d->Y,core_args);
+  else
+    solve_clean(parameters,d->eff,d->k,d->S,d->Y,core_args);
 
   MAT *x = core_args->x;
   MAT *u = core_args->u;
@@ -264,10 +266,8 @@ Real K(
   if (!SGNM){
     bigJ = x->n - 1;
     J = x->n - x->m;
-
   } else {
-    J = x->n - 1;
-   
+    J = x->n - 1;   
   }
   
   for (int i=S;i<x->m;i++)
