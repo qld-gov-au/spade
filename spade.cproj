@@ -102,6 +102,7 @@
     <Compile Include="model\death.c" />
     <Compile Include="parameters.c" />
     <Compile Include="arg.c" />
+    <Compile Include="machinery\spade_solve_clean.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="meschach\err.h" />
@@ -153,6 +154,7 @@
     <None Include="model\death.h" />
     <None Include="parameters.h" />
     <None Include="arg.h" />
+    <None Include="machinery\spade_solve_clean.h" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="optim\" />

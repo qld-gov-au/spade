@@ -3,6 +3,7 @@
 #include "../common.h"
 #include "../parameters.h"
 #include "spade_solve.h"
+#include "spade_solve_clean.h"
 #include "../model/fishing/selectivity.h"
 #include "../model/biology/weight.h"
 #include "../model/fishing/effort.h"
