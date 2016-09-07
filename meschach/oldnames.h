@@ -32,7 +32,7 @@
 #define OLDNAMESH
 
 
-/* type IVEC */
+/* type IMeVEC */
 
 #define get_ivec   iv_get
 #define freeivec   IV_FREE
@@ -44,7 +44,7 @@
 #define dump_ivec  iv_dump
 
 
-/* type ZVEC */
+/* type ZMeVEC */
 
 #define get_zvec   zv_get
 #define freezvec   ZV_FREE
@@ -57,7 +57,7 @@
 #define rand_zvec  zv_rand
 #define dump_zvec  zv_dump
 
-/* type ZMAT */
+/* type ZMeMAT */
 
 #define get_zmat   zm_get
 #define freezmat   ZM_FREE
@@ -70,9 +70,9 @@
 #define rand_zmat  zm_rand
 #define dump_zmat  zm_dump
 
-/* types SPMAT */
+/* types SPMeMAT */
 
-#define sp_mat        SPMAT
+#define sp_mat        SPMeMAT
 #define sp_get_mat    sp_get
 #define sp_free_mat   sp_free
 #define sp_cp_mat     sp_copy
@@ -102,7 +102,7 @@
 #define sp_row_sqr    sprow_sqr
 
 
-/* type MAT */
+/* type MeMAT */
 
 #define get_mat   m_get
 #define freemat   M_FREE
@@ -117,7 +117,7 @@
 #define ones_mat  m_ones
 #define dump_mat  m_dump
 
-/* type VEC */
+/* type MeVEC */
 
 #define get_vec   v_get
 #define freevec   V_FREE

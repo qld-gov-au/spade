@@ -199,13 +199,13 @@ BAND *bd_copy(const BAND *A, BAND *B)
 }
 
 
-/* copy band matrix bA to a square matrix A returning A */
+/* copy band matrix bA to a Mesquare matrix A returning A */
 #ifndef ANSI_C
-MAT *band2mat(bA,A)
+MeMAT *band2mat(bA,A)
 BAND *bA;
-MAT *A;
+MeMAT *A;
 #else
-MAT *band2mat(const BAND *bA, MAT *A)
+MeMAT *band2mat(const BAND *bA, MeMAT *A)
 #endif
 {
    int i,j,l,n,n1;
@@ -227,21 +227,21 @@ MAT *band2mat(const BAND *bA, MAT *A)
    m_zero(A);
 
    for (j=0; j < n; j++)
-     for (i=min(n1,j+lb),l=lb+j-i; i >= max(0,j-ub); i--,l++)
+     for (i=min(n1,j+lb),l=lb+j-i; i >= Memax(0,j-ub); i--,l++)
        A->me[i][j] = bmat[l][j];
 
    return A;
 }
 
-/* copy a square matrix to a band matrix with 
+/* copy a Mesquare matrix to a band matrix with 
    lb subdiagonals and ub superdiagonals */
 #ifndef ANSI_C
 BAND *mat2band(A,lb,ub,bA)
 BAND *bA;
-MAT *A;
+MeMAT *A;
 int lb, ub;
 #else
-BAND *mat2band(const MAT *A, int lb, int ub,BAND *bA)
+BAND *mat2band(const MeMAT *A, int lb, int ub,BAND *bA)
 #endif
 {
    int i, j, l, n1;
@@ -261,7 +261,7 @@ BAND *mat2band(const MAT *A, int lb, int ub,BAND *bA)
    bmat = bA->mat->me;
 
    for (j=0; j <= n1; j++)
-     for (i=min(n1,j+lb),l=lb+j-i; i >= max(0,j-ub); i--,l++)
+     for (i=min(n1,j+lb),l=lb+j-i; i >= Memax(0,j-ub); i--,l++)
        bmat[l][j] = A->me[i][j];
 
    return bA;
@@ -284,7 +284,7 @@ BAND *bd_transp(const BAND *in, BAND *out)
    int in_situ;
    Real  **in_v, **out_v;
    
-   if ( in == (BAND *)NULL || in->mat == (MAT *)NULL )
+   if ( in == (BAND *)NULL || in->mat == (MeMAT *)NULL )
      error(E_NULL,"bd_transp");
 
    lb = in->lb;
@@ -309,8 +309,8 @@ BAND *bd_transp(const BAND *in, BAND *out)
 
       out_v = out->mat->me;
       for (i=0, l=lub, k=lb-i; i <= lub; i++,l--,k--) {
-	 sh_in = max(-k,0);
-	 sh_out = max(k,0);
+	 sh_in = Memax(-k,0);
+	 sh_out = Memax(k,0);
 	 MEM_COPY(&(in_v[i][sh_in]),&(out_v[l][sh_out]),
 		  (n-sh_in-sh_out)*sizeof(Real));
 	 /**********************************
@@ -336,18 +336,18 @@ BAND *bd_transp(const BAND *in, BAND *out)
       
       for (i=0, l=lub; i < (lub+1)/2; i++,l--) {
 	 lbi = lb-i;
-	 for (j=l-lb, jj=0, p=max(-lbi,0), pp = max(l-ub,0); j <= n1; 
+	 for (j=l-lb, jj=0, p=Memax(-lbi,0), pp = Memax(l-ub,0); j <= n1; 
 	      j++,jj++,p++,pp++) {
 	    in_v[l][pp] = in_v[i][p];
 	    in_v[i][jj] = in_v[l][j];
 	 }
-	 for (  ; p <= n1-max(lbi,0); p++,pp++)
+	 for (  ; p <= n1-Memax(lbi,0); p++,pp++)
 	   in_v[l][pp] = in_v[i][p];
       }
       
       if (lub%2 == 0) { /* shift only */
 	 i = lub/2;
-	 for (j=max(i-lb,0), jj=0; jj <= n1-ub+i; j++,jj++) 
+	 for (j=Memax(i-lb,0), jj=0; jj <= n1-ub+i; j++,jj++) 
 	   in_v[i][jj] = in_v[i][j];
       }
    }
@@ -356,18 +356,18 @@ BAND *bd_transp(const BAND *in, BAND *out)
 
       for (i=0, l=lub; i < (lub+1)/2; i++,l--) {
 	 ubi = i-ub;
-	 for (j=n1-max(lb-l,0), jj=n1-max(-ubi,0), p=n1-lb+i, pp=n1;
+	 for (j=n1-Memax(lb-l,0), jj=n1-Memax(-ubi,0), p=n1-lb+i, pp=n1;
 	      p >= 0; j--, jj--, pp--, p--) {
 	    in_v[i][jj] = in_v[l][j];
 	    in_v[l][pp] = in_v[i][p];
 	 }
-	 for (  ; jj >= max(ubi,0); j--, jj--)
+	 for (  ; jj >= Memax(ubi,0); j--, jj--)
 	   in_v[i][jj] = in_v[l][j];
       }
 
       if (lub%2 == 0) {  /* shift only */
 	 i = lub/2;
-	 for (j=n1-lb+i, jj=n1-max(ub-i,0); j >= 0; j--, jj--) 
+	 for (j=n1-lb+i, jj=n1-Memax(ub-i,0); j >= 0; j--, jj--) 
 	    in_v[i][jj] = in_v[i][j];
       }
    }
@@ -380,14 +380,14 @@ BAND *bd_transp(const BAND *in, BAND *out)
    -- if y is NULL then create y (as zero vector)
    -- error if either A or x is NULL */
 #ifndef ANSI_C
-VEC	*bdv_mltadd(x,y,bA,s,out)
+MeVEC	*bdv_mltadd(x,y,bA,s,out)
      BAND	*bA;
-     VEC	*x, *y;
+     MeVEC	*x, *y;
      double	s;
-     VEC *out;
+     MeVEC *out;
 #else
-VEC	*bdv_mltadd(const VEC *x, const VEC *y, const BAND *bA,
-		    double s, VEC *out)
+MeVEC	*bdv_mltadd(const MeVEC *x, const MeVEC *y, const BAND *bA,
+		    double s, MeVEC *out)
 #endif
 {
   int	i, j;
@@ -401,7 +401,7 @@ VEC	*bdv_mltadd(const VEC *x, const VEC *y, const BAND *bA,
   out = v_copy(x,out);
 
   for ( j = 0; j < x->dim; j++ )
-    for ( i = max(j-bA->ub,0); i <= j+bA->lb && i < x->dim; i++ )
+    for ( i = Memax(j-bA->ub,0); i <= j+bA->lb && i < x->dim; i++ )
       out->ve[i] += s*bd_get_val(bA,i,j)*y->ve[j];
 
   return out;
@@ -412,14 +412,14 @@ VEC	*bdv_mltadd(const VEC *x, const VEC *y, const BAND *bA,
    -- if out is NULL then create out (as zero vector)
    -- error if either bA or x is NULL */
 #ifndef ANSI_C
-VEC	*vbd_mltadd(x,y,bA,s,out)
+MeVEC	*vbd_mltadd(x,y,bA,s,out)
      BAND	*bA;
-     VEC	*x, *y;
+     MeVEC	*x, *y;
      double	s;
-     VEC *out;
+     MeVEC *out;
 #else
-VEC	*vbd_mltadd(const VEC *x, const VEC *y, const BAND *bA,
-		    double s, VEC *out)
+MeVEC	*vbd_mltadd(const MeVEC *x, const MeVEC *y, const BAND *bA,
+		    double s, MeVEC *out)
 #endif
 {
   int	i, j;
@@ -433,7 +433,7 @@ VEC	*vbd_mltadd(const VEC *x, const VEC *y, const BAND *bA,
   out = v_copy(x,out);
 
   for ( j = 0; j < x->dim; j++ )
-    for ( i = max(j-bA->ub,0); i <= j+bA->lb && i < x->dim; i++ )
+    for ( i = Memax(j-bA->ub,0); i <= j+bA->lb && i < x->dim; i++ )
       out->ve[j] += s*bd_get_val(bA,i,j)*y->ve[i];
 
   return out;
@@ -476,7 +476,7 @@ BAND	*bds_mltadd(const BAND *A, const BAND *B, double alpha, BAND *OUT)
     error(E_INSITU,"bds_mltadd");
 
   OUT = bd_copy(A,OUT);
-  OUT = bd_resize(OUT,max(A->lb,B->lb),max(A->ub,B->ub),A->mat->n);
+  OUT = bd_resize(OUT,Memax(A->lb,B->lb),Memax(A->ub,B->ub),A->mat->n);
   for ( i = 0; i <= B->lb + B->ub; i++ )
     __mltadd__(OUT->mat->me[i+OUT->lb-B->lb],B->mat->me[i],alpha,B->mat->n);
   
@@ -505,7 +505,7 @@ BAND	*sbd_mlt(Real s, const BAND *A, BAND *OUT)
       The jth column of A is stored in the jth column of 
       band A (bA) as follows:
       bA->mat->me[lb+j-i][j] = A->me[i][j] for 
-      max(0,j-lb) <= i <= min(A->n-1,j+ub);
+      Memax(0,j-lb) <= i <= min(A->n-1,j+ub);
    -- on exit: U is stored as an upper triangular matrix
       with lb+ub superdiagonals in rows lb to 2*lb+ub, 
       and the matrix L is stored in rows 0 to lb-1.
@@ -521,9 +521,9 @@ BAND	*bdLUfactor(BAND *bA, PERM *pivot)
 #endif
 {
    int	i, j, k, l, n, n1, lb, ub, lub, k_end, k_lub;
-   int	i_max, shift;
+   int	i_Memax, shift;
    Real	**bA_v;
-   Real max1, temp;
+   Real Memax1, temp;
    
    if ( bA==(BAND *)NULL || pivot==(PERM *)NULL )
      error(E_NULL,"bdLUfactor");
@@ -553,28 +553,28 @@ BAND	*bdLUfactor(BAND *bA, PERM *pivot)
 
    for ( k=0; k < n1; k++ )
    {
-      k_end = max(0,lb+k-n1);
+      k_end = Memax(0,lb+k-n1);
       k_lub = min(k+lub,n1);
 
       /* find the best pivot row */
       
-      max1 = 0.0;	
-      i_max = -1;
+      Memax1 = 0.0;	
+      i_Memax = -1;
       for ( i=lb; i >= k_end; i-- ) {
 	 temp = fabs(bA_v[i][k]);
-	 if ( temp > max1 )
-	 { max1 = temp;	i_max = i; }
+	 if ( temp > Memax1 )
+	 { Memax1 = temp;	i_Memax = i; }
       }
       
       /* if no pivot then ignore column k... */
-      if ( i_max == -1 )
+      if ( i_Memax == -1 )
 	continue;
       
       /* do we pivot ? */
-      if ( i_max != lb )	/* yes we do... */
+      if ( i_Memax != lb )	/* yes we do... */
       {
 	 /* save transposition using non-shifted indices */
-	 shift = lb-i_max;
+	 shift = lb-i_Memax;
 	 px_transp(pivot,k+shift,k);
 	 for ( i=lb, j=k; j <= k_lub; i++,j++ )
 	 {
@@ -600,19 +600,19 @@ BAND	*bdLUfactor(BAND *bA, PERM *pivot)
 /* bdLUsolve -- given an LU factorisation in bA, solve bA*x=b */
 /* pivot is changed upon return  */
 #ifndef ANSI_C
-VEC	*bdLUsolve(bA,pivot,b,x)
+MeVEC	*bdLUsolve(bA,pivot,b,x)
 BAND	*bA;
 PERM	*pivot;
-VEC	*b,*x;
+MeVEC	*b,*x;
 #else
-VEC	*bdLUsolve(const BAND *bA, PERM *pivot, const VEC *b, VEC *x)
+MeVEC	*bdLUsolve(const BAND *bA, PERM *pivot, const MeVEC *b, MeVEC *x)
 #endif
 {
-   int i,j,l,n,n1,pi,lb,ub,jmin, maxj;
+   int i,j,l,n,n1,pi,lb,ub,jmin, Memaxj;
    Real c;
    Real **bA_v;
 
-   if ( bA==(BAND *)NULL || b==(VEC *)NULL || pivot==(PERM *)NULL )
+   if ( bA==(BAND *)NULL || b==(MeVEC *)NULL || pivot==(PERM *)NULL )
      error(E_NULL,"bdLUsolve");
    if ( bA->mat->n != b->dim || bA->mat->n != pivot->size)
      error(E_SIZES,"bdLUsolve");
@@ -634,8 +634,8 @@ VEC	*bdLUsolve(const BAND *bA, PERM *pivot, const VEC *b, VEC *x)
    for (j=0; j < n; j++) {
       jmin = j+1;
       c = x->ve[j];
-      maxj = max(0,j+lb-n1);
-      for (i=jmin,l=lb-1; l >= maxj; i++,l--) {
+      Memaxj = Memax(0,j+lb-n1);
+      for (i=jmin,l=lb-1; l >= Memaxj; i++,l--) {
 	 if ( (pi = pivot->pe[i]) < jmin) 
 	   pi = pivot->pe[i] = pivot->pe[pi];
 	 x->ve[pi] -= bA_v[l][j]*c;
@@ -687,7 +687,7 @@ BAND *bdLDLfactor(BAND *A)
 
       /* matrix D */
       c = Av[lb][k];
-      for (j=max(0,-lbkm), jk=lbkm+j; j < k; j++, jk++) {
+      for (j=Memax(0,-lbkm), jk=lbkm+j; j < k; j++, jk++) {
 	 cc = Av[jk][j];
 	 c -= Av[lb][j]*cc*cc;
       }
@@ -699,7 +699,7 @@ BAND *bdLDLfactor(BAND *A)
       
       for (i=min(n1,lbkp), ki=lbkp-i; i > k; i--,ki++) {
 	 c = Av[ki][k];
-	 for (j=max(0,i-lb), ji=lb+j-i, jk=lbkm+j; j < k;
+	 for (j=Memax(0,i-lb), ji=lb+j-i, jk=lbkm+j; j < k;
 	      j++, ji++, jk++)
 	   c -= Av[lb][j]*Av[ji][j]*Av[jk][j];
 	 Av[ki][k] = c/Av[lb][k];
@@ -712,11 +712,11 @@ BAND *bdLDLfactor(BAND *A)
 /* solve A*x = b, where A is factorized by 
    Choleski LDL^T factorization */
 #ifndef ANSI_C
-VEC    *bdLDLsolve(A,b,x)
+MeVEC    *bdLDLsolve(A,b,x)
 BAND   *A;
-VEC    *b, *x;
+MeVEC    *b, *x;
 #else
-VEC    *bdLDLsolve(const BAND *A, const VEC *b, VEC *x)
+MeVEC    *bdLDLsolve(const BAND *A, const MeVEC *b, MeVEC *x)
 #endif
 {
    int i,j,l,n,n1,lb,ilb;
@@ -740,7 +740,7 @@ VEC    *bdLDLsolve(const BAND *A, const VEC *b, VEC *x)
    for (i=1; i < n; i++) {
       ilb = i-lb;
       c = b->ve[i];
-      for (j=max(0,ilb), l=j-ilb; j < i; j++,l++)
+      for (j=Memax(0,ilb), l=j-ilb; j < i; j++,l++)
 	c -= Av[l][j]*x->ve[j];
       x->ve[i] = c;
    }
@@ -774,9 +774,9 @@ VEC    *bdLDLsolve(const BAND *A, const VEC *b, VEC *x)
  *   may not work in situ (x != out)
  */
 
-VEC *bd_mv_mlt(A, x, out)
+MeVEC *bd_mv_mlt(A, x, out)
 BAND *A;
-VEC *x, *out;
+MeVEC *x, *out;
 {
   int i, j, j_end, k;
   int start_idx, end_idx;
@@ -802,8 +802,8 @@ VEC *x, *out;
   start_idx = lb;
   end_idx = m + n-1 - ub;
   for (i=0; i<n; i++, start_idx--, end_idx--) {
-    j = max(0, start_idx);
-    k = max(0, -start_idx);
+    j = Memax(0, start_idx);
+    k = Memax(0, -start_idx);
     j_end = min(m, end_idx);
     x_ve = x->ve + k;
     sum = 0.0;	     

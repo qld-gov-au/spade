@@ -35,19 +35,19 @@ static	char	rcsid[] = "$Id: matop.c,v 1.4 1995/03/27 15:43:57 des Exp $";
 
 /* m_add -- matrix addition -- may be in-situ */
 #ifndef ANSI_C
-MAT	*m_add(mat1,mat2,out)
-MAT	*mat1,*mat2,*out;
+MeMAT	*m_add(mat1,mat2,out)
+MeMAT	*mat1,*mat2,*out;
 #else
-MAT	*m_add(const MAT *mat1, const MAT *mat2, MAT *out)
+MeMAT	*m_add(const MeMAT *mat1, const MeMAT *mat2, MeMAT *out)
 #endif
 {
 	unsigned int	m,n,i;
 
-	if ( mat1==(MAT *)NULL || mat2==(MAT *)NULL )
+	if ( mat1==(MeMAT *)NULL || mat2==(MeMAT *)NULL )
 		error(E_NULL,"m_add");
 	if ( mat1->m != mat2->m || mat1->n != mat2->n )
 		error(E_SIZES,"m_add");
-	if ( out==(MAT *)NULL || out->m != mat1->m || out->n != mat1->n )
+	if ( out==(MeMAT *)NULL || out->m != mat1->m || out->n != mat1->n )
 		out = m_resize(out,mat1->m,mat1->n);
 	m = mat1->m;	n = mat1->n;
 	for ( i=0; i<m; i++ )
@@ -64,19 +64,19 @@ MAT	*m_add(const MAT *mat1, const MAT *mat2, MAT *out)
 
 /* m_sub -- matrix subtraction -- may be in-situ */
 #ifndef ANSI_C
-MAT	*m_sub(mat1,mat2,out)
-MAT	*mat1,*mat2,*out;
+MeMAT	*m_sub(mat1,mat2,out)
+MeMAT	*mat1,*mat2,*out;
 #else
-MAT	*m_sub(const MAT *mat1, const MAT *mat2, MAT *out)
+MeMAT	*m_sub(const MeMAT *mat1, const MeMAT *mat2, MeMAT *out)
 #endif
 {
 	unsigned int	m,n,i;
 
-	if ( mat1==(MAT *)NULL || mat2==(MAT *)NULL )
+	if ( mat1==(MeMAT *)NULL || mat2==(MeMAT *)NULL )
 		error(E_NULL,"m_sub");
 	if ( mat1->m != mat2->m || mat1->n != mat2->n )
 		error(E_SIZES,"m_sub");
-	if ( out==(MAT *)NULL || out->m != mat1->m || out->n != mat1->n )
+	if ( out==(MeMAT *)NULL || out->m != mat1->m || out->n != mat1->n )
 		out = m_resize(out,mat1->m,mat1->n);
 	m = mat1->m;	n = mat1->n;
 	for ( i=0; i<m; i++ )
@@ -93,16 +93,16 @@ MAT	*m_sub(const MAT *mat1, const MAT *mat2, MAT *out)
 
 /* m_mlt -- matrix-matrix multiplication */
 #ifndef ANSI_C
-MAT	*m_mlt(A,B,OUT)
-MAT	*A,*B,*OUT;
+MeMAT	*m_mlt(A,B,OUT)
+MeMAT	*A,*B,*OUT;
 #else
-MAT	*m_mlt(const MAT *A, const MAT *B, MAT *OUT)
+MeMAT	*m_mlt(const MeMAT *A, const MeMAT *B, MeMAT *OUT)
 #endif
 {
 	unsigned int	i, /* j, */ k, m, n, p;
 	Real	**A_v, **B_v /*, *B_row, *OUT_row, sum, tmp */;
 
-	if ( A==(MAT *)NULL || B==(MAT *)NULL )
+	if ( A==(MeMAT *)NULL || B==(MeMAT *)NULL )
 		error(E_NULL,"m_mlt");
 	if ( A->n != B->m )
 		error(E_SIZES,"m_mlt");
@@ -111,7 +111,7 @@ MAT	*m_mlt(const MAT *A, const MAT *B, MAT *OUT)
 	m = A->m;	n = A->n;	p = B->n;
 	A_v = A->me;		B_v = B->me;
 
-	if ( OUT==(MAT *)NULL || OUT->m != A->m || OUT->n != B->n )
+	if ( OUT==(MeMAT *)NULL || OUT->m != A->m || OUT->n != B->n )
 		OUT = m_resize(OUT,A->m,B->n);
 
 /****************************************************************
@@ -143,10 +143,10 @@ MAT	*m_mlt(const MAT *A, const MAT *B, MAT *OUT)
 /* mmtr_mlt -- matrix-matrix transposed multiplication
 	-- A.B^T is returned, and stored in OUT */
 #ifndef ANSI_C
-MAT	*mmtr_mlt(A,B,OUT)
-MAT	*A, *B, *OUT;
+MeMAT	*mmtr_mlt(A,B,OUT)
+MeMAT	*A, *B, *OUT;
 #else
-MAT	*mmtr_mlt(const MAT *A, const MAT *B, MAT *OUT)
+MeMAT	*mmtr_mlt(const MeMAT *A, const MeMAT *B, MeMAT *OUT)
 #endif
 {
 	int	i, j, limit;
@@ -182,10 +182,10 @@ MAT	*mmtr_mlt(const MAT *A, const MAT *B, MAT *OUT)
 /* mtrm_mlt -- matrix transposed-matrix multiplication
 	-- A^T.B is returned, result stored in OUT */
 #ifndef ANSI_C
-MAT	*mtrm_mlt(A,B,OUT)
-MAT	*A, *B, *OUT;
+MeMAT	*mtrm_mlt(A,B,OUT)
+MeMAT	*A, *B, *OUT;
 #else
-MAT	*mtrm_mlt(const MAT *A, const MAT *B, MAT *OUT)
+MeMAT	*mtrm_mlt(const MeMAT *A, const MeMAT *B, MeMAT *OUT)
 #endif
 {
 	int	i, k, limit;
@@ -222,24 +222,24 @@ MAT	*mtrm_mlt(const MAT *A, const MAT *B, MAT *OUT)
 /* mv_mlt -- matrix-vector multiplication 
 		-- Note: b is treated as a column vector */
 #ifndef ANSI_C
-VEC	*mv_mlt(A,b,out)
-MAT	*A;
-VEC	*b,*out;
+MeVEC	*mv_mlt(A,b,out)
+MeMAT	*A;
+MeVEC	*b,*out;
 #else
-VEC	*mv_mlt(const MAT *A, const VEC *b, VEC *out)
+MeVEC	*mv_mlt(const MeMAT *A, const MeVEC *b, MeVEC *out)
 #endif
 {
 	unsigned int	i, m, n;
 	Real	**A_v, *b_v /*, *A_row */;
 	/* register Real	sum; */
 
-	if ( A==(MAT *)NULL || b==(VEC *)NULL )
+	if ( A==(MeMAT *)NULL || b==(MeVEC *)NULL )
 		error(E_NULL,"mv_mlt");
 	if ( A->n != b->dim )
 		error(E_SIZES,"mv_mlt");
 	if ( b == out )
 		error(E_INSITU,"mv_mlt");
-	if ( out == (VEC *)NULL || out->dim != A->m )
+	if ( out == (MeVEC *)NULL || out->dim != A->m )
 		out = v_resize(out,A->m);
 
 	m = A->m;		n = A->n;
@@ -262,18 +262,18 @@ VEC	*mv_mlt(const MAT *A, const VEC *b, VEC *out)
 
 /* sm_mlt -- scalar-matrix multiply -- may be in-situ */
 #ifndef ANSI_C
-MAT	*sm_mlt(scalar,matrix,out)
+MeMAT	*sm_mlt(scalar,matrix,out)
 double	scalar;
-MAT	*matrix,*out;
+MeMAT	*matrix,*out;
 #else
-MAT	*sm_mlt(double scalar, const MAT *matrix, MAT *out)
+MeMAT	*sm_mlt(double scalar, const MeMAT *matrix, MeMAT *out)
 #endif
 {
 	unsigned int	m,n,i;
 
-	if ( matrix==(MAT *)NULL )
+	if ( matrix==(MeMAT *)NULL )
 		error(E_NULL,"sm_mlt");
-	if ( out==(MAT *)NULL || out->m != matrix->m || out->n != matrix->n )
+	if ( out==(MeMAT *)NULL || out->m != matrix->m || out->n != matrix->n )
 		out = m_resize(out,matrix->m,matrix->n);
 	m = matrix->m;	n = matrix->n;
 	for ( i=0; i<m; i++ )
@@ -288,23 +288,23 @@ MAT	*sm_mlt(double scalar, const MAT *matrix, MAT *out)
 /* vm_mlt -- vector-matrix multiplication 
 		-- Note: b is treated as a row vector */
 #ifndef ANSI_C
-VEC	*vm_mlt(A,b,out)
-MAT	*A;
-VEC	*b,*out;
+MeVEC	*vm_mlt(A,b,out)
+MeMAT	*A;
+MeVEC	*b,*out;
 #else
-VEC	*vm_mlt(const MAT *A, const VEC *b, VEC *out)
+MeVEC	*vm_mlt(const MeMAT *A, const MeVEC *b, MeVEC *out)
 #endif
 {
 	unsigned int	j,m,n;
 	/* Real	sum,**A_v,*b_v; */
 
-	if ( A==(MAT *)NULL || b==(VEC *)NULL )
+	if ( A==(MeMAT *)NULL || b==(MeVEC *)NULL )
 		error(E_NULL,"vm_mlt");
 	if ( A->m != b->dim )
 		error(E_SIZES,"vm_mlt");
 	if ( b == out )
 		error(E_INSITU,"vm_mlt");
-	if ( out == (VEC *)NULL || out->dim != A->n )
+	if ( out == (MeVEC *)NULL || out->dim != A->n )
 		out = v_resize(out,A->n);
 
 	m = A->m;		n = A->n;
@@ -329,22 +329,22 @@ VEC	*vm_mlt(const MAT *A, const VEC *b, VEC *out)
 
 /* m_transp -- transpose matrix */
 #ifndef ANSI_C
-MAT	*m_transp(in,out)
-MAT	*in, *out;
+MeMAT	*m_transp(in,out)
+MeMAT	*in, *out;
 #else
-MAT	*m_transp(const MAT *in, MAT *out)
+MeMAT	*m_transp(const MeMAT *in, MeMAT *out)
 #endif
 {
 	int	i, j;
 	int	in_situ;
 	Real	tmp;
 
-	if ( in == (MAT *)NULL )
+	if ( in == (MeMAT *)NULL )
 		error(E_NULL,"m_transp");
 	if ( in == out && in->n != in->m )
 		error(E_INSITU2,"m_transp");
 	in_situ = ( in == out );
-	if ( out == (MAT *)NULL || out->m != in->n || out->n != in->m )
+	if ( out == (MeMAT *)NULL || out->m != in->n || out->n != in->m )
 		out = m_resize(out,in->n,in->m);
 
 	if ( ! in_situ )
@@ -364,11 +364,11 @@ MAT	*m_transp(const MAT *in, MAT *out)
 
 /* swap_rows -- swaps rows i and j of matrix A for cols lo through hi */
 #ifndef ANSI_C
-MAT	*swap_rows(A,i,j,lo,hi)
-MAT	*A;
+MeMAT	*swap_rows(A,i,j,lo,hi)
+MeMAT	*A;
 int	i, j, lo, hi;
 #else
-MAT	*swap_rows(MAT *A, int i, int j, int lo, int hi)
+MeMAT	*swap_rows(MeMAT *A, int i, int j, int lo, int hi)
 #endif
 {
 	int	k;
@@ -378,7 +378,7 @@ MAT	*swap_rows(MAT *A, int i, int j, int lo, int hi)
 		error(E_NULL,"swap_rows");
 	if ( i < 0 || j < 0 || i >= A->m || j >= A->m )
 		error(E_SIZES,"swap_rows");
-	lo = max(0,lo);
+	lo = Memax(0,lo);
 	hi = min(hi,A->n-1);
 	A_me = A->me;
 
@@ -393,11 +393,11 @@ MAT	*swap_rows(MAT *A, int i, int j, int lo, int hi)
 
 /* swap_cols -- swap columns i and j of matrix A for cols lo through hi */
 #ifndef ANSI_C
-MAT	*swap_cols(A,i,j,lo,hi)
-MAT	*A;
+MeMAT	*swap_cols(A,i,j,lo,hi)
+MeMAT	*A;
 int	i, j, lo, hi;
 #else
-MAT	*swap_cols(MAT *A, int i, int j, int lo, int hi)
+MeMAT	*swap_cols(MeMAT *A, int i, int j, int lo, int hi)
 #endif
 {
 	int	k;
@@ -407,7 +407,7 @@ MAT	*swap_cols(MAT *A, int i, int j, int lo, int hi)
 		error(E_NULL,"swap_cols");
 	if ( i < 0 || j < 0 || i >= A->n || j >= A->n )
 		error(E_SIZES,"swap_cols");
-	lo = max(0,lo);
+	lo = Memax(0,lo);
 	hi = min(hi,A->m-1);
 	A_me = A->me;
 
@@ -424,11 +424,11 @@ MAT	*swap_cols(MAT *A, int i, int j, int lo, int hi)
 	-- may be in situ
 	-- returns out == A1 + s*A2 */
 #ifndef ANSI_C
-MAT	*ms_mltadd(A1,A2,s,out)
-MAT	*A1, *A2, *out;
+MeMAT	*ms_mltadd(A1,A2,s,out)
+MeMAT	*A1, *A2, *out;
 double	s;
 #else
-MAT	*ms_mltadd(const MAT *A1, const MAT *A2, double s, MAT *out)
+MeMAT	*ms_mltadd(const MeMAT *A1, const MeMAT *A2, double s, MeMAT *out)
 #endif
 {
 	/* register Real	*A1_e, *A2_e, *out_e; */
@@ -470,13 +470,13 @@ MAT	*ms_mltadd(const MAT *A1, const MAT *A2, double s, MAT *out)
 	-- may not be in situ
 	-- returns out == v1 + alpha*A*v2 */
 #ifndef ANSI_C
-VEC	*mv_mltadd(v1,v2,A,alpha,out)
-VEC	*v1, *v2, *out;
-MAT	*A;
+MeVEC	*mv_mltadd(v1,v2,A,alpha,out)
+MeVEC	*v1, *v2, *out;
+MeMAT	*A;
 double	alpha;
 #else
-VEC	*mv_mltadd(const VEC *v1, const VEC *v2, const MAT *A,
-		   double alpha, VEC *out)
+MeVEC	*mv_mltadd(const MeVEC *v1, const MeVEC *v2, const MeMAT *A,
+		   double alpha, MeVEC *out)
 #endif
 {
 	/* register	int	j; */
@@ -517,13 +517,13 @@ VEC	*mv_mltadd(const VEC *v1, const VEC *v2, const MAT *A,
 	-- may not be in situ
 	-- returns out' == v1' + v2'*A */
 #ifndef ANSI_C
-VEC	*vm_mltadd(v1,v2,A,alpha,out)
-VEC	*v1, *v2, *out;
-MAT	*A;
+MeVEC	*vm_mltadd(v1,v2,A,alpha,out)
+MeVEC	*v1, *v2, *out;
+MeMAT	*A;
 double	alpha;
 #else
-VEC	*vm_mltadd(const VEC *v1, const VEC *v2, const MAT *A,
-		   double alpha, VEC *out)
+MeVEC	*vm_mltadd(const MeVEC *v1, const MeVEC *v2, const MeMAT *A,
+		   double alpha, MeVEC *out)
 #endif
 {
 	int	/* i, */ j, m, n;

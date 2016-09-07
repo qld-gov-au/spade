@@ -3,8 +3,8 @@
 
 Real Qn(
 
-	  VEC * x,
-	  VEC * u,
+	  MeVEC * x,
+	  MeVEC * u,
 	  int n
 
 	  );

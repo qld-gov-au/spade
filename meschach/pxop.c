@@ -106,11 +106,11 @@ PERM	*px_mlt(const PERM *px1, const PERM *px2, PERM *out)
 
 /* px_vec -- permute vector */
 #ifndef ANSI_C
-VEC	*px_vec(px,vector,out)
+MeVEC	*px_vec(px,vector,out)
 PERM	*px;
-VEC	*vector,*out;
+MeVEC	*vector,*out;
 #else
-VEC	*px_vec(PERM *px, const VEC *vector, VEC *out)
+MeVEC	*px_vec(PERM *px, const MeVEC *vector, MeVEC *out)
 #endif
 {
     unsigned int	old_i, i, size, start;
@@ -177,11 +177,11 @@ VEC	*px_vec(PERM *px, const VEC *vector, VEC *out)
 
 /* pxinv_vec -- apply the inverse of px to x, returning the result in out */
 #ifndef ANSI_C
-VEC	*pxinv_vec(px,x,out)
+MeVEC	*pxinv_vec(px,x,out)
 PERM	*px;
-VEC	*x, *out;
+MeVEC	*x, *out;
 #else
-VEC	*pxinv_vec(PERM *px, const VEC *x, VEC *out)
+MeVEC	*pxinv_vec(PERM *px, const MeVEC *x, MeVEC *out)
 #endif
 {
     unsigned int	i, size;
@@ -312,19 +312,19 @@ int	px_sign(const PERM *px)
 /* px_cols -- permute columns of matrix A; out = A.px'
 	-- May NOT be in situ */
 #ifndef ANSI_C
-MAT	*px_cols(px,A,out)
+MeMAT	*px_cols(px,A,out)
 PERM	*px;
-MAT	*A, *out;
+MeMAT	*A, *out;
 #else
-MAT	*px_cols(const PERM *px, const MAT *A, MAT *out)
+MeMAT	*px_cols(const PERM *px, const MeMAT *A, MeMAT *out)
 #endif
 {
 	int	i, j, m, n, px_j;
 	Real	**A_me, **out_me;
 #ifdef ANSI_C
-	MAT	*m_get(int, int);
+	MeMAT	*m_get(int, int);
 #else
-	extern MAT	*m_get();
+	extern MeMAT	*m_get();
 #endif
 
 	if ( ! A || ! px )
@@ -353,19 +353,19 @@ MAT	*px_cols(const PERM *px, const MAT *A, MAT *out)
 /* px_rows -- permute columns of matrix A; out = px.A
 	-- May NOT be in situ */
 #ifndef ANSI_C
-MAT	*px_rows(px,A,out)
+MeMAT	*px_rows(px,A,out)
 PERM	*px;
-MAT	*A, *out;
+MeMAT	*A, *out;
 #else
-MAT	*px_rows(const PERM *px, const MAT *A, MAT *out)
+MeMAT	*px_rows(const PERM *px, const MeMAT *A, MeMAT *out)
 #endif
 {
 	int	i, j, m, n, px_i;
 	Real	**A_me, **out_me;
 #ifdef ANSI_C
-	MAT	*m_get(int, int);
+	MeMAT	*m_get(int, int);
 #else
-	extern MAT	*m_get();
+	extern MeMAT	*m_get();
 #endif
 
 	if ( ! A || ! px )

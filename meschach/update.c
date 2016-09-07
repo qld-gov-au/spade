@@ -45,18 +45,18 @@ static	char	rcsid[] = "$Id: update.c,v 1.2 1994/01/13 05:26:06 des Exp $";
 	MD~M' = LDL' + alpha.w.w' Note: w is overwritten
 	Ref: Gill et al Math Comp 28, p516 Algorithm C1 */
 #ifndef ANSI_C
-MAT	*LDLupdate(CHmat,w,alpha)
-MAT	*CHmat;
-VEC	*w;
+MeMAT	*LDLupdate(CHmat,w,alpha)
+MeMAT	*CHmat;
+MeVEC	*w;
 double	alpha;
 #else
-MAT	*LDLupdate(MAT *CHmat, VEC *w, double alpha)
+MeMAT	*LDLupdate(MeMAT *CHmat, MeVEC *w, double alpha)
 #endif
 {
 	unsigned int	i,j;
 	Real	diag,new_diag,beta,p;
 
-	if ( CHmat==(MAT *)NULL || w==(VEC *)NULL )
+	if ( CHmat==(MeMAT *)NULL || w==(MeVEC *)NULL )
 		error(E_NULL,"LDLupdate");
 	if ( CHmat->m != CHmat->n || w->dim != CHmat->m )
 		error(E_SIZES,"LDLupdate");
@@ -88,11 +88,11 @@ MAT	*LDLupdate(MAT *CHmat, VEC *w, double alpha)
 	Ref: Golub & van Loan Matrix Computations pp437-443
 	-- does not update Q if it is NULL */
 #ifndef ANSI_C
-MAT	*QRupdate(Q,R,u,v)
-MAT	*Q,*R;
-VEC	*u,*v;
+MeMAT	*QRupdate(Q,R,u,v)
+MeMAT	*Q,*R;
+MeVEC	*u,*v;
 #else
-MAT	*QRupdate(MAT *Q, MAT *R, VEC *u, VEC *v)
+MeMAT	*QRupdate(MeMAT *Q, MeMAT *R, MeVEC *u, MeVEC *v)
 #endif
 {
 	int	i,j,k;

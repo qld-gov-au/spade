@@ -41,14 +41,14 @@ static	char	rcsid[] = "$Id: bkpfacto.c,v 1.7 1994/01/13 05:45:50 des Exp $";
 
 #define alpha	0.6403882032022076 /* = (1+sqrt(17))/8 */
 
-/* sqr -- returns square of x -- utility function */
+/* sqr -- returns Mesquare of x -- utility function */
 double	sqr(x)
 double	x;
 {	return x*x;	}
 
 /* interchange -- a row/column swap routine */
 static void interchange(A,i,j)
-MAT	*A;	/* assumed != NULL & also SQUARE */
+MeMAT	*A;	/* assumed != NULL & also SQUARE */
 int	i, j;	/* assumed in range */
 {
 	Real	**A_me, tmp;
@@ -100,11 +100,11 @@ int	i, j;	/* assumed in range */
 	diagonal with blocks of size 1 or 2
 	-- P is stored in pivot; blocks[i]==i iff D[i][i] is a block */
 #ifndef ANSI_C
-MAT	*BKPfactor(A,pivot,blocks)
-MAT	*A;
+MeMAT	*BKPfactor(A,pivot,blocks)
+MeMAT	*A;
 PERM	*pivot, *blocks;
 #else
-MAT	*BKPfactor(MAT *A, PERM *pivot, PERM *blocks)
+MeMAT	*BKPfactor(MeMAT *A, PERM *pivot, PERM *blocks)
 #endif
 {
 	int	i, j, k, n, onebyone, r;
@@ -229,16 +229,16 @@ dopivot:
 /* BKPsolve -- solves A.x = b where A has been factored a la BKPfactor()
 	-- returns x, which is created if NULL */
 #ifndef ANSI_C
-VEC	*BKPsolve(A,pivot,block,b,x)
-MAT	*A;
+MeVEC	*BKPsolve(A,pivot,block,b,x)
+MeMAT	*A;
 PERM	*pivot, *block;
-VEC	*b, *x;
+MeVEC	*b, *x;
 #else
-VEC	*BKPsolve(const MAT *A, PERM *pivot, const PERM *block,
-		  const VEC *b, VEC *x)
+MeVEC	*BKPsolve(const MeMAT *A, PERM *pivot, const PERM *block,
+		  const MeVEC *b, MeVEC *x)
 #endif
 {
-	STATIC VEC	*tmp=VNULL;	/* dummy storage needed */
+	STATIC MeVEC	*tmp=VNULL;	/* dummy storage needed */
 	int	i, j, n, onebyone;
 	Real	**A_me, a11, a12, a22, b1, b2, det, sum, *tmp_ve, tmp_diag;
 
@@ -251,7 +251,7 @@ VEC	*BKPsolve(const MAT *A, PERM *pivot, const PERM *block,
 		error(E_SIZES,"BKPsolve");
 	x = v_resize(x,n);
 	tmp = v_resize(tmp,n);
-	MEM_STAT_REG(tmp,TYPE_VEC);
+	MEM_STAT_REG(tmp,TYPE_MeVEC);
 
 	A_me = A->me;	tmp_ve = tmp->ve;
 

@@ -42,14 +42,14 @@ static	char	rcsid[] = "$Id: hessen.c,v 1.2 1994/01/13 05:36:24 des Exp $";
 	-- factorisation performed in situ
 	-- for details of the compact form see QRfactor.c and matrix2.doc */
 #ifndef ANSI_C
-MAT	*Hfactor(A, diag, beta)
-MAT	*A;
-VEC	*diag, *beta;
+MeMAT	*Hfactor(A, diag, beta)
+MeMAT	*A;
+MeVEC	*diag, *beta;
 #else
-MAT	*Hfactor(MAT *A, VEC *diag, VEC *beta)
+MeMAT	*Hfactor(MeMAT *A, MeVEC *diag, MeVEC *beta)
 #endif
 {
-	STATIC	VEC	*hh = VNULL, *w = VNULL;
+	STATIC	MeVEC	*hh = VNULL, *w = VNULL;
 	int	k, limit;
 
 	if ( ! A || ! diag || ! beta )
@@ -62,8 +62,8 @@ MAT	*Hfactor(MAT *A, VEC *diag, VEC *beta)
 
 	hh = v_resize(hh,A->m);
 	w  = v_resize(w,A->n);
-	MEM_STAT_REG(hh,TYPE_VEC);
-	MEM_STAT_REG(w, TYPE_VEC);
+	MEM_STAT_REG(hh,TYPE_MeVEC);
+	MEM_STAT_REG(w, TYPE_MeVEC);
 
 	for ( k = 0; k < limit; k++ )
 	  {
@@ -93,17 +93,17 @@ MAT	*Hfactor(MAT *A, VEC *diag, VEC *beta)
 /* makeHQ -- construct the Hessenberg orthogonalising matrix Q;
 	-- i.e. Hess M = Q.M.Q'	*/
 #ifndef ANSI_C
-MAT	*makeHQ(H, diag, beta, Qout)
-MAT	*H, *Qout;
-VEC	*diag, *beta;
+MeMAT	*makeHQ(H, diag, beta, Qout)
+MeMAT	*H, *Qout;
+MeVEC	*diag, *beta;
 #else
-MAT	*makeHQ(MAT *H, VEC *diag, VEC *beta, MAT *Qout)
+MeMAT	*makeHQ(MeMAT *H, MeVEC *diag, MeVEC *beta, MeMAT *Qout)
 #endif
 {
 	int	i, j, limit;
-	STATIC	VEC	*tmp1 = VNULL, *tmp2 = VNULL;
+	STATIC	MeVEC	*tmp1 = VNULL, *tmp2 = VNULL;
 
-	if ( H==(MAT *)NULL || diag==(VEC *)NULL || beta==(VEC *)NULL )
+	if ( H==(MeMAT *)NULL || diag==(MeVEC *)NULL || beta==(MeVEC *)NULL )
 		error(E_NULL,"makeHQ");
 	limit = H->m - 1;
 	if ( diag->dim < limit || beta->dim < limit )
@@ -114,8 +114,8 @@ MAT	*makeHQ(MAT *H, VEC *diag, VEC *beta, MAT *Qout)
 
 	tmp1 = v_resize(tmp1,H->m);
 	tmp2 = v_resize(tmp2,H->m);
-	MEM_STAT_REG(tmp1,TYPE_VEC);
-	MEM_STAT_REG(tmp2,TYPE_VEC);
+	MEM_STAT_REG(tmp1,TYPE_MeVEC);
+	MEM_STAT_REG(tmp2,TYPE_MeVEC);
 
 	for ( i = 0; i < H->m; i++ )
 	{
@@ -148,15 +148,15 @@ MAT	*makeHQ(MAT *H, VEC *diag, VEC *beta, MAT *Qout)
 
 /* makeH -- construct actual Hessenberg matrix */
 #ifndef ANSI_C
-MAT	*makeH(H,Hout)
-MAT	*H, *Hout;
+MeMAT	*makeH(H,Hout)
+MeMAT	*H, *Hout;
 #else
-MAT	*makeH(const MAT *H, MAT *Hout)
+MeMAT	*makeH(const MeMAT *H, MeMAT *Hout)
 #endif
 {
 	int	i, j, limit;
 
-	if ( H==(MAT *)NULL )
+	if ( H==(MeMAT *)NULL )
 		error(E_NULL,"makeH");
 	if ( H->m != H->n )
 		error(E_SQUARE,"makeH");

@@ -62,13 +62,13 @@ void	givens(double x, double y, Real *c, Real *s)
 
 /* rot_vec -- apply Givens rotation to x's i & k components */
 #ifndef ANSI_C
-VEC	*rot_vec(x,i,k,c,s,out)
-VEC	*x,*out;
+MeVEC	*rot_vec(x,i,k,c,s,out)
+MeVEC	*x,*out;
 unsigned int	i,k;
 double	c,s;
 #else
-VEC	*rot_vec(const VEC *x,unsigned int i,unsigned int k, double c,double s,
-		 VEC *out)
+MeVEC	*rot_vec(const MeVEC *x,unsigned int i,unsigned int k, double c,double s,
+		 MeVEC *out)
 #endif
 {
 	Real	temp;
@@ -91,19 +91,19 @@ VEC	*rot_vec(const VEC *x,unsigned int i,unsigned int k, double c,double s,
 
 /* rot_rows -- premultiply mat by givens rotation described by c,s */
 #ifndef ANSI_C
-MAT	*rot_rows(mat,i,k,c,s,out)
-MAT	*mat,*out;
+MeMAT	*rot_rows(mat,i,k,c,s,out)
+MeMAT	*mat,*out;
 unsigned int	i,k;
 double	c,s;
 #else
-MAT	*rot_rows(const MAT *mat, unsigned int i, unsigned int k,
-		  double c, double s, MAT *out)
+MeMAT	*rot_rows(const MeMAT *mat, unsigned int i, unsigned int k,
+		  double c, double s, MeMAT *out)
 #endif
 {
 	unsigned int	j;
 	Real	temp;
 
-	if ( mat==(MAT *)NULL )
+	if ( mat==(MeMAT *)NULL )
 		error(E_NULL,"rot_rows");
 	if ( i >= mat->m || k >= mat->m )
 		error(E_RANGE,"rot_rows");
@@ -125,19 +125,19 @@ MAT	*rot_rows(const MAT *mat, unsigned int i, unsigned int k,
 
 /* rot_cols -- postmultiply mat by givens rotation described by c,s */
 #ifndef ANSI_C
-MAT	*rot_cols(mat,i,k,c,s,out)
-MAT	*mat,*out;
+MeMAT	*rot_cols(mat,i,k,c,s,out)
+MeMAT	*mat,*out;
 unsigned int	i,k;
 double	c,s;
 #else
-MAT	*rot_cols(const MAT *mat,unsigned int i,unsigned int k,
-		  double c, double s, MAT *out)
+MeMAT	*rot_cols(const MeMAT *mat,unsigned int i,unsigned int k,
+		  double c, double s, MeMAT *out)
 #endif
 {
 	unsigned int	j;
 	Real	temp;
 
-	if ( mat==(MAT *)NULL )
+	if ( mat==(MeMAT *)NULL )
 		error(E_NULL,"rot_cols");
 	if ( i >= mat->n || k >= mat->n )
 		error(E_RANGE,"rot_cols");

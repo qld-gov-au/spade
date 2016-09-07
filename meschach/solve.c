@@ -44,12 +44,12 @@ static	char	rcsid[] = "$Id: solve.c,v 1.3 1994/01/13 05:29:57 des Exp $";
 /* Usolve -- back substitution with optional over-riding diagonal
 		-- can be in-situ but doesn't need to be */
 #ifndef ANSI_C
-VEC	*Usolve(matrix,b,out,diag)
-MAT	*matrix;
-VEC	*b, *out;
+MeVEC	*Usolve(matrix,b,out,diag)
+MeMAT	*matrix;
+MeVEC	*b, *out;
 double	diag;
 #else
-VEC	*Usolve(const MAT *matrix, const VEC *b, VEC *out, double diag)
+MeVEC	*Usolve(const MeMAT *matrix, const MeVEC *b, MeVEC *out, double diag)
 #endif
 {
 	unsigned int	dim /* , j */;
@@ -101,23 +101,23 @@ VEC	*Usolve(const MAT *matrix, const VEC *b, VEC *out, double diag)
 
 /* Lsolve -- forward elimination with (optional) default diagonal value */
 #ifndef ANSI_C
-VEC	*Lsolve(matrix,b,out,diag)
-MAT	*matrix;
-VEC	*b,*out;
+MeVEC	*Lsolve(matrix,b,out,diag)
+MeMAT	*matrix;
+MeVEC	*b,*out;
 double	diag;
 #else
-VEC	*Lsolve(const MAT *matrix, const VEC *b, VEC *out, double diag)
+MeVEC	*Lsolve(const MeMAT *matrix, const MeVEC *b, MeVEC *out, double diag)
 #endif
 {
 	unsigned int	dim, i, i_lim /* , j */;
 	Real	**mat_ent, *mat_row, *b_ent, *out_ent, *out_col, sum, tiny;
 
-	if ( matrix==(MAT *)NULL || b==(VEC *)NULL )
+	if ( matrix==(MeMAT *)NULL || b==(MeVEC *)NULL )
 		error(E_NULL,"Lsolve");
 	dim = min(matrix->m,matrix->n);
 	if ( b->dim < dim )
 		error(E_SIZES,"Lsolve");
-	if ( out==(VEC *)NULL || out->dim < dim )
+	if ( out==(MeVEC *)NULL || out->dim < dim )
 		out = v_resize(out,matrix->n);
 	mat_ent = matrix->me;	b_ent = b->ve;	out_ent = out->ve;
 
@@ -159,12 +159,12 @@ VEC	*Lsolve(const MAT *matrix, const VEC *b, VEC *out, double diag)
 /* UTsolve -- forward elimination with (optional) default diagonal value
 		using UPPER triangular part of matrix */
 #ifndef ANSI_C
-VEC	*UTsolve(U,b,out,diag)
-MAT	*U;
-VEC	*b,*out;
+MeVEC	*UTsolve(U,b,out,diag)
+MeMAT	*U;
+MeVEC	*b,*out;
 double	diag;
 #else
-VEC	*UTsolve(const MAT *U, const VEC *b, VEC *out, double diag)
+MeVEC	*UTsolve(const MeMAT *U, const MeVEC *b, MeVEC *out, double diag)
 #endif
 {
     unsigned int	dim, i, i_lim;
@@ -217,11 +217,11 @@ VEC	*UTsolve(const MAT *U, const VEC *b, VEC *out, double diag)
 
 /* Dsolve -- solves Dx=b where D is the diagonal of A -- may be in-situ */
 #ifndef ANSI_C
-VEC	*Dsolve(A,b,x)
-MAT	*A;
-VEC	*b,*x;
+MeVEC	*Dsolve(A,b,x)
+MeMAT	*A;
+MeVEC	*b,*x;
 #else
-VEC	*Dsolve(const MAT *A, const VEC *b, VEC *x)
+MeVEC	*Dsolve(const MeMAT *A, const MeVEC *b, MeVEC *x)
 #endif
 {
     unsigned int	dim, i;
@@ -250,12 +250,12 @@ VEC	*Dsolve(const MAT *A, const VEC *b, VEC *x)
 		using the LOWER triangular part of matrix
 		-- can be in-situ but doesn't need to be */
 #ifndef ANSI_C
-VEC	*LTsolve(L,b,out,diag)
-MAT	*L;
-VEC	*b, *out;
+MeVEC	*LTsolve(L,b,out,diag)
+MeMAT	*L;
+MeVEC	*b, *out;
 double	diag;
 #else
-VEC	*LTsolve(const MAT *L, const VEC *b, VEC *out, double diag)
+MeVEC	*LTsolve(const MeMAT *L, const MeVEC *b, MeVEC *out, double diag)
 #endif
 {
     unsigned int	dim;

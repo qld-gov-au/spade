@@ -29,8 +29,8 @@
 */
 
 
-#ifndef MATRIX2H
-#define MATRIX2H
+#ifndef MeMATRIX2H
+#define MeMATRIX2H
 
 #include "matrix.h"
 
@@ -39,45 +39,45 @@
 
 #ifndef ANSI_C
 
-extern	MAT	*BKPfactor(), *CHfactor(), *LUfactor(), *QRfactor(),
+extern	MeMAT	*BKPfactor(), *CHfactor(), *LUfactor(), *QRfactor(),
 		*QRCPfactor(), *LDLfactor(), *Hfactor(), *MCHfactor(),
 		*m_inverse();
 extern	double	LUcondest(), QRcondest();
-extern	MAT	*makeQ(), *makeR(), *makeHQ(), *makeH();
-extern	MAT	*LDLupdate(), *QRupdate();
+extern	MeMAT	*makeQ(), *makeR(), *makeHQ(), *makeH();
+extern	MeMAT	*LDLupdate(), *QRupdate();
 
-extern	VEC	*BKPsolve(), *CHsolve(), *LUsolve(), *_Qsolve(), *QRsolve(),
+extern	MeVEC	*BKPsolve(), *CHsolve(), *LUsolve(), *_Qsolve(), *QRsolve(),
 		*LDLsolve(), *Usolve(), *Lsolve(), *Dsolve(), *LTsolve(),
 		*UTsolve(), *LUTsolve(), *QRCPsolve();
 
 extern  BAND    *bdLUfactor(), *bdLDLfactor();
-extern  VEC     *bdLUsolve(), *bdLDLsolve();
+extern  MeVEC     *bdLUsolve(), *bdLDLsolve();
 
-extern	VEC	*hhvec();
-extern	VEC	*hhtrvec();
-extern	MAT	*hhtrrows();
-extern	MAT	*hhtrcols(), *_hhtrcols();
+extern	MeVEC	*hhvec();
+extern	MeVEC	*hhtrvec();
+extern	MeMAT	*hhtrrows();
+extern	MeMAT	*hhtrcols(), *_hhtrcols();
 
 extern	void	givens();
-extern	VEC	*rot_vec();	/* in situ */
-extern	MAT	*rot_rows();	/* in situ */
-extern	MAT	*rot_cols();	/* in situ */
+extern	MeVEC	*rot_vec();	/* in situ */
+extern	MeMAT	*rot_rows();	/* in situ */
+extern	MeMAT	*rot_cols();	/* in situ */
 
 
 /* eigenvalue routines */
-extern	VEC	*trieig(), *symmeig();
-extern	MAT	*schur();
+extern	MeVEC	*trieig(), *symmeig();
+extern	MeMAT	*schur();
 extern	void	schur_evals();
-extern	MAT	*schur_vecs();
+extern	MeMAT	*schur_vecs();
 
 /* singular value decomposition */
-extern	VEC	*bisvd(), *svd();
+extern	MeVEC	*bisvd(), *svd();
 
 /* matrix powers and exponent */
-MAT  *_m_pow();
-MAT  *m_pow();
-MAT  *m_exp(), *_m_exp();
-MAT  *m_poly();
+MeMAT  *_m_pow();
+MeMAT  *m_pow();
+MeMAT  *m_exp(), *_m_exp();
+MeMAT  *m_poly();
 
 /* FFT */
 void fft();
@@ -88,50 +88,50 @@ void ifft();
 
                  /* forms Bunch-Kaufman-Parlett factorisation for
                         symmetric indefinite matrices */
-extern	MAT	*BKPfactor(MAT *A,PERM *pivot,PERM *blocks),
+extern	MeMAT	*BKPfactor(MeMAT *A,PERM *pivot,PERM *blocks),
                  /* Cholesky factorisation of A
                         (symmetric, positive definite) */
-		*CHfactor(MAT *A),
+		*CHfactor(MeMAT *A),
                 /* LU factorisation of A (with partial pivoting) */ 
-                *LUfactor(MAT *A,PERM *pivot),
+                *LUfactor(MeMAT *A,PERM *pivot),
                 /* QR factorisation of A; need dim(diag) >= # rows of A */
-		*QRfactor(MAT *A,VEC *diag),
+		*QRfactor(MeMAT *A,MeVEC *diag),
                 /* QR factorisation of A with column pivoting */
-		*QRCPfactor(MAT *A,VEC *diag,PERM *pivot),
+		*QRCPfactor(MeMAT *A,MeVEC *diag,PERM *pivot),
                 /* L.D.L^T factorisation of A */
-		*LDLfactor(MAT *A), 
+		*LDLfactor(MeMAT *A), 
                 /* Hessenberg factorisation of A -- for schur() */
-                *Hfactor(MAT *A,VEC *diag1,VEC *diag2),
+                *Hfactor(MeMAT *A,MeVEC *diag1,MeVEC *diag2),
                 /* modified Cholesky factorisation of A;
                         actually factors A+D, D diagonal with no
                         diagonal entry in the factor < sqrt(tol) */
-                *MCHfactor(MAT *A,double tol),
-		*m_inverse(const MAT *A,MAT *out);
+                *MCHfactor(MeMAT *A,double tol),
+		*m_inverse(const MeMAT *A,MeMAT *out);
 
                 /* returns condition estimate for A after LUfactor() */
-extern	double	LUcondest(const MAT *A, PERM *pivot),
+extern	double	LUcondest(const MeMAT *A, PERM *pivot),
                 /* returns condition estimate for Q after QRfactor() */
-                QRcondest(const MAT *A);
+                QRcondest(const MeMAT *A);
 
 /* Note: The make..() and ..update() routines assume that the factorisation
         has already been carried out */
 
      /* Qout is the "Q" (orthongonal) matrix from QR factorisation */
-extern	MAT	*makeQ(const MAT *QR,const VEC *diag,MAT *Qout),
+extern	MeMAT	*makeQ(const MeMAT *QR,const MeVEC *diag,MeMAT *Qout),
                 /* Rout is the "R" (upper triangular) matrix
                         from QR factorisation */
-		*makeR(const MAT *A,MAT *Rout),
+		*makeR(const MeMAT *A,MeMAT *Rout),
                 /* Qout is orthogonal matrix in Hessenberg factorisation */
-		*makeHQ(MAT *A,VEC *diag1,VEC *diag2,MAT *Qout),
+		*makeHQ(MeMAT *A,MeVEC *diag1,MeVEC *diag2,MeMAT *Qout),
                 /* Hout is the Hessenberg matrix in Hessenberg factorisation */
-		*makeH(const MAT *A,MAT *Hout);
+		*makeH(const MeMAT *A,MeMAT *Hout);
 
                 /* updates L.D.L^T factorisation for A <- A + alpha.u.u^T */
-extern	MAT	*LDLupdate(MAT *A,VEC *u,double alpha),
+extern	MeMAT	*LDLupdate(MeMAT *A,MeVEC *u,double alpha),
                 /* updates QR factorisation for QR <- Q.(R+u.v^T)
 		   Note: we need explicit Q & R matrices,
                         from makeQ() and makeR() */
-		*QRupdate(MAT *Q,MAT *R,VEC *u,VEC *v);
+		*QRupdate(MeMAT *Q,MeMAT *R,MeVEC *u,MeVEC *v);
 
 /* Solve routines assume that the corresponding factorisation routine
         has already been applied to the matrix along with auxiliary
@@ -143,50 +143,50 @@ extern	MAT	*LDLupdate(MAT *A,VEC *u,double alpha),
         If x is NULL on entry, then it is created.
 */
 
-extern	VEC	*BKPsolve(const MAT *A,PERM *pivot,const PERM *blocks,
-			  const VEC *b,VEC *x),
-		*CHsolve(const MAT *A,const VEC *b,VEC *x),
-		*LDLsolve(const MAT *A,const VEC *b,VEC *x),
-		*LUsolve(const MAT *A, PERM *pivot, const VEC *b,VEC *x),
-		*_Qsolve(const MAT *A, const VEC *diag, const VEC *b, 
-			 VEC *x, VEC *tmp),
-		*QRsolve(const MAT *A, const VEC *diag, const VEC *b,VEC *x),
-    		*QRTsolve(const MAT *A,const VEC *,const VEC *b,VEC *x),
+extern	MeVEC	*BKPsolve(const MeMAT *A,PERM *pivot,const PERM *blocks,
+			  const MeVEC *b,MeVEC *x),
+		*CHsolve(const MeMAT *A,const MeVEC *b,MeVEC *x),
+		*LDLsolve(const MeMAT *A,const MeVEC *b,MeVEC *x),
+		*LUsolve(const MeMAT *A, PERM *pivot, const MeVEC *b,MeVEC *x),
+		*_Qsolve(const MeMAT *A, const MeVEC *diag, const MeVEC *b, 
+			 MeVEC *x, MeVEC *tmp),
+		*QRsolve(const MeMAT *A, const MeVEC *diag, const MeVEC *b,MeVEC *x),
+    		*QRTsolve(const MeMAT *A,const MeVEC *,const MeVEC *b,MeVEC *x),
 
 
      /* Triangular equations solve routines;
         U for upper triangular, L for lower traingular, D for diagonal
         if diag_val == 0.0 use that values in the matrix */
 
-		*Usolve(const MAT *A,const VEC *b,VEC *x,double diag_val),
-		*Lsolve(const MAT *A,const VEC *b,VEC *x,double diag_val),
-		*Dsolve(const MAT *A,const VEC *b,VEC *x),
-		*LTsolve(const MAT *A,const VEC *b,VEC *x,double diag_val),
-		*UTsolve(const MAT *A,const VEC *b,VEC *x,double diag_val),
-                *LUTsolve(const MAT *A,PERM *pivot,const VEC *b, VEC *x),
-                *QRCPsolve(const MAT *QR,const VEC *diag,PERM *pivot,
-			   const VEC *b,VEC *x);
+		*Usolve(const MeMAT *A,const MeVEC *b,MeVEC *x,double diag_val),
+		*Lsolve(const MeMAT *A,const MeVEC *b,MeVEC *x,double diag_val),
+		*Dsolve(const MeMAT *A,const MeVEC *b,MeVEC *x),
+		*LTsolve(const MeMAT *A,const MeVEC *b,MeVEC *x,double diag_val),
+		*UTsolve(const MeMAT *A,const MeVEC *b,MeVEC *x,double diag_val),
+                *LUTsolve(const MeMAT *A,PERM *pivot,const MeVEC *b, MeVEC *x),
+                *QRCPsolve(const MeMAT *QR,const MeVEC *diag,PERM *pivot,
+			   const MeVEC *b,MeVEC *x);
 
 extern  BAND    *bdLUfactor(BAND *A,PERM *pivot),
                 *bdLDLfactor(BAND *A);
-extern  VEC     *bdLUsolve(const BAND *A,PERM *pivot,const VEC *b,VEC *x),
-                *bdLDLsolve(const BAND *A,const VEC *b,VEC *x);
+extern  MeVEC     *bdLUsolve(const BAND *A,PERM *pivot,const MeVEC *b,MeVEC *x),
+                *bdLDLsolve(const BAND *A,const MeVEC *b,MeVEC *x);
 
 
 
-extern	VEC	*hhvec(const VEC *,unsigned int,Real *,VEC *,Real *);
-extern	VEC	*hhtrvec(const VEC *,double,unsigned int,const VEC *,VEC *);
-extern	MAT	*hhtrrows(MAT *,unsigned int,unsigned int,const VEC *,double);
-extern	MAT	*hhtrcols(MAT *,unsigned int,unsigned int,const VEC *,double);
-extern	MAT	*_hhtrcols(MAT *,unsigned int,unsigned int,const VEC *,double,VEC *);
+extern	MeVEC	*hhvec(const MeVEC *,unsigned int,Real *,MeVEC *,Real *);
+extern	MeVEC	*hhtrvec(const MeVEC *,double,unsigned int,const MeVEC *,MeVEC *);
+extern	MeMAT	*hhtrrows(MeMAT *,unsigned int,unsigned int,const MeVEC *,double);
+extern	MeMAT	*hhtrcols(MeMAT *,unsigned int,unsigned int,const MeVEC *,double);
+extern	MeMAT	*_hhtrcols(MeMAT *,unsigned int,unsigned int,const MeVEC *,double,MeVEC *);
 
 extern	void	givens(double,double,Real *,Real *);
-extern	VEC	*rot_vec(const VEC *,unsigned int,unsigned int,
-			 double,double,VEC *); /* in situ */
-extern	MAT	*rot_rows(const MAT *,unsigned int,unsigned int,
-			  double,double,MAT *); /* in situ */
-extern	MAT	*rot_cols(const MAT *,unsigned int,unsigned int,
-			  double,double,MAT *); /* in situ */
+extern	MeVEC	*rot_vec(const MeVEC *,unsigned int,unsigned int,
+			 double,double,MeVEC *); /* in situ */
+extern	MeMAT	*rot_rows(const MeMAT *,unsigned int,unsigned int,
+			  double,double,MeMAT *); /* in situ */
+extern	MeMAT	*rot_cols(const MeMAT *,unsigned int,unsigned int,
+			  double,double,MeMAT *); /* in situ */
 
 
 /* eigenvalue routines */
@@ -194,19 +194,19 @@ extern	MAT	*rot_cols(const MAT *,unsigned int,unsigned int,
                /* compute eigenvalues of tridiagonal matrix
                   with diagonal entries a[i], super & sub diagonal entries
                   b[i]; eigenvectors stored in Q (if not NULL) */
-extern	VEC	*trieig(VEC *a,VEC *b,MAT *Q),
+extern	MeVEC	*trieig(MeVEC *a,MeVEC *b,MeMAT *Q),
                  /* sets out to be vector of eigenvectors; eigenvectors
                    stored in Q (if not NULL). A is unchanged */
-		*symmeig(const MAT *A,MAT *Q,VEC *out);
+		*symmeig(const MeMAT *A,MeMAT *Q,MeVEC *out);
 
                /* computes real Schur form = Q^T.A.Q */
-extern	MAT	*schur(MAT *A,MAT *Q);
+extern	MeMAT	*schur(MeMAT *A,MeMAT *Q);
          /* computes real and imaginary parts of the eigenvalues
                         of A after schur() */
-extern	void	schur_evals(MAT *A,VEC *re_part,VEC *im_part);
+extern	void	schur_evals(MeMAT *A,MeVEC *re_part,MeVEC *im_part);
           /* computes real and imaginary parts of the eigenvectors
                         of A after schur() */
-extern	MAT	*schur_vecs(MAT *T,MAT *Q,MAT *X_re,MAT *X_im);
+extern	MeMAT	*schur_vecs(MeMAT *T,MeMAT *Q,MeMAT *X_re,MeMAT *X_im);
 
 
 /* singular value decomposition */
@@ -214,21 +214,21 @@ extern	MAT	*schur_vecs(MAT *T,MAT *Q,MAT *X_re,MAT *X_im);
         /* computes singular values of bi-diagonal matrix with
                    diagonal entries a[i] and superdiagonal entries b[i];
                    singular vectors stored in U and V (if not NULL) */
-VEC	*bisvd(VEC *a,VEC *b,MAT *U,MAT *V),
+MeVEC	*bisvd(MeVEC *a,MeVEC *b,MeMAT *U,MeMAT *V),
                /* sets "out" to be vector of singular values;
                    singular vectors stored in U and V */
-	*svd(MAT *A,MAT *U,MAT *V,VEC *out);
+	*svd(MeMAT *A,MeMAT *U,MeMAT *V,MeVEC *out);
 
 /* matrix powers and exponent */
-MAT  *_m_pow(const MAT *A, int p, MAT *tmp,MAT *out);
-MAT  *m_pow(const MAT *A, int p, MAT *out);
-MAT  *m_exp(MAT *,double,MAT *);
-MAT  *_m_exp(MAT *A, double eps, MAT *out, int *q_out, int *j_out);
-MAT  *m_poly(const MAT *,const VEC *,MAT *);
+MeMAT  *_m_pow(const MeMAT *A, int p, MeMAT *tmp,MeMAT *out);
+MeMAT  *m_pow(const MeMAT *A, int p, MeMAT *out);
+MeMAT  *m_exp(MeMAT *,double,MeMAT *);
+MeMAT  *_m_exp(MeMAT *A, double eps, MeMAT *out, int *q_out, int *j_out);
+MeMAT  *m_poly(const MeMAT *,const MeVEC *,MeMAT *);
 
 /* FFT */
-void fft(VEC *,VEC *);
-void ifft(VEC *,VEC *);
+void fft(MeVEC *,MeVEC *);
+void ifft(MeVEC *,MeVEC *);
 
 #endif
 

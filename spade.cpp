@@ -20,9 +20,19 @@
 //  Vector: dim: 4
 //     0.100412718    0.121894385     1.10724432    0.079
 
+
+#include <admodel.h>
+#include <contrib.h>
+
+extern "C"  {
+  void ad_boundf(int i);
+}
+
 #include <fenv.h>
 #include <math.h>
 #include <signal.h>
+
+extern "C" {
 #include "spade.h"
 #include "common.h"
 #include "arg.h"
@@ -39,6 +49,8 @@
 #include "machinery/kappa/grad_kappa.h"
 #include "machinery/omega/grad_omega.h"
 #include "util/util.h"
+}
+
 
 int feenableexcept(int);
 
@@ -78,8 +90,488 @@ void print_usage() {
   );
 }
 
+class model_data : public ad_comm{
+  data_int N;
+  data_int I;
+  data_int J;
+  data_number k;
+  data_vector cat;
+  data_vector eff;
+  data_int TNl;
+  data_vector tl;
+  data_vector ln;
+  data_ivector start;
+  data_ivector finish;
+  data_int Nla;
+  data_vector age;
+  data_vector length;
+  data_vector time;
+  double iota1;
+  double iota2;
+  double phi;
+  double phi2;
+  double eta1;
+  double eta2;
+  dmatrix spb;
+  dvector SpB;
+  double SpBrat;
+  double Urat;
+  dmatrix Fj;
+  dvector F;
+  dvector M;
+  dvector tbar;
+  double lastF;
+  double lastSpB;
+  double psi;
+  double sig1;
+  double sig2;
+  ~model_data();
+  model_data(int argc,char * argv[]);
+  friend class model_parameters;
+};
+
+class model_parameters : public model_data ,
+  public function_minimizer
+{
+public:
+  ~model_parameters();
+  void preliminary_calculations(void);
+  void set_runtime(void);
+  virtual void * mycast(void) {return (void*)this;}
+  static int mc_phase(void)
+  {
+    return initial_params::mc_phase;
+  }
+  static int mceval_phase(void)
+  {
+    return initial_params::mceval_phase;
+  }
+  static int sd_phase(void)
+  {
+    return initial_params::sd_phase;
+  }
+  static int current_phase(void)
+  {
+    return initial_params::current_phase;
+  }
+  static int last_phase(void)
+  {
+    return (initial_params::current_phase
+      >=initial_params::max_number_phases);
+  }
+  static prevariable current_feval(void)
+  {
+    return *objective_function_value::pobjfun;
+  }
+private:
+  ivector integer_control_flags;
+  dvector double_control_flags;
+  param_init_bounded_number alpha1;
+  param_init_bounded_number alpha2;
+  param_init_bounded_number kappa;
+  param_init_bounded_number omega;
+  param_init_bounded_number beta0;
+  param_init_bounded_number loggam;
+  param_init_bounded_number iota;
+  param_number gam;
+  param_number inter;
+  param_number inter2;
+  param_number Z;
+  param_number ubar;
+  param_number vbar;
+  param_number wbar;
+  param_stddev_number obj1;
+  param_stddev_number obj2;
+  param_stddev_number obj3;
+  param_matrix n;
+  param_matrix nh;
+  param_matrix x;
+  param_matrix xh;
+  param_matrix CR;
+  param_vector HF;
+  param_vector cdr;
+  param_vector cdt;
+  param_vector Qi;
+  param_number prior_function_value;
+  param_number likelihood_function_value;
+  objective_function_value ff;
+public:
+  virtual void userfunction(void);
+  virtual void report(const dvector& gradients);
+  virtual void final_calcs(void);
+  model_parameters(int sz,int argc, char * argv[]);
+  virtual void initializationfunction(void){}
+ dvariable zstar(const dvariable& x, const dvariable& N, const double t);
+ double e(const double t);
+ double c(const double t);
+ dvariable g(const dvariable& x);
+ dvariable b(const dvariable& x);
+ dvariable s(const dvariable& x, const double t);
+ dvariable w(const dvariable& x);
+ dvariable Q2(const dvar_vector& X, const dvar_vector& W, const dvariable& g, const int sz);
+ dvariable Q(const dvar_vector& X, const dvar_vector& V, const int sz);
+ double Q(const dvector& X, const dvector& V, const int sz);
+
+};
+  
+model_data::model_data(int argc,char * argv[]) : ad_comm(argc,argv)
+{
+  N.allocate("N");
+  I.allocate("I");
+  J.allocate("J");
+  k.allocate("k");
+  cat.allocate(0,N,"cat");
+  eff.allocate(0,4*N,"eff");
+  TNl.allocate("TNl");
+  tl.allocate(1,TNl,"tl");
+  ln.allocate(1,TNl,"ln");
+  start.allocate(0,I,"start");
+  finish.allocate(0,I,"finish");
+  Nla.allocate("Nla");
+  age.allocate(1,Nla,"age");
+  length.allocate(1,Nla,"length");
+  time.allocate(1,Nla,"time");
+  spb.allocate(0,I,start,finish);
+  SpB.allocate(0,I);
+  Fj.allocate(0,I,start,finish);
+  F.allocate(0,I);
+  M.allocate(0,I);
+  tbar.allocate(0,I);
+}
+
+model_parameters::model_parameters(int sz,int argc,char * argv[]) : 
+ model_data(argc,argv) , function_minimizer(sz)
+{
+  initializationfunction();
+  alpha1.allocate(0,0.1,"alpha1");
+  alpha2.allocate(0,0.1,"alpha2");
+  kappa.allocate(0.05,0.9,"kappa");
+  omega.allocate(50,200,"omega");
+  beta0.allocate(0,1.1,1,"beta0");
+  loggam.allocate(-19,-12,"loggam");
+  iota.allocate(0,0.1,"iota");
+  gam.allocate("gam");
+  #ifndef NO_AD_INITIALIZE
+  gam.initialize();
+  #endif
+  inter.allocate("inter");
+  #ifndef NO_AD_INITIALIZE
+  inter.initialize();
+  #endif
+  inter2.allocate("inter2");
+  #ifndef NO_AD_INITIALIZE
+  inter2.initialize();
+  #endif
+  Z.allocate("Z");
+  #ifndef NO_AD_INITIALIZE
+  Z.initialize();
+  #endif
+  ubar.allocate("ubar");
+  #ifndef NO_AD_INITIALIZE
+  ubar.initialize();
+  #endif
+  vbar.allocate("vbar");
+  #ifndef NO_AD_INITIALIZE
+  vbar.initialize();
+  #endif
+  wbar.allocate("wbar");
+  #ifndef NO_AD_INITIALIZE
+  wbar.initialize();
+  #endif
+  obj1.allocate("obj1");
+  obj2.allocate("obj2");
+  obj3.allocate("obj3");
+  n.allocate(0,I,start,finish,"n");
+  #ifndef NO_AD_INITIALIZE
+    n.initialize();
+  #endif
+  nh.allocate(0,I,start,finish,"nh");
+  #ifndef NO_AD_INITIALIZE
+    nh.initialize();
+  #endif
+  x.allocate(0,I,start,finish,"x");
+  #ifndef NO_AD_INITIALIZE
+    x.initialize();
+  #endif
+  xh.allocate(0,I,start,finish,"xh");
+  #ifndef NO_AD_INITIALIZE
+    xh.initialize();
+  #endif
+  CR.allocate(0,I,start,finish,"CR");
+  #ifndef NO_AD_INITIALIZE
+    CR.initialize();
+  #endif
+  HF.allocate(0,I,"HF");
+  #ifndef NO_AD_INITIALIZE
+    HF.initialize();
+  #endif
+  cdr.allocate(0,I,"cdr");
+  #ifndef NO_AD_INITIALIZE
+    cdr.initialize();
+  #endif
+  cdt.allocate(0,I,"cdt");
+  #ifndef NO_AD_INITIALIZE
+    cdt.initialize();
+  #endif
+  Qi.allocate(0,I,"Qi");
+  #ifndef NO_AD_INITIALIZE
+    Qi.initialize();
+  #endif
+  ff.allocate("ff");
+  prior_function_value.allocate("prior_function_value");
+  likelihood_function_value.allocate("likelihood_function_value");
+}
+
+
+void model_parameters::userfunction(void)
+{
+  ff =0.0;
+  sig1 = .05;
+  sig2 = .7;
+  psi = 200;
+  iota1=5.2;
+  iota2=0.619;
+  phi=16.5;
+  phi2=20.3;
+  eta1=1.703205e-5;
+  eta2=2.9526;
+  gam = mfexp(loggam);
+  ff=0;
+  int i,j;
+  for (j=0;j<=J;j++) 
+    x(0,j) = j*omega/J;
+  x(0,J) -= 1e-9; // for pow base neq 0
+  if (81*kappa*kappa*omega*omega*(alpha1+2*alpha2*omega)*(alpha1+2*alpha2*omega) < 12*kappa*(alpha1*omega+kappa)*(alpha1*omega+kappa)*(alpha1*omega+kappa))
+    ff = 1e6;
+  else {
+  dvariable zeta = sqrt(81*kappa*kappa*omega*omega*(alpha1+2*alpha2*omega)*(alpha1+2*alpha2*omega) - 12*kappa*(alpha1*omega+kappa)*(alpha1*omega+kappa)*(alpha1*omega+kappa));
+  inter = 9*alpha1*kappa*kappa*omega + 18*alpha2*kappa*kappa*omega*omega + kappa*zeta; 
+  Z = pow(inter,1/3.0) / (3* pow(2/3.0,1/3.0)) + pow(2/3.0,1/3.0) * kappa * (alpha1*omega + kappa) / pow(inter,1/3.0);
+  ubar = (Z-beta0-kappa)/gam;
+  if (ubar <= 0) 
+    ff = 1e6;
+  else {
+  vbar = (kappa*omega*ubar) / (beta0+gam*ubar+kappa);
+  wbar = (2*kappa*omega*vbar) / (beta0+gam*ubar+2*kappa);
+  for (j=0;j<=J;j++)
+    n(0,j) = (alpha1*vbar+alpha2*wbar)*pow(omega-x(0,j),(beta0+gam*ubar)/kappa - 1) / (kappa*pow(omega,(beta0+gam*ubar)/kappa));
+  Qi(0) = Q(x(0),n(0),J);
+  for (j=0;j<=J;j++)
+    spb(0,j) = value(b(x(0,j))*n(0,j)); 
+  SpB(0) = Q(value(x(0)),spb(0),J);
+  i=0;
+  for (j=0;j<=J;j++)
+    CR(i,j) = w(x(i,j))*s(x(i,j),k*(i-N))*n(i,j)*iota*e(k*(i-N));
+  for (i=1;i<=I;i++) {
+    double t = k*(i-N-1);
+    double th = k*(i-N-.5);
+    xh(i,0) = 1e-9;
+    for (j=1;j<J+i;j++) 
+      xh(i,j)=x(i-1,j-1)+(k/2)*g(x(i-1,j-1));
+    xh(i,J+i)=omega;
+    for (j=1;j<=J+i;j++)
+      nh(i,j) = n(i-1,j-1)*mfexp(-(k/2)*zstar(x(i-1,j-1),Qi(i-1),t));
+    nh(i,0)= Q2(xh(i),nh(i),g(0),J+i); 
+    dvariable Qhalf = Q(xh(i),nh(i),J+i);
+    x(i,0) = 1e-9;
+    for (j=1;j<J+i;j++)
+      x(i,j) = x(i-1,j-1) + k*g(xh(i,j));
+    x(i,J+i) = omega;
+    for (j=1;j<=J+i;j++)
+      n(i,j) = n(i-1,j-1)*mfexp(-k*zstar(xh(i,j),Qhalf,th));
+    n(i,0) = Q2(x(i),n(i),g(0),J+i); 
+    Qi(i) = Q(x(i),n(i),J+i);
+    for (j=0;j<=J+i;j++)
+      CR(i,j) = w(x(i,j))*s(x(i,j),k*(i-N))*n(i,j)*iota*e(k*(i-N)); 
+    HF(i) = Q(x(i),CR(i),J+i)/1e3; 
+    if (k*(i-N)<0)
+      F(i) = value(iota*e(k*(i-N)));
+    else
+      F(i) = value(iota*e(k*(i-N)));
+    M(i) = value(Qi(i)*gam);
+    for (j=0;j<=J+i;j++)
+      spb(i,j) = value(b(x(i,j))*n(i,j)); 
+    SpB(i) = Q(value(x(i)),spb(i),J+i);
+  }
+  dvariable avgHF = 0;
+  for (i=N;i<=I;i++)
+    avgHF += HF(i);
+  avgHF /= (N+1);
+  lastF = 0;
+  for (i=0;i<(int)1/k;i++)
+    lastF += F(I-i);
+  lastF *= k;
+  lastSpB = 0;
+  for (i=0;i<(int)1/k;i++)
+    lastSpB += SpB(I-i);
+  lastSpB *= k;
+  double SpBen = 0;
+  for (i=0;i<(int)1/k;i++)
+    SpBen += SpB(I-i);
+  SpBen *= k;
+  SpBrat = SpBen / SpB(0); 
+  double Uen = 0;
+  for (i=0;i<(int)1/k;i++)
+    Uen += value(Qi(I-i));
+  Uen *= k;
+  Urat = Uen / value(ubar);
+  // Objective function 1
+  for (i=0;i<=I;i++)
+    tbar(i) = sum( exp( -square(k*(i-N) - tl) / (2*square(sig1)) ) / sqrt( 2*M_PI*square(sig1) ) );
+  double mtbar = max(tbar);
+  tbar /= mtbar;
+  /*dmatrix nh_t(0,I,0,100);
+  nh_t.initialize();
+  for (i=0;i<=I;i++) {
+    for (j=0;j<=100;j++) {
+      nh_t(i,j) = sum( elem_prod((1/mtbar)*exp( -square(k*(i-N) - tl) / (2*square(sig1)) ) / sqrt( 2*M_PI*square(sig1) ), exp( -square(j*value(omega)/100-ln) / (2*square(sig2)) ) / sqrt( 2*M_PI*square(sig2) ) ) );
+    }
+    //cout << i << " " << nh_t(i,10) << endl;
+  }
+  //cout << nh_t(I) << endl;
+  //exit(1);*/
+  for (i=0;i<=I;i++) {
+    dvariable Qcr = Q(x(i),CR(i),J+i);
+    for (j=0;j<=finish(i);j++) {
+      nh(i,j) = square(  c(k*(i-N)) * (tbar(i) * sum( elem_prod((1/mtbar)*exp( -square(k*(i-N) - tl) / (2*square(sig1)) ) / sqrt( 2*M_PI*square(sig1) ), exp( -square(x(i,j)-ln) / (2*square(sig2)) ) / sqrt( 2*M_PI*square(sig2) ) ) ) + (1-tbar(i)) * CR(i,j)/Qcr )  - CR(i,j) );
+      //(tbar(i) * sum( elem_prod((1/mtbar)*exp( -square(k*(i-N) - tl) / (2*square(sig1)) ) / sqrt( 2*M_PI*square(sig1) ), exp( -square(x(i,j)-ln) / (2*square(sig2)) ) / sqrt( 2*M_PI*square(sig2) ) ) ) + (1-tbar(i)) * ch(i,j)/Q(x(i),ch(i),J+i) );
+    }
+    cdr(i) = Q(x(i),nh(i),J+i);
+    //cout << i << " " << cdr(i) << endl;    
+    cdt(i) = k*i;
+  }
+  ff = Q(cdt,cdr,I);
+  cout << ff << endl;
+  }
+  }
+  if (mceval_phase()) 
+    cout << alpha1 << " " << alpha2 << " " << kappa << " " << omega << " " << beta0 << " " << loggam << " " << iota << " " << ff << " " << SpBrat << " " << lastF << " " << lastSpB << endl;
+}
+
+dvariable model_parameters::zstar(const dvariable& x, const dvariable& N, const double t)
+{
+  return beta0 + gam*N + s(x,t)*iota*e(t) - kappa;
+}
+
+double model_parameters::e(const double t)
+{
+  double tt = t + 24;
+  double cek = k/2;
+  int idx = floor((tt+(cek/2) - 1e-12)/cek);
+  return eff(idx);
+}
+
+double model_parameters::c(const double t)
+{
+  if (t<0)
+    return cat(0);
+  else
+    {
+      int idx = floor((t+k/2 - 1e-12)/k);
+      return cat(idx);
+    }
+}
+
+dvariable model_parameters::g(const dvariable& x)
+{
+  return kappa*(omega-x);
+}
+
+dvariable model_parameters::b(const dvariable& x)
+{
+  return alpha1*x + alpha2*square(x);
+}
+
+dvariable model_parameters::s(const dvariable& x, const double t)
+{
+  if (t<0) {
+    if (x < iota1*phi)
+      return mfexp(-square(x-iota1*phi)/(2*iota2*square(phi)));
+    else {
+      if (x < iota1*phi2)
+        return 1;
+      else
+        return mfexp(-square(x-iota1*phi2)/(2*iota2*square(phi2)));
+    }
+  } else 
+    return mfexp(-square(x-iota1*phi)/(2*iota2*square(phi)));
+}
+
+dvariable model_parameters::w(const dvariable& x)
+{
+  return eta1*pow(x,eta2);
+}
+
+dvariable model_parameters::Q2(const dvar_vector& X, const dvar_vector& W, const dvariable& g, const int sz)
+{
+  dvariable ac = X(1)*b(X(1))*W(1) - X(0)*b(X(1))*W(1); 
+  for (int j=1;j<sz;j++) 
+    ac += (b(X(j))*W(j) + b(X(j+1))*W(j+1)) * (X(j+1)-X(j)); 
+  ac /= (2*g + X(0)*b(X(0)) - X(1)*b(X(0))); 
+  return ac;
+}
+
+dvariable model_parameters::Q(const dvar_vector& X, const dvar_vector& V, const int sz)
+{
+  dvariable ac=0;
+  for (int j=0;j<sz;j++) 
+    ac = ac + (X(j+1) - X(j)) * (V(j) + V(j+1))/2.;
+  return ac;
+}
+
+double model_parameters::Q(const dvector& X, const dvector& V, const int sz)
+{
+  double ac=0;
+  for (int j=0;j<sz;j++) 
+    ac = ac + (X(j+1) - X(j)) * (V(j) + V(j+1))/2.;
+  return ac;
+}
+
+void model_parameters::preliminary_calculations(void){
+#if defined(USE_ADPVM)
+
+  admaster_slave_variable_interface(*this);
+
+#endif
+}
+
+model_data::~model_data()
+{}
+
+model_parameters::~model_parameters()
+{}
+
+void model_parameters::report(const dvector& gradients){}
+
+void model_parameters::final_calcs(void){}
+
+void model_parameters::set_runtime(void){}
+
+#ifdef _BORLANDC_
+  extern unsigned _stklen=10000U;
+#endif
+
+
+#ifdef __ZTC__
+  extern unsigned int _stack=10000U;
+#endif
+
+  long int arrmblsize=0;
+
 int main(int argc, char *argv[])
 {
+
+  ad_set_new_handler();
+  ad_exit=&ad_boundf;
+  gradient_structure::set_NO_DERIVATIVES();
+  gradient_structure::set_YES_SAVE_VARIABLES_VALUES();
+  if (!arrmblsize) arrmblsize=15000000;
+  model_parameters mp(arrmblsize,argc,argv);
+  mp.iprint=10;
+  mp.preliminary_calculations();
+  mp.computations(argc,argv);
+  return 0;
+    
   feenableexcept(FE_DIVBYZERO); 
   feenableexcept(FE_INVALID); 
   feenableexcept(FE_OVERFLOW);
@@ -89,6 +581,8 @@ int main(int argc, char *argv[])
   // uncomment this line
   //request_interactive_mode(1);
 
+  interactive_mode_requested = 0;
+  
   int N;
   int minfish;
   Real k;
@@ -143,7 +637,7 @@ int main(int argc, char *argv[])
       // graph catch spline
       /*
   printf("\n");
-  VEC *mut = v_get(5000);
+  MeVEC *mut = v_get(5000);
   for (int i=1;i<5000;i++) {
     mut->ve[i] = sple(newdata.nK,i/5000.0,newdata.knots_c,newdata.splcoef_c);
     printf("%lf\n",mut->ve[i]);
@@ -156,10 +650,10 @@ int main(int argc, char *argv[])
   Real bw = get_bw(newdata.ln);
   Real bwt = get_bw(newdata.tl);
   
-  VEC *x = v_get(1000);
+  MeVEC *x = v_get(1000);
   for (int i=0;i<1000;i++)
     x->ve[i] = 160.0*i/1000.0;
-  VEC *l  = v_get(1000);
+  MeVEC *l  = v_get(1000);
 
   Real div = 0;
   for (int i=0;i<newdata.Nlf;i++)
@@ -200,15 +694,29 @@ int main(int argc, char *argv[])
   OptimControl optim;
   optim_control_read("control.optim", &optim);
 
+  iota1=5.2;
+  iota2=0.619;
+  phi=17;
+  eta1=1.703205e-5;
+  eta2=2.9526;
+
   // Configure each parameter. This must be updated when a
   // new parameter is created.
+  
   Parameters parameters= {
-   .alpha = { .name = "alpha", .grad = &grad_alpha },
-   .beta = { .name = "beta", .grad = &grad_beta },
-   .gamma = { .name = "gamma", .grad = &grad_gamma },
-   .iota = { .name = "iota", .grad = &grad_iota },
-   .kappa = { .name = "kappa", .grad = &grad_kappa },
-   .omega = { .name = "omega", .grad = &grad_omega }
+
+  alpha : { grad : &grad_alpha, value: 0, active: 0, gradient: 0, name: "alpha" },
+
+  beta : { grad : &grad_beta, value: 0, active: 0, gradient: 0, name : "beta",  },
+
+ gamma : { grad : &grad_gamma, value: 0, active: 0, gradient: 0, name : "gamma", },
+    
+  iota : { grad : &grad_iota, value: 0, active: 0, gradient: 0, name : "iota"},
+  
+  kappa : { grad : &grad_kappa, value: 0, active: 0, gradient: 0,name : "kappa" },
+  
+  omega : { grad : &grad_omega, value: 0, active: 0, gradient: 0, name : "omega"}
+
   };
 
   if (!MESCHACH)
@@ -239,7 +747,7 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  VEC *theta = parameters_to_vec(&parameters);
+  MeVEC *theta = parameters_to_vec(&parameters);
 
   h = parameters.omega.value / J;
 
@@ -266,6 +774,14 @@ int main(int argc, char *argv[])
   return(0);
 }
 
+extern "C"  {
+  void ad_boundf(int i)
+  {
+    /* so we can stop here */
+    exit(i);
+  }
+}
+
 
 /*
 
@@ -281,8 +797,8 @@ for (i in 1:nrow(cssf))
 
 Li <- Lin > min.lengths
 
-maxnk <- 0
-maxnbasis <- 0
+Memaxnk <- 0
+Memaxnbasis <- 0
 
 szs <- {}
 timesidx <- {}
@@ -309,13 +825,13 @@ for (i in 1:shorterN) {
      
       xl <- (min(x)-10):(min(x)-6)
       yl <- rep(0,5)
-      xh <- (max(x)+6):(max(x)+10)
+      xh <- (Memax(x)+6):(Memax(x)+10)
       yh <- rep(0,5)
       
-      x <- c(xl,min(x)-3,x,max(x)+3,xh)
+      x <- c(xl,min(x)-3,x,Memax(x)+3,xh)
       y <- c(yl,y[1]/2,y,y[length(y)]/2,yh)            
       
-      xsp <- (x - min(x)) / (max(x)-min(x))
+      xsp <- (x - min(x)) / (Memax(x)-min(x))
       
       spl <- smooth.spline(xsp,y,nknots=length(xsp)-1,spar=.5)
       bspl.basis <- create.bspline.basis(unique(spl$fit$knot))
@@ -326,14 +842,14 @@ for (i in 1:shorterN) {
       #    outy[j] <- eval.basis(outx[j],bspl.basis) %*% spl$fit$coef
            
       #if (i == 592){
-      #    outx <- outx * (max(x)-min(x)) + min(x)
+      #    outx <- outx * (Memax(x)-min(x)) + min(x)
       #    outxall <- outx
       #    outy <- outy*200
       #    outyall <- outy
       #    #plot(outx,outy,type='l',ylim=c(-100,5),xlim=c(50,180))
       #}
       #else if (i>592) {
-      #    outx <- outx * (max(x)-min(x)) + min(x)
+      #    outx <- outx * (Memax(x)-min(x)) + min(x)
       #    outxall <- c(outxall,outx)
       #    outy <- (outy*200) - epsilon*(1-exp(-delta*(i-592)/25))
       #    outyall <- c(outyall,outy)
@@ -350,18 +866,18 @@ for (i in 1:shorterN) {
       nbasis <- nbreaks + norder - 2
       nk <- length(knots)
 
-      if (nbasis>maxnbasis)
-          maxnbasis <- nbasis
-      if (nk>maxnk)
-          maxnk <- nk
+      if (nbasis>Memaxnbasis)
+          Memaxnbasis <- nbasis
+      if (nk>Memaxnk)
+          Memaxnk <- nk
 
     }
 }
 
 
 ntimes <- length(szs)
-splcoef <- matrix(0,ntimes,maxnbasis)
-knots <- matrix(0,ntimes,maxnk)
+splcoef <- matrix(0,ntimes,Memaxnbasis)
+knots <- matrix(0,ntimes,Memaxnk)
 nbases <- array(0,ntimes)
 nks <- array(0,ntimes)
 timesidx <- array(0,ntimes)
@@ -391,16 +907,16 @@ for (i in 1:shorterN) {
                 
       xl <- (min(x)-10):(min(x)-6)
       yl <- rep(0,5)
-      xh <- (max(x)+6):(max(x)+10)
+      xh <- (Memax(x)+6):(Memax(x)+10)
       yh <- rep(0,5)
       
-      x <- c(xl,min(x)-3,x,max(x)+3,xh)
+      x <- c(xl,min(x)-3,x,Memax(x)+3,xh)
       y <- c(yl,y[1]/2,y,y[length(y)]/2,yh)
       
       starts[jj] <- min(x)
-      stops[jj] <- max(x)
+      stops[jj] <- Memax(x)
       
-      xsp <- (x - min(x)) / (max(x)-min(x))
+      xsp <- (x - min(x)) / (Memax(x)-min(x))
             
       spl <- smooth.spline(xsp,y,nknots=length(xsp)-1,spar=.5)
       bspl.basis <- create.bspline.basis(unique(spl$fit$knot))
@@ -412,12 +928,12 @@ for (i in 1:shorterN) {
       #    outy[j] <- eval.basis(outx[j],bspl.basis) %*% spl$fit$coef
       
       #if (i == 592){
-      #    outx <- outx * (max(x)-min(x)) + min(x)      
+      #    outx <- outx * (Memax(x)-min(x)) + min(x)      
       #    outy <- outy*200
       #    plot(outx,outy,type='l',xlim=range(outxall),ylim=range(outyall))
       #}
       #else if(i > 592) {
-      #    outx <- outx * (max(x)-min(x)) + min(x)
+      #    outx <- outx * (Memax(x)-min(x)) + min(x)
       #    outy <- (outy*200) - epsilon*(1-exp(-delta*(i-592)/25))
       #    lines(outx,outy)
       #}            

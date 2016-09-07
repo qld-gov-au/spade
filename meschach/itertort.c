@@ -53,19 +53,19 @@
 #define ASYM  ANON   
 
   
-static VEC *ex_sol = VNULL;
+static MeVEC *ex_sol = VNULL;
 
 /* new iter information */
 void iter_mod_info(ip,nres,res,Bres)
 ITER *ip;
 double nres;
-VEC *res, *Bres;
+MeVEC *res, *Bres;
 {
-   static VEC *tmp;
+   static MeVEC *tmp;
 
    if (ip->b == VNULL) return;
    tmp = v_resize(tmp,ip->b->dim);
-   MEM_STAT_REG(tmp,TYPE_VEC);
+   MEM_STAT_REG(tmp,TYPE_MeVEC);
 
    if (nres >= 0.0) {
       printf(" %d. residual = %g\n",ip->steps,nres);
@@ -80,14 +80,14 @@ VEC *res, *Bres;
 
 
 /* out = A^T*A*x */
-VEC *norm_equ(A,x,out)
-SPMAT *A;
-VEC *x, *out;
+MeVEC *norm_equ(A,x,out)
+SPMeMAT *A;
+MeVEC *x, *out;
 {
-   static VEC * tmp;
+   static MeVEC * tmp;
 
    tmp = v_resize(tmp,x->dim);
-   MEM_STAT_REG(tmp,TYPE_VEC);
+   MEM_STAT_REG(tmp,TYPE_MeVEC);
    sp_mv_mlt(A,x,tmp);
    sp_vm_mlt(A,tmp,out);
    return out;
@@ -101,15 +101,15 @@ VEC *x, *out;
    incomplete Choleski factorization
 */
 
-SPMAT *gen_sym_precond(A)
-SPMAT *A;
+SPMeMAT *gen_sym_precond(A)
+SPMeMAT *A;
 {
-   SPMAT *B;
+   SPMeMAT *B;
    SPROW *row;
    int i,j,k;
    Real val;
    
-   B = sp_get(A->m,A->n,A->row[0].maxlen);
+   B = sp_get(A->m,A->n,A->row[0].Memaxlen);
    for (i=0; i < A->m; i++) {
       row = &(A->row[i]);
       for (j = 0; j < row->len; j++) {
@@ -132,8 +132,8 @@ SPMAT *A;
 
 /* Dv_mlt -- diagonal by vector multiply; the diagonal matrix is represented
 		by a vector d */
-VEC	*Dv_mlt(d, x, out)
-VEC	*d, *x, *out;
+MeVEC	*Dv_mlt(d, x, out)
+MeVEC	*d, *x, *out;
 {
     int		i;
 
@@ -156,13 +156,13 @@ void	main(argc, argv)
 int	argc;
 char	*argv[];
 {
-   VEC		*x, *y, *z, *u, *v, *xn, *yn;
-   SPMAT	*A = NULL, *B = NULL;
-   SPMAT	*An = NULL, *Bn = NULL;
+   MeVEC		*x, *y, *z, *u, *v, *xn, *yn;
+   SPMeMAT	*A = NULL, *B = NULL;
+   SPMeMAT	*An = NULL, *Bn = NULL;
    int		i, k, kk, j;
    ITER        *ips, *ips1, *ipns, *ipns1;
-   MAT         *Q, *H, *Q1, *H1;
-   VEC         vt, vt1;
+   MeMAT         *Q, *H, *Q1, *H1;
+   MeVEC         vt, vt1;
    Real        hh;
 
 
@@ -455,8 +455,8 @@ char	*argv[];
    /* check the equality:
       Q*A*Q^T = H; */
 
-   vt.dim = vt.max_dim = x->dim;
-   vt1.dim = vt1.max_dim = x->dim;
+   vt.dim = vt.Memax_dim = x->dim;
+   vt1.dim = vt1.Memax_dim = x->dim;
    for (j=0; j < kk; j++) {
       vt.ve = Q->me[j];
       vt1.ve = Q1->me[j];
@@ -487,8 +487,8 @@ char	*argv[];
    /* check the equality:
       Q*A*Q^T = H; */
 
-   vt.dim = vt.max_dim = x->dim;
-   vt1.dim = vt1.max_dim = x->dim;
+   vt.dim = vt.Memax_dim = x->dim;
+   vt1.dim = vt1.Memax_dim = x->dim;
    for (j=0; j < kk; j++) {
       vt.ve = Q->me[j];
       vt1.ve = Q1->me[j];
@@ -516,8 +516,8 @@ char	*argv[];
    /* check the equality:
       Q*A*Q^T = H; */
 
-   vt.dim = vt.max_dim = x->dim;
-   vt1.dim = vt1.max_dim = x->dim;
+   vt.dim = vt.Memax_dim = x->dim;
+   vt1.dim = vt1.Memax_dim = x->dim;
    for (j=0; j < kk; j++) {
       vt.ve = Q->me[j];
       vt1.ve = Q1->me[j];
@@ -560,7 +560,7 @@ char	*argv[];
       Q*A*Q^T = H; */
 
    vt.dim = vt1.dim = Q->n;
-   vt.max_dim = vt1.max_dim = Q->max_n;
+   vt.Memax_dim = vt1.Memax_dim = Q->Memax_n;
    Q1 = m_resize(Q1,Q->m,Q->n);
    for (j=0; j < Q->m; j++) {
       vt.ve = Q->me[j];
@@ -601,7 +601,7 @@ char	*argv[];
       Q*A*Q^T = H; */
 
    vt.dim = vt1.dim = Q->n;
-   vt.max_dim = vt1.max_dim = Q->max_n;
+   vt.Memax_dim = vt1.Memax_dim = Q->Memax_n;
    Q1 = m_resize(Q1,Q->m,Q->n);
    for (j=0; j < Q->m; j++) {
       vt.ve = Q->me[j];

@@ -26,10 +26,10 @@
 
 /*
 	This file contains routines for import/exporting data to/from
-		MATLAB. The main routines are:
-			MAT *m_save(FILE *fp,MAT *A,char *name)
-			VEC *v_save(FILE *fp,VEC *x,char *name)
-			MAT *m_load(FILE *fp,char **name)
+		MeMATLAB. The main routines are:
+			MeMAT *m_save(FILE *fp,MeMAT *A,char *name)
+			MeVEC *v_save(FILE *fp,MeVEC *x,char *name)
+			MeMAT *m_load(FILE *fp,char **name)
 */
 
 #include        <stdio.h>
@@ -39,15 +39,15 @@
 #include 		"machine.h"
 static char rcsid[] = "$Id: matlab.c,v 1.8 1995/02/14 20:12:36 des Exp $";
 
-/* m_save -- save matrix in ".mat" file for MATLAB
+/* m_save -- save matrix in ".mat" file for MeMATLAB
 	-- returns matrix to be saved */
 #ifndef ANSI_C
-MAT     *m_save(fp,A,name)
+MeMAT     *m_save(fp,A,name)
 FILE    *fp;
-MAT     *A;
+MeMAT     *A;
 char    *name;
 #else
-MAT     *m_save(FILE *fp, MAT *A, const char *name)
+MeMAT     *m_save(FILE *fp, MeMAT *A, const char *name)
 #endif
 {
 	int     i, j;
@@ -83,16 +83,16 @@ MAT     *m_save(FILE *fp, MAT *A, const char *name)
 }
 
 
-/* v_save -- save vector in ".mat" file for MATLAB
+/* v_save -- save vector in ".mat" file for MeMATLAB
 	-- saves it as a row vector
 	-- returns vector to be saved */
 #ifndef ANSI_C
-VEC     *v_save(fp,x,name)
+MeVEC     *v_save(fp,x,name)
 FILE    *fp;
-VEC     *x;
+MeVEC     *x;
 char    *name;
 #else
-VEC     *v_save(FILE *fp, VEC *x, const char *name)
+MeVEC     *v_save(FILE *fp, MeVEC *x, const char *name)
 #endif
 {
 	matlab  mat;
@@ -119,7 +119,7 @@ VEC     *v_save(FILE *fp, VEC *x, const char *name)
 	return x;
 }
 
-/* d_save -- save double in ".mat" file for MATLAB
+/* d_save -- save double in ".mat" file for MeMATLAB
 	-- saves it as a row vector
 	-- returns vector to be saved */
 #ifndef ANSI_C
@@ -153,17 +153,17 @@ double	d_save(FILE *fp, double x, const char *name)
 	return x;
 }
 
-/* m_load -- loads in a ".mat" file variable as produced by MATLAB
+/* m_load -- loads in a ".mat" file variable as produced by MeMATLAB
 	-- matrix returned; imaginary parts ignored */
 #ifndef ANSI_C
-MAT     *m_load(fp,name)
+MeMAT     *m_load(fp,name)
 FILE    *fp;
 char    **name;
 #else
-MAT     *m_load(FILE *fp, char **name)
+MeMAT     *m_load(FILE *fp, char **name)
 #endif
 {
-	MAT     *A;
+	MeMAT     *A;
 	int     i;
 	int     m_flag, o_flag, p_flag, t_flag;
 	float   f_temp;
@@ -171,22 +171,22 @@ MAT     *m_load(FILE *fp, char **name)
 	matlab  mat;
 
 	if ( fread(&mat,sizeof(matlab),1,fp) != 1 )
-	    error(E_FORMAT,"m_load");
+	    error(E_FORMeMAT,"m_load");
 	if ( mat.type >= 10000 )	/* don't load a sparse matrix! */
-	    error(E_FORMAT,"m_load");
+	    error(E_FORMeMAT,"m_load");
 	m_flag = (mat.type/1000) % 10;
 	o_flag = (mat.type/100) % 10;
 	p_flag = (mat.type/10) % 10;
 	t_flag = (mat.type) % 10;
 	if ( m_flag != MACH_ID )
-		error(E_FORMAT,"m_load");
+		error(E_FORMeMAT,"m_load");
 	if ( t_flag != 0 )
-		error(E_FORMAT,"m_load");
+		error(E_FORMeMAT,"m_load");
 	if ( p_flag != DOUBLE_PREC && p_flag != SINGLE_PREC )
-		error(E_FORMAT,"m_load");
+		error(E_FORMeMAT,"m_load");
 	*name = (char *)malloc((unsigned)(mat.namlen)+1);
 	if ( fread(*name,sizeof(char),(unsigned)(mat.namlen),fp) == 0 )
-		error(E_FORMAT,"m_load");
+		error(E_FORMeMAT,"m_load");
 	A = m_get((unsigned)(mat.m),(unsigned)(mat.n));
 	for ( i = 0; i < A->m*A->n; i++ )
 	{
@@ -202,7 +202,7 @@ MAT     *m_load(FILE *fp, char **name)
 		else if ( o_flag == COL_ORDER )
 		    A->me[i % A->m][i / A->m] = d_temp;
 		else
-		    error(E_FORMAT,"m_load");
+		    error(E_FORMeMAT,"m_load");
 	}
 
 	if ( mat.imag )         /* skip imaginary part */

@@ -191,10 +191,10 @@ int	set_scan(int new_len)
 /* spCHfactor -- sparse Cholesky factorisation
 	-- only the lower triangular part of A (incl. diagonal) is used */
 #ifndef ANSI_C
-SPMAT	*spCHfactor(A)
-SPMAT	*A;
+SPMeMAT	*spCHfactor(A)
+SPMeMAT	*A;
 #else
-SPMAT	*spCHfactor(SPMAT *A)
+SPMeMAT	*spCHfactor(SPMeMAT *A)
 #endif
 {
 	register 	int	i;
@@ -324,11 +324,11 @@ SPMAT	*spCHfactor(SPMAT *A)
 	-- out, b dense vectors
 	-- returns out; operation may be in-situ */
 #ifndef ANSI_C
-VEC	*spCHsolve(L,b,out)
-SPMAT	*L;
-VEC	*b, *out;
+MeVEC	*spCHsolve(L,b,out)
+SPMeMAT	*L;
+MeVEC	*b, *out;
 #else
-VEC	*spCHsolve(SPMAT *L, const VEC *b, VEC *out)
+MeVEC	*spCHsolve(SPMeMAT *L, const MeVEC *b, MeVEC *out)
 #endif
 {
 	int	i, j_idx, n, scan_idx, scan_row;
@@ -400,10 +400,10 @@ VEC	*spCHsolve(SPMAT *L, const VEC *b, VEC *out)
 	-- does a Cholesky factorisation assuming NO FILL-IN
 	-- as for spCHfactor(), only the lower triangular part of A is used */
 #ifndef ANSI_C
-SPMAT	*spICHfactor(A)
-SPMAT	*A;
+SPMeMAT	*spICHfactor(A)
+SPMeMAT	*A;
 #else
-SPMAT	*spICHfactor(SPMAT *A)
+SPMeMAT	*spICHfactor(SPMeMAT *A)
 #endif
 {
 	int	k, m, n, nxt_row, nxt_idx, diag_idx;
@@ -466,10 +466,10 @@ SPMAT	*spICHfactor(SPMAT *A)
 	-- does NOT do any floating point arithmetic; just sets up the structure
 	-- only the lower triangular part of A (incl. diagonal) is used */
 #ifndef ANSI_C
-SPMAT	*spCHsymb(A)
-SPMAT	*A;
+SPMeMAT	*spCHsymb(A)
+SPMeMAT	*A;
 #else
-SPMAT	*spCHsymb(SPMAT *A)
+SPMeMAT	*spCHsymb(SPMeMAT *A)
 #endif
 {
 	register 	int	i;
@@ -580,13 +580,13 @@ SPMAT	*spCHsymb(SPMAT *A)
 
 /* comp_AAT -- compute A.A^T where A is a given sparse matrix */
 #ifndef ANSI_C
-SPMAT	*comp_AAT(A)
-SPMAT	*A;
+SPMeMAT	*comp_AAT(A)
+SPMeMAT	*A;
 #else
-SPMAT	*comp_AAT(SPMAT *A)
+SPMeMAT	*comp_AAT(SPMeMAT *A)
 #endif
 {
-	SPMAT	*AAT;
+	SPMeMAT	*AAT;
 	SPROW	*r, *r2;
 	row_elt	*elts, *elts2;
 	int	i, idx, idx2, j, m, minim, n, num_scan, tmp1;

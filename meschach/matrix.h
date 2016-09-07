@@ -28,11 +28,11 @@
 		Type definitions for general purpose maths package
 */
 
-#ifndef	MATRIXH
+#ifndef	MeMATRIXH
 
 /* RCS id: $Id: matrix.h,v 1.18 1994/04/16 00:33:37 des Exp $ */
 
-#define	MATRIXH	
+#define	MeMATRIXH	
 
 #include	"machine.h"
 #include        "err.h"
@@ -48,34 +48,34 @@ typedef	unsigned int	u_int;
 
 /* vector definition */
 typedef	struct	{
-		unsigned int	dim, max_dim;
+		unsigned int	dim, Memax_dim;
 		Real	*ve;
-		} VEC;
+		} MeVEC;
 
 /* matrix definition */
 typedef	struct	{
 		unsigned int	m, n;
-		unsigned int	max_m, max_n, max_size;
+		unsigned int	Memax_m, Memax_n, Memax_size;
 		Real	**me,*base;	/* base is base of alloc'd mem */
-		} MAT;
+		} MeMAT;
 
 /* band matrix definition */
 typedef struct {
-               MAT   *mat;       /* matrix */
+               MeMAT   *mat;       /* matrix */
                int   lb,ub;    /* lower and upper bandwidth */
                } BAND;
 
 
 /* permutation definition */
 typedef	struct	{
-		unsigned int	size, max_size, *pe;
+		unsigned int	size, Memax_size, *pe;
 		} PERM;
 
 /* integer vector definition */
 typedef struct	{
-		unsigned int	dim, max_dim;
+		unsigned int	dim, Memax_dim;
 		int	*ive;
-	        } IVEC;
+	        } IMeVEC;
 
 
 #ifndef MALLOCDECL
@@ -148,10 +148,10 @@ void	m_version( void );
 
 #endif /* ANSI_C */
 
-/* type independent min and max operations */
-#ifndef max
-#define	max(a,b)	((a) > (b) ? (a) : (b))
-#endif /* max */
+/* type independent min and Memax operations */
+#ifndef Memax
+#define	Memax(a,b)	((a) > (b) ? (a) : (b))
+#endif /* Memax */
 #ifndef min
 #define	min(a,b)	((a) > (b) ? (b) : (a))
 #endif /* min */
@@ -174,10 +174,10 @@ void	m_version( void );
 
 #ifndef ANSI_C
 
-extern	VEC *v_get(), *v_resize();
-extern	MAT *m_get(), *m_resize();
+extern	MeVEC *v_get(), *v_resize();
+extern	MeMAT *m_get(), *m_resize();
 extern	PERM *px_get(), *px_resize();
-extern	IVEC *iv_get(), *iv_resize();
+extern	IMeVEC *iv_get(), *iv_resize();
 extern	int m_free(),v_free();
 extern  int px_free();
 extern  int iv_free();
@@ -187,20 +187,20 @@ extern  int bd_free();
 #else
 
 /* get/resize vector to given dimension */
-extern	VEC *v_get(int), *v_resize(VEC *,int);
+extern	MeVEC *v_get(int), *v_resize(MeVEC *,int);
 /* get/resize matrix to be m x n */
-extern	MAT *m_get(int,int), *m_resize(MAT *,int,int);
+extern	MeMAT *m_get(int,int), *m_resize(MeMAT *,int,int);
 /* get/resize permutation to have the given size */
 extern	PERM *px_get(int), *px_resize(PERM *,int);
 /* get/resize an integer vector to given dimension */
-extern	IVEC *iv_get(int), *iv_resize(IVEC *,int);
+extern	IMeVEC *iv_get(int), *iv_resize(IMeVEC *,int);
 /* get/resize a band matrix to given dimension */
 extern  BAND *bd_get(int,int,int), *bd_resize(BAND *,int,int,int);
 
 /* free (de-allocate) (band) matrices, vectors, permutations and 
    integer vectors */
-extern  int iv_free(IVEC *);
-extern	int m_free(MAT *),v_free(VEC *),px_free(PERM *);
+extern  int iv_free(IMeVEC *);
+extern	int m_free(MeMAT *),v_free(MeVEC *),px_free(PERM *);
 extern   int bd_free(BAND *);
 
 #endif /* ANSI_C */
@@ -209,10 +209,10 @@ extern   int bd_free(BAND *);
 /* MACROS */
 
 /* macros that also check types and sets pointers to NULL */
-#define	M_FREE(mat)	( m_free(mat),	(mat)=(MAT *)NULL )
-#define V_FREE(vec)	( v_free(vec),	(vec)=(VEC *)NULL )
+#define	M_FREE(mat)	( m_free(mat),	(mat)=(MeMAT *)NULL )
+#define V_FREE(vec)	( v_free(vec),	(vec)=(MeVEC *)NULL )
 #define	PX_FREE(px)	( px_free(px),	(px)=(PERM *)NULL )
-#define	IV_FREE(iv)	( iv_free(iv),	(iv)=(IVEC *)NULL )
+#define	IV_FREE(iv)	( iv_free(iv),	(iv)=(IMeVEC *)NULL )
 
 #define MAXDIM  	10000001
 
@@ -221,8 +221,8 @@ extern   int bd_free(BAND *);
 /* routines to check indexes */
 #define	m_chk_idx(A,i,j)	((i)>=0 && (i)<(A)->m && (j)>=0 && (j)<=(A)->n)
 #define	v_chk_idx(x,i)		((i)>=0 && (i)<(x)->dim)
-#define	bd_chk_idx(A,i,j)	((i)>=max(0,(j)-(A)->ub) && \
-		(j)>=max(0,(i)-(A)->lb) && (i)<(A)->mat->n && (j)<(A)->mat->n)
+#define	bd_chk_idx(A,i,j)	((i)>=Memax(0,(j)-(A)->ub) && \
+		(j)>=Memax(0,(i)-(A)->lb) && (i)<(A)->mat->n && (j)<(A)->mat->n)
 
 #define	m_entry(A,i,j)		m_get_val(A,i,j)
 #define	v_entry(x,i)		v_get_val(x,i)
@@ -273,35 +273,35 @@ extern   int bd_free(BAND *);
 
 extern	void v_foutput(),m_foutput(),px_foutput();
 extern  void iv_foutput();
-extern	VEC *v_finput();
-extern	MAT *m_finput();
+extern	MeVEC *v_finput();
+extern	MeMAT *m_finput();
 extern	PERM *px_finput();
-extern	IVEC *iv_finput();
+extern	IMeVEC *iv_finput();
 extern	int fy_or_n(), fin_int(), yn_dflt(), skipjunk();
 extern	double fin_double();
 
 #else
 
 /* print x on file fp */
-void v_foutput(FILE *fp,const VEC *x),
+void v_foutput(FILE *fp,const MeVEC *x),
        /* print A on file fp */
-	m_foutput(FILE *fp,const MAT *A),
+	m_foutput(FILE *fp,const MeMAT *A),
        /* print px on file fp */
 	px_foutput(FILE *fp,const PERM *px);
 /* print ix on file fp */
-void iv_foutput(FILE *fp,const IVEC *ix);
+void iv_foutput(FILE *fp,const IMeVEC *ix);
 
 /* Note: if out is NULL, then returned object is newly allocated;
         Also: if out is not NULL, then that size is assumed */
 
 /* read in vector from fp */
-VEC *v_finput(FILE *fp,VEC *out);
+MeVEC *v_finput(FILE *fp,MeVEC *out);
 /* read in matrix from fp */
-MAT *m_finput(FILE *fp,MAT *out);
+MeMAT *m_finput(FILE *fp,MeMAT *out);
 /* read in permutation from fp */
 PERM *px_finput(FILE *fp,PERM *out);
 /* read in int vector from fp */
-IVEC *iv_finput(FILE *fp,IVEC *out);
+IMeVEC *iv_finput(FILE *fp,IMeVEC *out);
 
 /* fy_or_n -- yes-or-no to question in string s
         -- question written to stderr, input from fp 
@@ -361,25 +361,25 @@ int skipjunk(FILE *fp);
 
 /* Copying routines */
 #ifndef ANSI_C
-extern	MAT	*_m_copy(), *m_move(), *vm_move();
-extern	VEC	*_v_copy(), *v_move(), *mv_move();
+extern	MeMAT	*_m_copy(), *m_move(), *vm_move();
+extern	MeVEC	*_v_copy(), *v_move(), *mv_move();
 extern	PERM	*px_copy();
-extern	IVEC	*iv_copy(), *iv_move();
+extern	IMeVEC	*iv_copy(), *iv_move();
 extern  BAND    *bd_copy();
 
 #else
 
 /* copy in to out starting at out[i0][j0] */
-extern	MAT	*_m_copy(const MAT *in,MAT *out,unsigned int i0,unsigned int j0),
-		* m_move(const MAT *in, int, int, int, int, MAT *out, int, int),
-		*vm_move(const VEC *in, int, MAT *out, int, int, int, int);
+extern	MeMAT	*_m_copy(const MeMAT *in,MeMAT *out,unsigned int i0,unsigned int j0),
+		* m_move(const MeMAT *in, int, int, int, int, MeMAT *out, int, int),
+		*vm_move(const MeVEC *in, int, MeMAT *out, int, int, int, int);
 /* copy in to out starting at out[i0] */
-extern	VEC	*_v_copy(const VEC *in,VEC *out,unsigned int i0),
-		* v_move(const VEC *in, int, int, VEC *out, int),
-		*mv_move(const MAT *in, int, int, int, int, VEC *out, int);
+extern	MeVEC	*_v_copy(const MeVEC *in,MeVEC *out,unsigned int i0),
+		* v_move(const MeVEC *in, int, int, MeVEC *out, int),
+		*mv_move(const MeMAT *in, int, int, int, int, MeVEC *out, int);
 extern	PERM	*px_copy(const PERM *in,PERM *out);
-extern	IVEC	*iv_copy(const IVEC *in,IVEC *out),
-		*iv_move(const IVEC *in, int, int, IVEC *out, int);
+extern	IMeVEC	*iv_copy(const IMeVEC *in,IMeVEC *out),
+		*iv_move(const IMeVEC *in, int, int, IMeVEC *out, int);
 extern  BAND    *bd_copy(const BAND *in,BAND *out);
 
 #endif /* ANSI_C */
@@ -392,67 +392,67 @@ extern  BAND    *bd_copy(const BAND *in,BAND *out);
 
 /* Initialisation routines -- to be zero, ones, random or identity */
 #ifndef ANSI_C
-extern	VEC     *v_zero(), *v_rand(), *v_ones();
-extern	MAT     *m_zero(), *m_ident(), *m_rand(), *m_ones();
+extern	MeVEC     *v_zero(), *v_rand(), *v_ones();
+extern	MeMAT     *m_zero(), *m_ident(), *m_rand(), *m_ones();
 extern	PERM    *px_ident();
-extern  IVEC    *iv_zero();
+extern  IMeVEC    *iv_zero();
 #else
-extern	VEC     *v_zero(VEC *), *v_rand(VEC *), *v_ones(VEC *);
-extern	MAT     *m_zero(MAT *), *m_ident(MAT *), *m_rand(MAT *),
-						*m_ones(MAT *);
+extern	MeVEC     *v_zero(MeVEC *), *v_rand(MeVEC *), *v_ones(MeVEC *);
+extern	MeMAT     *m_zero(MeMAT *), *m_ident(MeMAT *), *m_rand(MeMAT *),
+						*m_ones(MeMAT *);
 extern	PERM    *px_ident(PERM *);
-extern  IVEC    *iv_zero(IVEC *);
+extern  IMeVEC    *iv_zero(IMeVEC *);
 #endif /* ANSI_C */
 
 /* Basic vector operations */
 #ifndef ANSI_C
-extern	VEC *sv_mlt(), *mv_mlt(), *vm_mlt(), *v_add(), *v_sub(),
+extern	MeVEC *sv_mlt(), *mv_mlt(), *vm_mlt(), *v_add(), *v_sub(),
 		*px_vec(), *pxinv_vec(), *v_mltadd(), *v_map(), *_v_map(),
 		*v_lincomb(), *v_linlist();
-extern	double	v_min(), v_max(), v_sum();
-extern	VEC	*v_star(), *v_slash(), *v_sort();
+extern	double	v_min(), v_Memax(), v_sum();
+extern	MeVEC	*v_star(), *v_slash(), *v_sort();
 extern	double _in_prod(), __ip__();
 extern	void	__mltadd__(), __add__(), __sub__(), 
                 __smlt__(), __zero__();
 #else
 
-extern	VEC	*sv_mlt(double s,const VEC *x,VEC *out),	/* out <- s.x */
-		*mv_mlt(const MAT *A,const VEC *s,VEC *out),	/* out <- A.x */
-		*vm_mlt(const MAT *A,const VEC *x,VEC *out),	/* out^T <- x^T.A */
-		*v_add(const VEC *x,const VEC *y,VEC *out), 	/* out <- x + y */
-                *v_sub(const VEC *x,const VEC *y,VEC *out),	/* out <- x - y */
-		*px_vec(PERM *px,const VEC *x,VEC *out),	/* out <- P.x */
-		*pxinv_vec(PERM *px,const VEC *x,VEC *out),	/* out <- P^{-1}.x */
-		*v_mltadd(const VEC *x,const VEC *y,double s,VEC *out),   /* out <- x + s.y */
+extern	MeVEC	*sv_mlt(double s,const MeVEC *x,MeVEC *out),	/* out <- s.x */
+		*mv_mlt(const MeMAT *A,const MeVEC *s,MeVEC *out),	/* out <- A.x */
+		*vm_mlt(const MeMAT *A,const MeVEC *x,MeVEC *out),	/* out^T <- x^T.A */
+		*v_add(const MeVEC *x,const MeVEC *y,MeVEC *out), 	/* out <- x + y */
+                *v_sub(const MeVEC *x,const MeVEC *y,MeVEC *out),	/* out <- x - y */
+		*px_vec(PERM *px,const MeVEC *x,MeVEC *out),	/* out <- P.x */
+		*pxinv_vec(PERM *px,const MeVEC *x,MeVEC *out),	/* out <- P^{-1}.x */
+		*v_mltadd(const MeVEC *x,const MeVEC *y,double s,MeVEC *out),   /* out <- x + s.y */
 #ifdef PROTOTYPES_IN_STRUCT
-		*v_map(double (*f)(double),const VEC *x,VEC *y),  
+		*v_map(double (*f)(double),const MeVEC *x,MeVEC *y),  
                                                  /* out[i] <- f(x[i]) */
-		*_v_map(double (*f)(void *,double),void *p,const VEC *x,VEC *y),
+		*_v_map(double (*f)(void *,double),void *p,const MeVEC *x,MeVEC *y),
 #else
-		*v_map(double (*f)(),const VEC *,VEC *), /* out[i] <- f(x[i]) */
-		*_v_map(double (*f)(),void *,const VEC *,VEC *),
+		*v_map(double (*f)(),const MeVEC *,MeVEC *), /* out[i] <- f(x[i]) */
+		*_v_map(double (*f)(),void *,const MeVEC *,MeVEC *),
 #endif /* PROTOTYPES_IN_STRUCT */
-		*v_lincomb(int,const VEC **,const Real *,VEC *),   
+		*v_lincomb(int,const MeVEC **,const Real *,MeVEC *),   
                                                  /* out <- sum_i s[i].x[i] */
-                *v_linlist(VEC *out,VEC *v1,double a1,...);
+                *v_linlist(MeVEC *out,MeVEC *v1,double a1,...);
                                               /* out <- s1.x1 + s2.x2 + ... */
 
 /* returns min_j x[j] (== x[i]) */
-extern	double	v_min(const VEC *, int *), 
-     /* returns max_j x[j] (== x[i]) */		
-        v_max(const VEC *, int *), 
+extern	double	v_min(const MeVEC *, int *), 
+     /* returns Memax_j x[j] (== x[i]) */		
+        v_Memax(const MeVEC *, int *), 
         /* returns sum_i x[i] */
-        v_sum(const VEC *);
+        v_sum(const MeVEC *);
 
 /* Hadamard product: out[i] <- x[i].y[i] */
-extern	VEC	*v_star(const VEC *, const VEC *, VEC *),
+extern	MeVEC	*v_star(const MeVEC *, const MeVEC *, MeVEC *),
                  /* out[i] <- x[i] / y[i] */
-		*v_slash(const VEC *, const VEC *, VEC *),
+		*v_slash(const MeVEC *, const MeVEC *, MeVEC *),
                /* sorts x, and sets order so that sorted x[i] = x[order[i]] */ 
-		*v_sort(VEC *, PERM *);
+		*v_sort(MeVEC *, PERM *);
 
 /* returns inner product starting at component i0 */
-extern	double	_in_prod(const VEC *x, const VEC *y,unsigned int i0),
+extern	double	_in_prod(const MeVEC *x, const MeVEC *y,unsigned int i0),
                 /* returns sum_{i=0}^{len-1} x[i].y[i] */
                 __ip__(const Real *,const Real *,int);
 
@@ -479,16 +479,16 @@ extern	double	_v_norm1(), _v_norm2(), _v_norm_inf(),
 
 #else
                /* returns sum_i |x[i]/scale[i]| */
-extern	double	_v_norm1(const VEC *x,const VEC *scale),   
+extern	double	_v_norm1(const MeVEC *x,const MeVEC *scale),   
                /* returns (scaled) Euclidean norm */
-                _v_norm2(const VEC *x,const VEC *scale),
-               /* returns max_i |x[i]/scale[i]| */
-		_v_norm_inf(const VEC *x,const VEC *scale);
+                _v_norm2(const MeVEC *x,const MeVEC *scale),
+               /* returns Memax_i |x[i]/scale[i]| */
+		_v_norm_inf(const MeVEC *x,const MeVEC *scale);
 
 /* unscaled matrix norms */
-extern double m_norm1(const MAT *A), 
-	m_norm_inf(const MAT *A), 
-	m_norm_frob(const MAT *A);
+extern double m_norm1(const MeMAT *A), 
+	m_norm_inf(const MeMAT *A), 
+	m_norm_frob(const MeMAT *A);
 
 #endif /* ANSI_C */
 
@@ -502,28 +502,28 @@ extern double m_norm1(const MAT *A),
 /* Basic matrix operations */
 #ifndef ANSI_C
 
-extern	MAT *sm_mlt(), *m_mlt(), *mmtr_mlt(), *mtrm_mlt(), *m_add(), *m_sub(),
+extern	MeMAT *sm_mlt(), *m_mlt(), *mmtr_mlt(), *mtrm_mlt(), *m_add(), *m_sub(),
 		*sub_mat(), *m_transp(), *ms_mltadd();
 
 extern  BAND *bd_transp(), *sbd_mlt(), *bds_mltadd(), *bd_zero();
-extern	MAT *px_rows(), *px_cols(), *swap_rows(), *swap_cols(),
+extern	MeMAT *px_rows(), *px_cols(), *swap_rows(), *swap_cols(),
              *_set_row(), *_set_col();
-extern	VEC *get_row(), *get_col(), *sub_vec(),
+extern	MeVEC *get_row(), *get_col(), *sub_vec(),
 		*mv_mltadd(), *vm_mltadd(), *bdv_mltadd();
 
 #else
 
-extern	MAT	*sm_mlt(double s, const MAT *A,MAT *out), 	/* out <- s.A */
-		*m_mlt(const MAT *A,const MAT *B,MAT *out),	/* out <- A.B */
-		*mmtr_mlt(const MAT *A,const MAT *B,MAT *out),	/* out <- A.B^T */
-		*mtrm_mlt(const MAT *A,const MAT *B,MAT *out),	/* out <- A^T.B */
-		*m_add(const MAT *A,const MAT *B,MAT *out),	/* out <- A + B */
-		*m_sub(const MAT *A,const MAT *B,MAT *out),	/* out <- A - B */
-		*sub_mat(const MAT *A,unsigned int,unsigned int,unsigned int,
-			 unsigned int,MAT *out),
-		*m_transp(const MAT *A,MAT *out),		/* out <- A^T */
+extern	MeMAT	*sm_mlt(double s, const MeMAT *A,MeMAT *out), 	/* out <- s.A */
+		*m_mlt(const MeMAT *A,const MeMAT *B,MeMAT *out),	/* out <- A.B */
+		*mmtr_mlt(const MeMAT *A,const MeMAT *B,MeMAT *out),	/* out <- A.B^T */
+		*mtrm_mlt(const MeMAT *A,const MeMAT *B,MeMAT *out),	/* out <- A^T.B */
+		*m_add(const MeMAT *A,const MeMAT *B,MeMAT *out),	/* out <- A + B */
+		*m_sub(const MeMAT *A,const MeMAT *B,MeMAT *out),	/* out <- A - B */
+		*sub_mat(const MeMAT *A,unsigned int,unsigned int,unsigned int,
+			 unsigned int,MeMAT *out),
+		*m_transp(const MeMAT *A,MeMAT *out),		/* out <- A^T */
                 /* out <- A + s.B */ 
-		*ms_mltadd(const MAT *A,const MAT *B,double s,MAT *out);   
+		*ms_mltadd(const MeMAT *A,const MeMAT *B,double s,MeMAT *out);   
 
 
 extern  BAND    *bd_transp(const BAND *in, BAND *out),	/* out <- A^T */
@@ -532,27 +532,27 @@ extern  BAND    *bd_transp(const BAND *in, BAND *out),	/* out <- A^T */
   /* OUT <- A+alpha.B */
   *bd_zero(BAND *A);					/* A <- 0 */
 
-extern	MAT	*px_rows(const PERM *px,const MAT *A,MAT *out),	/* out <- P.A */
-		*px_cols(const PERM *px,const MAT *A,MAT *out),	/* out <- A.P^T */
-		*swap_rows(MAT *,int,int,int,int),
-		*swap_cols(MAT *,int,int,int,int),
+extern	MeMAT	*px_rows(const PERM *px,const MeMAT *A,MeMAT *out),	/* out <- P.A */
+		*px_cols(const PERM *px,const MeMAT *A,MeMAT *out),	/* out <- A.P^T */
+		*swap_rows(MeMAT *,int,int,int,int),
+		*swap_cols(MeMAT *,int,int,int,int),
                  /* A[i][j] <- out[j], j >= j0 */
-		*_set_col(MAT *A,unsigned int i,const VEC *col,unsigned int j0),
+		*_set_col(MeMAT *A,unsigned int i,const MeVEC *col,unsigned int j0),
                  /* A[i][j] <- out[i], i >= i0 */
-		*_set_row(MAT *A,unsigned int j,const VEC *row,unsigned int i0);
+		*_set_row(MeMAT *A,unsigned int j,const MeVEC *row,unsigned int i0);
 
-extern	VEC	*get_row(const MAT *,unsigned int,VEC *),
-		*get_col(const MAT *,unsigned int,VEC *),
-		*sub_vec(const VEC *,int,int,VEC *),
+extern	MeVEC	*get_row(const MeMAT *,unsigned int,MeVEC *),
+		*get_col(const MeMAT *,unsigned int,MeVEC *),
+		*sub_vec(const MeVEC *,int,int,MeVEC *),
                    /* mv_mltadd: out <- x + s.A.y */
-		*mv_mltadd(const VEC *x,const VEC *y,const MAT *A,
-			   double s,VEC *out),
+		*mv_mltadd(const MeVEC *x,const MeVEC *y,const MeMAT *A,
+			   double s,MeVEC *out),
                   /* vm_mltadd: out^T <- x^T + s.y^T.A */
-		*vm_mltadd(const VEC *x,const VEC *y,const MAT *A,
-			   double s,VEC *out),
+		*vm_mltadd(const MeVEC *x,const MeVEC *y,const MeMAT *A,
+			   double s,MeVEC *out),
                   /* bdv_mltadd: out <- x + s.A.y */
-                *bdv_mltadd(const VEC *x,const VEC *y,const BAND *A,
-			    double s,VEC *out);
+                *bdv_mltadd(const MeVEC *x,const MeVEC *y,const BAND *A,
+			    double s,MeVEC *out);
 #endif /* ANSI_C */
 
 
@@ -586,16 +586,16 @@ extern	int	px_sign(const PERM *);
 /* Basic integer vector operations */
 #ifndef ANSI_C
 
-extern	IVEC	*iv_add(), *iv_sub(), *iv_sort();
+extern	IMeVEC	*iv_add(), *iv_sub(), *iv_sort();
 
 #else
 
-extern	IVEC	*iv_add(const IVEC *ix,const IVEC *iy,IVEC *out),  
+extern	IMeVEC	*iv_add(const IMeVEC *ix,const IMeVEC *iy,IMeVEC *out),  
   /* out <- ix + iy */
-		*iv_sub(const IVEC *ix,const IVEC *iy,IVEC *out),  
+		*iv_sub(const IMeVEC *ix,const IMeVEC *iy,IMeVEC *out),  
   /* out <- ix - iy */
   /* sorts ix & sets order so that sorted ix[i] = old ix[order[i]] */
-		*iv_sort(IVEC *ix, PERM *order);
+		*iv_sort(IMeVEC *ix, PERM *order);
 
 #endif /* ANSI_C */
 
@@ -604,35 +604,35 @@ extern	IVEC	*iv_add(const IVEC *ix,const IVEC *iy,IVEC *out),
 
 #ifndef ANSI_C
 
-extern	double	square(), cube(), mrand();
+extern	double	Mesquare(), Mecube(), mrand();
 extern	void	smrand(), mrandlist();
 extern  void    m_dump(), px_dump(), v_dump(), iv_dump();
-extern MAT *band2mat();
+extern MeMAT *band2mat();
 extern BAND *mat2band();
 
 #else
 
-double	square(double x), 	/* returns x^2 */
-  cube(double x), 		/* returns x^3 */
+double	Mesquare(double x), 	/* returns x^2 */
+  Mecube(double x), 		/* returns x^3 */
   mrand(void);                  /* returns random # in [0,1) */
 
 void	smrand(int seed),            /* seeds mrand() */
   mrandlist(Real *x, int len);       /* generates len random numbers */
 
-void    m_dump(FILE *fp,const MAT *a), px_dump(FILE *fp, const PERM *px),
-        v_dump(FILE *fp,const VEC *x), iv_dump(FILE *fp, const IVEC *ix);
+void    m_dump(FILE *fp,const MeMAT *a), px_dump(FILE *fp, const PERM *px),
+        v_dump(FILE *fp,const MeVEC *x), iv_dump(FILE *fp, const IMeVEC *ix);
 
-MAT *band2mat(const BAND *bA, MAT *A);
-BAND *mat2band(const MAT *A, int lb,int ub, BAND *bA);
+MeMAT *band2mat(const BAND *bA, MeMAT *A);
+BAND *mat2band(const MeMAT *A, int lb,int ub, BAND *bA);
 
 #endif /* ANSI_C */
 
 
 /* miscellaneous constants */
-#define	VNULL	((VEC *)NULL)
-#define	MNULL	((MAT *)NULL)
+#define	VNULL	((MeVEC *)NULL)
+#define	MNULL	((MeMAT *)NULL)
 #define	PNULL	((PERM *)NULL)
-#define	IVNULL	((IVEC *)NULL)
+#define	IVNULL	((IMeVEC *)NULL)
 #define BDNULL  ((BAND *)NULL)
 
 
@@ -654,10 +654,10 @@ int iv_resize_vars(int new_dim,...);
 int m_resize_vars(int m,int n,...);
 int px_resize_vars(int new_dim,...);
 
-int v_free_vars(VEC **,...);
-int iv_free_vars(IVEC **,...);
+int v_free_vars(MeVEC **,...);
+int iv_free_vars(IMeVEC **,...);
 int px_free_vars(PERM **,...);
-int m_free_vars(MAT **,...);
+int m_free_vars(MeMAT **,...);
 
 #elif VARARGS
 /* old varargs is used */
@@ -684,6 +684,6 @@ int m_free_vars();
 #endif /* ANSI_C */
 
 
-#endif /* MATRIXH */
+#endif /* MeMATRIXH */
 
 

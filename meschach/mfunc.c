@@ -39,17 +39,17 @@ static char	rcsid[] = "$Id: mfunc.c,v 1.2 1994/11/01 05:57:56 des Exp $";
 
 
 
-/* _m_pow -- computes integer powers of a square matrix A, A^p
+/* _m_pow -- computes integer powers of a Mesquare matrix A, A^p
    -- uses tmp as temporary workspace */
 #ifndef ANSI_C
-MAT	*_m_pow(A, p, tmp, out)
-MAT	*A, *tmp, *out;
+MeMAT	*_m_pow(A, p, tmp, out)
+MeMAT	*A, *tmp, *out;
 int	p;
 #else
-MAT	*_m_pow(const MAT *A, int p, MAT *tmp, MAT *out)
+MeMAT	*_m_pow(const MeMAT *A, int p, MeMAT *tmp, MeMAT *out)
 #endif
 {
-   int		it_cnt, k, max_bit;
+   int		it_cnt, k, Memax_bit;
    
    /*
      File containing routines for evaluating matrix functions
@@ -72,16 +72,16 @@ MAT	*_m_pow(const MAT *A, int p, MAT *tmp, MAT *out)
    else if ( p > 0 )
    {
       it_cnt = 1;
-      for ( max_bit = 0; ; max_bit++ )
-	if ( (p >> (max_bit+1)) == 0 )
+      for ( Memax_bit = 0; ; Memax_bit++ )
+	if ( (p >> (Memax_bit+1)) == 0 )
 	  break;
       tmp = m_copy(A,tmp);
       
-      for ( k = 0; k < max_bit; k++ )
+      for ( k = 0; k < Memax_bit; k++ )
       {
 	 m_mlt(Z(it_cnt),Z(it_cnt),Z(it_cnt+1));
 	 it_cnt++;
-	 if ( p & (1 << (max_bit-1)) )
+	 if ( p & (1 << (Memax_bit-1)) )
 	 {
 	    m_mlt(A,Z(it_cnt),Z(it_cnt+1));
 	    /* m_copy(Z(it_cnt),out); */
@@ -98,16 +98,16 @@ MAT	*_m_pow(const MAT *A, int p, MAT *tmp, MAT *out)
 #undef Z   
 }
 
-/* m_pow -- computes integer powers of a square matrix A, A^p */
+/* m_pow -- computes integer powers of a Mesquare matrix A, A^p */
 #ifndef ANSI_C
-MAT	*m_pow(A, p, out)
-MAT	*A, *out;
+MeMAT	*m_pow(A, p, out)
+MeMAT	*A, *out;
 int	p;
 #else
-MAT	*m_pow(const MAT *A, int p, MAT *out)
+MeMAT	*m_pow(const MeMAT *A, int p, MeMAT *out)
 #endif
 {
-   STATIC MAT	*wkspace=MNULL, *tmp=MNULL;
+   STATIC MeMAT	*wkspace=MNULL, *tmp=MNULL;
    
    if ( ! A )
      error(E_NULL,"m_pow");
@@ -115,11 +115,11 @@ MAT	*m_pow(const MAT *A, int p, MAT *out)
      error(E_SQUARE,"m_pow");
    
    wkspace = m_resize(wkspace,A->m,A->n);
-   MEM_STAT_REG(wkspace,TYPE_MAT);
+   MEM_STAT_REG(wkspace,TYPE_MeMAT);
    if ( p < 0 )
    {
        tmp = m_resize(tmp,A->m,A->n);
-       MEM_STAT_REG(tmp,TYPE_MAT);
+       MEM_STAT_REG(tmp,TYPE_MeMAT);
        tracecatch(m_inverse(A,tmp),"m_pow");
        out = _m_pow(tmp, -p, wkspace, out);
    }
@@ -144,19 +144,19 @@ MAT	*m_pow(const MAT *A, int p, MAT *out)
               such that ||A/2^j_out|| <= 0.5
 */
 #ifndef ANSI_C
-MAT *_m_exp(A,eps,out,q_out,j_out)
-MAT *A,*out;
+MeMAT *_m_exp(A,eps,out,q_out,j_out)
+MeMAT *A,*out;
 double eps;
 int *q_out, *j_out;
 #else
-MAT *_m_exp(MAT *A, double eps, MAT *out, int *q_out, int *j_out)
+MeMAT *_m_exp(MeMAT *A, double eps, MeMAT *out, int *q_out, int *j_out)
 #endif
 {
-   STATIC MAT *D = MNULL, *Apow = MNULL, *N = MNULL, *Y = MNULL;
-   STATIC VEC *c1 = VNULL, *tmp = VNULL;
-   VEC y0, y1;  /* additional structures */
+   STATIC MeMAT *D = MNULL, *Apow = MNULL, *N = MNULL, *Y = MNULL;
+   STATIC MeVEC *c1 = VNULL, *tmp = VNULL;
+   MeVEC y0, y1;  /* additional structures */
    STATIC PERM *pivot = PNULL;
-   int j, k, l, q, r, s, j2max, t;
+   int j, k, l, q, r, s, j2Memax, t;
    double inf_norm, eqq, power2, c, sign;
    
    if ( ! A )
@@ -175,9 +175,9 @@ MAT *_m_exp(MAT *A, double eps, MAT *out, int *q_out, int *j_out)
    Apow = m_resize(Apow,A->m,A->n);
    out = m_resize(out,A->m,A->n);
 
-   MEM_STAT_REG(N,TYPE_MAT);
-   MEM_STAT_REG(D,TYPE_MAT);
-   MEM_STAT_REG(Apow,TYPE_MAT);
+   MEM_STAT_REG(N,TYPE_MeMAT);
+   MEM_STAT_REG(D,TYPE_MeMAT);
+   MEM_STAT_REG(Apow,TYPE_MeMAT);
    
    /* normalise A to have ||A||_inf <= 1 */
    inf_norm = m_norm_inf(A);
@@ -188,15 +188,15 @@ MAT *_m_exp(MAT *A, double eps, MAT *out, int *q_out, int *j_out)
       return out;
    }
    else {
-      j2max = floor(1+log(inf_norm)/log(2.0));
-      j2max = max(0, j2max);
+      j2Memax = floor(1+log(inf_norm)/log(2.0));
+      j2Memax = Memax(0, j2Memax);
    }
    
    power2 = 1.0;
-   for ( k = 1; k <= j2max; k++ )
+   for ( k = 1; k <= j2Memax; k++ )
      power2 *= 2;
    power2 = 1.0/power2;
-   if ( j2max > 0 )
+   if ( j2Memax > 0 )
      sm_mlt(power2,A,A);
    
    /* compute order for polynomial approximation */
@@ -206,13 +206,13 @@ MAT *_m_exp(MAT *A, double eps, MAT *out, int *q_out, int *j_out)
    
    /* construct vector of coefficients */
    c1 = v_resize(c1,q+1);
-   MEM_STAT_REG(c1,TYPE_VEC);
+   MEM_STAT_REG(c1,TYPE_MeVEC);
    c1->ve[0] = 1.0;
    for ( k = 1; k <= q; k++ ) 
      c1->ve[k] = c1->ve[k-1]*(q-k+1)/((2*q-k+1)*(double)k);
    
    tmp = v_resize(tmp,A->n);
-   MEM_STAT_REG(tmp,TYPE_VEC);
+   MEM_STAT_REG(tmp,TYPE_MeVEC);
    
    s = (int)floor(sqrt((double)q/2.0));
    if ( s <= 0 )  s = 1;
@@ -220,10 +220,10 @@ MAT *_m_exp(MAT *A, double eps, MAT *out, int *q_out, int *j_out)
    r = q/s;
    
    Y = m_resize(Y,s,A->n);
-   MEM_STAT_REG(Y,TYPE_MAT);
+   MEM_STAT_REG(Y,TYPE_MeMAT);
    /* y0 and y1 are pointers to rows of Y, N and D */
-   y0.dim = y0.max_dim = A->n;   
-   y1.dim = y1.max_dim = A->n;
+   y0.dim = y0.Memax_dim = A->n;   
+   y1.dim = y1.Memax_dim = A->n;
    
    m_zero(Y);
    m_zero(N);
@@ -291,14 +291,14 @@ MAT *_m_exp(MAT *A, double eps, MAT *out, int *q_out, int *j_out)
 
 #define Z(k)    ((k) & 1 ? Apow : out)
 
-   for( k = 1; k <= j2max; k++)
+   for( k = 1; k <= j2Memax; k++)
       m_mlt(Z(k-1),Z(k-1),Z(k));
 
    if (Z(k) == out)
      m_copy(Apow,out);
    
    /* output parameters */
-   *j_out = j2max;
+   *j_out = j2Memax;
    *q_out = q;
 
    /* restore the matrix A */
@@ -318,11 +318,11 @@ MAT *_m_exp(MAT *A, double eps, MAT *out, int *q_out, int *j_out)
 
 /* simple interface for _m_exp */
 #ifndef ANSI_C
-MAT *m_exp(A,eps,out)
-MAT *A,*out;
+MeMAT *m_exp(A,eps,out)
+MeMAT *A,*out;
 double eps;
 #else
-MAT *m_exp(MAT *A, double eps, MAT *out)
+MeMAT *m_exp(MeMAT *A, double eps, MeMAT *out)
 #endif
 {
    int q_out, j_out;
@@ -336,16 +336,16 @@ MAT *m_exp(MAT *A, double eps, MAT *out)
 /* m_poly -- computes sum_i a[i].A^i, where i=0,1,...dim(a);
    -- uses C. Van Loan's fast and memory efficient method  */
 #ifndef ANSI_C
-MAT *m_poly(A,a,out)
-MAT *A,*out;
-VEC *a;
+MeMAT *m_poly(A,a,out)
+MeMAT *A,*out;
+MeVEC *a;
 #else
-MAT *m_poly(const MAT *A, const VEC *a, MAT *out)
+MeMAT *m_poly(const MeMAT *A, const MeVEC *a, MeMAT *out)
 #endif
 {
-   STATIC MAT	*Apow = MNULL, *Y = MNULL;
-   STATIC VEC   *tmp = VNULL;
-   VEC y0, y1;  /* additional vectors */
+   STATIC MeMAT	*Apow = MNULL, *Y = MNULL;
+   STATIC MeVEC   *tmp = VNULL;
+   MeVEC y0, y1;  /* additional vectors */
    int j, k, l, q, r, s, t;
    
    if ( ! A || ! a )
@@ -357,9 +357,9 @@ MAT *m_poly(const MAT *A, const VEC *a, MAT *out)
    
    out = m_resize(out,A->m,A->n);
    Apow = m_resize(Apow,A->m,A->n);
-   MEM_STAT_REG(Apow,TYPE_MAT);
+   MEM_STAT_REG(Apow,TYPE_MeMAT);
    tmp = v_resize(tmp,A->n);
-   MEM_STAT_REG(tmp,TYPE_VEC);
+   MEM_STAT_REG(tmp,TYPE_MeVEC);
 
    q = a->dim - 1;
    if ( q == 0 ) {
@@ -381,10 +381,10 @@ MAT *m_poly(const MAT *A, const VEC *a, MAT *out)
    r = q/s;
    
    Y = m_resize(Y,s,A->n);
-   MEM_STAT_REG(Y,TYPE_MAT);
+   MEM_STAT_REG(Y,TYPE_MeMAT);
    /* pointers to rows of Y */
-   y0.dim = y0.max_dim = A->n;
-   y1.dim = y1.max_dim = A->n;
+   y0.dim = y0.Memax_dim = A->n;
+   y1.dim = y1.Memax_dim = A->n;
 
    m_zero(Y);
    m_zero(out);

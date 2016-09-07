@@ -4,11 +4,11 @@
 #include "../meschach/matrix.h"
 #include "../parameters.h"
 
-VEC *RMHMC(
+MeVEC *RMHMC(
 
-		  VEC *,
+		  MeVEC *,
 		  Data *,
-		  VEC *,
+		  MeVEC *,
 		  Real *,
       Parameters * parameters
 

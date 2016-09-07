@@ -8,11 +8,11 @@
 #include "reproduce.h"
 #include "../util/util.h"
 
-VEC *initial(
+MeVEC *initial(
 
 	     Parameters *parameters,
-	     VEC *x,
-	     VEC *u
+	     MeVEC *x,
+	     MeVEC *u
 
 	     )
 
@@ -43,7 +43,7 @@ VEC *initial(
 void solve(
 
      Parameters * parameters,
-		 VEC *eff,
+		 MeVEC *eff,
 		 Real k,		 
 		 int S,
      int Y,
@@ -52,24 +52,24 @@ void solve(
 		 )
 {
 
-  VEC *xnt; VEC *unt; 
-  VEC *xht; VEC *uht;
-  VEC *xhht; VEC *uhh;
-  VEC *xt; VEC *ut;
+  MeVEC *xnt; MeVEC *unt; 
+  MeVEC *xht; MeVEC *uht;
+  MeVEC *xhht; MeVEC *uhh;
+  MeVEC *xt; MeVEC *ut;
 
-  MAT *x = core_args->x;
-  MAT *u = core_args->u; 
-  MAT *xhh;
+  MeMAT *x = core_args->x;
+  MeMAT *u = core_args->u; 
+  MeMAT *xhh;
   if (QUARTER)
     xhh = core_args->xhh;
-  MAT *xh = core_args->xh;
-  MAT *xn = core_args->xn;
-  MAT *uh = core_args->uh;
-  MAT *un = core_args->un;  
-  VEC *Ui = core_args->Ui;
-  VEC *Uh = core_args->Uh;
-  VEC *Uhh = core_args->Uhh;  
-  IVEC *idxi = core_args->idxi;
+  MeMAT *xh = core_args->xh;
+  MeMAT *xn = core_args->xn;
+  MeMAT *uh = core_args->uh;
+  MeMAT *un = core_args->un;  
+  MeVEC *Ui = core_args->Ui;
+  MeVEC *Uh = core_args->Uh;
+  MeVEC *Uhh = core_args->Uhh;  
+  IMeVEC *idxi = core_args->idxi;
 
   int J; 
   int bigJ;

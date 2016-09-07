@@ -46,9 +46,9 @@
 
 /* type Fun_Ax for functions to get y = A*x */
 #ifdef ANSI_C
-typedef VEC  *(*Fun_Ax)(void *,VEC *,VEC *);
+typedef MeVEC  *(*Fun_Ax)(void *,MeVEC *,MeVEC *);
 #else
-typedef VEC *(*Fun_Ax)();
+typedef MeVEC *(*Fun_Ax)();
 #endif
 
 
@@ -61,9 +61,9 @@ typedef struct Iter_data {
    int steps;    /* no. of iter. steps done */
    Real eps;     /* accuracy required */
    
-   VEC *x;       /* input: initial guess;
+   MeVEC *x;       /* input: initial guess;
 		    output: approximate solution */
-   VEC *b;       /* right hand side of the equation A*x = b */
+   MeVEC *b;       /* right hand side of the equation A*x = b */
 
    Fun_Ax   Ax;		 /* function computing y = A*x */
    void *A_par;         /* parameters for Ax */
@@ -81,11 +81,11 @@ typedef struct Iter_data {
 #ifdef ANSI_C
 
 #ifdef PROTOTYPES_IN_STRUCT
-   void (*info)(struct Iter_data *, double, VEC *,VEC *);
+   void (*info)(struct Iter_data *, double, MeVEC *,MeVEC *);
             /* function giving some information for a user;
 	       nres - a norm of a residual res */
    
-   int (*stop_crit)(struct Iter_data *, double, VEC *,VEC *);
+   int (*stop_crit)(struct Iter_data *, double, MeVEC *,MeVEC *);
            /* stopping criterion:
 	      nres - a norm of res;
 	      res - residual;
@@ -117,14 +117,14 @@ typedef struct Iter_data {
 
 /* type Fun_info */
 #ifdef ANSI_C
-typedef void (*Fun_info)(ITER *, double, VEC *,VEC *);
+typedef void (*Fun_info)(ITER *, double, MeVEC *,MeVEC *);
 #else
 typedef void (*Fun_info)();
 #endif
 
 /* type Fun_stp_crt */
 #ifdef ANSI_C
-typedef int (*Fun_stp_crt)(ITER *, double, VEC *,VEC *);
+typedef int (*Fun_stp_crt)(ITER *, double, MeVEC *,MeVEC *);
 #else
 typedef int (*Fun_stp_crt)();
 #endif
@@ -157,9 +157,9 @@ typedef int (*Fun_stp_crt)();
 
 #ifdef ANSI_C
 /* standard information */
-void iter_std_info(const ITER *ip,double nres,VEC *res,VEC *Bres);
+void iter_std_info(const ITER *ip,double nres,MeVEC *res,MeVEC *Bres);
 /* standard stopping criterion */
-int iter_std_stop_crit(const ITER *ip, double nres, VEC *res,VEC *Bres);
+int iter_std_stop_crit(const ITER *ip, double nres, MeVEC *res,MeVEC *Bres);
 
 /* get, resize and free ITER variable */
 ITER *iter_get(int lenb, int lenx);
@@ -174,9 +174,9 @@ ITER *iter_copy(const ITER *ip1, ITER *ip2);
 ITER *iter_copy2(ITER *ip1,ITER *ip2);
 
 /* functions for generating sparse matrices with random elements */
-SPMAT	*iter_gen_sym(int n, int nrow);
-SPMAT	*iter_gen_nonsym(int m,int n,int nrow,double diag);
-SPMAT	*iter_gen_nonsym_posdef(int n,int nrow);
+SPMeMAT	*iter_gen_sym(int n, int nrow);
+SPMeMAT	*iter_gen_nonsym(int m,int n,int nrow,double diag);
+SPMeMAT	*iter_gen_nonsym_posdef(int n,int nrow);
 
 #else
 
@@ -188,9 +188,9 @@ ITER *iter_resize();
 void iter_dump();
 ITER *iter_copy();
 ITER *iter_copy2();
-SPMAT	*iter_gen_sym();
-SPMAT	*iter_gen_nonsym();
-SPMAT	*iter_gen_nonsym_posdef();
+SPMeMAT	*iter_gen_sym();
+SPMeMAT	*iter_gen_nonsym();
+SPMeMAT	*iter_gen_nonsym_posdef();
 
 #endif
 
@@ -198,54 +198,54 @@ SPMAT	*iter_gen_nonsym_posdef();
 
 /* different iterative procedures */
 #ifdef ANSI_C
-VEC  *iter_cg(ITER *ip);
-VEC  *iter_cg1(ITER *ip);
-VEC  *iter_spcg(SPMAT *A,SPMAT *LLT,VEC *b,double eps,VEC *x,int limit,
+MeVEC  *iter_cg(ITER *ip);
+MeVEC  *iter_cg1(ITER *ip);
+MeVEC  *iter_spcg(SPMeMAT *A,SPMeMAT *LLT,MeVEC *b,double eps,MeVEC *x,int limit,
 		int *steps);
-VEC  *iter_cgs(ITER *ip,VEC *r0);
-VEC  *iter_spcgs(SPMAT *A,SPMAT *B,VEC *b,VEC *r0,double eps,VEC *x,
+MeVEC  *iter_cgs(ITER *ip,MeVEC *r0);
+MeVEC  *iter_spcgs(SPMeMAT *A,SPMeMAT *B,MeVEC *b,MeVEC *r0,double eps,MeVEC *x,
 		 int limit, int *steps);
-VEC  *iter_lsqr(ITER *ip);
-VEC  *iter_splsqr(SPMAT *A,VEC *b,double tol,VEC *x,
+MeVEC  *iter_lsqr(ITER *ip);
+MeVEC  *iter_splsqr(SPMeMAT *A,MeVEC *b,double tol,MeVEC *x,
 		  int limit,int *steps);
-VEC  *iter_gmres(ITER *ip);
-VEC  *iter_spgmres(SPMAT *A,SPMAT *B,VEC *b,double tol,VEC *x,int k,
+MeVEC  *iter_gmres(ITER *ip);
+MeVEC  *iter_spgmres(SPMeMAT *A,SPMeMAT *B,MeVEC *b,double tol,MeVEC *x,int k,
 		   int limit, int *steps);
-MAT  *iter_arnoldi_iref(ITER *ip,Real *h,MAT *Q,MAT *H);
-MAT  *iter_arnoldi(ITER *ip,Real *h,MAT *Q,MAT *H);
-MAT  *iter_sparnoldi(SPMAT *A,VEC *x0,int k,Real *h,MAT *Q,MAT *H);
-VEC  *iter_mgcr(ITER *ip);
-VEC  *iter_spmgcr(SPMAT *A,SPMAT *B,VEC *b,double tol,VEC *x,int k,
+MeMAT  *iter_arnoldi_iref(ITER *ip,Real *h,MeMAT *Q,MeMAT *H);
+MeMAT  *iter_arnoldi(ITER *ip,Real *h,MeMAT *Q,MeMAT *H);
+MeMAT  *iter_sparnoldi(SPMeMAT *A,MeVEC *x0,int k,Real *h,MeMAT *Q,MeMAT *H);
+MeVEC  *iter_mgcr(ITER *ip);
+MeVEC  *iter_spmgcr(SPMeMAT *A,SPMeMAT *B,MeVEC *b,double tol,MeVEC *x,int k,
 		  int limit, int *steps);
-void	iter_lanczos(ITER *ip,VEC *a,VEC *b,Real *beta2,MAT *Q);
-void    iter_splanczos(SPMAT *A,int m,VEC *x0,VEC *a,VEC *b,Real *beta2,
-		       MAT *Q);
-VEC  *iter_lanczos2(ITER *ip,VEC *evals,VEC *err_est);
-VEC  *iter_splanczos2(SPMAT *A,int m,VEC *x0,VEC *evals,VEC *err_est);
-VEC  *iter_cgne(ITER *ip);
-VEC  *iter_spcgne(SPMAT *A,SPMAT *B,VEC *b,double eps,VEC *x,
+void	iter_lanczos(ITER *ip,MeVEC *a,MeVEC *b,Real *beta2,MeMAT *Q);
+void    iter_splanczos(SPMeMAT *A,int m,MeVEC *x0,MeVEC *a,MeVEC *b,Real *beta2,
+		       MeMAT *Q);
+MeVEC  *iter_lanczos2(ITER *ip,MeVEC *evals,MeVEC *err_est);
+MeVEC  *iter_splanczos2(SPMeMAT *A,int m,MeVEC *x0,MeVEC *evals,MeVEC *err_est);
+MeVEC  *iter_cgne(ITER *ip);
+MeVEC  *iter_spcgne(SPMeMAT *A,SPMeMAT *B,MeVEC *b,double eps,MeVEC *x,
 		  int limit,int *steps);
 #else
-VEC  *iter_cg();
-VEC  *iter_cg1();
-VEC  *iter_spcg();
-VEC  *iter_cgs();
-VEC  *iter_spcgs();
-VEC  *iter_lsqr();
-VEC  *iter_splsqr();
-VEC  *iter_gmres();
-VEC  *iter_spgmres();
-MAT  *iter_arnoldi_iref();
-MAT  *iter_arnoldi();
-MAT  *iter_sparnoldi();
-VEC  *iter_mgcr();
-VEC  *iter_spmgcr();
+MeVEC  *iter_cg();
+MeVEC  *iter_cg1();
+MeVEC  *iter_spcg();
+MeVEC  *iter_cgs();
+MeVEC  *iter_spcgs();
+MeVEC  *iter_lsqr();
+MeVEC  *iter_splsqr();
+MeVEC  *iter_gmres();
+MeVEC  *iter_spgmres();
+MeMAT  *iter_arnoldi_iref();
+MeMAT  *iter_arnoldi();
+MeMAT  *iter_sparnoldi();
+MeVEC  *iter_mgcr();
+MeVEC  *iter_spmgcr();
 void  iter_lanczos();
 void  iter_splanczos();
-VEC  *iter_lanczos2();
-VEC  *iter_splanczos2();
-VEC  *iter_cgne();
-VEC  *iter_spcgne();
+MeVEC  *iter_lanczos2();
+MeVEC  *iter_splanczos2();
+MeVEC  *iter_cgne();
+MeVEC  *iter_spcgne();
 
 #endif
 

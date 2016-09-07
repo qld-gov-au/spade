@@ -1,5 +1,5 @@
-﻿#ifndef SPADE_MATHPROP_H
-#define SPADE_MATHPROP_H
+﻿#ifndef SPADE_MeMATHPROP_H
+#define SPADE_MeMATHPROP_H
 
 #include "../meschach/matrix.h"
 #include "../parameters.h"
@@ -8,18 +8,18 @@ Real sple(
 
 	  const int nk,
 	  const Real xval,
-	  const VEC *knots,
-	  const VEC *coef
+	  const MeVEC *knots,
+	  const MeVEC *coef
 
 	  );
 
 
 
-VEC *numgrad(
+MeVEC *numgrad(
 
-	     Real (*model)(VEC *,void *),
+	     Real (*model)(MeVEC *,void *),
 	     void *stuff,
-	     VEC *par,
+	     MeVEC *par,
 	     Real epsilon
 
 	     );

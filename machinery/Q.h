@@ -3,8 +3,8 @@
 
 Real Q(
 
-	 VEC * x,
-	 VEC * u
+	 MeVEC * x,
+	 MeVEC * u
 
 	 );
 

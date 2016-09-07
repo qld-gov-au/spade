@@ -206,17 +206,17 @@ int	len;
 Real	*x;
 {
     register int	i;
-    register Real	tmp, max_val;
+    register Real	tmp, Memax_val;
 
-    max_val = 0.0;
+    Memax_val = 0.0;
     for ( i = 0; i < len; i++ )
     {
 	tmp = ABS(x[i]);
-	if ( max_val < tmp )
-	    max_val = tmp;
+	if ( Memax_val < tmp )
+	    Memax_val = tmp;
     }
 
-    return max_val;
+    return Memax_val;
 }
 
 /* Mnorm1 -- returns ||x||_1 */

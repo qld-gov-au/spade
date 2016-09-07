@@ -5,7 +5,7 @@
 
 Real zstar(
 
-	      VEC *eff,
+	      MeVEC *eff,
 	      Real b,
 	      Real g,
 	      Real k,

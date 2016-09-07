@@ -3,13 +3,6 @@
 #include "common.h"
 #include "meschach/matrix.h"
 
-Real iota1=5.2;
-Real iota2=0.619;
-Real phi=17;
-Real eta1=1.703205e-5;
-Real eta2=2.9526;
-int interactive_mode_requested = 0;
-
 void request_interactive_mode(int s) {
   if(interactive_mode_requested == 0) {
     printf("\nInteractive mode requested. Please wait.\n");
@@ -22,14 +15,14 @@ void request_interactive_mode(int s) {
   }
 }
 
-void spade_v_output(VEC* vec) {
+void spade_v_output(MeVEC* vec) {
   printf("\n\n");
   for(int i = 0; i < vec->dim; i++) {
     printf("%d:\t%Lf\n", i, vec->ve[i]);
   }
 }
 
-void data_read_ce(char * data_file_name, Data * data, int * N, Real k) {
+void data_read_ce(const char * data_file_name, Data * data, int * N, Real k) {
   char buffer[30];
   sprintf(buffer,"%s-ce.dat",data_file_name);
 
@@ -52,7 +45,7 @@ void data_read_ce(char * data_file_name, Data * data, int * N, Real k) {
   #endif
   }
 
-  VEC *vti = v_get(Nce);
+  MeVEC *vti = v_get(Nce);
   for (int i=0;i<Nce;i++) {
     vti->ve[i] = ti[i];
   }
@@ -95,7 +88,7 @@ void data_read_ce(char * data_file_name, Data * data, int * N, Real k) {
   fclose(fp);
 }
 
-void data_read_ce_new(char * data_file_name, NewData * newdata) {
+void data_read_ce_new(const char * data_file_name, NewData * newdata) {
   char buffer[30];
   sprintf(buffer,"%s-ce-new.dat",data_file_name);
 
@@ -197,7 +190,7 @@ void data_read_ce_new(char * data_file_name, NewData * newdata) {
 }
 
 
-void data_read_lf_new(char * data_file_name, NewData * newdata) {
+void data_read_lf_new(const char * data_file_name, NewData * newdata) {
   char buffer[30];
   sprintf(buffer,"%s-lf-new.dat",data_file_name);
 
@@ -253,7 +246,7 @@ void data_read_lf_new(char * data_file_name, NewData * newdata) {
 }
 
 
-void data_read_lf(char * data_file_name, Data * data, int N, Real k, int minfish) {
+void data_read_lf(const char * data_file_name, Data * data, int N, Real k, int minfish) {
   char buffer[30];
   sprintf(buffer,"%s-lf.dat",data_file_name);
 
@@ -279,9 +272,9 @@ void data_read_lf(char * data_file_name, Data * data, int N, Real k, int minfish
 
   fclose(fp);
 
-  VEC *lfv = v_get(Nlf);
-  VEC *ilv = v_get(Nlf);
-  VEC *cnt = v_get((int)2*N);
+  MeVEC *lfv = v_get(Nlf);
+  MeVEC *ilv = v_get(Nlf);
+  MeVEC *cnt = v_get((int)2*N);
 
   for (int i=0;i<Nlf;i++) {
     lfv->ve[i] = (Real)ln[i];
@@ -327,7 +320,7 @@ void data_read_lf(char * data_file_name, Data * data, int N, Real k, int minfish
   free(tl);
 }
 
-void optim_control_read(char * optim_file_name, OptimControl * optim) {
+void optim_control_read(const char * optim_file_name, OptimControl * optim) {
   #if REAL == DOUBLE
     // lf
     char * format = "%lf\n";
@@ -345,8 +338,8 @@ void optim_control_read(char * optim_file_name, OptimControl * optim) {
   fscanf(fp,format,&optim->ftol);
   fscanf(fp,format,&optim->gtol);
   fscanf(fp,format,&optim->stpmin);
-  fscanf(fp,format,&optim->stpmax);
-  fscanf(fp,"%d",&optim->maxfev);
+  fscanf(fp,format,&optim->stpMemax);
+  fscanf(fp,"%d",&optim->Memaxfev);
   fclose(fp);
   optim->xtol = DBL_EPSILON;
 }

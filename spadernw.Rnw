@@ -93,7 +93,7 @@ where the mortality term now is dependent on the size of the population. A simpl
     b(a) &= b_0 e^{-b_1 a}
   \end{split}
 \end{equation}
-which they showed reduces to Verhulst's model (with $\alpha_0 \equiv b_0 - b_1 - \mu_0$ and $\beta_0 \equiv \mu_1$) in the special case of a population that has an initial age distribution which is balanced in a certain sense. Away from this balance the initial birth rate is either `small' relative to the initial population, and the population initially decreases; alternatively it is `large', and the population surges to a maximum which is larger than its ultimate equilibrium value. 
+which they showed reduces to Verhulst's model (with $\alpha_0 \equiv b_0 - b_1 - \mu_0$ and $\beta_0 \equiv \mu_1$) in the special case of a population that has an initial age distribution which is balanced in a certain sense. Away from this balance the initial birth rate is either `small' relative to the initial population, and the population initially decreases; alternatively it is `large', and the population surges to a Memaximum which is larger than its ultimate equilibrium value. 
 
 \citet{vanSickle1977} analysed a linear (no density dependence) size-structured McKendrick PDE in the context of a fishery model and made the deep observation that a bump may exist in the size-frequency distribution at equilibrium due to fish growing into those size classes faster than they die or grow out of them, but it was \citet{Murphy1983} who built on density dependence and size were incorporated in the McKendrick PDE framework, and the Mprhpy trick ..  \citet{Murphy1983}'s model is
 \begin{equation}
@@ -121,7 +121,7 @@ g(0)n(0,t) &=  \int_0^{\omega} b(x) n(x,t)\,dx\label{eq:1.2}\\
 N(t) &= \int_0^{\omega} n(x,t)\, dx
 \end{align}
 \end{subequations}
-where $x$ is the size of the individual, $\omega$ is the maximum size, and $b$, $g$ and $z$ represent the processes of birth, growth and death respectively. The birth and growth processes can be parameterised to taste, however in the sequel we will emphasise the importance of analytically tractable parameterisations.  Growth is the simplest in this regard as it will turn out that the \citet{vonBertalanffy1938} form,
+where $x$ is the size of the individual, $\omega$ is the Memaximum size, and $b$, $g$ and $z$ represent the processes of birth, growth and death respectively. The birth and growth processes can be parameterised to taste, however in the sequel we will emphasise the importance of analytically tractable parameterisations.  Growth is the simplest in this regard as it will turn out that the \citet{vonBertalanffy1938} form,
 \begin{equation}
   g(x) = \kappa (\omega - x)\label{eq:growth}
 \end{equation}
@@ -397,7 +397,7 @@ k <- 0.025 #c.m[3,1]
 newk <- 1/360
 
 ti <- as.numeric(karumba$Time)
-Y <- ceiling(max(ti))
+Y <- ceiling(Memax(ti))
 N <- Y/k
 I <- 2*N
 
@@ -498,7 +498,7 @@ for (i in 0:I)
     if (cnt[i+1] > min.fish)
         Nl <- Nl+1
 
-lf <- matrix(0,nrow=Nl,ncol=max(cnt))
+lf <- matrix(0,nrow=Nl,ncol=Memax(cnt))
 t_id <- array(0,dim=Nl)
 t_sz <- array(0,dim=Nl)
 
@@ -764,7 +764,7 @@ for (j in 1:(J+1)) {
         
 plot(xx,yy,ylim=range(c(yy,zz)),xlab="Length (cm)",ylab="Instantaneous catch rate (fish per cm per year)",main=paste(paste("Year:",1990+floor(k*(t_id[lfi]-N-1))),", Model-fortnight: ",floor(20*(k*(t_id[lfi]-N-1)-floor(k*(t_id[lfi]-N-1)))),sep=''))
 lines(xx,zz)
-legend(x=20,y=.9*max(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
+legend(x=20,y=.9*Memax(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
 
 @ 
 
@@ -799,7 +799,7 @@ for (j in 1:(J+1)) {
         
 plot(xx,yy,ylim=range(c(yy,zz)),xlab="Length (cm)",ylab="Instantaneous catch rate (fish per cm per year)",main=paste(paste("Year:",1990+floor(k*(t_id[lfi]-N-1))),", Model-fortnight: ",floor(20*(k*(t_id[lfi]-N-1)-floor(k*(t_id[lfi]-N-1)))),sep=''))
 lines(xx,zz)
-legend(x=20,y=.9*max(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
+legend(x=20,y=.9*Memax(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
 
 @ 
 
@@ -835,7 +835,7 @@ for (j in 1:(J+1)) {
         
 plot(xx,yy,ylim=range(c(yy,zz)),xlab="Length (cm)",ylab="Instantaneous catch rate (fish per cm per year)",main=paste(paste("Year:",1990+floor(k*(t_id[lfi]-N-1))),", Model-fortnight: ",floor(20*(k*(t_id[lfi]-N-1)-floor(k*(t_id[lfi]-N-1)))),sep=''))
 lines(xx,zz)
-legend(x=20,y=.9*max(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
+legend(x=20,y=.9*Memax(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
 
 @ 
 
@@ -870,7 +870,7 @@ for (j in 1:(J+1)) {
         
 plot(xx,yy,ylim=range(c(yy,zz)),xlab="Length (cm)",ylab="Instantaneous catch rate (fish per cm per year)",main=paste(paste("Year:",1990+floor(k*(t_id[lfi]-N-1))),", Model-fortnight: ",floor(20*(k*(t_id[lfi]-N-1)-floor(k*(t_id[lfi]-N-1)))),sep=''))
 lines(xx,zz)
-legend(x=20,y=.9*max(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
+legend(x=20,y=.9*Memax(range(c(yy,zz))),c("Predicted","Observed"),lty=c("solid",NA),pch=c(NA,1))
 
 @ 
 

@@ -7,9 +7,9 @@ void Q2_alpha(
 	       Real a,
 	       Real k,
 	       Real w,
-	       VEC *x,
-	       VEC *u,
-	       VEC *p
+	       MeVEC *x,
+	       MeVEC *u,
+	       MeVEC *p
 
 	       )
 {

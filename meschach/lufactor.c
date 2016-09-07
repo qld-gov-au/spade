@@ -43,26 +43,26 @@ static	char	rcsid[] = "$Id: lufactor.c,v 1.10 1995/05/16 17:26:44 des Exp $";
 /* LUfactor -- gaussian elimination with scaled partial pivoting
 		-- Note: returns LU matrix which is A */
 #ifndef ANSI_C
-MAT	*LUfactor(A,pivot)
-MAT	*A;
+MeMAT	*LUfactor(A,pivot)
+MeMAT	*A;
 PERM	*pivot;
 #else
-MAT	*LUfactor(MAT *A, PERM *pivot)
+MeMAT	*LUfactor(MeMAT *A, PERM *pivot)
 #endif
 {
 	unsigned int	i, j, m, n;
-	int	i_max, k, k_max;
+	int	i_Memax, k, k_Memax;
 	Real	**A_v, *A_piv, *A_row;
-	Real	max1, temp, tiny;
-	STATIC	VEC	*scale = VNULL;
+	Real	Memax1, temp, tiny;
+	STATIC	MeVEC	*scale = VNULL;
 
-	if ( A==(MAT *)NULL || pivot==(PERM *)NULL )
+	if ( A==(MeMAT *)NULL || pivot==(PERM *)NULL )
 		error(E_NULL,"LUfactor");
 	if ( pivot->size != A->m )
 		error(E_SIZES,"LUfactor");
 	m = A->m;	n = A->n;
 	scale = v_resize(scale,A->m);
-	MEM_STAT_REG(scale,TYPE_VEC);
+	MEM_STAT_REG(scale,TYPE_MeVEC);
 	A_v = A->me;
 
 	tiny = 10.0/HUGE_VAL;
@@ -74,31 +74,31 @@ MAT	*LUfactor(MAT *A, PERM *pivot)
 	/* set scale parameters */
 	for ( i=0; i<m; i++ )
 	{
-		max1 = 0.0;
+		Memax1 = 0.0;
 		for ( j=0; j<n; j++ )
 		{
 			temp = fabs(A_v[i][j]);
-			max1 = max(max1,temp);
+			Memax1 = Memax(Memax1,temp);
 		}
-		scale->ve[i] = max1;
+		scale->ve[i] = Memax1;
 	}
 
 	/* main loop */
-	k_max = min(m,n)-1;
-	for ( k=0; k<k_max; k++ )
+	k_Memax = min(m,n)-1;
+	for ( k=0; k<k_Memax; k++ )
 	{
 	    /* find best pivot row */
-	    max1 = 0.0;	i_max = -1;
+	    Memax1 = 0.0;	i_Memax = -1;
 	    for ( i=k; i<m; i++ )
 		if ( fabs(scale->ve[i]) >= tiny*fabs(A_v[i][k]) )
 		{
 		    temp = fabs(A_v[i][k])/scale->ve[i];
-		    if ( temp > max1 )
-		    { max1 = temp;	i_max = i;	}
+		    if ( temp > Memax1 )
+		    { Memax1 = temp;	i_Memax = i;	}
 		}
 	    
 	    /* if no pivot then ignore column k... */
-	    if ( i_max == -1 )
+	    if ( i_Memax == -1 )
 	    {
 		/* set pivot entry A[k][k] exactly to zero,
 		   rather than just "small" */
@@ -107,13 +107,13 @@ MAT	*LUfactor(MAT *A, PERM *pivot)
 	    }
 	    
 	    /* do we pivot ? */
-	    if ( i_max != k )	/* yes we do... */
+	    if ( i_Memax != k )	/* yes we do... */
 	    {
-		px_transp(pivot,i_max,k);
+		px_transp(pivot,i_Memax,k);
 		for ( j=0; j<n; j++ )
 		{
-		    temp = A_v[i_max][j];
-		    A_v[i_max][j] = A_v[k][j];
+		    temp = A_v[i_Memax][j];
+		    A_v[i_Memax][j] = A_v[k][j];
 		    A_v[k][j] = temp;
 		}
 	    }
@@ -145,12 +145,12 @@ MAT	*LUfactor(MAT *A, PERM *pivot)
 
 /* LUsolve -- given an LU factorisation in A, solve Ax=b */
 #ifndef ANSI_C
-VEC	*LUsolve(LU,pivot,b,x)
-MAT	*LU;
+MeVEC	*LUsolve(LU,pivot,b,x)
+MeMAT	*LU;
 PERM	*pivot;
-VEC	*b,*x;
+MeVEC	*b,*x;
 #else
-VEC	*LUsolve(const MAT *LU, PERM *pivot, const VEC *b, VEC *x)
+MeVEC	*LUsolve(const MeMAT *LU, PERM *pivot, const MeVEC *b, MeVEC *x)
 #endif
 {
 	if ( ! LU || ! b || ! pivot )
@@ -168,12 +168,12 @@ VEC	*LUsolve(const MAT *LU, PERM *pivot, const VEC *b, VEC *x)
 
 /* LUTsolve -- given an LU factorisation in A, solve A^T.x=b */
 #ifndef ANSI_C
-VEC	*LUTsolve(LU,pivot,b,x)
-MAT	*LU;
+MeVEC	*LUTsolve(LU,pivot,b,x)
+MeMAT	*LU;
 PERM	*pivot;
-VEC	*b,*x;
+MeVEC	*b,*x;
 #else
-VEC	*LUTsolve(const MAT *LU, PERM *pivot, const VEC *b, VEC *x)
+MeVEC	*LUTsolve(const MeMAT *LU, PERM *pivot, const MeVEC *b, MeVEC *x)
 #endif
 {
 	if ( ! LU || ! b || ! pivot )
@@ -192,15 +192,15 @@ VEC	*LUTsolve(const MAT *LU, PERM *pivot, const VEC *b, VEC *x)
 /* m_inverse -- returns inverse of A, provided A is not too rank deficient
 	-- uses LU factorisation */
 #ifndef ANSI_C
-MAT	*m_inverse(A,out)
-MAT	*A, *out;
+MeMAT	*m_inverse(A,out)
+MeMAT	*A, *out;
 #else
-MAT	*m_inverse(const MAT *A, MAT *out)
+MeMAT	*m_inverse(const MeMAT *A, MeMAT *out)
 #endif
 {
 	int	i;
-	STATIC VEC	*tmp = VNULL, *tmp2 = VNULL;
-	STATIC MAT	*A_cp = MNULL;
+	STATIC MeVEC	*tmp = VNULL, *tmp2 = VNULL;
+	STATIC MeMAT	*A_cp = MNULL;
 	STATIC PERM	*pivot = PNULL;
 
 	if ( ! A )
@@ -215,9 +215,9 @@ MAT	*m_inverse(const MAT *A, MAT *out)
 	tmp = v_resize(tmp,A->m);
 	tmp2 = v_resize(tmp2,A->m);
 	pivot = px_resize(pivot,A->m);
-	MEM_STAT_REG(A_cp,TYPE_MAT);
-	MEM_STAT_REG(tmp, TYPE_VEC);
-	MEM_STAT_REG(tmp2,TYPE_VEC);
+	MEM_STAT_REG(A_cp,TYPE_MeMAT);
+	MEM_STAT_REG(tmp, TYPE_MeVEC);
+	MEM_STAT_REG(tmp2,TYPE_MeVEC);
 	MEM_STAT_REG(pivot,TYPE_PERM);
 	tracecatch(LUfactor(A_cp,pivot),"m_inverse");
 	for ( i = 0; i < A->n; i++ )
@@ -240,13 +240,13 @@ MAT	*m_inverse(const MAT *A, MAT *out)
 	LU factorisation in compact form */
 #ifndef ANSI_C
 double	LUcondest(LU,pivot)
-MAT	*LU;
+MeMAT	*LU;
 PERM	*pivot;
 #else
-double	LUcondest(const MAT *LU, PERM *pivot)
+double	LUcondest(const MeMAT *LU, PERM *pivot)
 #endif
 {
-    STATIC	VEC	*y = VNULL, *z = VNULL;
+    STATIC	MeVEC	*y = VNULL, *z = VNULL;
     Real	cond_est, L_norm, U_norm, sum, tiny;
     int		i, j, n;
 
@@ -262,8 +262,8 @@ double	LUcondest(const MAT *LU, PERM *pivot)
     n = LU->n;
     y = v_resize(y,n);
     z = v_resize(z,n);
-    MEM_STAT_REG(y,TYPE_VEC);
-    MEM_STAT_REG(z,TYPE_VEC);
+    MEM_STAT_REG(y,TYPE_MeVEC);
+    MEM_STAT_REG(z,TYPE_MeVEC);
 
     for ( i = 0; i < n; i++ )
     {

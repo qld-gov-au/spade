@@ -42,23 +42,23 @@
 
 /* spLUfactor -- sparse LU factorisation with pivoting
 	-- uses partial pivoting and Markowitz criterion
-			|a[p][k]| >= alpha * max_i |a[i][k]|
+			|a[p][k]| >= alpha * Memax_i |a[i][k]|
 	-- creates fill-in as needed
 	-- in situ factorisation */
 #ifndef ANSI_C
-SPMAT	*spLUfactor(A,px,alpha)
-SPMAT	*A;
+SPMeMAT	*spLUfactor(A,px,alpha)
+SPMeMAT	*A;
 PERM	*px;
 double	alpha;
 #else
-SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
+SPMeMAT	*spLUfactor(SPMeMAT *A, PERM *px, double alpha)
 #endif
 {
 	int	i, best_i, k, idx, len, best_len, m, n;
 	SPROW	*r, *r_piv, tmp_row;
 	STATIC	SPROW	*merge = (SPROW *)NULL;
-	Real	max_val, tmp;
-	STATIC VEC	*col_vals=VNULL;
+	Real	Memax_val, tmp;
+	STATIC MeVEC	*col_vals=VNULL;
 
 	if ( ! A || ! px )
 		error(E_NULL,"spLUfctr");
@@ -68,7 +68,7 @@ SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 		px = px_resize(px,A->m);
 	px_ident(px);
 	col_vals = v_resize(col_vals,A->m);
-	MEM_STAT_REG(col_vals,TYPE_VEC);
+	MEM_STAT_REG(col_vals,TYPE_MeVEC);
 
 	m = A->m;	n = A->n;
 	if ( ! A->flag_col )
@@ -86,7 +86,7 @@ SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 	    /* find pivot row/element for partial pivoting */
 
 	    /* get first row with a non-zero entry in the k-th column */
-	    max_val = 0.0;
+	    Memax_val = 0.0;
 	    for ( i = k; i < m; i++ )
 	    {
 		r = &(A->row[i]);
@@ -95,12 +95,12 @@ SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 		    tmp = 0.0;
 		else
 		    tmp = r->elt[idx].val;
-		if ( fabs(tmp) > max_val )
-		    max_val = fabs(tmp);
+		if ( fabs(tmp) > Memax_val )
+		    Memax_val = fabs(tmp);
 		col_vals->ve[i] = tmp;
 	    }
 
-	    if ( max_val == 0.0 )
+	    if ( Memax_val == 0.0 )
 		continue;
 
 	    best_len = n+1;	/* only if no possibilities */
@@ -110,7 +110,7 @@ SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 		tmp = fabs(col_vals->ve[i]);
 		if ( tmp == 0.0 )
 		    continue;
-		if ( tmp >= alpha*max_val )
+		if ( tmp >= alpha*Memax_val )
 		{
 		    r = &(A->row[i]);
 		    idx = sprow_idx(r,k);
@@ -151,8 +151,8 @@ SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 		if ( idx < 0 )
 		    idx = -(idx+2);
 		/* see if r needs expanding */
-		if ( r->maxlen < idx + merge->len )
-		    sprow_xpd(r,idx+merge->len,TYPE_SPMAT);
+		if ( r->Memaxlen < idx + merge->len )
+		    sprow_xpd(r,idx+merge->len,TYPE_SPMeMAT);
 		r->len = idx+merge->len;
 		MEM_COPY((char *)(merge->elt),(char *)&(r->elt[idx]),
 			merge->len*sizeof(row_elt));
@@ -169,12 +169,12 @@ SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 	-- returns x
 	-- may not be in-situ */
 #ifndef ANSI_C
-VEC	*spLUsolve(A,pivot,b,x)
-SPMAT	*A;
+MeVEC	*spLUsolve(A,pivot,b,x)
+SPMeMAT	*A;
 PERM	*pivot;
-VEC	*b, *x;
+MeVEC	*b, *x;
 #else
-VEC	*spLUsolve(const SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
+MeVEC	*spLUsolve(const SPMeMAT *A, PERM *pivot, const MeVEC *b, MeVEC *x)
 #endif
 {
 	int	i, idx, len, lim;
@@ -227,26 +227,26 @@ VEC	*spLUsolve(const SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 	-- returns x
 	-- may not be in-situ */
 #ifndef ANSI_C
-VEC	*spLUTsolve(A,pivot,b,x)
-SPMAT	*A;
+MeVEC	*spLUTsolve(A,pivot,b,x)
+SPMeMAT	*A;
 PERM	*pivot;
-VEC	*b, *x;
+MeVEC	*b, *x;
 #else
-VEC	*spLUTsolve(SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
+MeVEC	*spLUTsolve(SPMeMAT *A, PERM *pivot, const MeVEC *b, MeVEC *x)
 #endif
 {
 	int	i, idx, lim, rownum;
 	Real	sum, *tmp_ve;
 	/* SPROW	*r; */
 	row_elt	*elt;
-	STATIC VEC	*tmp=VNULL;
+	STATIC MeVEC	*tmp=VNULL;
 
 	if ( ! A || ! b )
 	    error(E_NULL,"spLUTsolve");
 	if ( (pivot != PNULL && A->m != pivot->size) || A->m != b->dim )
 	    error(E_SIZES,"spLUTsolve");
 	tmp = v_copy(b,tmp);
-	MEM_STAT_REG(tmp,TYPE_VEC);
+	MEM_STAT_REG(tmp,TYPE_MeVEC);
 
 	if ( ! A->flag_col )
 	    sp_col_access(A);
@@ -318,11 +318,11 @@ VEC	*spLUTsolve(SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 	-- no fill-in is generated
 	-- in situ factorisation */
 #ifndef ANSI_C
-SPMAT	*spILUfactor(A,alpha)
-SPMAT	*A;
+SPMeMAT	*spILUfactor(A,alpha)
+SPMeMAT	*A;
 double	alpha;
 #else
-SPMAT	*spILUfactor(SPMAT *A, double alpha)
+SPMeMAT	*spILUfactor(SPMeMAT *A, double alpha)
 #endif
 {
     int		i, k, idx, idx_piv, m, n, old_idx, old_idx_piv;

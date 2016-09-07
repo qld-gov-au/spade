@@ -84,17 +84,17 @@ PERM	*pi;
 }
 
 #define	SAVE_FILE	"asx5213a.mat"
-#define	MATLAB_NAME	"alpha"
-char	name[81] = MATLAB_NAME;
+#define	MeMATLAB_NAME	"alpha"
+char	name[81] = MeMATLAB_NAME;
 
 void	main(argc, argv)
 int	argc;
 char	*argv[];
 {
-    ZVEC 	*x = ZVNULL, *y = ZVNULL, *z = ZVNULL, *u = ZVNULL;
-    ZVEC	*diag = ZVNULL;
+    ZMeVEC 	*x = ZVNULL, *y = ZVNULL, *z = ZVNULL, *u = ZVNULL;
+    ZMeVEC	*diag = ZVNULL;
     PERM	*pi1 = PNULL, *pi2 = PNULL, *pivot = PNULL;
-    ZMAT	*A = ZMNULL, *B = ZMNULL, *C = ZMNULL, *D = ZMNULL,
+    ZMeMAT	*A = ZMNULL, *B = ZMNULL, *C = ZMNULL, *D = ZMNULL,
 	*Q = ZMNULL;
     complex	ONE;
     complex	z1, z2, z3;
@@ -171,7 +171,7 @@ char	*argv[];
 
     printf("# Check: MACHEPS = %g\n",MACHEPS);
     /* allocate, initialise, copy and resize operations */
-    /* ZVEC */
+    /* ZMeVEC */
     notice("vector initialise, copy & resize");
     x = zv_get(12);
     y = zv_get(15);
@@ -180,18 +180,18 @@ char	*argv[];
     zv_rand(y);
     z = zv_copy(x,z);
     if ( zv_norm2(zv_sub(x,z,z)) >= MACHEPS )
-	errmesg("ZVEC copy");
+	errmesg("ZMeVEC copy");
     zv_copy(x,y);
     x = zv_resize(x,10);
     y = zv_resize(y,10);
     if ( zv_norm2(zv_sub(x,y,z)) >= MACHEPS )
-	errmesg("ZVEC copy/resize");
+	errmesg("ZMeVEC copy/resize");
     x = zv_resize(x,15);
     y = zv_resize(y,15);
     if ( zv_norm2(zv_sub(x,y,z)) >= MACHEPS )
 	errmesg("VZEC resize");
 
-    /* ZMAT */
+    /* ZMeMAT */
     notice("matrix initialise, copy & resize");
     A = zm_get(8,5);
     B = zm_get(3,9);
@@ -200,16 +200,16 @@ char	*argv[];
     zm_rand(B);
     C = zm_copy(A,C);
     if ( zm_norm_inf(zm_sub(A,C,C)) >= MACHEPS )
-	errmesg("ZMAT copy");
+	errmesg("ZMeMAT copy");
     zm_copy(A,B);
     A = zm_resize(A,3,5);
     B = zm_resize(B,3,5);
     if ( zm_norm_inf(zm_sub(A,B,C)) >= MACHEPS )
-	errmesg("ZMAT copy/resize");
+	errmesg("ZMeMAT copy/resize");
     A = zm_resize(A,10,10);
     B = zm_resize(B,10,10);
     if ( zm_norm_inf(zm_sub(A,B,C)) >= MACHEPS )
-	errmesg("ZMAT resize");
+	errmesg("ZMeMAT resize");
 
     MEMCHK();
 
@@ -304,7 +304,7 @@ char	*argv[];
 
     /* ... and adjoints */
     notice("adjoints and adjoint-multiplies");
-    zm_adjoint(A,A);	/* can do square matrices in situ */
+    zm_adjoint(A,A);	/* can do Mesquare matrices in situ */
     zmam_mlt(A,B,C);
     for ( i = 0; i < C->m; i++ )
 	zm_set_val(C,i,i,zsub(zm_entry(C,i,i),ONE));
@@ -416,11 +416,11 @@ char	*argv[];
 
     MEMCHK();
 
-    /* MATLAB save/load */
-    notice("MATLAB save/load");
+    /* MeMATLAB save/load */
+    notice("MeMATLAB save/load");
     A = zm_resize(A,12,11);
     if ( (fp=fopen(SAVE_FILE,"w")) == (FILE *)NULL )
-	printf("Cannot perform MATLAB save/load test\n");
+	printf("Cannot perform MeMATLAB save/load test\n");
     else
     {
 	zm_rand(A);
@@ -521,7 +521,7 @@ char	*argv[];
 
     MEMCHK();
 
-    /* now try with a non-square matrix */
+    /* now try with a non-Mesquare matrix */
     A = zm_resize(A,15,7);
     zm_rand(A);
     B = zm_copy(A,B);
@@ -652,7 +652,7 @@ char	*argv[];
     zm_rand(A);
     U = zm_get(A->n,A->n);
     Q = zm_resize(Q,A->m,A->m);
-    u = zv_resize(u,max(A->m,A->n));
+    u = zv_resize(u,Memax(A->m,A->n));
     svd(A,Q,U,u);
     ******************************/
     /* check reconstruction of A */

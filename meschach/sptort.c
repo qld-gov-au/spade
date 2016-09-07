@@ -46,7 +46,7 @@
 #endif
 
 int	chk_col_accessSPT(A)
-SPMAT	*A;
+SPMeMAT	*A;
 {
     int		i, j, nxt_idx, nxt_row, scan_cnt, total_cnt;
     SPROW	*r;
@@ -89,11 +89,11 @@ void	main(argc, argv)
 int	argc;
 char	*argv[];
 {
-    VEC		*x, *y, *z, *u, *v;
+    MeVEC		*x, *y, *z, *u, *v;
     Real	s1, s2;
     PERM	*pivot;
-    SPMAT	*A, *B, *C;
-    SPMAT       *B1, *C1;
+    SPMeMAT	*A, *B, *C;
+    SPMeMAT       *B1, *C1;
     SPROW	*r;
     int		i, j, k, deg, seed, m, m_old, n, n_old;
 

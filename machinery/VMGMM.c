@@ -14,11 +14,11 @@
 #include <math.h>
 #include "VMGMM.h"
 
-VEC *VMGMM(
+MeVEC *VMGMM(
 
-		  VEC *theta,
+		  MeVEC *theta,
 		  Data *d,
-		  VEC *g,
+		  MeVEC *g,
 		  Real *f,
       Parameters * parameters
 

@@ -32,11 +32,11 @@ static	char	rcsid[] = "$Id: zcopy.c,v 1.1 1994/01/13 04:28:42 des Exp $";
 
 /* _zm_copy -- copies matrix into new area */
 #ifndef ANSI_C
-ZMAT	*_zm_copy(in,out,i0,j0)
-ZMAT	*in,*out;
+ZMeMAT	*_zm_copy(in,out,i0,j0)
+ZMeMAT	*in,*out;
 unsigned int	i0,j0;
 #else
-ZMAT	*_zm_copy(const ZMAT *in, ZMAT *out, int i0, int j0)
+ZMeMAT	*_zm_copy(const ZMeMAT *in, ZMeMAT *out, int i0, int j0)
 #endif
 {
 	unsigned int	i /* ,j */;
@@ -59,11 +59,11 @@ ZMAT	*_zm_copy(const ZMAT *in, ZMAT *out, int i0, int j0)
 
 /* _zv_copy -- copies vector into new area */
 #ifndef ANSI_C
-ZVEC	*_zv_copy(in,out,i0)
-ZVEC	*in,*out;
+ZMeVEC	*_zv_copy(in,out,i0)
+ZMeVEC	*in,*out;
 unsigned int	i0;
 #else
-ZVEC	*_zv_copy(const ZVEC *in, ZVEC *out, int i0)
+ZMeVEC	*_zv_copy(const ZMeVEC *in, ZMeVEC *out, int i0)
 #endif
 {
 	/* unsigned int	i,j; */
@@ -95,12 +95,12 @@ ZVEC	*_zv_copy(const ZVEC *in, ZVEC *out, int i0)
 	   (i1,j1)
 	-- out is resized (& created) if necessary */
 #ifndef ANSI_C
-ZMAT	*zm_move(in,i0,j0,m0,n0,out,i1,j1)
-ZMAT	*in, *out;
+ZMeMAT	*zm_move(in,i0,j0,m0,n0,out,i1,j1)
+ZMeMAT	*in, *out;
 int	i0, j0, m0, n0, i1, j1;
 #else
-ZMAT	*zm_move(const ZMAT *in, int i0, int j0, int m0, int n0,
-		 ZMAT *out, int i1, int j1)
+ZMeMAT	*zm_move(const ZMeMAT *in, int i0, int j0, int m0, int n0,
+		 ZMeMAT *out, int i1, int j1)
 #endif
 {
     int		i;
@@ -114,7 +114,7 @@ ZMAT	*zm_move(const ZMAT *in, int i0, int j0, int m0, int n0,
     if ( ! out )
 	out = zm_resize(out,i1+m0,j1+n0);
     else if ( i1+m0 > out->m || j1+n0 > out->n )
-	out = zm_resize(out,max(out->m,i1+m0),max(out->n,j1+n0));
+	out = zm_resize(out,Memax(out->m,i1+m0),Memax(out->n,j1+n0));
 
     for ( i = 0; i < m0; i++ )
 	MEM_COPY(&(in->me[i0+i][j0]),&(out->me[i1+i][j1]),
@@ -128,12 +128,12 @@ ZMAT	*zm_move(const ZMAT *in, int i0, int j0, int m0, int n0,
 	   to the corresponding subvector of out with initial index i1
 	-- out is resized if necessary */
 #ifndef ANSI_C
-ZVEC	*zv_move(in,i0,dim0,out,i1)
-ZVEC	*in, *out;
+ZMeVEC	*zv_move(in,i0,dim0,out,i1)
+ZMeVEC	*in, *out;
 int	i0, dim0, i1;
 #else
-ZVEC	*zv_move(const ZVEC *in, int i0, int dim0,
-		 ZVEC *out, int i1)
+ZMeVEC	*zv_move(const ZMeVEC *in, int i0, int dim0,
+		 ZMeVEC *out, int i1)
 #endif
 {
     if ( ! in )
@@ -157,13 +157,13 @@ ZVEC	*zv_move(const ZVEC *in, int i0, int dim0,
 	-- rows are copied contiguously
 	-- out is resized if necessary */
 #ifndef ANSI_C
-ZVEC	*zmv_move(in,i0,j0,m0,n0,out,i1)
-ZMAT	*in;
-ZVEC	*out;
+ZMeVEC	*zmv_move(in,i0,j0,m0,n0,out,i1)
+ZMeMAT	*in;
+ZMeVEC	*out;
 int	i0, j0, m0, n0, i1;
 #else
-ZVEC	*zmv_move(const ZMAT *in, int i0, int j0, int m0, int n0,
-		  ZVEC *out, int i1)
+ZMeVEC	*zmv_move(const ZMeMAT *in, int i0, int j0, int m0, int n0,
+		  ZMeVEC *out, int i1)
 #endif
 {
     int		dim1, i;
@@ -190,13 +190,13 @@ ZVEC	*zmv_move(const ZMAT *in, int i0, int j0, int m0, int n0,
         -- copying is done by rows
 	-- out is resized if necessary */
 #ifndef ANSI_C
-ZMAT	*zvm_move(in,i0,out,i1,j1,m1,n1)
-ZVEC	*in;
-ZMAT	*out;
+ZMeMAT	*zvm_move(in,i0,out,i1,j1,m1,n1)
+ZMeVEC	*in;
+ZMeMAT	*out;
 int	i0, i1, j1, m1, n1;
 #else
-ZMAT	*zvm_move(const ZVEC *in, int i0,
-		  ZMAT *out, int i1, int j1, int m1, int n1)
+ZMeMAT	*zvm_move(const ZMeVEC *in, int i0,
+		  ZMeMAT *out, int i1, int j1, int m1, int n1)
 #endif
 {
     int		dim0, i;
@@ -210,7 +210,7 @@ ZMAT	*zvm_move(const ZVEC *in, int i0,
     if ( ! out )
 	out = zm_resize(out,i1+m1,j1+n1);
     else
-	out = zm_resize(out,max(i1+m1,out->m),max(j1+n1,out->n));
+	out = zm_resize(out,Memax(i1+m1,out->m),Memax(j1+n1,out->n));
 
     dim0 = m1*n1;
     for ( i = 0; i < m1; i++ )

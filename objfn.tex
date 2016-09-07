@@ -30,7 +30,7 @@ where $\tau$ is the average day duration as a fraction of a year.  Then we use a
 \end{equation}
 where $\phi_t$ and $\phi_x$ are kernels, and the weighting
 \begin{equation}
-  p(t) = \frac{\sum_{j=1}^m\phi_t((t-t_j)/h_t)}{\text{max}_t\sum_{j=1}^m\phi_t((t-t_j)/h_t)}.
+  p(t) = \frac{\sum_{j=1}^m\phi_t((t-t_j)/h_t)}{\text{Memax}_t\sum_{j=1}^m\phi_t((t-t_j)/h_t)}.
 \end{equation}
 
 
@@ -51,7 +51,7 @@ where $c(x,t) = s(x)w(x)f(t)u(x,t)$ and
 \end{equation}
 where $\phi_t$ and $\phi_x$ are kernels, and 
 \begin{equation}
-  p(t) = \frac{\sum_{i=1}^n\phi_t((t-t_i)/h_t)}{\text{max}_t\sum_{i=1}^n\phi_t((t-t_i)/h_t)}
+  p(t) = \frac{\sum_{i=1}^n\phi_t((t-t_i)/h_t)}{\text{Memax}_t\sum_{i=1}^n\phi_t((t-t_i)/h_t)}
 \end{equation}
 and $\hat{\mu}(t)$ is the result of the spline smoother applied to the observed total catch.
 

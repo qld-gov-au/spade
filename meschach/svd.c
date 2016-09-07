@@ -48,10 +48,10 @@ static char rcsid[] = "$Id: svd.c,v 1.7 1995/09/08 14:45:43 des Exp $";
 	-- no argument checking */
 #ifndef ANSI_C
 static void	fixsvd(d,U,V)
-VEC	*d;
-MAT	*U, *V;
+MeVEC	*d;
+MeMAT	*U, *V;
 #else
-static void	fixsvd(VEC *d, MAT *U, MAT *V)
+static void	fixsvd(MeVEC *d, MeMAT *U, MeMAT *V)
 #endif
 {
     int		i, j, k, l, r, stack[MAX_STACK], sp;
@@ -142,15 +142,15 @@ static void	fixsvd(VEC *d, MAT *U, MAT *V)
 		where A is initial matrix
 	-- returns d on exit */
 #ifndef ANSI_C
-VEC	*bisvd(d,f,U,V)
-VEC	*d, *f;
-MAT	*U, *V;
+MeVEC	*bisvd(d,f,U,V)
+MeVEC	*d, *f;
+MeMAT	*U, *V;
 #else
-VEC	*bisvd(VEC *d, VEC *f, MAT *U, MAT *V)
+MeVEC	*bisvd(MeVEC *d, MeVEC *f, MeMAT *U, MeMAT *V)
 #endif
 {
 	int	i, j, n;
-	int	i_min, i_max, split;
+	int	i_min, i_Memax, split;
 	Real	c, s, shift, size, z;
 	Real	d_tmp, diff, t11, t12, t22, *d_ve, *f_ve;
 
@@ -182,12 +182,12 @@ VEC	*bisvd(VEC *d, VEC *f, MAT *U, MAT *V)
 	i_min = 0;
 	while ( i_min < n )	/* outer while loop */
 	{
-	    /* find i_max to suit;
-		submatrix i_min..i_max should be irreducible */
-	    i_max = n - 1;
+	    /* find i_Memax to suit;
+		submatrix i_min..i_Memax should be irreducible */
+	    i_Memax = n - 1;
 	    for ( i = i_min; i < n - 1; i++ )
 		if ( d_ve[i] == 0.0 || f_ve[i] == 0.0 )
-		{   i_max = i;
+		{   i_Memax = i;
 		    if ( f_ve[i] != 0.0 )
 		    {
 			/* have to ``chase'' f[i] element out of matrix */
@@ -208,21 +208,21 @@ VEC	*bisvd(VEC *d, VEC *f, MAT *U, MAT *V)
 		    }
 		    break;
 		}
-	    if ( i_max <= i_min )
+	    if ( i_Memax <= i_min )
 	    {
-		i_min = i_max + 1;
+		i_min = i_Memax + 1;
 		continue;
 	    }
-	    /* printf("bisvd: i_min = %d, i_max = %d\n",i_min,i_max); */
+	    /* printf("bisvd: i_min = %d, i_Memax = %d\n",i_min,i_Memax); */
 
 	    split = FALSE;
 	    while ( ! split )
 	    {
 		/* compute shift */
-		t11 = d_ve[i_max-1]*d_ve[i_max-1] +
-			(i_max > i_min+1 ? f_ve[i_max-2]*f_ve[i_max-2] : 0.0);
-		t12 = d_ve[i_max-1]*f_ve[i_max-1];
-		t22 = d_ve[i_max]*d_ve[i_max] + f_ve[i_max-1]*f_ve[i_max-1];
+		t11 = d_ve[i_Memax-1]*d_ve[i_Memax-1] +
+			(i_Memax > i_min+1 ? f_ve[i_Memax-2]*f_ve[i_Memax-2] : 0.0);
+		t12 = d_ve[i_Memax-1]*f_ve[i_Memax-1];
+		t22 = d_ve[i_Memax]*d_ve[i_Memax] + f_ve[i_Memax-1]*f_ve[i_Memax-1];
 		/* use e-val of [[t11,t12],[t12,t22]] matrix
 				closest to t22 */
 		diff = (t11-t22)/2;
@@ -247,7 +247,7 @@ VEC	*bisvd(VEC *d, VEC *f, MAT *U, MAT *V)
 		d_tmp         = c*d_ve[i_min+1] - s*f_ve[i_min];
 		f_ve[i_min]   = s*d_ve[i_min+1] + c*f_ve[i_min];
 		d_ve[i_min+1] = d_tmp;
-		if ( i_min+1 < i_max )
+		if ( i_min+1 < i_Memax )
 		{
 		    z             = s*f_ve[i_min+1];
 		    f_ve[i_min+1] = c*f_ve[i_min+1];
@@ -255,7 +255,7 @@ VEC	*bisvd(VEC *d, VEC *f, MAT *U, MAT *V)
 		if ( U )
 		    rot_rows(U,i_min,i_min+1,c,s,U);
 
-		for ( i = i_min+1; i < i_max; i++ )
+		for ( i = i_min+1; i < i_Memax; i++ )
 		{
 		    /* get Givens' rotation for zeroing z */
 		    givens(f_ve[i-1],z, &c, &s);
@@ -273,7 +273,7 @@ VEC	*bisvd(VEC *d, VEC *f, MAT *U, MAT *V)
 		    d_tmp     = c*d_ve[i+1] - s*f_ve[i];
 		    f_ve[i]   = c*f_ve[i] + s*d_ve[i+1];
 		    d_ve[i+1] = d_tmp;
-		    if ( i+1 < i_max )
+		    if ( i+1 < i_Memax )
 		    {
 			z         = s*f_ve[i+1];
 			f_ve[i+1] = c*f_ve[i+1];
@@ -282,7 +282,7 @@ VEC	*bisvd(VEC *d, VEC *f, MAT *U, MAT *V)
 			rot_rows(U,i,i+1,c,s,U);
 		}
 		/* should matrix be split? */
-		for ( i = i_min; i < i_max; i++ )
+		for ( i = i_min; i < i_Memax; i++ )
 		    if ( fabs(f_ve[i]) <
 				MACHEPS*(fabs(d_ve[i])+fabs(d_ve[i+1])) )
 		    {
@@ -306,14 +306,14 @@ VEC	*bisvd(VEC *d, VEC *f, MAT *U, MAT *V)
 /* bifactor -- perform preliminary factorisation for bisvd
 	-- updates U and/or V, which ever is not NULL */
 #ifndef ANSI_C
-MAT	*bifactor(A,U,V)
-MAT	*A, *U, *V;
+MeMAT	*bifactor(A,U,V)
+MeMAT	*A, *U, *V;
 #else
-MAT	*bifactor(MAT *A, MAT *U, MAT *V)
+MeMAT	*bifactor(MeMAT *A, MeMAT *U, MeMAT *V)
 #endif
 {
 	int	k;
-	STATIC VEC	*tmp1=VNULL, *tmp2=VNULL, *w=VNULL;
+	STATIC MeVEC	*tmp1=VNULL, *tmp2=VNULL, *w=VNULL;
 	Real	beta;
 
 	if ( ! A )
@@ -324,10 +324,10 @@ MAT	*bifactor(MAT *A, MAT *U, MAT *V)
 		error(E_SIZES,"bifactor");
 	tmp1 = v_resize(tmp1,A->m);
 	tmp2 = v_resize(tmp2,A->n);
-	w    = v_resize(w,   max(A->m,A->n));
-	MEM_STAT_REG(tmp1,TYPE_VEC);
-	MEM_STAT_REG(tmp2,TYPE_VEC);
-	MEM_STAT_REG(w,   TYPE_VEC);
+	w    = v_resize(w,   Memax(A->m,A->n));
+	MEM_STAT_REG(tmp1,TYPE_MeVEC);
+	MEM_STAT_REG(tmp2,TYPE_MeVEC);
+	MEM_STAT_REG(w,   TYPE_MeVEC);
 
 	if ( A->m >= A->n )
 	    for ( k = 0; k < A->n; k++ )
@@ -373,16 +373,16 @@ MAT	*bifactor(MAT *A, MAT *U, MAT *V)
 	-- also updates U and/or V, if one or the other is non-NULL
 	-- destroys A */
 #ifndef ANSI_C
-VEC	*svd(A,U,V,d)
-MAT	*A, *U, *V;
-VEC	*d;
+MeVEC	*svd(A,U,V,d)
+MeMAT	*A, *U, *V;
+MeVEC	*d;
 #else
-VEC	*svd(MAT *A, MAT *U, MAT *V, VEC *d)
+MeVEC	*svd(MeMAT *A, MeMAT *U, MeMAT *V, MeVEC *d)
 #endif
 {
-	STATIC VEC	*f=VNULL;
+	STATIC MeVEC	*f=VNULL;
 	int	i, limit;
-	MAT	*A_tmp;
+	MeMAT	*A_tmp;
 
 	if ( ! A )
 		error(E_NULL,"svd");
@@ -399,7 +399,7 @@ VEC	*svd(MAT *A, MAT *U, MAT *V, VEC *d)
 	limit = min(A_tmp->m,A_tmp->n);
 	d = v_resize(d,limit);
 	f = v_resize(f,limit-1);
-	MEM_STAT_REG(f,TYPE_VEC);
+	MEM_STAT_REG(f,TYPE_MeVEC);
 
 	bifactor(A_tmp,U,V);
 	if ( A_tmp->m >= A_tmp->n )

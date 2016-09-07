@@ -40,15 +40,15 @@ static	char	rcsid[] = "$Id: spswap.c,v 1.3 1994/01/13 05:44:43 des Exp $";
 #define	btos(x)	((x) ? "TRUE" : "FALSE")
 
 /* scan_to -- updates scan (int) vectors to point to the last row in each
-	column with row # <= max_row, if any */
+	column with row # <= Memax_row, if any */
 #ifndef ANSI_C
-void	scan_to(A, scan_row, scan_idx, col_list, max_row)
-SPMAT	*A;
-IVEC	*scan_row, *scan_idx, *col_list;
-int	max_row;
+void	scan_to(A, scan_row, scan_idx, col_list, Memax_row)
+SPMeMAT	*A;
+IMeVEC	*scan_row, *scan_idx, *col_list;
+int	Memax_row;
 #else
-void	scan_to(SPMAT *A, IVEC *scan_row, IVEC *scan_idx, IVEC *col_list, 
-		int max_row)
+void	scan_to(SPMeMAT *A, IMeVEC *scan_row, IMeVEC *scan_idx, IMeVEC *col_list, 
+		int Memax_row)
 #endif
 {
     int		col, idx, j_idx, row_num;
@@ -60,7 +60,7 @@ void	scan_to(SPMAT *A, IVEC *scan_row, IVEC *scan_idx, IVEC *col_list,
     if ( scan_row->dim != scan_idx->dim || scan_idx->dim != col_list->dim )
 	error(E_SIZES,"scan_to");
 
-    if ( max_row < 0 )
+    if ( Memax_row < 0 )
 	return;
 
     if ( ! A->flag_col )
@@ -91,9 +91,9 @@ void	scan_to(SPMAT *A, IVEC *scan_row, IVEC *scan_idx, IVEC *col_list,
 		   row_num, idx, col);
 	    error(E_INTERN,"scan_to");
 	}
-	/* if ( e->nxt_row <= max_row )
-	    chase_col(A, col, &row_num, &idx, max_row); */
-	while ( e->nxt_row >= 0 && e->nxt_row <= max_row )
+	/* if ( e->nxt_row <= Memax_row )
+	    chase_col(A, col, &row_num, &idx, Memax_row); */
+	while ( e->nxt_row >= 0 && e->nxt_row <= Memax_row )
 	{
 	    row_num = e->nxt_row;
 	    idx = e->nxt_idx;
@@ -110,10 +110,10 @@ void	scan_to(SPMAT *A, IVEC *scan_row, IVEC *scan_idx, IVEC *col_list,
 /* patch_col -- patches column access paths for fill-in */
 #ifndef ANSI_C
 void patch_col(A, col, old_row, old_idx, row_num, idx)
-SPMAT	*A;
+SPMeMAT	*A;
 int	col, old_row, old_idx, row_num, idx;
 #else
-void patch_col(SPMAT *A, int col, int old_row, int old_idx, int row_num, 
+void patch_col(SPMeMAT *A, int col, int old_row, int old_idx, int row_num, 
 	       int idx)
 #endif
 {
@@ -136,17 +136,17 @@ void patch_col(SPMAT *A, int col, int old_row, int old_idx, int row_num,
 }
 
 /* chase_col -- chases column access path in column col, starting with
-   row_num and idx, to find last row # in this column <= max_row
+   row_num and idx, to find last row # in this column <= Memax_row
    -- row_num is returned; idx is also set by this routine
    -- assumes that the column access paths (possibly without the
    nxt_idx fields) are set up */
 #ifndef ANSI_C
-row_elt *chase_col(A, col, row_num, idx, max_row)
-SPMAT	*A;
-int	col, *row_num, *idx, max_row;
+row_elt *chase_col(A, col, row_num, idx, Memax_row)
+SPMeMAT	*A;
+int	col, *row_num, *idx, Memax_row;
 #else
-row_elt *chase_col(const SPMAT *A, int col, int *row_num, int *idx, 
-		   int max_row)
+row_elt *chase_col(const SPMeMAT *A, int col, int *row_num, int *idx, 
+		   int Memax_row)
 #endif
 {
     int		old_idx, old_row, tmp_idx, tmp_row;
@@ -158,7 +158,7 @@ row_elt *chase_col(const SPMAT *A, int col, int *row_num, int *idx,
     tmp_row = *row_num;
     if ( tmp_row < 0 )
     {
-	if ( A->start_row[col] > max_row )
+	if ( A->start_row[col] > Memax_row )
 	{
 	    tmp_row = -1;
 	    tmp_idx = col;
@@ -175,7 +175,7 @@ row_elt *chase_col(const SPMAT *A, int col, int *row_num, int *idx,
     
     old_row = tmp_row;
     old_idx = tmp_idx;
-    while ( tmp_row >= 0 && tmp_row < max_row )
+    while ( tmp_row >= 0 && tmp_row < Memax_row )
     {
 	r = &(A->row[tmp_row]);
 	/* tmp_idx = sprow_idx2(r,col,tmp_idx); */
@@ -198,13 +198,13 @@ row_elt *chase_col(const SPMAT *A, int col, int *row_num, int *idx,
 	tmp_row = e->nxt_row;
 	tmp_idx = e->nxt_idx;
     }
-    if ( old_row > max_row )
+    if ( old_row > Memax_row )
     {
 	old_row = -1;
 	old_idx = col;
 	e = (row_elt *)NULL;
     }
-    else if ( tmp_row <= max_row && tmp_row >= 0 )
+    else if ( tmp_row <= Memax_row && tmp_row >= 0 )
     {
 	old_row = tmp_row;
 	old_idx = tmp_idx;
@@ -223,10 +223,10 @@ row_elt *chase_col(const SPMAT *A, int col, int *row_num, int *idx,
 	row whose row # >= min_row; -1 indicates no such row */
 #ifndef ANSI_C
 row_elt *chase_past(A, col, row_num, idx, min_row)
-SPMAT	*A;
+SPMeMAT	*A;
 int	col, *row_num, *idx, min_row;
 #else
-row_elt *chase_past(const SPMAT *A, int col, int *row_num, int *idx, 
+row_elt *chase_past(const SPMeMAT *A, int col, int *row_num, int *idx, 
 		    int min_row)
 #endif
 {
@@ -276,10 +276,10 @@ row_elt *chase_past(const SPMAT *A, int col, int *row_num, int *idx,
 	-- update row_num and idx */
 #ifndef ANSI_C
 row_elt *bump_col(A, col, row_num, idx)
-SPMAT	*A;
+SPMeMAT	*A;
 int	col, *row_num, *idx;
 #else
-row_elt *bump_col(const SPMAT *A, int col, int *row_num, int *idx)
+row_elt *bump_col(const SPMeMAT *A, int col, int *row_num, int *idx)
 #endif
 {
     SPROW	*r;

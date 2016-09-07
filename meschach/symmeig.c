@@ -46,14 +46,14 @@ static char rcsid[] = "$Id: symmeig.c,v 1.6 1995/03/27 15:45:55 des Exp $";
 		and b (sub- & super-diag entries)
 	-- eigenvalues in a on return */
 #ifndef ANSI_C
-VEC	*trieig(a,b,Q)
-VEC	*a, *b;
-MAT	*Q;
+MeVEC	*trieig(a,b,Q)
+MeVEC	*a, *b;
+MeMAT	*Q;
 #else
-VEC	*trieig(VEC *a, VEC *b, MAT *Q)
+MeVEC	*trieig(MeVEC *a, MeVEC *b, MeMAT *Q)
 #endif
 {
-	int	i, i_min, i_max, n, split;
+	int	i, i_min, i_Memax, n, split;
 	Real	*a_ve, *b_ve;
 	Real	b_sqr, bk, ak1, bk1, ak2, bk2, z;
 	Real	c, c2, cs, s, s2, d, mu;
@@ -71,20 +71,20 @@ VEC	*trieig(VEC *a, VEC *b, MAT *Q)
 	i_min = 0;
 	while ( i_min < n )		/* outer while loop */
 	{
-		/* find i_max to suit;
-			submatrix i_min..i_max should be irreducible */
-		i_max = n-1;
+		/* find i_Memax to suit;
+			submatrix i_min..i_Memax should be irreducible */
+		i_Memax = n-1;
 		for ( i = i_min; i < n-1; i++ )
 		    if ( b_ve[i] == 0.0 )
-		    {	i_max = i;	break;	}
-		if ( i_max <= i_min )
+		    {	i_Memax = i;	break;	}
+		if ( i_Memax <= i_min )
 		{
-		    /* printf("# i_min = %d, i_max = %d\n",i_min,i_max); */
-		    i_min = i_max + 1;
+		    /* printf("# i_min = %d, i_Memax = %d\n",i_min,i_Memax); */
+		    i_min = i_Memax + 1;
 		    continue;	/* outer while loop */
 		}
 
-		/* printf("# i_min = %d, i_max = %d\n",i_min,i_max); */
+		/* printf("# i_min = %d, i_Memax = %d\n",i_min,i_Memax); */
 
 		/* repeatedly perform QR method until matrix splits */
 		split = FALSE;
@@ -92,9 +92,9 @@ VEC	*trieig(VEC *a, VEC *b, MAT *Q)
 		{
 
 		    /* find Wilkinson shift */
-		    d = (a_ve[i_max-1] - a_ve[i_max])/2;
-		    b_sqr = b_ve[i_max-1]*b_ve[i_max-1];
-		    mu = a_ve[i_max] - b_sqr/(d + sgn(d)*sqrt(d*d+b_sqr));
+		    d = (a_ve[i_Memax-1] - a_ve[i_Memax])/2;
+		    b_sqr = b_ve[i_Memax-1]*b_ve[i_Memax-1];
+		    mu = a_ve[i_Memax] - b_sqr/(d + sgn(d)*sqrt(d*d+b_sqr));
 		    /* printf("# Wilkinson shift = %g\n",mu); */
 
 		    /* initial Givens' rotation */
@@ -110,12 +110,12 @@ VEC	*trieig(VEC *a, VEC *b, MAT *Q)
 		    bk1 = cs*(a_ve[i_min]-a_ve[i_min+1]) +
 						(c2-s2)*b_ve[i_min];
 		    ak2 = s2*a_ve[i_min]+c2*a_ve[i_min+1]+2*cs*b_ve[i_min];
-		    bk2 = ( i_min < i_max-1 ) ? c*b_ve[i_min+1] : 0.0;
-		    z  = ( i_min < i_max-1 ) ? -s*b_ve[i_min+1] : 0.0;
+		    bk2 = ( i_min < i_Memax-1 ) ? c*b_ve[i_min+1] : 0.0;
+		    z  = ( i_min < i_Memax-1 ) ? -s*b_ve[i_min+1] : 0.0;
 		    a_ve[i_min] = ak1;
 		    a_ve[i_min+1] = ak2;
 		    b_ve[i_min] = bk1;
-		    if ( i_min < i_max-1 )
+		    if ( i_min < i_Memax-1 )
 			b_ve[i_min+1] = bk2;
 		    if ( Q )
 			rot_cols(Q,i_min,i_min+1,c,-s,Q);
@@ -123,7 +123,7 @@ VEC	*trieig(VEC *a, VEC *b, MAT *Q)
 		    /* printf("# a [temp1] =\n");	v_output(a); */
 		    /* printf("# b [temp1] =\n");	v_output(b); */
 
-		    for ( i = i_min+1; i < i_max; i++ )
+		    for ( i = i_min+1; i < i_Memax; i++ )
 		    {
 			/* get Givens' rotation for sub-block -- k == i-1 */
 			givens(b_ve[i-1],z,&c,&s);
@@ -141,11 +141,11 @@ VEC	*trieig(VEC *a, VEC *b, MAT *Q)
 			bk1 = cs*(a_ve[i]-a_ve[i+1]) +
 						(c2-s2)*b_ve[i];
 			ak2 = s2*a_ve[i]+c2*a_ve[i+1]+2*cs*b_ve[i];
-			bk2 = ( i+1 < i_max ) ? c*b_ve[i+1] : 0.0;
-			z  = ( i+1 < i_max ) ? -s*b_ve[i+1] : 0.0;
+			bk2 = ( i+1 < i_Memax ) ? c*b_ve[i+1] : 0.0;
+			z  = ( i+1 < i_Memax ) ? -s*b_ve[i+1] : 0.0;
 			a_ve[i] = ak1;	a_ve[i+1] = ak2;
 			b_ve[i] = bk1;
-			if ( i < i_max-1 )
+			if ( i < i_Memax-1 )
 			    b_ve[i+1] = bk2;
 			if ( i > i_min )
 			    b_ve[i-1] = bk;
@@ -156,7 +156,7 @@ VEC	*trieig(VEC *a, VEC *b, MAT *Q)
 		    }
 
 		    /* test to see if matrix should be split */
-		    for ( i = i_min; i < i_max; i++ )
+		    for ( i = i_min; i < i_Memax; i++ )
 			if ( fabs(b_ve[i]) < MACHEPS*
 					(fabs(a_ve[i])+fabs(a_ve[i+1])) )
 			{   b_ve[i] = 0.0;	split = TRUE;	}
@@ -175,16 +175,16 @@ VEC	*trieig(VEC *a, VEC *b, MAT *Q)
 	-- Q contains orthogonal matrix of eigenvectors
 	-- returns vector of eigenvalues */
 #ifndef ANSI_C
-VEC	*symmeig(A,Q,out)
-MAT	*A, *Q;
-VEC	*out;
+MeVEC	*symmeig(A,Q,out)
+MeMAT	*A, *Q;
+MeVEC	*out;
 #else
-VEC	*symmeig(const MAT *A, MAT *Q, VEC *out)
+MeVEC	*symmeig(const MeMAT *A, MeMAT *Q, MeVEC *out)
 #endif
 {
 	int	i;
-	STATIC MAT	*tmp = MNULL;
-	STATIC VEC	*b   = VNULL, *diag = VNULL, *beta = VNULL;
+	STATIC MeMAT	*tmp = MNULL;
+	STATIC MeVEC	*b   = VNULL, *diag = VNULL, *beta = VNULL;
 
 	if ( ! A )
 		error(E_NULL,"symmeig");
@@ -198,10 +198,10 @@ VEC	*symmeig(const MAT *A, MAT *Q, VEC *out)
 	b    = v_resize(b,A->m - 1);
 	diag = v_resize(diag,(unsigned int)A->m);
 	beta = v_resize(beta,(unsigned int)A->m);
-	MEM_STAT_REG(tmp,TYPE_MAT);
-	MEM_STAT_REG(b,TYPE_VEC);
-	MEM_STAT_REG(diag,TYPE_VEC);
-	MEM_STAT_REG(beta,TYPE_VEC);
+	MEM_STAT_REG(tmp,TYPE_MeMAT);
+	MEM_STAT_REG(b,TYPE_MeVEC);
+	MEM_STAT_REG(diag,TYPE_MeVEC);
+	MEM_STAT_REG(beta,TYPE_MeVEC);
 
 	Hfactor(tmp,diag,beta);
 	if ( Q )

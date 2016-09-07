@@ -67,9 +67,9 @@ static	char	*err_mesg[] =
 	  "incorrect format input",		    /* 6 */
 	  "bad input file/device",		    /* 7 */
 	  "NULL objects passed",		    /* 8 */
-	  "matrix not square",			    /* 9 */
+	  "matrix not Mesquare",			    /* 9 */
 	  "object out of range",		    /* 10 */
-	  "can't do operation in situ for non-square matrix",   /* 11 */
+	  "can't do operation in situ for non-Mesquare matrix",   /* 11 */
 	  "can't do operation in situ",		    /* 12 */
 	  "excessive number of iterations",	    /* 13 */
 	  "convergence criterion failed",	    /* 14 */

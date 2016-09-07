@@ -42,15 +42,15 @@ static	char	rcsid[] = "$Id: zlufctr.c,v 1.3 1996/08/20 20:07:09 stewart Exp $";
 
 /* zLUfactor -- Gaussian elimination with scaled partial pivoting
 		-- Note: returns LU matrix which is A */
-ZMAT	*zLUfactor(A,pivot)
-ZMAT	*A;
+ZMeMAT	*zLUfactor(A,pivot)
+ZMeMAT	*A;
 PERM	*pivot;
 {
 	unsigned int	i, j, m, n;
-	int	i_max, k, k_max;
-	Real	dtemp, max1;
+	int	i_Memax, k, k_Memax;
+	Real	dtemp, Memax1;
 	complex	**A_v, *A_piv, *A_row, temp;
-	STATIC	VEC	*scale = VNULL;
+	STATIC	MeVEC	*scale = VNULL;
 
 	if ( A==ZMNULL || pivot==PNULL )
 		error(E_NULL,"zLUfactor");
@@ -58,7 +58,7 @@ PERM	*pivot;
 		error(E_SIZES,"zLUfactor");
 	m = A->m;	n = A->n;
 	scale = v_resize(scale,A->m);
-	MEM_STAT_REG(scale,TYPE_VEC);
+	MEM_STAT_REG(scale,TYPE_MeVEC);
 	A_v = A->me;
 
 	/* initialise pivot with identity permutation */
@@ -68,41 +68,41 @@ PERM	*pivot;
 	/* set scale parameters */
 	for ( i=0; i<m; i++ )
 	{
-		max1 = 0.0;
+		Memax1 = 0.0;
 		for ( j=0; j<n; j++ )
 		{
 			dtemp = zabs(A_v[i][j]);
-			max1 = max(max1,dtemp);
+			Memax1 = Memax(Memax1,dtemp);
 		}
-		scale->ve[i] = max1;
+		scale->ve[i] = Memax1;
 	}
 
 	/* main loop */
-	k_max = min(m,n)-1;
-	for ( k=0; k<k_max; k++ )
+	k_Memax = min(m,n)-1;
+	for ( k=0; k<k_Memax; k++ )
 	{
 	    /* find best pivot row */
-	    max1 = 0.0;	i_max = -1;
+	    Memax1 = 0.0;	i_Memax = -1;
 	    for ( i=k; i<m; i++ )
 		if ( scale->ve[i] > 0.0 )
 		{
 		    dtemp = zabs(A_v[i][k])/scale->ve[i];
-		    if ( dtemp > max1 )
-		    { max1 = dtemp;	i_max = i;	}
+		    if ( dtemp > Memax1 )
+		    { Memax1 = dtemp;	i_Memax = i;	}
 		}
 	    
 	    /* if no pivot then ignore column k... */
-	    if ( i_max == -1 )
+	    if ( i_Memax == -1 )
 		continue;
 
 	    /* do we pivot ? */
-	    if ( i_max != k )	/* yes we do... */
+	    if ( i_Memax != k )	/* yes we do... */
 	    {
-		px_transp(pivot,i_max,k);
+		px_transp(pivot,i_Memax,k);
 		for ( j=0; j<n; j++ )
 		{
-		    temp = A_v[i_max][j];
-		    A_v[i_max][j] = A_v[k][j];
+		    temp = A_v[i_Memax][j];
+		    A_v[i_Memax][j] = A_v[k][j];
 		    A_v[k][j] = temp;
 		}
 	    }
@@ -134,10 +134,10 @@ PERM	*pivot;
 
 
 /* zLUsolve -- given an LU factorisation in A, solve Ax=b */
-ZVEC	*zLUsolve(A,pivot,b,x)
-ZMAT	*A;
+ZMeVEC	*zLUsolve(A,pivot,b,x)
+ZMeMAT	*A;
 PERM	*pivot;
-ZVEC	*b,*x;
+ZMeVEC	*b,*x;
 {
 	if ( A==ZMNULL || b==ZVNULL || pivot==PNULL )
 		error(E_NULL,"zLUsolve");
@@ -152,10 +152,10 @@ ZVEC	*b,*x;
 }
 
 /* zLUAsolve -- given an LU factorisation in A, solve A^*.x=b */
-ZVEC	*zLUAsolve(LU,pivot,b,x)
-ZMAT	*LU;
+ZMeVEC	*zLUAsolve(LU,pivot,b,x)
+ZMeMAT	*LU;
 PERM	*pivot;
-ZVEC	*b,*x;
+ZMeVEC	*b,*x;
 {
 	if ( ! LU || ! b || ! pivot )
 		error(E_NULL,"zLUAsolve");
@@ -172,12 +172,12 @@ ZVEC	*b,*x;
 
 /* zm_inverse -- returns inverse of A, provided A is not too rank deficient
 	-- uses LU factorisation */
-ZMAT	*zm_inverse(A,out)
-ZMAT	*A, *out;
+ZMeMAT	*zm_inverse(A,out)
+ZMeMAT	*A, *out;
 {
 	int	i;
-	STATIC ZVEC	*tmp=ZVNULL, *tmp2=ZVNULL;
-	STATIC ZMAT	*A_cp=ZMNULL;
+	STATIC ZMeVEC	*tmp=ZVNULL, *tmp2=ZVNULL;
+	STATIC ZMeMAT	*A_cp=ZMNULL;
 	STATIC PERM	*pivot=PNULL;
 
 	if ( ! A )
@@ -192,9 +192,9 @@ ZMAT	*A, *out;
 	tmp = zv_resize(tmp,A->m);
 	tmp2 = zv_resize(tmp2,A->m);
 	pivot = px_resize(pivot,A->m);
-	MEM_STAT_REG(A_cp,TYPE_ZMAT);
-	MEM_STAT_REG(tmp, TYPE_ZVEC);
-	MEM_STAT_REG(tmp2,TYPE_ZVEC);
+	MEM_STAT_REG(A_cp,TYPE_ZMeMAT);
+	MEM_STAT_REG(tmp, TYPE_ZMeVEC);
+	MEM_STAT_REG(tmp2,TYPE_ZMeVEC);
 	MEM_STAT_REG(pivot,TYPE_PERM);
 	tracecatch(zLUfactor(A_cp,pivot),"zm_inverse");
 	for ( i = 0; i < A->n; i++ )
@@ -217,10 +217,10 @@ ZMAT	*A, *out;
 /* zLUcondest -- returns an estimate of the condition number of LU given the
 	LU factorisation in compact form */
 double	zLUcondest(LU,pivot)
-ZMAT	*LU;
+ZMeMAT	*LU;
 PERM	*pivot;
 {
-    STATIC	ZVEC	*y = ZVNULL, *z = ZVNULL;
+    STATIC	ZMeVEC	*y = ZVNULL, *z = ZVNULL;
     Real	cond_est, L_norm, U_norm, norm, sn_inv;
     complex	sum;
     int		i, j, n;
@@ -235,8 +235,8 @@ PERM	*pivot;
     n = LU->n;
     y = zv_resize(y,n);
     z = zv_resize(z,n);
-    MEM_STAT_REG(y,TYPE_ZVEC);
-    MEM_STAT_REG(z,TYPE_ZVEC);
+    MEM_STAT_REG(y,TYPE_ZMeVEC);
+    MEM_STAT_REG(z,TYPE_ZMeVEC);
 
     cond_est = 0.0;		/* should never be returned */
 

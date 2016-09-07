@@ -43,9 +43,9 @@ static char line[MAXLINE];
 #ifndef ANSI_C
 void    sp_foutput(fp,A)
 FILE    *fp;
-SPMAT  *A;
+SPMeMAT  *A;
 #else
-void    sp_foutput(FILE *fp, const SPMAT *A)
+void    sp_foutput(FILE *fp, const SPMeMAT *A)
 #endif
 {
 	int     i, j_idx, m /* , n */;
@@ -91,7 +91,7 @@ void    sp_foutput(FILE *fp, const SPMAT *A)
 /******************************************************************
 void    sp_foutput2(fp,A)
 FILE    *fp;
-SPMAT  *A;
+SPMeMAT  *A;
 {
 	int     cnt, i, j, j_idx;
 	SPROW  *r;
@@ -130,9 +130,9 @@ SPMAT  *A;
 #ifndef ANSI_C
 void    sp_dump(fp,A)
 FILE    *fp;
-SPMAT  *A;
+SPMeMAT  *A;
 #else
-void    sp_dump(FILE *fp, const SPMAT *A)
+void    sp_dump(FILE *fp, const SPMeMAT *A)
 #endif
 {
 	int     i, j, j_idx;
@@ -144,7 +144,7 @@ void    sp_dump(FILE *fp, const SPMAT *A)
 	{       fprintf(fp,"*** NULL ***\n");   return; }
 	fprintf(fp,"Matrix at 0x%lx\n",(long)A);
 	fprintf(fp,"Dimensions: %d by %d\n",A->m,A->n);
-	fprintf(fp,"MaxDimensions: %d by %d\n",A->max_m,A->max_n);
+	fprintf(fp,"MaxDimensions: %d by %d\n",A->Memax_m,A->Memax_n);
 	fprintf(fp,"flag_col = %d, flag_diag = %d\n",A->flag_col,A->flag_diag);
 	fprintf(fp,"start_row @ 0x%lx:\n",(long)(A->start_row));
 	for ( j = 0; j < A->n; j++ )
@@ -168,8 +168,8 @@ void    sp_dump(FILE *fp, const SPMAT *A)
 	rows = A->row;
 	for ( i = 0; i < A->m; i++ )
 	{
-		fprintf(fp,"row %d: len = %d, maxlen = %d, diag idx = %d\n",
-			i,rows[i].len,rows[i].maxlen,rows[i].diag);
+		fprintf(fp,"row %d: len = %d, Memaxlen = %d, diag idx = %d\n",
+			i,rows[i].len,rows[i].Memaxlen,rows[i].diag);
 		fprintf(fp,"element list @ 0x%lx\n",(long)(rows[i].elt));
 		if ( ! rows[i].elt )
 		{
@@ -190,16 +190,16 @@ void    sp_dump(FILE *fp, const SPMAT *A)
 	-- uses friendly input routine if fp is a tty
 	-- uses format identical to output format otherwise */
 #ifndef ANSI_C
-SPMAT  *sp_finput(fp)
+SPMeMAT  *sp_finput(fp)
 FILE    *fp;
 #else
-SPMAT  *sp_finput(FILE *fp)
+SPMeMAT  *sp_finput(FILE *fp)
 #endif
 {
 	int     i, len, ret_val;
 	int     col, curr_col, m, n, tmp, tty;
 	Real  val;
-	SPMAT  *A;
+	SPMeMAT  *A;
 	SPROW  *rows;
 
 	static row_elt *scratch;
@@ -275,14 +275,14 @@ SPMAT  *sp_finput(FILE *fp)
 		    if ( len > 5 )
 		     {
 			if (mem_info_is_on()) {
-			   mem_bytes(TYPE_SPMAT,
-					   A->row[i].maxlen*sizeof(row_elt),
+			   mem_bytes(TYPE_SPMeMAT,
+					   A->row[i].Memaxlen*sizeof(row_elt),
 					   len*sizeof(row_elt));  
 			}
 
 			rows[i].elt = (row_elt *)realloc((char *)rows[i].elt,
 							 len*sizeof(row_elt));
-			rows[i].maxlen = len;
+			rows[i].Memaxlen = len;
 		    }
 		    MEM_COPY(scratch,rows[i].elt,len*sizeof(row_elt));
 		    rows[i].len  = len;
@@ -296,7 +296,7 @@ SPMAT  *sp_finput(FILE *fp)
 		fscanf(fp,"SparseMatrix:");
 		skipjunk(fp);
 		if ( (ret_val=fscanf(fp,"%u by %u",&m,&n)) != 2 )
-		    error((ret_val == EOF) ? E_EOF : E_FORMAT,"sp_finput");
+		    error((ret_val == EOF) ? E_EOF : E_FORMeMAT,"sp_finput");
 		A = sp_get(m,n,5);
 
 		/* initialise start_row */
@@ -311,7 +311,7 @@ SPMAT  *sp_finput(FILE *fp)
 		    skipjunk(fp);
 		    if ( (ret_val=fscanf(fp,"row %d :",&tmp)) != 1 ||
 			 tmp != i )
-			error((ret_val == EOF) ? E_EOF : E_FORMAT,
+			error((ret_val == EOF) ? E_EOF : E_FORMeMAT,
 			      "sp_finput");
 		    curr_col = -1;
 		    len = 0;
@@ -333,7 +333,7 @@ SPMAT  *sp_finput(FILE *fp)
 #endif
 			    break;
 			if ( col <= curr_col || col >= n )
-			    error(E_FORMAT,"sp_finput");
+			    error(E_FORMeMAT,"sp_finput");
 			scratch[len].col = col;
 			scratch[len].val = val;
 
@@ -342,11 +342,11 @@ SPMAT  *sp_finput(FILE *fp)
 		    if ( ret_val == EOF )
 			error(E_EOF,"sp_finput");
 
-		    if ( len > rows[i].maxlen )
+		    if ( len > rows[i].Memaxlen )
 		    {
 			rows[i].elt = (row_elt *)realloc((char *)rows[i].elt,
 							len*sizeof(row_elt));
-			rows[i].maxlen = len;
+			rows[i].Memaxlen = len;
 		    }
 		    MEM_COPY(scratch,rows[i].elt,len*sizeof(row_elt));
 		    rows[i].len  = len;

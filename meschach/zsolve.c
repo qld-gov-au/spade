@@ -42,9 +42,9 @@ static	char	rcsid[] = "$Id: zsolve.c,v 1.1 1994/01/13 04:20:33 des Exp $";
 
 /* zUsolve -- back substitution with optional over-riding diagonal
 		-- can be in-situ but doesn't need to be */
-ZVEC	*zUsolve(matrix,b,out,diag)
-ZMAT	*matrix;
-ZVEC	*b, *out;
+ZMeVEC	*zUsolve(matrix,b,out,diag)
+ZMeMAT	*matrix;
+ZMeVEC	*b, *out;
 double	diag;
 {
     unsigned int	dim /* , j */;
@@ -98,9 +98,9 @@ double	diag;
 }
 
 /* zLsolve -- forward elimination with (optional) default diagonal value */
-ZVEC	*zLsolve(matrix,b,out,diag)
-ZMAT	*matrix;
-ZVEC	*b,*out;
+ZMeVEC	*zLsolve(matrix,b,out,diag)
+ZMeMAT	*matrix;
+ZMeVEC	*b,*out;
 double	diag;
 {
     unsigned int	dim, i, i_lim /* , j */;
@@ -153,9 +153,9 @@ double	diag;
 
 /* zUAsolve -- forward elimination with (optional) default diagonal value
 		using UPPER triangular part of matrix */
-ZVEC	*zUAsolve(U,b,out,diag)
-ZMAT	*U;
-ZVEC	*b,*out;
+ZMeVEC	*zUAsolve(U,b,out,diag)
+ZMeMAT	*U;
+ZMeVEC	*b,*out;
 double	diag;
 {
     unsigned int	dim, i, i_lim /* , j */;
@@ -214,9 +214,9 @@ double	diag;
 }
 
 /* zDsolve -- solves Dx=b where D is the diagonal of A -- may be in-situ */
-ZVEC	*zDsolve(A,b,x)
-ZMAT	*A;
-ZVEC	*b,*x;
+ZMeVEC	*zDsolve(A,b,x)
+ZMeMAT	*A;
+ZMeVEC	*b,*x;
 {
     unsigned int	dim, i;
     
@@ -240,9 +240,9 @@ ZVEC	*b,*x;
 /* zLAsolve -- back substitution with optional over-riding diagonal
 		using the LOWER triangular part of matrix
 		-- can be in-situ but doesn't need to be */
-ZVEC	*zLAsolve(L,b,out,diag)
-ZMAT	*L;
-ZVEC	*b, *out;
+ZMeVEC	*zLAsolve(L,b,out,diag)
+ZMeMAT	*L;
+ZMeVEC	*b, *out;
 double	diag;
 {
     unsigned int	dim;

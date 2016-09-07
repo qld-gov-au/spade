@@ -34,21 +34,21 @@ static	char	rcsid[] = "$Id: submat.c,v 1.2 1994/01/13 05:28:12 des Exp $";
 
 /* get_col -- gets a specified column of a matrix and retruns it as a vector */
 #ifndef ANSI_C
-VEC	*get_col(mat,col,vec)
+MeVEC	*get_col(mat,col,vec)
 unsigned int	col;
-MAT	*mat;
-VEC	*vec;
+MeMAT	*mat;
+MeVEC	*vec;
 #else
-VEC	*get_col(const MAT *mat, unsigned int col, VEC *vec)
+MeVEC	*get_col(const MeMAT *mat, unsigned int col, MeVEC *vec)
 #endif
 {
    unsigned int	i;
    
-   if ( mat==(MAT *)NULL )
+   if ( mat==(MeMAT *)NULL )
      error(E_NULL,"get_col");
    if ( col >= mat->n )
      error(E_RANGE,"get_col");
-   if ( vec==(VEC *)NULL || vec->dim<mat->m )
+   if ( vec==(MeVEC *)NULL || vec->dim<mat->m )
      vec = v_resize(vec,mat->m);
    
    for ( i=0; i<mat->m; i++ )
@@ -59,21 +59,21 @@ VEC	*get_col(const MAT *mat, unsigned int col, VEC *vec)
 
 /* get_row -- gets a specified row of a matrix and retruns it as a vector */
 #ifndef ANSI_C
-VEC	*get_row(mat,row,vec)
+MeVEC	*get_row(mat,row,vec)
 unsigned int	row;
-MAT	*mat;
-VEC	*vec;
+MeMAT	*mat;
+MeVEC	*vec;
 #else
-VEC	*get_row(const MAT *mat, unsigned int row, VEC *vec)
+MeVEC	*get_row(const MeMAT *mat, unsigned int row, MeVEC *vec)
 #endif
 {
    unsigned int	i;
    
-   if ( mat==(MAT *)NULL )
+   if ( mat==(MeMAT *)NULL )
      error(E_NULL,"get_row");
    if ( row >= mat->m )
      error(E_RANGE,"get_row");
-   if ( vec==(VEC *)NULL || vec->dim<mat->n )
+   if ( vec==(MeVEC *)NULL || vec->dim<mat->n )
      vec = v_resize(vec,mat->n);
    
    for ( i=0; i<mat->n; i++ )
@@ -85,17 +85,17 @@ VEC	*get_row(const MAT *mat, unsigned int row, VEC *vec)
 /* _set_col -- sets column of matrix to values given in vec (in situ)
 	-- that is, mat(i0:lim,col) <- vec(i0:lim) */
 #ifndef ANSI_C
-MAT	*_set_col(mat,col,vec,i0)
-MAT	*mat;
-VEC	*vec;
+MeMAT	*_set_col(mat,col,vec,i0)
+MeMAT	*mat;
+MeVEC	*vec;
 unsigned int	col,i0;
 #else
-MAT	*_set_col(MAT *mat, unsigned int col, const VEC *vec, unsigned int i0)
+MeMAT	*_set_col(MeMAT *mat, unsigned int col, const MeVEC *vec, unsigned int i0)
 #endif
 {
    unsigned int	i,lim;
    
-   if ( mat==(MAT *)NULL || vec==(VEC *)NULL )
+   if ( mat==(MeMAT *)NULL || vec==(MeVEC *)NULL )
      error(E_NULL,"_set_col");
    if ( col >= mat->n )
      error(E_RANGE,"_set_col");
@@ -108,17 +108,17 @@ MAT	*_set_col(MAT *mat, unsigned int col, const VEC *vec, unsigned int i0)
 
 /* _set_row -- sets row of matrix to values given in vec (in situ) */
 #ifndef ANSI_C
-MAT	*_set_row(mat,row,vec,j0)
-MAT	*mat;
-VEC	*vec;
+MeMAT	*_set_row(mat,row,vec,j0)
+MeMAT	*mat;
+MeVEC	*vec;
 unsigned int	row,j0;
 #else
-MAT	*_set_row(MAT *mat, unsigned int row, const VEC *vec, unsigned int j0)
+MeMAT	*_set_row(MeMAT *mat, unsigned int row, const MeVEC *vec, unsigned int j0)
 #endif
 {
    unsigned int	j,lim;
    
-   if ( mat==(MAT *)NULL || vec==(VEC *)NULL )
+   if ( mat==(MeMAT *)NULL || vec==(MeVEC *)NULL )
      error(E_NULL,"_set_row");
    if ( row >= mat->m )
      error(E_RANGE,"_set_row");
@@ -134,30 +134,30 @@ MAT	*_set_row(MAT *mat, unsigned int row, const VEC *vec, unsigned int j0)
    -- Note: storage is shared so that altering the "new"
    matrix will alter the "old" matrix */
 #ifndef ANSI_C
-MAT	*sub_mat(old,row1,col1,row2,col2,new)
-MAT	*old,*new;
+MeMAT	*sub_mat(old,row1,col1,row2,col2,new)
+MeMAT	*old,*new;
 unsigned int	row1,col1,row2,col2;
 #else
-MAT	*sub_mat(const MAT *old, 
+MeMAT	*sub_mat(const MeMAT *old, 
 		 unsigned int row1, unsigned int col1,
 		 unsigned int row2, unsigned int col2,
-		 MAT *new)
+		 MeMAT *new)
 #endif
 {
    unsigned int	i;
    
-   if ( old==(MAT *)NULL )
+   if ( old==(MeMAT *)NULL )
      error(E_NULL,"sub_mat");
    if ( row1 > row2 || col1 > col2 || row2 >= old->m || col2 >= old->n )
      error(E_RANGE,"sub_mat");
-   if ( new==(MAT *)NULL || new->m < row2-row1+1 )
+   if ( new==(MeMAT *)NULL || new->m < row2-row1+1 )
    {
-      new = NEW(MAT);
+      new = NEW(MeMAT);
       new->me = NEW_A(row2-row1+1,Real *);
-      if ( new==(MAT *)NULL || new->me==(Real **)NULL )
+      if ( new==(MeMAT *)NULL || new->me==(Real **)NULL )
 	error(E_MEM,"sub_mat");
       else if (mem_info_is_on()) {
-	 mem_bytes(TYPE_MAT,0,sizeof(MAT)+
+	 mem_bytes(TYPE_MeMAT,0,sizeof(MeMAT)+
 		      (row2-row1+1)*sizeof(Real *));
       }
       
@@ -178,24 +178,24 @@ MAT	*sub_mat(const MAT *old,
 /* sub_vec -- returns sub-vector which is formed by the elements i1 to i2
    -- as for sub_mat, storage is shared */
 #ifndef ANSI_C
-VEC	*sub_vec(old,i1,i2,new)
-VEC	*old, *new;
+MeVEC	*sub_vec(old,i1,i2,new)
+MeVEC	*old, *new;
 int	i1, i2;
 #else
-VEC	*sub_vec(const VEC *old, int i1, int i2, VEC *new)
+MeVEC	*sub_vec(const MeVEC *old, int i1, int i2, MeVEC *new)
 #endif
 {
-   if ( old == (VEC *)NULL )
+   if ( old == (MeVEC *)NULL )
      error(E_NULL,"sub_vec");
    if ( i1 > i2 || old->dim < i2 )
      error(E_RANGE,"sub_vec");
    
-   if ( new == (VEC *)NULL )
-     new = NEW(VEC);
-   if ( new == (VEC *)NULL )
+   if ( new == (MeVEC *)NULL )
+     new = NEW(MeVEC);
+   if ( new == (MeVEC *)NULL )
      error(E_MEM,"sub_vec");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_VEC,0,sizeof(VEC));
+      mem_bytes(TYPE_MeVEC,0,sizeof(MeVEC));
    }
    
    

@@ -6,7 +6,7 @@
 #include "../machinery/Q.h"
 #include "../util/util.h"
 
-VEC * calc_alpha(
+MeVEC * calc_alpha(
 
 			Real a,
 			Real k,
@@ -17,11 +17,11 @@ VEC * calc_alpha(
 			)
 {
 
-  VEC *retur = v_get(3);
+  MeVEC *retur = v_get(3);
 
-  VEC *x = v_get(500);
-  VEC *v = v_get(x->dim);
-  VEC *t = v_get(x->dim);
+  MeVEC *x = v_get(500);
+  MeVEC *v = v_get(x->dim);
+  MeVEC *t = v_get(x->dim);
 
   for (int j=0;j<x->dim;j++)
     x->ve[j] = j*w/500.;
@@ -36,8 +36,8 @@ VEC * calc_alpha(
 
   retur->ve[0] = pow(qv-1,2.);
 
-  VEC *z = v_get(x->dim);
-  VEC *q = v_get(x->dim);
+  MeVEC *z = v_get(x->dim);
+  MeVEC *q = v_get(x->dim);
 
   for (int j=0;j<v->dim;j++)
     z->ve[j] = pow(x->ve[j],2.)*exp(-Qn(x,t,j+1))/(k*(w-x->ve[j]));
@@ -48,11 +48,11 @@ VEC * calc_alpha(
 
 }
 
-VEC * VMGMM_eq(
+MeVEC * VMGMM_eq(
 
-		  VEC *x,
+		  MeVEC *x,
 		  Data *d,
-		  VEC *grad,
+		  MeVEC *grad,
 		  Real *f
 
 		  )
@@ -61,7 +61,7 @@ VEC * VMGMM_eq(
   Real kappa = .1; // FIX THIS
   Real omega = 160; // FIX THIS
 
-  VEC *xx = v_get(d->J);
+  MeVEC *xx = v_get(d->J);
   for (int j=0;j<xx->dim;j++)
     xx->ve[j] = h*j;
 
@@ -69,7 +69,7 @@ VEC * VMGMM_eq(
   for (int i=0;i<d->n;i++)
     nd += d->t_sz[i];
 
-  VEC *dt = v_get(nd);
+  MeVEC *dt = v_get(nd);
   int ii=0;
   for (int i=0;i<d->n;i++)
     for (int jj=0;jj<d->t_sz[i];jj++)
@@ -80,7 +80,7 @@ VEC * VMGMM_eq(
 
   Real bw = get_bw(dt);
 
-  VEC *l = v_get(d->J);
+  MeVEC *l = v_get(d->J);
 
   for (int j=0;j<l->dim;j++)
     for (int jj=0;jj<dt->dim;jj++)
@@ -91,8 +91,8 @@ VEC * VMGMM_eq(
   for (int j=0;j<l->dim;j++)
     l->ve[j] /= Ql;
 
-  VEC *v = v_get(xx->dim);
-  VEC *w = v_get(xx->dim);
+  MeVEC *v = v_get(xx->dim);
+  MeVEC *w = v_get(xx->dim);
 
   for (int j=0;j<w->dim;j++)
     w->ve[j] = (x->ve[0] + x->ve[1]*s(xx->ve[j])) / (kappa*(omega-xx->ve[j]));
@@ -102,7 +102,7 @@ VEC * VMGMM_eq(
       
   Real B = Q(xx,v);
 
-  VEC * vn = v_get(v->dim);
+  MeVEC * vn = v_get(v->dim);
 
   for (int j=0;j<v->dim;j++)
     vn->ve[j] = v->ve[j]/B;
@@ -115,48 +115,48 @@ VEC * VMGMM_eq(
     printf("%f %f\n",xx->ve[j],l->ve[j]);
   exit(1);
   */
-  VEC *objf = v_get(v->dim);
+  MeVEC *objf = v_get(v->dim);
 
   for (int j=0;j<v->dim;j++)
     objf->ve[j]=l->ve[j]*log(l->ve[j]/(vn->ve[j]+1e-12) + 1e-12);
     
   *f = Q(xx,objf);
 
-  VEC *w2 = v_get(w->dim);
+  MeVEC *w2 = v_get(w->dim);
 
   for (int j=0;j<w->dim-1;j++)
     w2->ve[j] = 1/(kappa*(omega-xx->ve[j]));
 
-  VEC *w3 = v_get(w->dim);
+  MeVEC *w3 = v_get(w->dim);
   for (int j=1;j<w->dim;j++)
     w3->ve[j] = s(xx->ve[j])*exp(-Qn(xx,w,j+1))*Qn(xx,w2,j+1)/(omega-xx->ve[j]);
 
   Real C = Q(xx,w3);
 
-  VEC * fc = v_get(w->dim);
+  MeVEC * fc = v_get(w->dim);
 
   for (int j=1;j<w->dim;j++)
     fc->ve[j] = (B*Qn(xx,w2,j+1)-C ) / B;
     
-  VEC *w4 = v_get(w->dim);
+  MeVEC *w4 = v_get(w->dim);
   
   for (int j=0;j<w->dim;j++)
     w4->ve[j] =  s(xx->ve[j])/(kappa*(omega-xx->ve[j]));
 
-  VEC *w5 = v_get(w->dim);
+  MeVEC *w5 = v_get(w->dim);
 
   for (int j=0;j<w->dim;j++)
     w5->ve[j] = s(xx->ve[j])*exp(-Qn(xx,w,j+1))*Qn(xx,w4,j+1)/(omega-xx->ve[j]);
 
   Real D = Q(xx,w5);
 
-  VEC * fc2 = v_get(w->dim);
+  MeVEC * fc2 = v_get(w->dim);
 
   for (int j=1;j<w->dim;j++)
     fc2->ve[j] = (B*Qn(xx,w4,j+1)-D) / B;
 
-  VEC *dGdb = v_get(w->dim);
-  VEC *dGdf = v_get(w->dim);
+  MeVEC *dGdb = v_get(w->dim);
+  MeVEC *dGdf = v_get(w->dim);
     
   for (int j=0;j<w->dim;j++)
     {

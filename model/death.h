@@ -5,7 +5,7 @@
 
 Real death(
 
-	      VEC *eff,
+	      MeVEC *eff,
 	      Real b,
 	      Real g,
 	      Real i,

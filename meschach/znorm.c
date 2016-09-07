@@ -38,8 +38,8 @@ static	char	rcsid[] = "$Id: znorm.c,v 1.1 1994/01/13 04:21:31 des Exp $";
 
 /* _zv_norm1 -- computes (scaled) 1-norms of vectors */
 double	_zv_norm1(x,scale)
-ZVEC	*x;
-VEC	*scale;
+ZMeVEC	*x;
+MeVEC	*scale;
 {
     int	i, dim;
     Real	s, sum;
@@ -64,19 +64,19 @@ VEC	*scale;
     return sum;
 }
 
-/* square -- returns x^2 */
+/* Mesquare -- returns x^2 */
 /******************************
-double	square(x)
+double	Mesquare(x)
 double	x;
 {	return x*x;	}
 ******************************/
 
-#define	square(x)	((x)*(x))
+#define	Mesquare(x)	((x)*(x))
 
 /* _zv_norm2 -- computes (scaled) 2-norm (Euclidean norm) of vectors */
 double	_zv_norm2(x,scale)
-ZVEC	*x;
-VEC	*scale;
+ZMeVEC	*x;
+MeVEC	*scale;
 {
     int	i, dim;
     Real	s, sum;
@@ -88,40 +88,40 @@ VEC	*scale;
     sum = 0.0;
     if ( scale == VNULL )
 	for ( i = 0; i < dim; i++ )
-	    sum += square(x->ve[i].re) + square(x->ve[i].im);
+	    sum += Mesquare(x->ve[i].re) + Mesquare(x->ve[i].im);
     else if ( scale->dim < dim )
 	error(E_SIZES,"_v_norm2");
     else
 	for ( i = 0; i < dim; i++ )
 	{
 	    s = scale->ve[i];
-	    sum += ( s== 0.0 ) ? square(x->ve[i].re) + square(x->ve[i].im) :
-		(square(x->ve[i].re) + square(x->ve[i].im))/square(s);
+	    sum += ( s== 0.0 ) ? Mesquare(x->ve[i].re) + Mesquare(x->ve[i].im) :
+		(Mesquare(x->ve[i].re) + Mesquare(x->ve[i].im))/Mesquare(s);
 	}
     
     return sqrt(sum);
 }
 
-#define	max(a,b)	((a) > (b) ? (a) : (b))
+#define	Memax(a,b)	((a) > (b) ? (a) : (b))
 
 /* _zv_norm_inf -- computes (scaled) infinity-norm (supremum norm) of vectors */
 double	_zv_norm_inf(x,scale)
-ZVEC	*x;
-VEC	*scale;
+ZMeVEC	*x;
+MeVEC	*scale;
 {
     int	i, dim;
-    Real	s, maxval, tmp;
+    Real	s, Memaxval, tmp;
     
     if ( x == ZVNULL )
 	error(E_NULL,"_zv_norm_inf");
     dim = x->dim;
     
-    maxval = 0.0;
+    Memaxval = 0.0;
     if ( scale == VNULL )
 	for ( i = 0; i < dim; i++ )
 	{
 	    tmp = zabs(x->ve[i]);
-	    maxval = max(maxval,tmp);
+	    Memaxval = Memax(Memaxval,tmp);
 	}
     else if ( scale->dim < dim )
 	error(E_SIZES,"_zv_norm_inf");
@@ -130,65 +130,65 @@ VEC	*scale;
 	{
 	    s = scale->ve[i];
 	    tmp = ( s == 0.0 ) ? zabs(x->ve[i]) : zabs(x->ve[i])/fabs(s);
-	    maxval = max(maxval,tmp);
+	    Memaxval = Memax(Memaxval,tmp);
 	}
     
-    return maxval;
+    return Memaxval;
 }
 
 /* zm_norm1 -- compute matrix 1-norm -- unscaled
 	-- complex version */
 double	zm_norm1(A)
-ZMAT	*A;
+ZMeMAT	*A;
 {
     int	i, j, m, n;
-    Real	maxval, sum;
+    Real	Memaxval, sum;
     
     if ( A == ZMNULL )
 	error(E_NULL,"zm_norm1");
 
     m = A->m;	n = A->n;
-    maxval = 0.0;
+    Memaxval = 0.0;
     
     for ( j = 0; j < n; j++ )
     {
 	sum = 0.0;
 	for ( i = 0; i < m; i ++ )
 	    sum += zabs(A->me[i][j]);
-	maxval = max(maxval,sum);
+	Memaxval = Memax(Memaxval,sum);
     }
     
-    return maxval;
+    return Memaxval;
 }
 
 /* zm_norm_inf -- compute matrix infinity-norm -- unscaled
 	-- complex version */
 double	zm_norm_inf(A)
-ZMAT	*A;
+ZMeMAT	*A;
 {
     int	i, j, m, n;
-    Real	maxval, sum;
+    Real	Memaxval, sum;
     
     if ( A == ZMNULL )
 	error(E_NULL,"zm_norm_inf");
     
     m = A->m;	n = A->n;
-    maxval = 0.0;
+    Memaxval = 0.0;
     
     for ( i = 0; i < m; i++ )
     {
 	sum = 0.0;
 	for ( j = 0; j < n; j ++ )
 	    sum += zabs(A->me[i][j]);
-	maxval = max(maxval,sum);
+	Memaxval = Memax(Memaxval,sum);
     }
     
-    return maxval;
+    return Memaxval;
 }
 
 /* zm_norm_frob -- compute matrix frobenius-norm -- unscaled */
 double	zm_norm_frob(A)
-ZMAT	*A;
+ZMeMAT	*A;
 {
     int	i, j, m, n;
     Real	sum;
@@ -201,7 +201,7 @@ ZMAT	*A;
     
     for ( i = 0; i < m; i++ )
 	for ( j = 0; j < n; j ++ )
-	    sum += square(A->me[i][j].re) + square(A->me[i][j].im);
+	    sum += Mesquare(A->me[i][j].re) + Mesquare(A->me[i][j].im);
     
     return sqrt(sum);
 }

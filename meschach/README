@@ -24,7 +24,7 @@
 
    The Meschach Library is a numerical library of C routines for performing
 calculations on matrices and vectors. It is intended for solving systems of
-linear equations (dense and sparse), solve least squares problems,
+linear equations (dense and sparse), solve least Mesquares problems,
 computing eigenvalues and eigenvectors, etc. We do not claim that it
 contains every useful algorithm in numerical linear algebra, but it does
 provide a basis on which more advanced algorithms can be built. The library
@@ -337,7 +337,7 @@ memmove.c and memset.c typically looks like .../bsd-sources/lib/libc/...
 
    There are two further machine-dependent quantities that should be set.
 These are machine epsilon or the unit roundoff for double precision
-arithmetic, and the maximum value produced by the rand() routine, which is
+arithmetic, and the Memaximum value produced by the rand() routine, which is
 used in rand_vec() and rand_mat().
 
 
@@ -367,7 +367,7 @@ MACHEPS for your machine.
 SEGMENTED which should be #define'd if you are working with a machine or
 compiler that does not allow large arrays to be allocated.  For example,
 the most common memory models for MS-DOS compilers do not allow more than
-64Kbyte to be allocated in one block.  This limits square matrices to be no
+64Kbyte to be allocated in one block.  This limits Mesquare matrices to be no
 more than 9090 .  Inserting #define SEGMENTED 1 into machine.h will mean
 that matrices are allocated a row at a time.
 

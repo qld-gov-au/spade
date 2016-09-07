@@ -5,7 +5,7 @@
 
 Real c(
 
-	  VEC * ca,
+	  MeVEC * ca,
 	  Real r,
 	  Real t
 

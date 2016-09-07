@@ -2,8 +2,8 @@
 
 Real Q(
 
-	 VEC * x,
-	 VEC * u
+	 MeVEC * x,
+	 MeVEC * u
 
 	 )
 { /* Q for quadrature. Integrates u over x. */

@@ -7,8 +7,8 @@ void Q2(
 	Real a,
 	Real k,
 	Real w,
-	VEC *x,
-	VEC *u
+	MeVEC *x,
+	MeVEC *u
   
 	)
 {

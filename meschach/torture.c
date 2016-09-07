@@ -89,19 +89,19 @@ PERM	*pi;
 }
 
 #define	SAVE_FILE	"asx5213a.mat"
-#define	MATLAB_NAME	"alpha"
-char	name[81] = MATLAB_NAME;
+#define	MeMATLAB_NAME	"alpha"
+char	name[81] = MeMATLAB_NAME;
 
 int main(argc, argv)
 int	argc;
 char	*argv[];
 {
-   VEC	*x = VNULL, *y = VNULL, *z = VNULL, *u = VNULL, *v = VNULL, 
+   MeVEC	*x = VNULL, *y = VNULL, *z = VNULL, *u = VNULL, *v = VNULL, 
         *w = VNULL;
-   VEC	*diag = VNULL, *beta = VNULL;
+   MeVEC	*diag = VNULL, *beta = VNULL;
    PERM	*pi1 = PNULL, *pi2 = PNULL, *pi3 = PNULL, *pivot = PNULL, 
         *blocks = PNULL;
-   MAT	*A = MNULL, *B = MNULL, *C = MNULL, *D = MNULL, *Q = MNULL, 
+   MeMAT	*A = MNULL, *B = MNULL, *C = MNULL, *D = MNULL, *Q = MNULL, 
         *U = MNULL;
    BAND *bA, *bB, *bC;
    Real	cond_est, s1, s2, s3;
@@ -144,7 +144,7 @@ char	*argv[];
 
     printf("# Check: MACHEPS = %g\n",MACHEPS);
     /* allocate, initialise, copy and resize operations */
-    /* VEC */
+    /* MeVEC */
     notice("vector initialise, copy & resize");
     x = v_get(12);
     y = v_get(15);
@@ -153,18 +153,18 @@ char	*argv[];
     v_rand(y);
     z = v_copy(x,z);
     if ( v_norm2(v_sub(x,z,z)) >= MACHEPS )
-	errmesg("VEC copy");
+	errmesg("MeVEC copy");
     v_copy(x,y);
     x = v_resize(x,10);
     y = v_resize(y,10);
     if ( v_norm2(v_sub(x,y,z)) >= MACHEPS )
-	errmesg("VEC copy/resize");
+	errmesg("MeVEC copy/resize");
     x = v_resize(x,15);
     y = v_resize(y,15);
     if ( v_norm2(v_sub(x,y,z)) >= MACHEPS )
-	errmesg("VEC resize");
+	errmesg("MeVEC resize");
 
-    /* MAT */
+    /* MeMAT */
     notice("matrix initialise, copy & resize");
     A = m_get(8,5);
     B = m_get(3,9);
@@ -173,16 +173,16 @@ char	*argv[];
     m_rand(B);
     C = m_copy(A,C);
     if ( m_norm_inf(m_sub(A,C,C)) >= MACHEPS )
-	errmesg("MAT copy");
+	errmesg("MeMAT copy");
     m_copy(A,B);
     A = m_resize(A,3,5);
     B = m_resize(B,3,5);
     if ( m_norm_inf(m_sub(A,B,C)) >= MACHEPS )
-	errmesg("MAT copy/resize");
+	errmesg("MeMAT copy/resize");
     A = m_resize(A,10,10);
     B = m_resize(B,10,10);
     if ( m_norm_inf(m_sub(A,B,C)) >= MACHEPS )
-	errmesg("MAT resize");
+	errmesg("MeMAT resize");
 
     MEMCHK();
 
@@ -288,7 +288,7 @@ char	*argv[];
 
     /* ... and transposes */
     notice("transposes and transpose-multiplies");
-    m_transp(A,A);	/* can do square matrices in situ */
+    m_transp(A,A);	/* can do Mesquare matrices in situ */
     mtrm_mlt(A,B,C);
     for ( i = 0; i < C->m; i++ )
 	m_set_val(C,i,i,m_entry(C,i,i)-1.0);
@@ -393,11 +393,11 @@ char	*argv[];
 
     MEMCHK();
 
-    /* MATLAB save/load */
-    notice("MATLAB save/load");
+    /* MeMATLAB save/load */
+    notice("MeMATLAB save/load");
     A = m_resize(A,12,11);
     if ( (fp=fopen(SAVE_FILE,"w")) == (FILE *)NULL )
-	printf("Cannot perform MATLAB save/load test\n");
+	printf("Cannot perform MeMATLAB save/load test\n");
     else
     {
 	m_rand(A);
@@ -491,7 +491,7 @@ char	*argv[];
 
     MEMCHK();
 
-    /* now try with a non-square matrix */
+    /* now try with a non-Mesquare matrix */
     A = m_resize(A,15,7);
     m_rand(A);
     B = m_copy(A,B);
@@ -695,7 +695,7 @@ char	*argv[];
     }
 
 
-    /* BAND MATRICES */
+    /* BAND MeMATRICES */
 
 #define COL 40
 #define UDIAG  5
@@ -959,7 +959,7 @@ char	*argv[];
     m_rand(A);
     U = m_get(A->n,A->n);
     Q = m_resize(Q,A->m,A->m);
-    u = v_resize(u,max(A->m,A->n));
+    u = v_resize(u,Memax(A->m,A->n));
     svd(A,Q,U,u);
     /* check reconstruction of A */
     D = m_resize(D,A->m,A->n);
@@ -1029,10 +1029,10 @@ char	*argv[];
     MEMCHK();
 
     /**************************************************
-    VEC		*x, *y, *z, *u, *v, *w;
-    VEC		*diag, *beta;
+    MeVEC		*x, *y, *z, *u, *v, *w;
+    MeVEC		*diag, *beta;
     PERM	*pi1, *pi2, *pi3, *pivot, *blocks;
-    MAT		*A, *B, *C, *D, *Q, *U;
+    MeMAT		*A, *B, *C, *D, *Q, *U;
     **************************************************/
     V_FREE(x);		V_FREE(y);	V_FREE(z);
     V_FREE(u);		V_FREE(v);	V_FREE(w);

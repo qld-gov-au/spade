@@ -26,8 +26,8 @@
 
 /* Main include file for zmeschach library -- complex vectors and matrices */
 
-#ifndef ZMATRIXH
-#define ZMATRIXH
+#ifndef ZMeMATRIXH
+#define ZMeMATRIXH
 
 #include "matrix.h"
 
@@ -42,20 +42,20 @@ typedef struct  {
 
 /* complex vector definition */
 typedef struct  {
-                unsigned int   dim, max_dim;
+                unsigned int   dim, Memax_dim;
                 complex  *ve;
-                } ZVEC;
+                } ZMeVEC;
 
 /* complex matrix definition */
 typedef struct  {
                 unsigned int   m, n;
-                unsigned int   max_m, max_n, max_size;
+                unsigned int   Memax_m, Memax_n, Memax_size;
                 complex *base;          /* base is base of alloc'd mem */
                 complex **me;
-                } ZMAT;
+                } ZMeMAT;
 
-#define ZVNULL  ((ZVEC *)NULL)
-#define ZMNULL  ((ZMAT *)NULL)
+#define ZVNULL  ((ZMeVEC *)NULL)
+#define ZMNULL  ((ZMeMAT *)NULL)
 
 #define	Z_CONJ		1
 #define	Z_NOCONJ	0
@@ -102,8 +102,8 @@ int zv_get_vars(int dim,...);
 int zm_get_vars(int m,int n,...);
 int zv_resize_vars(int new_dim,...);
 int zm_resize_vars(int m,int n,...);
-int zv_free_vars(ZVEC **,...);
-int zm_free_vars(ZMAT **,...);
+int zv_free_vars(ZMeVEC **,...);
+int zm_free_vars(ZMeMAT **,...);
 
 #elif VARARGS
 int zv_get_vars();
@@ -119,65 +119,65 @@ int zm_free_vars();
 
 
 #ifdef ANSI_C
-extern ZMAT	*_zm_copy(const ZMAT *in,ZMAT *out, int i0, int j0);
-extern ZMAT	* zm_move(const ZMAT *, int, int, int, int, ZMAT *, int, int);
-extern ZMAT	*zvm_move(const ZVEC *, int, ZMAT *, int, int, int, int);
-extern ZVEC	*_zv_copy(const ZVEC *in,ZVEC *out,int i0);
-extern ZVEC	* zv_move(const ZVEC *, int, int, ZVEC *, int);
-extern ZVEC	*zmv_move(const ZMAT *, int, int, int, int, ZVEC *, int);
+extern ZMeMAT	*_zm_copy(const ZMeMAT *in,ZMeMAT *out, int i0, int j0);
+extern ZMeMAT	* zm_move(const ZMeMAT *, int, int, int, int, ZMeMAT *, int, int);
+extern ZMeMAT	*zvm_move(const ZMeVEC *, int, ZMeMAT *, int, int, int, int);
+extern ZMeVEC	*_zv_copy(const ZMeVEC *in,ZMeVEC *out,int i0);
+extern ZMeVEC	* zv_move(const ZMeVEC *, int, int, ZMeVEC *, int);
+extern ZMeVEC	*zmv_move(const ZMeMAT *, int, int, int, int, ZMeVEC *, int);
 extern complex	z_finput(FILE *fp);
-extern ZMAT	*zm_finput(FILE *fp,ZMAT *a);
-extern ZVEC     *zv_finput(FILE *fp,ZVEC *x);
-extern ZMAT	*zm_add(ZMAT *mat1,ZMAT *mat2,ZMAT *out);
-extern ZMAT	*zm_sub(ZMAT *mat1,ZMAT *mat2,ZMAT *out);
-extern ZMAT	*zm_mlt(ZMAT *A,ZMAT *B,ZMAT *OUT);
-extern ZMAT	*zmma_mlt(ZMAT *A,ZMAT *B,ZMAT *OUT);
-extern ZMAT	*zmam_mlt(ZMAT *A,ZMAT *B,ZMAT *OUT);
-extern ZVEC	*zmv_mlt(ZMAT *A,ZVEC *b,ZVEC *out);
-extern ZMAT	*zsm_mlt(complex scalar,ZMAT *matrix,ZMAT *out);
-extern ZVEC	*zvm_mlt(ZMAT *A,ZVEC *b,ZVEC *out);
-extern ZMAT	*zm_adjoint(ZMAT *in,ZMAT *out);
-extern ZMAT	*zswap_rows(ZMAT *A,int i,int j,int lo,int hi);
-extern ZMAT	*zswap_cols(ZMAT *A,int i,int j,int lo,int hi);
-extern ZMAT	*mz_mltadd(ZMAT *A1,ZMAT *A2,complex s,ZMAT *out);
-extern ZVEC	*zmv_mltadd(ZVEC *v1,ZVEC *v2,ZMAT *A,complex alpha,ZVEC *out);
-extern ZVEC	*zvm_mltadd(ZVEC *v1,ZVEC *v2,ZMAT *A,complex alpha,ZVEC *out);
-extern ZVEC	*zv_zero(ZVEC *x);
-extern ZMAT	*zm_zero(ZMAT *A);
-extern ZMAT	*zm_get(int m,int n);
-extern ZVEC	*zv_get(int dim);
-extern ZMAT	*zm_resize(ZMAT *A,int new_m,int new_n);
-extern complex	_zin_prod(const ZVEC *x, const ZVEC *y,unsigned int i0,unsigned int flag);
-extern ZVEC	*zv_resize(ZVEC *x,int new_dim);
-extern ZVEC	*zv_mlt(complex scalar,const ZVEC *vector,ZVEC *out);
-extern ZVEC	*zv_add(const ZVEC *vec1,const ZVEC *vec2,ZVEC *out);
-extern ZVEC	*zv_mltadd(const ZVEC *v1,const ZVEC *v2,complex scale,ZVEC *out);
-extern ZVEC	*zv_sub(const ZVEC *vec1,const ZVEC *vec2,ZVEC *out);
+extern ZMeMAT	*zm_finput(FILE *fp,ZMeMAT *a);
+extern ZMeVEC     *zv_finput(FILE *fp,ZMeVEC *x);
+extern ZMeMAT	*zm_add(ZMeMAT *mat1,ZMeMAT *mat2,ZMeMAT *out);
+extern ZMeMAT	*zm_sub(ZMeMAT *mat1,ZMeMAT *mat2,ZMeMAT *out);
+extern ZMeMAT	*zm_mlt(ZMeMAT *A,ZMeMAT *B,ZMeMAT *OUT);
+extern ZMeMAT	*zmma_mlt(ZMeMAT *A,ZMeMAT *B,ZMeMAT *OUT);
+extern ZMeMAT	*zmam_mlt(ZMeMAT *A,ZMeMAT *B,ZMeMAT *OUT);
+extern ZMeVEC	*zmv_mlt(ZMeMAT *A,ZMeVEC *b,ZMeVEC *out);
+extern ZMeMAT	*zsm_mlt(complex scalar,ZMeMAT *matrix,ZMeMAT *out);
+extern ZMeVEC	*zvm_mlt(ZMeMAT *A,ZMeVEC *b,ZMeVEC *out);
+extern ZMeMAT	*zm_adjoint(ZMeMAT *in,ZMeMAT *out);
+extern ZMeMAT	*zswap_rows(ZMeMAT *A,int i,int j,int lo,int hi);
+extern ZMeMAT	*zswap_cols(ZMeMAT *A,int i,int j,int lo,int hi);
+extern ZMeMAT	*mz_mltadd(ZMeMAT *A1,ZMeMAT *A2,complex s,ZMeMAT *out);
+extern ZMeVEC	*zmv_mltadd(ZMeVEC *v1,ZMeVEC *v2,ZMeMAT *A,complex alpha,ZMeVEC *out);
+extern ZMeVEC	*zvm_mltadd(ZMeVEC *v1,ZMeVEC *v2,ZMeMAT *A,complex alpha,ZMeVEC *out);
+extern ZMeVEC	*zv_zero(ZMeVEC *x);
+extern ZMeMAT	*zm_zero(ZMeMAT *A);
+extern ZMeMAT	*zm_get(int m,int n);
+extern ZMeVEC	*zv_get(int dim);
+extern ZMeMAT	*zm_resize(ZMeMAT *A,int new_m,int new_n);
+extern complex	_zin_prod(const ZMeVEC *x, const ZMeVEC *y,unsigned int i0,unsigned int flag);
+extern ZMeVEC	*zv_resize(ZMeVEC *x,int new_dim);
+extern ZMeVEC	*zv_mlt(complex scalar,const ZMeVEC *vector,ZMeVEC *out);
+extern ZMeVEC	*zv_add(const ZMeVEC *vec1,const ZMeVEC *vec2,ZMeVEC *out);
+extern ZMeVEC	*zv_mltadd(const ZMeVEC *v1,const ZMeVEC *v2,complex scale,ZMeVEC *out);
+extern ZMeVEC	*zv_sub(const ZMeVEC *vec1,const ZMeVEC *vec2,ZMeVEC *out);
 #ifdef PROTOTYPES_IN_STRUCT
-extern ZVEC	*zv_map(complex (*f)(),const ZVEC *x,ZVEC *out);
-extern ZVEC	*_zv_map(complex (*f)(),void *params,const ZVEC *x,ZVEC *out);
+extern ZMeVEC	*zv_map(complex (*f)(),const ZMeVEC *x,ZMeVEC *out);
+extern ZMeVEC	*_zv_map(complex (*f)(),void *params,const ZMeVEC *x,ZMeVEC *out);
 #else
-extern ZVEC	*zv_map(complex (*f)(complex),const ZVEC *x,ZVEC *out);
-extern ZVEC	*_zv_map(complex (*f)(void *,complex),void *params,const ZVEC *x,ZVEC *out);
+extern ZMeVEC	*zv_map(complex (*f)(complex),const ZMeVEC *x,ZMeVEC *out);
+extern ZMeVEC	*_zv_map(complex (*f)(void *,complex),void *params,const ZMeVEC *x,ZMeVEC *out);
 #endif
-extern ZVEC	*zv_lincomb(int n,const ZVEC *v[],const complex a[],ZVEC *out);
-extern ZVEC	*zv_linlist(ZVEC *out,ZVEC *v1,complex a1,...);
-extern ZVEC	*zv_star(const ZVEC *x1, const ZVEC *x2, ZVEC *out);
-extern ZVEC	*zv_slash(const ZVEC *x1, const ZVEC *x2, ZVEC *out);
-extern complex	zv_sum(const ZVEC *x);
-extern int	zm_free(ZMAT *mat);
-extern int	zv_free(ZVEC *vec);
+extern ZMeVEC	*zv_lincomb(int n,const ZMeVEC *v[],const complex a[],ZMeVEC *out);
+extern ZMeVEC	*zv_linlist(ZMeVEC *out,ZMeVEC *v1,complex a1,...);
+extern ZMeVEC	*zv_star(const ZMeVEC *x1, const ZMeVEC *x2, ZMeVEC *out);
+extern ZMeVEC	*zv_slash(const ZMeVEC *x1, const ZMeVEC *x2, ZMeVEC *out);
+extern complex	zv_sum(const ZMeVEC *x);
+extern int	zm_free(ZMeMAT *mat);
+extern int	zv_free(ZMeVEC *vec);
 
-extern ZVEC	*zv_rand(ZVEC *x);
-extern ZMAT	*zm_rand(ZMAT *A);
+extern ZMeVEC	*zv_rand(ZMeVEC *x);
+extern ZMeMAT	*zm_rand(ZMeMAT *A);
 
-extern ZVEC	*zget_row(ZMAT *A, int i, ZVEC *out);
-extern ZVEC	*zget_col(ZMAT *A, int j, ZVEC *out);
-extern ZMAT	*zset_row(ZMAT *A, int i, ZVEC *in);
-extern ZMAT	*zset_col(ZMAT *A, int j, ZVEC *in);
+extern ZMeVEC	*zget_row(ZMeMAT *A, int i, ZMeVEC *out);
+extern ZMeVEC	*zget_col(ZMeMAT *A, int j, ZMeVEC *out);
+extern ZMeMAT	*zset_row(ZMeMAT *A, int i, ZMeVEC *in);
+extern ZMeMAT	*zset_col(ZMeMAT *A, int j, ZMeVEC *in);
 
-extern ZVEC	*px_zvec(PERM *pi, ZVEC *in, ZVEC *out);
-extern ZVEC	*pxinv_zvec(PERM *pi, ZVEC *in, ZVEC *out);
+extern ZMeVEC	*px_zvec(PERM *pi, ZMeVEC *in, ZMeVEC *out);
+extern ZMeVEC	*pxinv_zvec(PERM *pi, ZMeVEC *in, ZMeVEC *out);
 
 extern void	__zconj__(complex zp[], int len);
 extern complex	__zip__(const complex zp1[], const complex zp2[],
@@ -191,17 +191,17 @@ extern void	__zsub__(const complex zp1[],const complex zp2[],
 			 complex out[],int len);
 extern void	__zzero__(complex zp[],int len);
 extern void	z_foutput(FILE *fp,complex z);
-extern void     zm_foutput(FILE *fp,ZMAT *a);
-extern void     zv_foutput(FILE *fp,ZVEC *x);
-extern void     zm_dump(FILE *fp,ZMAT *a);
-extern void     zv_dump(FILE *fp,ZVEC *x);
+extern void     zm_foutput(FILE *fp,ZMeMAT *a);
+extern void     zv_foutput(FILE *fp,ZMeVEC *x);
+extern void     zm_dump(FILE *fp,ZMeMAT *a);
+extern void     zv_dump(FILE *fp,ZMeVEC *x);
 
-extern double	_zv_norm1(ZVEC *x, VEC *scale);
-extern double	_zv_norm2(ZVEC *x, VEC *scale);
-extern double	_zv_norm_inf(ZVEC *x, VEC *scale);
-extern double	zm_norm1(ZMAT *A);
-extern double	zm_norm_inf(ZMAT *A);
-extern double	zm_norm_frob(ZMAT *A);
+extern double	_zv_norm1(ZMeVEC *x, MeVEC *scale);
+extern double	_zv_norm2(ZMeVEC *x, MeVEC *scale);
+extern double	_zv_norm_inf(ZMeVEC *x, MeVEC *scale);
+extern double	zm_norm1(ZMeMAT *A);
+extern double	zm_norm_inf(ZMeMAT *A);
+extern double	zm_norm_frob(ZMeMAT *A);
 
 complex	zmake(double real, double imag);
 double	zabs(complex z);
@@ -216,52 +216,52 @@ complex	zlog(complex z);
 complex	zconj(complex z);
 complex	zneg(complex z);
 #else
-extern ZMAT	*_zm_copy();
-extern ZVEC	*_zv_copy();
-extern ZMAT	*zm_finput();
-extern ZVEC     *zv_finput();
-extern ZMAT	*zm_add();
-extern ZMAT	*zm_sub();
-extern ZMAT	*zm_mlt();
-extern ZMAT	*zmma_mlt();
-extern ZMAT	*zmam_mlt();
-extern ZVEC	*zmv_mlt();
-extern ZMAT	*zsm_mlt();
-extern ZVEC	*zvm_mlt();
-extern ZMAT	*zm_adjoint();
-extern ZMAT	*zswap_rows();
-extern ZMAT	*zswap_cols();
-extern ZMAT	*mz_mltadd();
-extern ZVEC	*zmv_mltadd();
-extern ZVEC	*zvm_mltadd();
-extern ZVEC	*zv_zero();
-extern ZMAT	*zm_zero();
-extern ZMAT	*zm_get();
-extern ZVEC	*zv_get();
-extern ZMAT	*zm_resize();
-extern ZVEC	*zv_resize();
+extern ZMeMAT	*_zm_copy();
+extern ZMeVEC	*_zv_copy();
+extern ZMeMAT	*zm_finput();
+extern ZMeVEC     *zv_finput();
+extern ZMeMAT	*zm_add();
+extern ZMeMAT	*zm_sub();
+extern ZMeMAT	*zm_mlt();
+extern ZMeMAT	*zmma_mlt();
+extern ZMeMAT	*zmam_mlt();
+extern ZMeVEC	*zmv_mlt();
+extern ZMeMAT	*zsm_mlt();
+extern ZMeVEC	*zvm_mlt();
+extern ZMeMAT	*zm_adjoint();
+extern ZMeMAT	*zswap_rows();
+extern ZMeMAT	*zswap_cols();
+extern ZMeMAT	*mz_mltadd();
+extern ZMeVEC	*zmv_mltadd();
+extern ZMeVEC	*zvm_mltadd();
+extern ZMeVEC	*zv_zero();
+extern ZMeMAT	*zm_zero();
+extern ZMeMAT	*zm_get();
+extern ZMeVEC	*zv_get();
+extern ZMeMAT	*zm_resize();
+extern ZMeVEC	*zv_resize();
 extern complex	_zin_prod();
-extern ZVEC	*zv_mlt();
-extern ZVEC	*zv_add();
-extern ZVEC	*zv_mltadd();
-extern ZVEC	*zv_sub();
-extern ZVEC	*zv_map();
-extern ZVEC	*_zv_map();
-extern ZVEC	*zv_lincomb();
-extern ZVEC	*zv_linlist();
-extern ZVEC	*zv_star();
-extern ZVEC	*zv_slash();
+extern ZMeVEC	*zv_mlt();
+extern ZMeVEC	*zv_add();
+extern ZMeVEC	*zv_mltadd();
+extern ZMeVEC	*zv_sub();
+extern ZMeVEC	*zv_map();
+extern ZMeVEC	*_zv_map();
+extern ZMeVEC	*zv_lincomb();
+extern ZMeVEC	*zv_linlist();
+extern ZMeVEC	*zv_star();
+extern ZMeVEC	*zv_slash();
 
-extern ZVEC	*px_zvec();
-extern ZVEC	*pxinv_zvec();
+extern ZMeVEC	*px_zvec();
+extern ZMeVEC	*pxinv_zvec();
 
-extern ZVEC	*zv_rand();
-extern ZMAT	*zm_rand();
+extern ZMeVEC	*zv_rand();
+extern ZMeMAT	*zm_rand();
 
-extern ZVEC	*zget_row();
-extern ZVEC	*zget_col();
-extern ZMAT	*zset_row();
-extern ZMAT	*zset_col();
+extern ZMeVEC	*zget_row();
+extern ZMeVEC	*zget_col();
+extern ZMeMAT	*zset_row();
+extern ZMeMAT	*zset_col();
 
 extern int	zm_free();
 extern int	zv_free();

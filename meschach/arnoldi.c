@@ -37,15 +37,15 @@ static char rcsid[] = "$Id: arnoldi.c,v 1.3 1994/01/13 05:45:40 des Exp $";
 
 
 /* arnoldi -- an implementation of the Arnoldi method */
-MAT	*arnoldi(A,A_param,x0,m,h_rem,Q,H)
-VEC	*(*A)();
+MeMAT	*arnoldi(A,A_param,x0,m,h_rem,Q,H)
+MeVEC	*(*A)();
 void	*A_param;
-VEC	*x0;
+MeVEC	*x0;
 int	m;
 Real	*h_rem;
-MAT	*Q, *H;
+MeMAT	*Q, *H;
 {
-	STATIC VEC	*v=VNULL, *u=VNULL, *r=VNULL, *s=VNULL, *tmp=VNULL;
+	STATIC MeVEC	*v=VNULL, *u=VNULL, *r=VNULL, *s=VNULL, *tmp=VNULL;
 	int	i;
 	Real	h_val;
 
@@ -64,11 +64,11 @@ MAT	*Q, *H;
 	r = v_resize(r,m);
 	s = v_resize(s,m);
 	tmp = v_resize(tmp,x0->dim);
-	MEM_STAT_REG(u,TYPE_VEC);
-	MEM_STAT_REG(v,TYPE_VEC);
-	MEM_STAT_REG(r,TYPE_VEC);
-	MEM_STAT_REG(s,TYPE_VEC);
-	MEM_STAT_REG(tmp,TYPE_VEC);
+	MEM_STAT_REG(u,TYPE_MeVEC);
+	MEM_STAT_REG(v,TYPE_MeVEC);
+	MEM_STAT_REG(r,TYPE_MeVEC);
+	MEM_STAT_REG(s,TYPE_MeVEC);
+	MEM_STAT_REG(tmp,TYPE_MeVEC);
 	sv_mlt(1.0/v_norm2(x0),x0,v);
 	for ( i = 0; i < m; i++ )
 	{
@@ -111,27 +111,27 @@ MAT	*Q, *H;
 }
 
 /* sp_arnoldi -- uses arnoldi() with an explicit representation of A */
-MAT	*sp_arnoldi(A,x0,m,h_rem,Q,H)
-SPMAT	*A;
-VEC	*x0;
+MeMAT	*sp_arnoldi(A,x0,m,h_rem,Q,H)
+SPMeMAT	*A;
+MeVEC	*x0;
 int	m;
 Real	*h_rem;
-MAT	*Q, *H;
+MeMAT	*Q, *H;
 {	return arnoldi(sp_mv_mlt,A,x0,m,h_rem,Q,H);	}
 
 /* gmres -- generalised minimum residual algorithm of Saad & Schultz
 		SIAM J. Sci. Stat. Comp. v.7, pp.856--869 (1986)
 	-- y is overwritten with the solution */
-VEC	*gmres(A,A_param,m,Q,R,b,tol,x)
-VEC	*(*A)();
+MeVEC	*gmres(A,A_param,m,Q,R,b,tol,x)
+MeVEC	*(*A)();
 void	*A_param;
-VEC	*b, *x;
+MeVEC	*b, *x;
 int	m;
-MAT	*Q, *R;
+MeMAT	*Q, *R;
 double	tol;
 {
-    STATIC VEC	*v=VNULL, *u=VNULL, *r=VNULL, *tmp=VNULL, *rhs=VNULL;
-    STATIC VEC	*diag=VNULL, *beta=VNULL;
+    STATIC MeVEC	*v=VNULL, *u=VNULL, *r=VNULL, *tmp=VNULL, *rhs=VNULL;
+    STATIC MeVEC	*diag=VNULL, *beta=VNULL;
     int	i;
     Real	h_val, norm_b;
     
@@ -150,11 +150,11 @@ double	tol;
     v = v_resize(v,x->dim);
     tmp = v_resize(tmp,x->dim);
     rhs = v_resize(rhs,m+1);
-    MEM_STAT_REG(u,TYPE_VEC);
-    MEM_STAT_REG(v,TYPE_VEC);
-    MEM_STAT_REG(r,TYPE_VEC);
-    MEM_STAT_REG(tmp,TYPE_VEC);
-    MEM_STAT_REG(rhs,TYPE_VEC);
+    MEM_STAT_REG(u,TYPE_MeVEC);
+    MEM_STAT_REG(v,TYPE_MeVEC);
+    MEM_STAT_REG(r,TYPE_MeVEC);
+    MEM_STAT_REG(tmp,TYPE_MeVEC);
+    MEM_STAT_REG(rhs,TYPE_MeVEC);
     norm_b = v_norm2(x);
     if ( norm_b == 0.0 )
 	error(E_RANGE,"gmres");
@@ -181,8 +181,8 @@ double	tol;
     tmp = v_resize(tmp,i);
     diag = v_resize(diag,i+1);
     beta = v_resize(beta,i+1);
-    MEM_STAT_REG(beta,TYPE_VEC);
-    MEM_STAT_REG(diag,TYPE_VEC);
+    MEM_STAT_REG(beta,TYPE_MeVEC);
+    MEM_STAT_REG(diag,TYPE_MeVEC);
     QRfactor(R,diag /* ,beta */);
     tmp = QRsolve(R,diag, /* beta, */ rhs,tmp);
     v_resize(tmp,m);

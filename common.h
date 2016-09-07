@@ -35,25 +35,25 @@ typedef struct {
   Real gtol;
   Real xtol;
   Real stpmin;
-  Real stpmax;
-  int maxfev;
+  Real stpMemax;
+  int Memaxfev;
 } OptimControl;
 
 typedef struct {
   int nK;          // number knots
   int B;
-  VEC *knots_e;    // knots effort
-  VEC *knots_c;    // knots catch
-  VEC *splcoef_e;    // knots effort
-  VEC *splcoef_c;    // knots catch
+  MeVEC *knots_e;    // knots effort
+  MeVEC *knots_c;    // knots catch
+  MeVEC *splcoef_e;    // knots effort
+  MeVEC *splcoef_c;    // knots catch
   int Nlf;
-  VEC *ln;
-  VEC *tl;
+  MeVEC *ln;
+  MeVEC *tl;
 } NewData;
 
 typedef struct {
-  VEC *eff;
-  VEC *cat;
+  MeVEC *eff;
+  MeVEC *cat;
   Real **lf; 
   int n; 
   int *t_id; 
@@ -66,21 +66,21 @@ typedef struct {
 
 typedef struct {
   Data *d;
-  VEC * eff;
+  MeVEC * eff;
   Real k;
   int S;
   Parameters *parameters;
 } Grad_Args_No_MESCHACH;
 
 typedef struct {
-  MAT *x,*u,*xhh,*xh,*xn,*uh,*un;
-  VEC *Ui,*Uh,*Uhh;
-  IVEC *idxi;
+  MeMAT *x,*u,*xhh,*xh,*xn,*uh,*un;
+  MeVEC *Ui,*Uh,*Uhh;
+  IMeVEC *idxi;
 } Solve_Core_Args;
 
 typedef struct {
   Data *d;
-  VEC * eff;
+  MeVEC * eff;
   Real k;
   int S;
   Solve_Core_Args *core_args;  
@@ -99,15 +99,15 @@ int interactive_mode_requested;
 
 void request_interactive_mode(int a);
 
-void spade_v_output(VEC* vec);
+void spade_v_output(MeVEC* vec);
 
-void data_read_ce(char * data_file_name, Data * data, int * N, Real k);
+void data_read_ce(const char * data_file_name, Data * data, int * N, Real k);
 
-void data_read_lf(char * data_file_name, Data * data, int N, Real k, int minfish);
+void data_read_lf(const char * data_file_name, Data * data, int N, Real k, int minfish);
 
-void data_read_ce_new(char * data_file_name, NewData * newdata);
+void data_read_ce_new(const char * data_file_name, NewData * newdata);
 
-void data_read_lf_new(char * data_file_name, NewData * newdata);
+void data_read_lf_new(const char * data_file_name, NewData * newdata);
 
-void optim_control_read(char * optim_file_name, OptimControl * optim);
+void optim_control_read(const char * optim_file_name, OptimControl * optim);
 #endif

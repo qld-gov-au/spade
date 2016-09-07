@@ -162,7 +162,7 @@ double dwrap(
   double wbar = (2*kappa*omega*vbar) / (beta+gamm*ubar+2*kappa);  
 
   for (int j=0;j<=J;j++) 
-    u[0][j] = (alpha1*vbar+alpha2*wbar)*pow(fmax(omega-x[0][j],0.0),(beta+gamm*ubar)/kappa-1) / (kappa*pow(omega,(beta+gamm*ubar)/kappa));
+    u[0][j] = (alpha1*vbar+alpha2*wbar)*pow(fMemax(omega-x[0][j],0.0),(beta+gamm*ubar)/kappa-1) / (kappa*pow(omega,(beta+gamm*ubar)/kappa));
  
   double rt = 0.;
   for (int j=0;j<=J;j++) 

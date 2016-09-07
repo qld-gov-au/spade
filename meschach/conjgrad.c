@@ -33,13 +33,13 @@
 		(with the exeception of the pccg() pre-conditioner)
 	The matrix A is defined by
 
-		VEC *(*A)(void *params, VEC *x, VEC *y)
+		MeVEC *(*A)(void *params, MeVEC *x, MeVEC *y)
 
 	where y = A.x on exit, and y is returned. The params argument is
 	intended to make it easier to re-use & modify such routines.
 
 	If we have a sparse matrix data structure
-		SPMAT	*A_mat;
+		SPMeMAT	*A_mat;
 	then these can be used by passing sp_mv_mlt as the function, and
 	A_mat as the param.
 */
@@ -52,33 +52,33 @@ static char	rcsid[] = "$Id: conjgrad.c,v 1.4 1994/01/13 05:36:45 des Exp $";
 
 
 /* #define	MAX_ITER	10000 */
-static	int	max_iter = 10000;
+static	int	Memax_iter = 10000;
 int	cg_num_iters;
 
 /* matrix-as-routine type definition */
 /* #ifdef ANSI_C */
-/* typedef VEC	*(*MTX_FN)(void *params, VEC *x, VEC *out); */
+/* typedef MeVEC	*(*MTX_FN)(void *params, MeVEC *x, MeVEC *out); */
 /* #else */
-typedef VEC	*(*MTX_FN)();
+typedef MeVEC	*(*MTX_FN)();
 /* #endif */
 #ifdef ANSI_C
-VEC	*spCHsolve(SPMAT *,VEC *,VEC *);
+MeVEC	*spCHsolve(SPMeMAT *,MeVEC *,MeVEC *);
 #else
-VEC	*spCHsolve();
+MeVEC	*spCHsolve();
 #endif
 
-/* cg_set_maxiter -- sets maximum number of iterations if numiter > 1
-	-- just returns current max_iter otherwise
-	-- returns old maximum */
-int	cg_set_maxiter(numiter)
+/* cg_set_Memaxiter -- sets Memaximum number of iterations if numiter > 1
+	-- just returns current Memax_iter otherwise
+	-- returns old Memaximum */
+int	cg_set_Memaxiter(numiter)
 int	numiter;
 {
 	int	temp;
 
 	if ( numiter < 2 )
-	    return max_iter;
-	temp = max_iter;
-	max_iter = numiter;
+	    return Memax_iter;
+	temp = Memax_iter;
+	Memax_iter = numiter;
 	return temp;
 }
 
@@ -86,13 +86,13 @@ int	numiter;
 /* pccg -- solves A.x = b using pre-conditioner M
 			(assumed factored a la spCHfctr())
 	-- results are stored in x (if x != NULL), which is returned */
-VEC	*pccg(A,A_params,M_inv,M_params,b,eps,x)
+MeVEC	*pccg(A,A_params,M_inv,M_params,b,eps,x)
 MTX_FN	A, M_inv;
-VEC	*b, *x;
+MeVEC	*b, *x;
 double	eps;
 void	*A_params, *M_params;
 {
-	VEC	*r = VNULL, *p = VNULL, *q = VNULL, *z = VNULL;
+	MeVEC	*r = VNULL, *p = VNULL, *q = VNULL, *z = VNULL;
 	int	k;
 	Real	alpha, beta, ip, old_ip, norm_b;
 
@@ -118,7 +118,7 @@ void	*A_params, *M_params;
 	{
 		if ( v_norm2(r) < eps*norm_b )
 			break;
-		if ( k > max_iter )
+		if ( k > Memax_iter )
 		    error(E_ITER,"pccg");
 		if ( M_inv )
 		    (*M_inv)(M_params,r,z);
@@ -156,9 +156,9 @@ void	*A_params, *M_params;
 		data structures
 	-- assumes that LLT contains the Cholesky factorisation of the
 		actual pre-conditioner */
-VEC	*sp_pccg(A,LLT,b,eps,x)
-SPMAT	*A, *LLT;
-VEC	*b, *x;
+MeVEC	*sp_pccg(A,LLT,b,eps,x)
+SPMeMAT	*A, *LLT;
+MeVEC	*b, *x;
 double	eps;
 {	return pccg(sp_mv_mlt,A,spCHsolve,LLT,b,eps,x);		}
 
@@ -175,14 +175,14 @@ double	eps;
 		A is passed where A(x,Ax,params) computes
 		Ax = A.x
 	-- the computed solution is passed */
-VEC	*cgs(A,A_params,b,r0,tol,x)
+MeVEC	*cgs(A,A_params,b,r0,tol,x)
 MTX_FN	A;
-VEC	*x, *b;
-VEC	*r0;		/* tilde r0 parameter -- should be random??? */
+MeVEC	*x, *b;
+MeVEC	*r0;		/* tilde r0 parameter -- should be random??? */
 double	tol;		/* error tolerance used */
 void	*A_params;
 {
-	VEC	*p, *q, *r, *u, *v, *tmp1, *tmp2;
+	MeVEC	*p, *q, *r, *u, *v, *tmp1, *tmp2;
 	Real	alpha, beta, norm_b, rho, old_rho, sigma;
 	int	iter;
 
@@ -210,7 +210,7 @@ void	*A_params;
 	iter = 0;
 	while ( v_norm2(r) > tol*norm_b )
 	{
-		if ( ++iter > max_iter ) break;
+		if ( ++iter > Memax_iter ) break;
 		/*    error(E_ITER,"cgs");  */
 		rho = in_prod(r0,r);
 		if ( old_rho == 0.0 )
@@ -245,32 +245,32 @@ void	*A_params;
 	return x;
 }
 
-/* sp_cgs -- simple interface for SPMAT data structures */
-VEC	*sp_cgs(A,b,r0,tol,x)
-SPMAT	*A;
-VEC	*b, *r0, *x;
+/* sp_cgs -- simple interface for SPMeMAT data structures */
+MeVEC	*sp_cgs(A,b,r0,tol,x)
+SPMeMAT	*A;
+MeVEC	*b, *r0, *x;
 double	tol;
 {	return cgs(sp_mv_mlt,A,b,r0,tol,x);	}
 
 /*
-	Routine for performing LSQR -- the least squares QR algorithm
+	Routine for performing LSQR -- the least Mesquares QR algorithm
 	of Paige and Saunders:
 		"LSQR: an algorithm for sparse linear equations and
-		sparse least squares", ACM Trans. Math. Soft., v. 8
+		sparse least Mesquares", ACM Trans. Math. Soft., v. 8
 		pp. 43--71 (1982)
 */
-/* lsqr -- sparse CG-like least squares routine:
+/* lsqr -- sparse CG-like least Mesquares routine:
 	-- finds min_x ||A.x-b||_2 using A defined through A & AT
 	-- returns x (if x != NULL) */
-VEC	*lsqr(A,AT,A_params,b,tol,x)
+MeVEC	*lsqr(A,AT,A_params,b,tol,x)
 MTX_FN	A, AT;	/* AT is A transposed */
-VEC	*x, *b;
+MeVEC	*x, *b;
 double	tol;		/* error tolerance used */
 void	*A_params;
 {
-	VEC	*u, *v, *w, *tmp;
+	MeVEC	*u, *v, *w, *tmp;
 	Real	alpha, beta, norm_b, phi, phi_bar,
-				rho, rho_bar, rho_max, theta;
+				rho, rho_bar, rho_Memax, theta;
 	Real	s, c;	/* for Givens' rotations */
 	int	iter, m, n;
 
@@ -299,10 +299,10 @@ void	*A_params;
 	v_copy(v,w);
 	phi_bar = beta;		rho_bar = alpha;
 
-	rho_max = 1.0;
+	rho_Memax = 1.0;
 	iter = 0;
 	do {
-		if ( ++iter > max_iter )
+		if ( ++iter > Memax_iter )
 		    error(E_ITER,"lsqr");
 
 		tmp = v_resize(tmp,m);
@@ -317,8 +317,8 @@ void	*A_params;
 		alpha = v_norm2(v);	sv_mlt(1.0/alpha,v,v);
 
 		rho = sqrt(rho_bar*rho_bar+beta*beta);
-		if ( rho > rho_max )
-		    rho_max = rho;
+		if ( rho > rho_Memax )
+		    rho_Memax = rho;
 		c   = rho_bar/rho;
 		s   = beta/rho;
 		theta   =  s*alpha;
@@ -331,7 +331,7 @@ void	*A_params;
 		    error(E_SING,"lsqr");
 		v_mltadd(x,w,phi/rho,x);
 		v_mltadd(v,w,-theta/rho,w);
-	} while ( fabs(phi_bar*alpha*c) > tol*norm_b/rho_max );
+	} while ( fabs(phi_bar*alpha*c) > tol*norm_b/rho_Memax );
 
 	cg_num_iters = iter;
 
@@ -340,10 +340,10 @@ void	*A_params;
 	return x;
 }
 
-/* sp_lsqr -- simple interface for SPMAT data structures */
-VEC	*sp_lsqr(A,b,tol,x)
-SPMAT	*A;
-VEC	*b, *x;
+/* sp_lsqr -- simple interface for SPMeMAT data structures */
+MeVEC	*sp_lsqr(A,b,tol,x)
+SPMeMAT	*A;
+MeVEC	*b, *x;
 double	tol;
 {	return lsqr(sp_mv_mlt,sp_vm_mlt,A,b,tol,x);	}
 

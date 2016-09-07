@@ -37,10 +37,10 @@ static	char	rcsid[] = "$Id: init.c,v 1.6 1994/01/13 05:36:58 des Exp $";
 
 /* v_zero -- zero the vector x */
 #ifndef ANSI_C
-VEC	*v_zero(x)
-VEC	*x;
+MeVEC	*v_zero(x)
+MeVEC	*x;
 #else
-VEC	*v_zero(VEC *x)
+MeVEC	*v_zero(MeVEC *x)
 #endif
 {
 	if ( x == VNULL )
@@ -56,10 +56,10 @@ VEC	*v_zero(VEC *x)
 
 /* iv_zero -- zero the vector ix */
 #ifndef ANSI_C
-IVEC	*iv_zero(ix)
-IVEC	*ix;
+IMeVEC	*iv_zero(ix)
+IMeVEC	*ix;
 #else
-IVEC	*iv_zero(IVEC *ix)
+IMeVEC	*iv_zero(IMeVEC *ix)
 #endif
 {
    int i;
@@ -76,10 +76,10 @@ IVEC	*iv_zero(IVEC *ix)
 
 /* m_zero -- zero the matrix A */
 #ifndef ANSI_C
-MAT	*m_zero(A)
-MAT	*A;
+MeMAT	*m_zero(A)
+MeMAT	*A;
 #else
-MAT	*m_zero(MAT *A)
+MeMAT	*m_zero(MeMAT *A)
 #endif
 {
 	int	i, A_m, A_n;
@@ -100,10 +100,10 @@ MAT	*m_zero(MAT *A)
 /* mat_id -- set A to being closest to identity matrix as possible
 	-- i.e. A[i][j] == 1 if i == j and 0 otherwise */
 #ifndef ANSI_C
-MAT	*m_ident(A)
-MAT	*A;
+MeMAT	*m_ident(A)
+MeMAT	*A;
 #else
-MAT	*m_ident(MAT *A)
+MeMAT	*m_ident(MeMAT *A)
 #endif
 {
 	int	i, size;
@@ -245,10 +245,10 @@ void smrand(int seed)
 /* v_rand -- initialises x to be a random vector, components
 	independently & uniformly ditributed between 0 and 1 */
 #ifndef ANSI_C
-VEC	*v_rand(x)
-VEC	*x;
+MeVEC	*v_rand(x)
+MeVEC	*x;
 #else
-VEC	*v_rand(VEC *x)
+MeVEC	*v_rand(MeVEC *x)
 #endif
 {
 	/* int	i; */
@@ -267,10 +267,10 @@ VEC	*v_rand(VEC *x)
 /* m_rand -- initialises A to be a random vector, components
 	independently & uniformly distributed between 0 and 1 */
 #ifndef ANSI_C
-MAT	*m_rand(A)
-MAT	*A;
+MeMAT	*m_rand(A)
+MeMAT	*A;
 #else
-MAT	*m_rand(MAT *A)
+MeMAT	*m_rand(MeMAT *A)
 #endif
 {
 	int	i /* , j */;
@@ -289,10 +289,10 @@ MAT	*m_rand(MAT *A)
 
 /* v_ones -- fills x with one's */
 #ifndef ANSI_C
-VEC	*v_ones(x)
-VEC	*x;
+MeVEC	*v_ones(x)
+MeVEC	*x;
 #else
-VEC	*v_ones(VEC *x)
+MeVEC	*v_ones(MeVEC *x)
 #endif
 {
 	int	i;
@@ -308,10 +308,10 @@ VEC	*v_ones(VEC *x)
 
 /* m_ones -- fills matrix with one's */
 #ifndef ANSI_C
-MAT	*m_ones(A)
-MAT	*A;
+MeMAT	*m_ones(A)
+MeMAT	*A;
 #else
-MAT	*m_ones(MAT *A)
+MeMAT	*m_ones(MeMAT *A)
 #endif
 {
 	int	i, j;
@@ -328,10 +328,10 @@ MAT	*m_ones(MAT *A)
 
 /* v_count -- initialises x so that x->ve[i] == i */
 #ifndef ANSI_C
-VEC	*v_count(x)
-VEC	*x;
+MeVEC	*v_count(x)
+MeVEC	*x;
 #else
-VEC	*v_count(VEC *x)
+MeVEC	*v_count(MeVEC *x)
 #endif
 {
 	int	i;

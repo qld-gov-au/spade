@@ -37,30 +37,30 @@ static char    line[MAXLINE];
 
 /* iv_get -- get integer vector -- see also memory.c */
 #ifndef ANSI_C
-IVEC	*iv_get(dim)
+IMeVEC	*iv_get(dim)
 int	dim;
 #else
-IVEC	*iv_get(int dim)
+IMeVEC	*iv_get(int dim)
 #endif
 {
-   IVEC	*iv;
+   IMeVEC	*iv;
    /* unsigned int	i; */
    
    if (dim < 0)
      error(E_NEG,"iv_get");
 
-   if ((iv=NEW(IVEC)) == IVNULL )
+   if ((iv=NEW(IMeVEC)) == IVNULL )
      error(E_MEM,"iv_get");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_IVEC,0,sizeof(IVEC));
-      mem_numvar(TYPE_IVEC,1);
+      mem_bytes(TYPE_IMeVEC,0,sizeof(IMeVEC));
+      mem_numvar(TYPE_IMeVEC,1);
    }
    
-   iv->dim = iv->max_dim = dim;
+   iv->dim = iv->Memax_dim = dim;
    if ((iv->ive = NEW_A(dim,int)) == (int *)NULL )
      error(E_MEM,"iv_get");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_IVEC,0,dim*sizeof(int));
+      mem_bytes(TYPE_IMeVEC,0,dim*sizeof(int));
    }
    
    return (iv);
@@ -69,9 +69,9 @@ IVEC	*iv_get(int dim)
 /* iv_free -- returns iv & asoociated memory back to memory heap */
 #ifndef ANSI_C
 int	iv_free(iv)
-IVEC	*iv;
+IMeVEC	*iv;
 #else
-int	iv_free(IVEC *iv)
+int	iv_free(IMeVEC *iv)
 #endif
 {
    if ( iv==IVNULL || iv->dim > MAXDIM )
@@ -80,16 +80,16 @@ int	iv_free(IVEC *iv)
    
    if ( iv->ive == (int *)NULL ) {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_IVEC,sizeof(IVEC),0);
-	 mem_numvar(TYPE_IVEC,-1);
+	 mem_bytes(TYPE_IMeVEC,sizeof(IMeVEC),0);
+	 mem_numvar(TYPE_IMeVEC,-1);
       }
       free((char *)iv);
    }
    else
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_IVEC,sizeof(IVEC)+iv->max_dim*sizeof(int),0);
-	 mem_numvar(TYPE_IVEC,-1);
+	 mem_bytes(TYPE_IMeVEC,sizeof(IMeVEC)+iv->Memax_dim*sizeof(int),0);
+	 mem_numvar(TYPE_IMeVEC,-1);
       }	
       free((char *)iv->ive);
       free((char *)iv);
@@ -98,14 +98,14 @@ int	iv_free(IVEC *iv)
    return (0);
 }
 
-/* iv_resize -- returns the IVEC with dimension new_dim
+/* iv_resize -- returns the IMeVEC with dimension new_dim
    -- iv is set to the zero vector */
 #ifndef ANSI_C
-IVEC	*iv_resize(iv,new_dim)
-IVEC	*iv;
+IMeVEC	*iv_resize(iv,new_dim)
+IMeVEC	*iv;
 int	new_dim;
 #else
-IVEC	*iv_resize(IVEC *iv, int new_dim)
+IMeVEC	*iv_resize(IMeVEC *iv, int new_dim)
 #endif
 {
    int	i;
@@ -119,16 +119,16 @@ IVEC	*iv_resize(IVEC *iv, int new_dim)
    if (new_dim == iv->dim)
      return iv;
 
-   if ( new_dim > iv->max_dim )
+   if ( new_dim > iv->Memax_dim )
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_IVEC,iv->max_dim*sizeof(int),
+	 mem_bytes(TYPE_IMeVEC,iv->Memax_dim*sizeof(int),
 		      new_dim*sizeof(int));
       }
       iv->ive = RENEW(iv->ive,new_dim,int);
       if ( ! iv->ive )
 	error(E_MEM,"iv_resize");
-      iv->max_dim = new_dim;
+      iv->Memax_dim = new_dim;
    }
    if ( iv->dim <= new_dim )
      for ( i = iv->dim; i < new_dim; i++ )
@@ -141,10 +141,10 @@ IVEC	*iv_resize(IVEC *iv, int new_dim)
 /* iv_copy -- copy integer vector in to out
    -- out created/resized if necessary */
 #ifndef ANSI_C
-IVEC	*iv_copy(in,out)
-IVEC	*in, *out;
+IMeVEC	*iv_copy(in,out)
+IMeVEC	*in, *out;
 #else
-IVEC	*iv_copy(const IVEC *in, IVEC *out)
+IMeVEC	*iv_copy(const IMeVEC *in, IMeVEC *out)
 #endif
 {
    int		i;
@@ -158,16 +158,16 @@ IVEC	*iv_copy(const IVEC *in, IVEC *out)
    return out;
 }
 
-/* iv_move -- move selected pieces of an IVEC
+/* iv_move -- move selected pieces of an IMeVEC
 	-- moves the length dim0 subvector with initial index i0
 	   to the corresponding subvector of out with initial index i1
 	-- out is resized if necessary */
 #ifndef ANSI_C
-IVEC	*iv_move(in,i0,dim0,out,i1)
-IVEC	*in, *out;
+IMeVEC	*iv_move(in,i0,dim0,out,i1)
+IMeVEC	*in, *out;
 int	i0, dim0, i1;
 #else
-IVEC	*iv_move(const IVEC *in, int i0, int dim0, IVEC *out, int i1)
+IMeVEC	*iv_move(const IMeVEC *in, int i0, int dim0, IMeVEC *out, int i1)
 #endif
 {
     if ( ! in )
@@ -186,10 +186,10 @@ IVEC	*iv_move(const IVEC *in, int i0, int dim0, IVEC *out, int i1)
 
 /* iv_add -- integer vector addition -- may be in-situ */
 #ifndef ANSI_C
-IVEC	*iv_add(iv1,iv2,out)
-IVEC	*iv1,*iv2,*out;
+IMeVEC	*iv_add(iv1,iv2,out)
+IMeVEC	*iv1,*iv2,*out;
 #else
-IVEC	*iv_add(const IVEC *iv1, const IVEC *iv2, IVEC *out)
+IMeVEC	*iv_add(const IMeVEC *iv1, const IMeVEC *iv2, IMeVEC *out)
 #endif
 {
    unsigned int	i;
@@ -216,10 +216,10 @@ IVEC	*iv_add(const IVEC *iv1, const IVEC *iv2, IVEC *out)
 
 /* iv_sub -- integer vector addition -- may be in-situ */
 #ifndef ANSI_C
-IVEC	*iv_sub(iv1,iv2,out)
-IVEC	*iv1,*iv2,*out;
+IMeVEC	*iv_sub(iv1,iv2,out)
+IMeVEC	*iv1,*iv2,*out;
 #else
-IVEC	*iv_sub(const IVEC *iv1, const IVEC *iv2, IVEC *out)
+IMeVEC	*iv_sub(const IMeVEC *iv1, const IMeVEC *iv2, IMeVEC *out)
 #endif
 {
    unsigned int	i;
@@ -251,11 +251,11 @@ IVEC	*iv_sub(const IVEC *iv1, const IVEC *iv2, IVEC *out)
    -- if order is NULL on entry then it is ignored
    -- the sorted vector x is returned */
 #ifndef ANSI_C
-IVEC	*iv_sort(x, order)
-IVEC	*x;
+IMeVEC	*iv_sort(x, order)
+IMeVEC	*x;
 PERM	*order;
 #else
-IVEC	*iv_sort(IVEC *x, PERM *order)
+IMeVEC	*iv_sort(IMeVEC *x, PERM *order)
 #endif
 {
    int		*x_ive, tmp, v;

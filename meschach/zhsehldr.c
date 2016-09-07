@@ -45,8 +45,8 @@ static	char	rcsid[] = "$Id: zhsehldr.c,v 1.2 1994/04/07 01:43:47 des Exp $";
 
 /* zhhvec -- calulates Householder vector to eliminate all entries after the
 	i0 entry of the vector vec. It is returned as out. May be in-situ */
-ZVEC	*zhhvec(vec,i0,beta,out,newval)
-ZVEC	*vec,*out;
+ZMeVEC	*zhhvec(vec,i0,beta,out,newval)
+ZMeVEC	*vec,*out;
 int	i0;
 Real	*beta;
 complex	*newval;
@@ -85,8 +85,8 @@ complex	*newval;
 }
 
 /* zhhtrvec -- apply Householder transformation to vector -- may be in-situ */
-ZVEC	*zhhtrvec(hh,beta,i0,in,out)
-ZVEC	*hh,*in,*out;	/* hh = Householder vector */
+ZMeVEC	*zhhtrvec(hh,beta,i0,in,out)
+ZMeVEC	*hh,*in,*out;	/* hh = Householder vector */
 int	i0;
 double	beta;
 {
@@ -118,10 +118,10 @@ double	beta;
 	starting at row i0 from column j0 
 	-- in-situ
 	-- that is, M(i0:m,j0:n) <- M(i0:m,j0:n)(I-beta.hh(j0:n).hh(j0:n)^T) */
-ZMAT	*zhhtrrows(M,i0,j0,hh,beta)
-ZMAT	*M;
+ZMeMAT	*zhhtrrows(M,i0,j0,hh,beta)
+ZMeMAT	*M;
 int	i0, j0;
-ZVEC	*hh;
+ZMeVEC	*hh;
 double	beta;
 {
 	complex	ip, scale;
@@ -172,16 +172,16 @@ double	beta;
 	-- Meschach internal routines should call _zhhtrcols() to
 	avoid excessive memory allocation/de-allocation
 */
-ZMAT	*zhhtrcols(M,i0,j0,hh,beta)
-ZMAT	*M;
+ZMeMAT	*zhhtrcols(M,i0,j0,hh,beta)
+ZMeMAT	*M;
 int	i0, j0;
-ZVEC	*hh;
+ZMeVEC	*hh;
 double	beta;
 {
 	/* Real	ip, scale; */
 	complex	scale;
 	int	i /*, k */;
-	STATIC	ZVEC	*w = ZVNULL;
+	STATIC	ZMeVEC	*w = ZVNULL;
 
 	if ( M==ZMNULL || hh==ZVNULL )
 		error(E_NULL,"zhhtrcols");
@@ -194,7 +194,7 @@ double	beta;
 
 	if ( ! w || w->dim < M->n )
 	  w = zv_resize(w,M->n);
-	MEM_STAT_REG(w,TYPE_ZVEC);
+	MEM_STAT_REG(w,TYPE_ZMeVEC);
 
 	M = _zhhtrcols(M,i0,j0,hh,beta,w);
 
@@ -211,12 +211,12 @@ double	beta;
 	-- in-situ
 	-- scratch vector w passed as argument
 	-- raises error if w == NULL */
-ZMAT	*_zhhtrcols(M,i0,j0,hh,beta,w)
-ZMAT	*M;
+ZMeMAT	*_zhhtrcols(M,i0,j0,hh,beta,w)
+ZMeMAT	*M;
 int	i0, j0;
-ZVEC	*hh;
+ZMeVEC	*hh;
 double	beta;
-ZVEC	*w;
+ZMeVEC	*w;
 {
 	/* Real	ip, scale; */
 	complex	scale;

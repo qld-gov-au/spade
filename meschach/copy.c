@@ -33,11 +33,11 @@ static	char	rcsid[] = "$Id: copy.c,v 1.2 1994/01/13 05:37:14 des Exp $";
 /* _m_copy -- copies matrix into new area
 	-- out(i0:m,j0:n) <- in(i0:m,j0:n) */
 #ifndef ANSI_C
-MAT	*_m_copy(in,out,i0,j0)
-MAT	*in,*out;
+MeMAT	*_m_copy(in,out,i0,j0)
+MeMAT	*in,*out;
 unsigned int	i0,j0;
 #else
-MAT	*_m_copy(const MAT *in, MAT *out, unsigned int i0, unsigned int j0)
+MeMAT	*_m_copy(const MeMAT *in, MeMAT *out, unsigned int i0, unsigned int j0)
 #endif
 {
 	unsigned int	i /* ,j */;
@@ -61,11 +61,11 @@ MAT	*_m_copy(const MAT *in, MAT *out, unsigned int i0, unsigned int j0)
 /* _v_copy -- copies vector into new area
 	-- out(i0:dim) <- in(i0:dim) */
 #ifndef ANSI_C
-VEC	*_v_copy(in,out,i0)
-VEC	*in,*out;
+MeVEC	*_v_copy(in,out,i0)
+MeVEC	*in,*out;
 unsigned int	i0;
 #else
-VEC	*_v_copy(const VEC *in, VEC *out, unsigned int i0)
+MeVEC	*_v_copy(const MeVEC *in, MeVEC *out, unsigned int i0)
 #endif
 {
 	/* unsigned int	i,j; */
@@ -121,12 +121,12 @@ PERM	*px_copy(const PERM *in, PERM *out)
 	   (i1,j1)
 	-- out is resized (& created) if necessary */
 #ifndef ANSI_C
-MAT	*m_move(in,i0,j0,m0,n0,out,i1,j1)
-MAT	*in, *out;
+MeMAT	*m_move(in,i0,j0,m0,n0,out,i1,j1)
+MeMAT	*in, *out;
 int	i0, j0, m0, n0, i1, j1;
 #else
-MAT	*m_move(const MAT *in, int i0,int j0, int m0,int n0,
-		MAT *out, int i1, int j1)
+MeMAT	*m_move(const MeMAT *in, int i0,int j0, int m0,int n0,
+		MeMAT *out, int i1, int j1)
 #endif
 {
     int		i;
@@ -140,7 +140,7 @@ MAT	*m_move(const MAT *in, int i0,int j0, int m0,int n0,
     if ( ! out )
 	out = m_resize(out,i1+m0,j1+n0);
     else if ( i1+m0 > out->m || j1+n0 > out->n )
-	out = m_resize(out,max(out->m,i1+m0),max(out->n,j1+n0));
+	out = m_resize(out,Memax(out->m,i1+m0),Memax(out->n,j1+n0));
 
     for ( i = 0; i < m0; i++ )
 	MEM_COPY(&(in->me[i0+i][j0]),&(out->me[i1+i][j1]),
@@ -154,12 +154,12 @@ MAT	*m_move(const MAT *in, int i0,int j0, int m0,int n0,
 	   to the corresponding subvector of out with initial index i1
 	-- out is resized if necessary */
 #ifndef ANSI_C
-VEC	*v_move(in,i0,dim0,out,i1)
-VEC	*in, *out;
+MeVEC	*v_move(in,i0,dim0,out,i1)
+MeVEC	*in, *out;
 int	i0, dim0, i1;
 #else
-VEC	*v_move(const VEC *in, int i0, int dim0,
-		VEC *out, int i1)
+MeVEC	*v_move(const MeVEC *in, int i0, int dim0,
+		MeVEC *out, int i1)
 #endif
 {
     if ( ! in )
@@ -182,13 +182,13 @@ VEC	*v_move(const VEC *in, int i0, int dim0,
 	-- rows are copied contiguously
 	-- out is resized if necessary */
 #ifndef ANSI_C
-VEC	*mv_move(in,i0,j0,m0,n0,out,i1)
-MAT	*in;
-VEC	*out;
+MeVEC	*mv_move(in,i0,j0,m0,n0,out,i1)
+MeMAT	*in;
+MeVEC	*out;
 int	i0, j0, m0, n0, i1;
 #else
-VEC	*mv_move(const MAT *in, int i0,int j0, int m0, int n0,
-		 VEC *out, int i1)
+MeVEC	*mv_move(const MeMAT *in, int i0,int j0, int m0, int n0,
+		 MeVEC *out, int i1)
 #endif
 {
     int		dim1, i;
@@ -216,13 +216,13 @@ VEC	*mv_move(const MAT *in, int i0,int j0, int m0, int n0,
         -- copying is done by rows
 	-- out is resized if necessary */
 #ifndef ANSI_C
-MAT	*vm_move(in,i0,out,i1,j1,m1,n1)
-VEC	*in;
-MAT	*out;
+MeMAT	*vm_move(in,i0,out,i1,j1,m1,n1)
+MeVEC	*in;
+MeMAT	*out;
 int	i0, i1, j1, m1, n1;
 #else
-MAT	*vm_move(const VEC *in, int i0,
-		 MAT *out, int i1, int j1, int m1, int n1)
+MeMAT	*vm_move(const MeVEC *in, int i0,
+		 MeMAT *out, int i1, int j1, int m1, int n1)
 #endif
 {
     int		dim0, i;
@@ -236,7 +236,7 @@ MAT	*vm_move(const VEC *in, int i0,
     if ( ! out )
 	out = m_resize(out,i1+m1,j1+n1);
     else
-	out = m_resize(out,max(i1+m1,out->m),max(j1+n1,out->n));
+	out = m_resize(out,Memax(i1+m1,out->m),Memax(j1+n1,out->n));
 
     dim0 = m1*n1;
     for ( i = 0; i < m1; i++ )

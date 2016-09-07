@@ -27,11 +27,11 @@ void grad_alpha_clean(void* args)
   I = d->I;
   J = d->J;
 
-  MAT *core_x = m_get(I+1,J+1);
-  MAT *core_u = m_get(I+1,J+1);
-  MAT *core_p = m_get(I+1,J+1);
+  MeMAT *core_x = m_get(I+1,J+1);
+  MeMAT *core_u = m_get(I+1,J+1);
+  MeMAT *core_p = m_get(I+1,J+1);
   
-  VEC *eff = (*grad_args).eff;
+  MeVEC *eff = (*grad_args).eff;
   Real k = (*grad_args).k;
   int S = (*grad_args).S;
   Parameters *parameters = (*grad_args).parameters;
@@ -220,31 +220,31 @@ void grad_alpha(void* args)
   Grad_Args * grad_args = (Grad_Args *)args;
 
   Data *d = (*grad_args).d;
-  MAT *x = ((*grad_args).core_args)->x;
-  MAT *u = (*grad_args).core_args->u;
-  MAT *xhh;
+  MeMAT *x = ((*grad_args).core_args)->x;
+  MeMAT *u = (*grad_args).core_args->u;
+  MeMAT *xhh;
   if (QUARTER)
     xhh = (*grad_args).core_args->xhh;
-  MAT *xh = (*grad_args).core_args->xh;
-  MAT *xn = (*grad_args).core_args->xn;
-  MAT *uh = (*grad_args).core_args->uh;
-  MAT *un = (*grad_args).core_args->un;
-  VEC *Ui = (*grad_args).core_args->Ui;
-  VEC *Uh = (*grad_args).core_args->Uh;
-  VEC *Uhh;
+  MeMAT *xh = (*grad_args).core_args->xh;
+  MeMAT *xn = (*grad_args).core_args->xn;
+  MeMAT *uh = (*grad_args).core_args->uh;
+  MeMAT *un = (*grad_args).core_args->un;
+  MeVEC *Ui = (*grad_args).core_args->Ui;
+  MeVEC *Uh = (*grad_args).core_args->Uh;
+  MeVEC *Uhh;
   if (QUARTER)
     Uhh = (*grad_args).core_args->Uhh;
-  IVEC *idxi = (*grad_args).core_args->idxi;
-  VEC *eff = (*grad_args).eff;
+  IMeVEC *idxi = (*grad_args).core_args->idxi;
+  MeVEC *eff = (*grad_args).eff;
   Real k = (*grad_args).k;
   int S = (*grad_args).S;
   Parameters *parameters = (*grad_args).parameters;
-  MAT *p = m_get(x->m,x->n);
+  MeMAT *p = m_get(x->m,x->n);
   
-  VEC *xt; VEC *xht; 
-  VEC *ut; VEC *uht; VEC *pt; 
-  VEC *xhht; VEC *ph; VEC *pn;
-  VEC *xnt; VEC *unt;
+  MeVEC *xt; MeVEC *xht; 
+  MeVEC *ut; MeVEC *uht; MeVEC *pt; 
+  MeVEC *xhht; MeVEC *ph; MeVEC *pn;
+  MeVEC *xnt; MeVEC *unt;
   
   int J;
   if (!SGNM)
@@ -281,7 +281,7 @@ void grad_alpha(void* args)
   Real ww = parameters->omega.value;
   Real ii = parameters->iota.value*1e-3;
 
-  VEC *Pi;
+  MeVEC *Pi;
   Pi = v_get(x->m);
 
   get_row(x,0,xt);

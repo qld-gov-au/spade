@@ -4,11 +4,11 @@
 #include "../../meschach/matrix.h"
 #include "../../parameters.h"
 
-VEC *ini_kappa(
+MeVEC *ini_kappa(
 
          Parameters *parameters,
-	       VEC *x,
-	       VEC *p
+	       MeVEC *x,
+	       MeVEC *p
 
 	       );
 

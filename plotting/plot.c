@@ -55,8 +55,8 @@ void plot(
 
   solve(parameters,d->eff,d->k,d->S,d->Y,&core_args);
 
-  MAT *x = core_args.x;
-  MAT *u = core_args.u;
+  MeMAT *x = core_args.x;
+  MeMAT *u = core_args.u;
 
   M_FREE(core_args.xh);
   M_FREE(core_args.uh);
@@ -91,8 +91,8 @@ void plot(
       else
 	terminator = J;
 
-      VEC *ctt = v_get(terminator+1);
-      VEC *xt = v_get(terminator+1);      
+      MeVEC *ctt = v_get(terminator+1);
+      MeVEC *xt = v_get(terminator+1);      
       
       xt = get_row(x,i,xt);
 
@@ -137,9 +137,9 @@ void plot(
 	terminator = J;
 
 
-      VEC *xt = v_get(terminator+1);
+      MeVEC *xt = v_get(terminator+1);
       get_row(x,i,xt);      
-      VEC *ut = v_get(terminator+1);
+      MeVEC *ut = v_get(terminator+1);
       get_row(u,i,ut);
       
       if (!SGNM)
@@ -148,7 +148,7 @@ void plot(
 	  ut = v_resize(ut,terminator+1);
 	}
       
-      VEC *v = v_get(terminator+1);
+      MeVEC *v = v_get(terminator+1);
 
       for (int j=0;j<=terminator;j++)
 	v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
@@ -156,14 +156,14 @@ void plot(
       if(lfi < d->n && d->t_id[lfi]==i) 
 	{
       
-	  VEC *dt = v_get(d->t_sz[lfi]);
+	  MeVEC *dt = v_get(d->t_sz[lfi]);
 
 	  for (int j=0;j<dt->dim;j++)
 	    dt->ve[j] = d->lf[lfi][j];
 
 	  Real bw = get_bw(dt);
 
-	  VEC *l = v_get(terminator+1);
+	  MeVEC *l = v_get(terminator+1);
 
 	  for (int j=0;j<=terminator;j++)
 	    for (int jj=0;jj<dt->dim;jj++)

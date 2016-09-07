@@ -41,11 +41,11 @@ static	char	rcsid[] = "$Id: zhessen.c,v 1.2 1995/03/27 15:47:50 des Exp $";
 /* zHfactor -- compute Hessenberg factorisation in compact form.
 	-- factorisation performed in situ
 	-- for details of the compact form see zQRfactor.c and zmatrix2.doc */
-ZMAT	*zHfactor(A, diag)
-ZMAT	*A;
-ZVEC	*diag;
+ZMeMAT	*zHfactor(A, diag)
+ZMeMAT	*A;
+ZMeVEC	*diag;
 {
-	STATIC	ZVEC	*tmp1 = ZVNULL, *w = ZVNULL;
+	STATIC	ZMeVEC	*tmp1 = ZVNULL, *w = ZVNULL;
 	Real	beta;
 	int	k, limit;
 
@@ -59,8 +59,8 @@ ZVEC	*diag;
 
 	tmp1 = zv_resize(tmp1,A->m);
 	w    = zv_resize(w,   A->n);
-	MEM_STAT_REG(tmp1,TYPE_ZVEC);
-	MEM_STAT_REG(w,   TYPE_ZVEC);
+	MEM_STAT_REG(tmp1,TYPE_ZMeVEC);
+	MEM_STAT_REG(w,   TYPE_ZMeVEC);
 
 	for ( k = 0; k < limit; k++ )
 	{
@@ -88,13 +88,13 @@ ZVEC	*diag;
 	-- it can be in situ with HQ == H
 	-- returns HQ
 */
-ZMAT	*zHQunpack(HQ,diag,Q,H)
-ZMAT	*HQ, *Q, *H;
-ZVEC	*diag;
+ZMeMAT	*zHQunpack(HQ,diag,Q,H)
+ZMeMAT	*HQ, *Q, *H;
+ZMeVEC	*diag;
 {
 	int	i, j, limit;
 	Real	beta, r_ii, tmp_val;
-	STATIC	ZVEC	*tmp1 = ZVNULL, *tmp2 = ZVNULL;
+	STATIC	ZMeVEC	*tmp1 = ZVNULL, *tmp2 = ZVNULL;
 
 	if ( HQ==ZMNULL || diag==ZVNULL )
 		error(E_NULL,"zHQunpack");
@@ -112,8 +112,8 @@ ZVEC	*diag;
 	    Q = zm_resize(Q,HQ->m,HQ->m);
 	    tmp1 = zv_resize(tmp1,H->m);
 	    tmp2 = zv_resize(tmp2,H->m);
-	    MEM_STAT_REG(tmp1,TYPE_ZVEC);
-	    MEM_STAT_REG(tmp2,TYPE_ZVEC);
+	    MEM_STAT_REG(tmp1,TYPE_ZMeVEC);
+	    MEM_STAT_REG(tmp2,TYPE_ZMeVEC);
 	    
 	    for ( i = 0; i < H->m; i++ )
 	    {

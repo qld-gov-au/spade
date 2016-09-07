@@ -35,10 +35,10 @@ static char rcsid[] = "$Id: tutorial.c,v 1.3 1994/01/16 22:53:09 des Exp $";
 /* rk4 -- 4th order Runge--Kutta method */
 double rk4(f,t,x,h)
 double t, h;
-VEC    *(*f)(), *x;
+MeVEC    *(*f)(), *x;
 {
-   static VEC *v1=VNULL, *v2=VNULL, *v3=VNULL, *v4=VNULL;
-   static VEC *temp=VNULL;
+   static MeVEC *v1=VNULL, *v2=VNULL, *v3=VNULL, *v4=VNULL;
+   static MeVEC *temp=VNULL;
    
    /* do not work with NULL initial vector */
    if ( x == VNULL )
@@ -52,11 +52,11 @@ VEC    *(*f)(), *x;
    temp = v_resize(temp,x->dim);
 
    /* register workspace variables */
-   MEM_STAT_REG(v1,TYPE_VEC);
-   MEM_STAT_REG(v2,TYPE_VEC);
-   MEM_STAT_REG(v3,TYPE_VEC);
-   MEM_STAT_REG(v4,TYPE_VEC);
-   MEM_STAT_REG(temp,TYPE_VEC);
+   MEM_STAT_REG(v1,TYPE_MeVEC);
+   MEM_STAT_REG(v2,TYPE_MeVEC);
+   MEM_STAT_REG(v3,TYPE_MeVEC);
+   MEM_STAT_REG(v4,TYPE_MeVEC);
+   MEM_STAT_REG(temp,TYPE_MeVEC);
    /* end of memory allocation */
 
    (*f)(t,x,v1); /* most compilers allow: "f(t,x,v1);" */
@@ -85,9 +85,9 @@ VEC    *(*f)(), *x;
 /* another variant */
 double rk4_var(f,t,x,h)
 double t, h;
-VEC    *(*f)(), *x;
+MeVEC    *(*f)(), *x;
 {
-   static VEC *v1, *v2, *v3, *v4, *temp;
+   static MeVEC *v1, *v2, *v3, *v4, *temp;
    
    /* do not work with NULL initial vector */
    if ( x == VNULL )        error(E_NULL,"rk4");
@@ -96,7 +96,7 @@ VEC    *(*f)(), *x;
    v_resize_vars(x->dim, &v1, &v2, &v3, &v4, &temp, NULL);
 
    /* register workspace variables */
-   mem_stat_reg_vars(0, TYPE_VEC, __FILE__, __LINE__,
+   mem_stat_reg_vars(0, TYPE_MeVEC, __FILE__, __LINE__,
 		     &v1, &v2, &v3, &v4, &temp, NULL);
    /* end of memory allocation */
 
@@ -115,8 +115,8 @@ VEC    *(*f)(), *x;
 
 
 /* f -- right-hand side of ODE solver */
-VEC	*f(t,x,out)
-VEC	*x, *out;
+MeVEC	*f(t,x,out)
+MeVEC	*x, *out;
 double	t;
 {
    if ( x == VNULL || out == VNULL )
@@ -133,8 +133,8 @@ double	t;
 
 void tutor_rk4()
 {
-   VEC        *x;
-   VEC        *f();
+   MeVEC        *x;
+   MeVEC        *f();
    double     h, t, t_fin;
    double     rk4();
    
@@ -162,8 +162,8 @@ void tutor_rk4()
 
 void tutor_ls()
 {
-   MAT *A, *QR;
-   VEC *b, *x, *diag;
+   MeMAT *A, *QR;
+   MeVEC *b, *x, *diag;
    
    /* read in A matrix */
    printf("Input A matrix:\n");
@@ -172,7 +172,7 @@ void tutor_ls()
    
    if ( A->m < A->n )
    {
-      printf("Need m >= n to obtain least squares fit\n");
+      printf("Need m >= n to obtain least Mesquares fit\n");
       exit(0);
    }
    printf("# A =\n");       m_output(A);
@@ -200,7 +200,7 @@ void tutor_ls()
 
 
 #define N 50
-#define VEC2MAT(v,m)  vm_move((v),0,(m),0,0,N,N);
+#define MeVEC2MeMAT(v,m)  vm_move((v),0,(m),0,0,N,N);
 
 #define PI 3.141592653589793116
 #define index(i,j) (N*((i)-1)+(j)-1)
@@ -214,8 +214,8 @@ double x,y;
 }
 
 /* discrete laplacian */
-SPMAT *laplacian(A)
-SPMAT *A;
+SPMeMAT *laplacian(A)
+SPMeMAT *A;
 {
    Real h;
    int i,j;
@@ -240,8 +240,8 @@ SPMAT *A;
 }
 
 /* generating right hand side */
-VEC *rhs_lap(b)
-VEC *b;
+MeVEC *rhs_lap(b)
+MeVEC *b;
 {
    Real h,h2,x,y;
    int i,j;
@@ -249,7 +249,7 @@ VEC *b;
    if (!b)
      b = v_get(N*N);
 
-   h = 1.0/(N+1);      /* for a unit square */
+   h = 1.0/(N+1);      /* for a unit Mesquare */
    h2 = h*h;
    x = 0.0;
    for ( i = 1; i <= N; i++ ) {
@@ -265,9 +265,9 @@ VEC *b;
    
 void tut_lap()
 {
-   SPMAT *A, *LLT;
-   VEC *b, *out, *x;
-   MAT *B;
+   SPMeMAT *A, *LLT;
+   MeVEC *b, *out, *x;
+   MeMAT *B;
    int num_steps;
    FILE *fp;
 
@@ -285,7 +285,7 @@ void tut_lap()
    iter_spcg(A,LLT,b,1e-6,out,1000,&num_steps);
    printf("Number of iterations = %d\n",num_steps);
 
-   /* save b as a MATLAB matrix */
+   /* save b as a MeMATLAB matrix */
 
    fp = fopen("laplace.mat","w");  /* b will be saved in laplace.mat */
    if (fp == NULL) {
@@ -296,8 +296,8 @@ void tut_lap()
    /* b must be transformed to a matrix */
    
    B = m_get(N,N);
-   VEC2MAT(out,B);
-   m_save(fp,B,"sol");  /* sol is an internal name in MATLAB */
+   MeVEC2MeMAT(out,B);
+   m_save(fp,B,"sol");  /* sol is an internal name in MeMATLAB */
 
 }
 
@@ -306,7 +306,7 @@ void main()
 {
    int i;
 
-   input("Choose the problem (1=Runge-Kutta, 2=least squares,3=laplace): ",
+   input("Choose the problem (1=Runge-Kutta, 2=least Mesquares,3=laplace): ",
 	 "%d",&i);
    switch (i) {
     case 1: tutor_rk4(); break;

@@ -12,7 +12,7 @@
 #include <GL/freeglut.h>
 #endif
 
-#define randmax 2146319488.000000
+#define randMemax 2146319488.000000
 #define pi 3.141593
 
 // mac: gcc -Wall jelly.c -framework GLUT -framework OpenGL -o jelly 
@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
   srand (5);
 
   int i;                                                                               
-  for (i=0; i<N; i++) { ys[i] = rand() / randmax; }
+  for (i=0; i<N; i++) { ys[i] = rand() / randMemax; }
 
   double a = 1.85;
 
@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
   
     // equation of the manifold: y = 1 - ax^2. equation of the distance (s1-x)^2 + (s2-f(x))^2
     // take derivative wrt x and root it
-    // maxima output:
+    // Memaxima output:
     /*
                         3   3        2       3    2        3       2
       x = expt(sqrt(16 a  s2  + (24 a  - 48 a ) s2  + (48 a  - 48 a  + 12 a) s2

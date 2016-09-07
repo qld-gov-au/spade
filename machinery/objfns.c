@@ -37,8 +37,8 @@ Real K_dr(
   
   solve(parameters,d->eff,d->k,d->S,d->Y,&core_args);
 
-  MAT *x = core_args.x;
-  MAT *u = core_args.u;
+  MeMAT *x = core_args.x;
+  MeMAT *u = core_args.u;
 
   Real iota = parameters->iota.value;
 
@@ -48,17 +48,17 @@ Real K_dr(
 
   int lfi=0;
 
-  VEC *ht = v_get(x->m);
-  VEC *tt = v_get(x->m);
+  MeVEC *ht = v_get(x->m);
+  MeVEC *tt = v_get(x->m);
 
   for (int i=S;i<x->m;i++)
     {
 
-      VEC *xt = v_get(x->n);
+      MeVEC *xt = v_get(x->n);
       get_row(x,i,xt);      
-      VEC *ut = v_get(x->n);
+      MeVEC *ut = v_get(x->n);
       get_row(u,i,ut);      
-      VEC *v = v_get(x->n);
+      MeVEC *v = v_get(x->n);
 
       for (int j=0;j<x->n;j++)
   v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
@@ -66,14 +66,14 @@ Real K_dr(
       if(lfi < d->n && d->t_id[lfi]==i) 
   {
       
-    VEC *dt = v_get(d->t_sz[lfi]);
+    MeVEC *dt = v_get(d->t_sz[lfi]);
 
     for (int j=0;j<dt->dim;j++)
       dt->ve[j] = d->lf[lfi][j];
 
     Real bw = get_bw(dt);
 
-    VEC *l = v_get(xt->dim);
+    MeVEC *l = v_get(xt->dim);
 
     for (int j=0;j<xt->dim;j++)
       for (int jj=0;jj<dt->dim;jj++)
@@ -81,7 +81,7 @@ Real K_dr(
 
     Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
 
-    VEC *ld = v_get(x->n);
+    MeVEC *ld = v_get(x->n);
 
     for (int j=0;j<xt->dim;j++)
       ld->ve[j] = pow(v->ve[j] - al*l->ve[j],2.);
@@ -143,8 +143,8 @@ Real newK(
 
   solve(parameters,d->eff,d->k,d->S,d->Y,core_args);
 
-  MAT *x = core_args->x;
-  MAT *u = core_args->u;
+  MeMAT *x = core_args->x;
+  MeMAT *u = core_args->u;
 
   Real iota = parameters->iota.value;
 
@@ -154,12 +154,12 @@ Real newK(
 
   int lfi=0;
 
-  VEC *ht = v_get(x->m);
-  VEC *tt = v_get(x->m);
+  MeVEC *ht = v_get(x->m);
+  MeVEC *tt = v_get(x->m);
 
   int J; 
   int bigJ;
-  if (BIGMATRICES){
+  if (BIGMeMATRICES){
     bigJ = x->n - 1;
     J = x->n - x->m;
 
@@ -172,23 +172,23 @@ Real newK(
     {
 
       int terminator;
-      if(BIGMATRICES)
+      if(BIGMeMATRICES)
 	terminator = J+i;
       else
 	terminator = J;
 
-      VEC *xt = v_get(terminator+1);
+      MeVEC *xt = v_get(terminator+1);
       get_row(x,i,xt);      
-      VEC *ut = v_get(terminator+1);
+      MeVEC *ut = v_get(terminator+1);
       get_row(u,i,ut);
       
-      if (BIGMATRICES)
+      if (BIGMeMATRICES)
 	{
 	  xt = v_resize(xt,terminator+1);
 	  ut = v_resize(ut,terminator+1);
 	}
       
-      VEC *v = v_get(terminator+1);
+      MeVEC *v = v_get(terminator+1);
 
       for (int j=0;j<=terminator;j++)
 	v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
@@ -196,14 +196,14 @@ Real newK(
       if(lfi < d->n && d->t_id[lfi]==i) 
 	{
       
- 	  VEC *dt = v_get(d->t_sz[lfi]);
+ 	  MeVEC *dt = v_get(d->t_sz[lfi]);
 
 	  for (int j=0;j<dt->dim;j++)
 	    dt->ve[j] = d->lf[lfi][j];
 
 	  Real bw = get_bw(dt);
 
-	  VEC *l = v_get(terminator+1);
+	  MeVEC *l = v_get(terminator+1);
 
 	  for (int j=0;j<=terminator;j++)
 	    for (int jj=0;jj<dt->dim;jj++)
@@ -211,7 +211,7 @@ Real newK(
 
 	  Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
 
-	  VEC *ld = v_get(terminator+1);
+	  MeVEC *ld = v_get(terminator+1);
 
 	  //printf("\n");
 	  for (int j=0;j<=terminator;j++){
@@ -248,8 +248,8 @@ Real K(
   else
     solve_clean(parameters,d->eff,d->k,d->S,d->Y,core_args);
 
-  MAT *x = core_args->x;
-  MAT *u = core_args->u;
+  MeMAT *x = core_args->x;
+  MeMAT *u = core_args->u;
 
   Real iota = parameters->iota.value;
 
@@ -259,8 +259,8 @@ Real K(
 
   int lfi=0;
 
-  VEC *ht = v_get(x->m);
-  VEC *tt = v_get(x->m);
+  MeVEC *ht = v_get(x->m);
+  MeVEC *tt = v_get(x->m);
 
   int J; 
   int bigJ;
@@ -280,9 +280,9 @@ Real K(
       else
 	terminator = J;
 
-      VEC *xt = v_get(terminator+1);
+      MeVEC *xt = v_get(terminator+1);
       get_row(x,i,xt);      
-      VEC *ut = v_get(terminator+1);
+      MeVEC *ut = v_get(terminator+1);
       get_row(u,i,ut);
       
       if (!SGNM)
@@ -291,7 +291,7 @@ Real K(
 	  ut = v_resize(ut,terminator+1);
 	}
       
-      VEC *v = v_get(terminator+1);
+      MeVEC *v = v_get(terminator+1);
 
       for (int j=0;j<=terminator;j++)
 	v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
@@ -299,14 +299,14 @@ Real K(
       if(lfi < d->n && d->t_id[lfi]==i) 
 	{
       
- 	  VEC *dt = v_get(d->t_sz[lfi]);
+ 	  MeVEC *dt = v_get(d->t_sz[lfi]);
 
 	  for (int j=0;j<dt->dim;j++)
 	    dt->ve[j] = d->lf[lfi][j];
 
 	  Real bw = get_bw(dt);
 
-	  VEC *l = v_get(terminator+1);
+	  MeVEC *l = v_get(terminator+1);
 
 	  for (int j=0;j<=terminator;j++)
 	    for (int jj=0;jj<dt->dim;jj++)
@@ -314,7 +314,7 @@ Real K(
 
 	  Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
 
-	  VEC *ld = v_get(terminator+1);
+	  MeVEC *ld = v_get(terminator+1);
 
 	  //printf("\n");
 	  for (int j=0;j<=terminator;j++){
@@ -359,9 +359,9 @@ Real K(
 
 Real G(
 
-	 MAT *p,
-	 MAT *x,
-	 MAT *u,
+	 MeMAT *p,
+	 MeMAT *x,
+	 MeMAT *u,
 	 Data *data,
 	 Real iota
 	
@@ -374,8 +374,8 @@ Real G(
   int S = data->S;
   Real k = data->k;
 
-  VEC *ht = v_get(x->m);
-  VEC *tt = v_get(x->m);
+  MeVEC *ht = v_get(x->m);
+  MeVEC *tt = v_get(x->m);
 
   int J; 
   int bigJ;
@@ -398,11 +398,11 @@ Real G(
       else
 	terminator = J;
 
-      VEC *xt = v_get(terminator+1);
+      MeVEC *xt = v_get(terminator+1);
       get_row(x,i,xt);      
-      VEC *ut = v_get(terminator+1);
+      MeVEC *ut = v_get(terminator+1);
       get_row(u,i,ut);      
-      VEC *pt = v_get(terminator+1);
+      MeVEC *pt = v_get(terminator+1);
       get_row(p,i,pt); 
 
       if (!SGNM)
@@ -412,8 +412,8 @@ Real G(
 	  pt = v_resize(pt,terminator+1);
 	}
       
-      VEC *v = v_get(terminator+1);
-      VEC *pv = v_get(terminator+1);
+      MeVEC *v = v_get(terminator+1);
+      MeVEC *pv = v_get(terminator+1);
 
       for (int j=0;j<=terminator;j++) 
 	{
@@ -425,14 +425,14 @@ Real G(
       if(lfi < data->n && data->t_id[lfi]==i) 
 	{
       
-	  VEC *dt = v_get(data->t_sz[lfi]);
+	  MeVEC *dt = v_get(data->t_sz[lfi]);
 
 	  for (int j=0;j<dt->dim;j++)
 	    dt->ve[j] = data->lf[lfi][j];
 
 	  Real bw = get_bw(dt);
 
-	  VEC *l = v_get(terminator+1);
+	  MeVEC *l = v_get(terminator+1);
 
 	  for (int j=0;j<=terminator;j++)
 	    for (int jj=0;jj<dt->dim;jj++)
@@ -440,7 +440,7 @@ Real G(
 
 	  Real al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
-	  VEC *ld = v_get(terminator+1);
+	  MeVEC *ld = v_get(terminator+1);
 
 	  for (int j=0;j<=terminator;j++) {
 	    ld->ve[j] = 2*(v->ve[j] - al*l->ve[j])*pv->ve[j];
@@ -501,9 +501,9 @@ Real G(
 
 /*Real G_ni_for_condition_number(
 
-	    MAT *p,
-	    MAT *x,
-	    MAT *u,
+	    MeMAT *p,
+	    MeMAT *x,
+	    MeMAT *u,
 	    Data *data,
 	    Real iota
 
@@ -515,21 +515,21 @@ Real G(
 
   int lfi=0;
 
-  VEC *ht = v_get(x->m);
-  VEC *tt = v_get(x->m);
+  MeVEC *ht = v_get(x->m);
+  MeVEC *tt = v_get(x->m);
 
   for (int i=S;i<x->m;i++)
     {
 
-      VEC *xt = v_get(x->n);
+      MeVEC *xt = v_get(x->n);
       get_row(x,i,xt);      
-      VEC *ut = v_get(x->n);
+      MeVEC *ut = v_get(x->n);
       get_row(u,i,ut);      
-      VEC *pt = v_get(x->n);
+      MeVEC *pt = v_get(x->n);
       get_row(p,i,pt); 
 
-      VEC *v = v_get(x->n);
-      VEC *pv = v_get(x->n);
+      MeVEC *v = v_get(x->n);
+      MeVEC *pv = v_get(x->n);
 
       for (int j=0;j<x->n;j++) 
 	{
@@ -540,7 +540,7 @@ Real G(
       if(data->t_id[lfi]==i) 
 	{
       
-	  VEC *l = v_get(xt->dim);
+	  MeVEC *l = v_get(xt->dim);
 	  for (int j=0;j<xt->dim;j++)
 	    l->ve[j] = ut->ve[j]; 
 
@@ -598,9 +598,9 @@ Real G(
 
 Real G_ni(
 
-	    MAT *p,
-	    MAT *x,
-	    MAT *u,
+	    MeMAT *p,
+	    MeMAT *x,
+	    MeMAT *u,
 	    Data *data,
 	    Real iota
 
@@ -613,8 +613,8 @@ Real G_ni(
 
   int lfi=0;
 
-  VEC *ht = v_get(x->m);
-  VEC *tt = v_get(x->m);
+  MeVEC *ht = v_get(x->m);
+  MeVEC *tt = v_get(x->m);
 
   int J; 
   int bigJ;
@@ -637,11 +637,11 @@ Real G_ni(
       else
 	terminator = J;
 
-      VEC *xt = v_get(terminator+1);
+      MeVEC *xt = v_get(terminator+1);
       get_row(x,i,xt);      
-      VEC *ut = v_get(terminator+1);
+      MeVEC *ut = v_get(terminator+1);
       get_row(u,i,ut);      
-      VEC *pt = v_get(terminator+1);
+      MeVEC *pt = v_get(terminator+1);
       get_row(p,i,pt); 
 
       if (!SGNM)
@@ -651,8 +651,8 @@ Real G_ni(
 	  pt = v_resize(pt,terminator+1);
 	}
       
-      VEC *v = v_get(terminator+1);
-      VEC *pv = v_get(terminator+1);
+      MeVEC *v = v_get(terminator+1);
+      MeVEC *pv = v_get(terminator+1);
       
       for (int j=0;j<=terminator;j++) 
 	{
@@ -663,14 +663,14 @@ Real G_ni(
       if(lfi < data->n && data->t_id[lfi]==i) 
 	{
       
-	  VEC *dt = v_get(data->t_sz[lfi]);
+	  MeVEC *dt = v_get(data->t_sz[lfi]);
 
 	  for (int j=0;j<dt->dim;j++)
 	    dt->ve[j] = data->lf[lfi][j];
 
 	  Real bw = get_bw(dt);
 
-	  VEC *l = v_get(terminator+1);
+	  MeVEC *l = v_get(terminator+1);
 
 	  for (int j=0;j<=terminator;j++)
 	    for (int jj=0;jj<dt->dim;jj++)
@@ -678,7 +678,7 @@ Real G_ni(
 
 	  Real al = 1e3*c(data->cat,k,k*(i - S)) / Q(xt,l);
 
-	  VEC *ld = v_get(terminator+1);
+	  MeVEC *ld = v_get(terminator+1);
 
 	  //printf("\n");
 	  for (int j=0;j<=terminator;j++)

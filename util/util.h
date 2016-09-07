@@ -5,10 +5,10 @@
 #include "../meschach/matrix.h"
 
 
-VEC *idxremove(
+MeVEC *idxremove(
 
-	       VEC *zn,
-	       VEC *z,
+	       MeVEC *zn,
+	       MeVEC *z,
 	       int idx
 
 	       );
@@ -16,13 +16,13 @@ VEC *idxremove(
 Real idxselect(
 
 		 Real omega,
-		 VEC *xn
+		 MeVEC *xn
 
 		 );
 
 Real get_bw(
 
-	      VEC *dt
+	      MeVEC *dt
 
 	      );
 #endif

@@ -1,13 +1,16 @@
 # General options
 OUTPUT_NAME := spade
+OBJ_NAME := spade.obj
 CC = cc
+CXX = g++
 LINKER_FLAGS = -lm -pthread
+INC = -I"/usr/local/admb/include" -I"/usr/local/admb/contrib/include"
+LIB = "/usr/local/admb/lib/libadmb-contrib.a"
 
 # Spade options
 SPADE_CFLAGS = -g -lm -pthread -std=c99
 SPADE_SOURCE_DIRS = initial machinery mathprop model optim util plotting
 SPADE_SOURCES = \
-	spade.c \
 	common.c \
 	parameters.c \
 	arg.c \
@@ -35,8 +38,10 @@ all: build
 
 # Generate executable
 build: clean $(OBJECTS)
-	$(CC) $(OBJECTS) $(LINKER_FLAGS) -o $(OUTPUT_NAME)
+	$(CXX) -c $(INC) -o $(OBJ_NAME) spade.cpp
+	$(CXX) $(OBJECTS) $(LINKER_FLAGS) $(OBJ_NAME) -o $(OUTPUT_NAME) $(LIB)
 	@echo "Build successful"
+
 
 # Generate object files
 $(SPADE_OBJECTS): %_SPADE.o: %.c

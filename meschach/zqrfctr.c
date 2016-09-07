@@ -61,13 +61,13 @@ static	char	rcsid[] = "$Id: zqrfctr.c,v 1.1 1994/01/13 04:21:22 des Exp $";
 /* zQRfactor -- forms the QR factorisation of A
 	-- factorisation stored in compact form as described above
 	(not quite standard format) */
-ZMAT	*zQRfactor(A,diag)
-ZMAT	*A;
-ZVEC	*diag;
+ZMeMAT	*zQRfactor(A,diag)
+ZMeMAT	*A;
+ZMeVEC	*diag;
 {
     unsigned int	k,limit;
     Real	beta;
-    STATIC	ZVEC	*tmp1=ZVNULL, *w=ZVNULL;
+    STATIC	ZMeVEC	*tmp1=ZVNULL, *w=ZVNULL;
     
     if ( ! A || ! diag )
 	error(E_NULL,"zQRfactor");
@@ -77,8 +77,8 @@ ZVEC	*diag;
     
     tmp1 = zv_resize(tmp1,A->m);
     w    = zv_resize(w,   A->n);
-    MEM_STAT_REG(tmp1,TYPE_ZVEC);
-    MEM_STAT_REG(w,   TYPE_ZVEC);
+    MEM_STAT_REG(tmp1,TYPE_ZMeVEC);
+    MEM_STAT_REG(w,   TYPE_ZMeVEC);
     
     for ( k=0; k<limit; k++ )
     {
@@ -101,16 +101,16 @@ ZVEC	*diag;
 /* zQRCPfactor -- forms the QR factorisation of A with column pivoting
    -- factorisation stored in compact form as described above
    ( not quite standard format )				*/
-ZMAT	*zQRCPfactor(A,diag,px)
-ZMAT	*A;
-ZVEC	*diag;
+ZMeMAT	*zQRCPfactor(A,diag,px)
+ZMeMAT	*A;
+ZMeVEC	*diag;
 PERM	*px;
 {
-    unsigned int	i, i_max, j, k, limit;
-    STATIC	ZVEC	*tmp1=ZVNULL, *tmp2=ZVNULL, *w=ZVNULL;
-    STATIC	VEC	*gamma=VNULL;
+    unsigned int	i, i_Memax, j, k, limit;
+    STATIC	ZMeVEC	*tmp1=ZVNULL, *tmp2=ZVNULL, *w=ZVNULL;
+    STATIC	MeVEC	*gamma=VNULL;
     Real 	beta;
-    Real	maxgamma, sum, tmp;
+    Real	Memaxgamma, sum, tmp;
     complex	ztmp;
     
     if ( ! A || ! diag || ! px )
@@ -123,10 +123,10 @@ PERM	*px;
     tmp2 = zv_resize(tmp2,A->m);
     gamma = v_resize(gamma,A->n);
     w    = zv_resize(w,A->n);
-    MEM_STAT_REG(tmp1,TYPE_ZVEC);
-    MEM_STAT_REG(tmp2,TYPE_ZVEC);
-    MEM_STAT_REG(gamma,TYPE_VEC);
-    MEM_STAT_REG(w,   TYPE_ZVEC);
+    MEM_STAT_REG(tmp1,TYPE_ZMeVEC);
+    MEM_STAT_REG(tmp2,TYPE_ZMeVEC);
+    MEM_STAT_REG(gamma,TYPE_MeVEC);
+    MEM_STAT_REG(w,   TYPE_ZMeVEC);
     
     /* initialise gamma and px */
     for ( j=0; j<A->n; j++ )
@@ -134,37 +134,37 @@ PERM	*px;
 	px->pe[j] = j;
 	sum = 0.0;
 	for ( i=0; i<A->m; i++ )
-	    sum += square(A->me[i][j].re) + square(A->me[i][j].im);
+	    sum += Mesquare(A->me[i][j].re) + Mesquare(A->me[i][j].im);
 	gamma->ve[j] = sum;
     }
     
     for ( k=0; k<limit; k++ )
     {
 	/* find "best" column to use */
-	i_max = k;	maxgamma = gamma->ve[k];
+	i_Memax = k;	Memaxgamma = gamma->ve[k];
 	for ( i=k+1; i<A->n; i++ )
-	    /* Loop invariant:maxgamma=gamma[i_max]
+	    /* Loop invariant:Memaxgamma=gamma[i_Memax]
 	       >=gamma[l];l=k,...,i-1 */
-	    if ( gamma->ve[i] > maxgamma )
-	    {	maxgamma = gamma->ve[i]; i_max = i;	}
+	    if ( gamma->ve[i] > Memaxgamma )
+	    {	Memaxgamma = gamma->ve[i]; i_Memax = i;	}
 	
 	/* swap columns if necessary */
-	if ( i_max != k )
+	if ( i_Memax != k )
 	{
 	    /* swap gamma values */
 	    tmp = gamma->ve[k];
-	    gamma->ve[k] = gamma->ve[i_max];
-	    gamma->ve[i_max] = tmp;
+	    gamma->ve[k] = gamma->ve[i_Memax];
+	    gamma->ve[i_Memax] = tmp;
 	    
 	    /* update column permutation */
-	    px_transp(px,k,i_max);
+	    px_transp(px,k,i_Memax);
 	    
 	    /* swap columns of A */
 	    for ( i=0; i<A->m; i++ )
 	    {
 		ztmp = A->me[i][k];
-		A->me[i][k] = A->me[i][i_max];
-		A->me[i][i_max] = ztmp;
+		A->me[i][k] = A->me[i][i_Memax];
+		A->me[i][i_Memax] = ztmp;
 	    }
 	}
 	
@@ -179,7 +179,7 @@ PERM	*px;
 	
 	/* update gamma values */
 	for ( j=k+1; j<A->n; j++ )
-	    gamma->ve[j] -= square(A->me[k][j].re)+square(A->me[k][j].im);
+	    gamma->ve[j] -= Mesquare(A->me[k][j].re)+Mesquare(A->me[k][j].im);
     }
 
 #ifdef	THREADSAFE
@@ -191,9 +191,9 @@ PERM	*px;
 /* zQsolve -- solves Qx = b, Q is an orthogonal matrix stored in compact
 	form a la QRfactor()
 	-- may be in-situ */
-ZVEC	*_zQsolve(QR,diag,b,x,tmp)
-ZMAT	*QR;
-ZVEC	*diag, *b, *x, *tmp;
+ZMeVEC	*_zQsolve(QR,diag,b,x,tmp)
+ZMeMAT	*QR;
+ZMeVEC	*diag, *b, *x, *tmp;
 {
     unsigned int	dynamic;
     int		k, limit;
@@ -231,11 +231,11 @@ ZVEC	*diag, *b, *x, *tmp;
 
 /* zmakeQ -- constructs orthogonal matrix from Householder vectors stored in
    compact QR form */
-ZMAT	*zmakeQ(QR,diag,Qout)
-ZMAT	*QR,*Qout;
-ZVEC	*diag;
+ZMeMAT	*zmakeQ(QR,diag,Qout)
+ZMeMAT	*QR,*Qout;
+ZMeVEC	*diag;
 {
-    STATIC	ZVEC	*tmp1=ZVNULL,*tmp2=ZVNULL;
+    STATIC	ZMeVEC	*tmp1=ZVNULL,*tmp2=ZVNULL;
     unsigned int	i, limit;
     Real	beta, r_ii, tmp_val;
     int	j;
@@ -249,8 +249,8 @@ ZVEC	*diag;
 
     tmp1 = zv_resize(tmp1,QR->m);	/* contains basis vec & columns of Q */
     tmp2 = zv_resize(tmp2,QR->m);	/* contains H/holder vectors */
-    MEM_STAT_REG(tmp1,TYPE_ZVEC);
-    MEM_STAT_REG(tmp2,TYPE_ZVEC);
+    MEM_STAT_REG(tmp1,TYPE_ZMeVEC);
+    MEM_STAT_REG(tmp2,TYPE_ZMeVEC);
 
     for ( i=0; i<QR->m ; i++ )
     {	/* get i-th column of Q */
@@ -284,8 +284,8 @@ ZVEC	*diag;
 
 /* zmakeR -- constructs upper triangular matrix from QR (compact form)
 	-- may be in-situ (all it does is zero the lower 1/2) */
-ZMAT	*zmakeR(QR,Rout)
-ZMAT	*QR,*Rout;
+ZMeMAT	*zmakeR(QR,Rout)
+ZMeMAT	*QR,*Rout;
 {
     unsigned int	i,j;
     
@@ -302,12 +302,12 @@ ZMAT	*QR,*Rout;
 
 /* zQRsolve -- solves the system Q.R.x=b where Q & R are stored in compact form
    -- returns x, which is created if necessary */
-ZVEC	*zQRsolve(QR,diag,b,x)
-ZMAT	*QR;
-ZVEC	*diag, *b, *x;
+ZMeVEC	*zQRsolve(QR,diag,b,x)
+ZMeMAT	*QR;
+ZMeVEC	*diag, *b, *x;
 {
     int	limit;
-    STATIC	ZVEC	*tmp = ZVNULL;
+    STATIC	ZMeVEC	*tmp = ZVNULL;
     
     if ( ! QR || ! diag || ! b )
 	error(E_NULL,"zQRsolve");
@@ -315,7 +315,7 @@ ZVEC	*diag, *b, *x;
     if ( diag->dim < limit || b->dim != QR->m )
 	error(E_SIZES,"zQRsolve");
     tmp = zv_resize(tmp,limit);
-    MEM_STAT_REG(tmp,TYPE_ZVEC);
+    MEM_STAT_REG(tmp,TYPE_ZMeVEC);
 
     x = zv_resize(x,QR->n);
     _zQsolve(QR,diag,b,x,tmp);
@@ -332,13 +332,13 @@ ZVEC	*diag, *b, *x;
 /* zQRAsolve -- solves the system (Q.R)*.x = b
 	-- Q & R are stored in compact form
 	-- returns x, which is created if necessary */
-ZVEC	*zQRAsolve(QR,diag,b,x)
-ZMAT	*QR;
-ZVEC	*diag, *b, *x;
+ZMeVEC	*zQRAsolve(QR,diag,b,x)
+ZMeMAT	*QR;
+ZMeVEC	*diag, *b, *x;
 {
     int		j, limit;
     Real	beta, r_ii, tmp_val;
-    STATIC	ZVEC	*tmp = ZVNULL;
+    STATIC	ZMeVEC	*tmp = ZVNULL;
     
     if ( ! QR || ! diag || ! b )
 	error(E_NULL,"zQRAsolve");
@@ -351,7 +351,7 @@ ZVEC	*diag, *b, *x;
     x = zv_resize(x,QR->m);
 
     tmp = zv_resize(tmp,x->dim);
-    MEM_STAT_REG(tmp,TYPE_ZVEC);
+    MEM_STAT_REG(tmp,TYPE_ZMeVEC);
     /*  printf("zQRAsolve: tmp->dim = %d, x->dim = %d\n", tmp->dim, x->dim); */
     
     /* apply H/h transforms in reverse order */
@@ -375,11 +375,11 @@ ZVEC	*diag, *b, *x;
 
 /* zQRCPsolve -- solves A.x = b where A is factored by QRCPfactor()
    -- assumes that A is in the compact factored form */
-ZVEC	*zQRCPsolve(QR,diag,pivot,b,x)
-ZMAT	*QR;
-ZVEC	*diag;
+ZMeVEC	*zQRCPsolve(QR,diag,pivot,b,x)
+ZMeMAT	*QR;
+ZMeVEC	*diag;
 PERM	*pivot;
-ZVEC	*b, *x;
+ZMeVEC	*b, *x;
 {
     if ( ! QR || ! diag || ! pivot || ! b )
 	error(E_NULL,"zQRCPsolve");
@@ -394,9 +394,9 @@ ZVEC	*b, *x;
 
 /* zUmlt -- compute out = upper_triang(U).x
 	-- may be in situ */
-ZVEC	*zUmlt(U,x,out)
-ZMAT	*U;
-ZVEC	*x, *out;
+ZMeVEC	*zUmlt(U,x,out)
+ZMeMAT	*U;
+ZMeVEC	*x, *out;
 {
     int		i, limit;
 
@@ -414,9 +414,9 @@ ZVEC	*x, *out;
 }
 
 /* zUAmlt -- returns out = upper_triang(U)^T.x */
-ZVEC	*zUAmlt(U,x,out)
-ZMAT	*U;
-ZVEC	*x, *out;
+ZMeVEC	*zUAmlt(U,x,out)
+ZMeMAT	*U;
+ZMeVEC	*x, *out;
 {
     /* complex	sum; */
     complex	tmp;
@@ -448,9 +448,9 @@ ZVEC	*x, *out;
 	-- note that QRcondest() is likely to be more reliable for
 		matrices factored using QRCPfactor() */
 double	zQRcondest(QR)
-ZMAT	*QR;
+ZMeMAT	*QR;
 {
-    STATIC	ZVEC	*y=ZVNULL;
+    STATIC	ZMeVEC	*y=ZVNULL;
     Real	norm, norm1, norm2, tmp1, tmp2;
     complex	sum, tmp;
     int		i, j, limit;
@@ -465,7 +465,7 @@ ZMAT	*QR;
 	    return HUGE_VAL;
 
     y = zv_resize(y,limit);
-    MEM_STAT_REG(y,TYPE_ZVEC);
+    MEM_STAT_REG(y,TYPE_ZMeVEC);
     /* use the trick for getting a unit vector y with ||R.y||_inf small
        from the LU condition estimator */
     for ( i = 0; i < limit; i++ )

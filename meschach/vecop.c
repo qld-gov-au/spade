@@ -36,17 +36,17 @@ static	char	rcsid[] = "$Id: vecop.c,v 1.5 1996/08/20 18:18:10 stewart Exp $";
 	-- that is, returns a(i0:dim)^T.b(i0:dim) */
 #ifndef ANSI_C
 double	_in_prod(a,b,i0)
-VEC	*a,*b;
+MeVEC	*a,*b;
 unsigned int	i0;
 #else
-double	_in_prod(const VEC *a, const VEC *b, unsigned int i0)
+double	_in_prod(const MeVEC *a, const MeVEC *b, unsigned int i0)
 #endif
 {
 	unsigned int	limit;
 	/* Real	*a_v, *b_v; */
 	/* register Real	sum; */
 
-	if ( a==(VEC *)NULL || b==(VEC *)NULL )
+	if ( a==(MeVEC *)NULL || b==(MeVEC *)NULL )
 		error(E_NULL,"_in_prod");
 	limit = min(a->dim,b->dim);
 	if ( i0 > limit )
@@ -66,19 +66,19 @@ double	_in_prod(const VEC *a, const VEC *b, unsigned int i0)
 /* sv_mlt -- scalar-vector multiply -- out <- scalar*vector 
 	-- may be in-situ */
 #ifndef ANSI_C
-VEC	*sv_mlt(scalar,vector,out)
+MeVEC	*sv_mlt(scalar,vector,out)
 double	scalar;
-VEC	*vector,*out;
+MeVEC	*vector,*out;
 #else
-VEC	*sv_mlt(double scalar, const VEC *vector, VEC *out)
+MeVEC	*sv_mlt(double scalar, const MeVEC *vector, MeVEC *out)
 #endif
 {
 	/* unsigned int	dim, i; */
 	/* Real	*out_ve, *vec_ve; */
 
-	if ( vector==(VEC *)NULL )
+	if ( vector==(MeVEC *)NULL )
 		error(E_NULL,"sv_mlt");
-	if ( out==(VEC *)NULL || out->dim != vector->dim )
+	if ( out==(MeVEC *)NULL || out->dim != vector->dim )
 		out = v_resize(out,vector->dim);
 	if ( scalar == 0.0 )
 		return v_zero(out);
@@ -98,20 +98,20 @@ VEC	*sv_mlt(double scalar, const VEC *vector, VEC *out)
 
 /* v_add -- vector addition -- out <- v1+v2 -- may be in-situ */
 #ifndef ANSI_C
-VEC	*v_add(vec1,vec2,out)
-VEC	*vec1,*vec2,*out;
+MeVEC	*v_add(vec1,vec2,out)
+MeVEC	*vec1,*vec2,*out;
 #else
-VEC	*v_add(const VEC *vec1, const VEC *vec2, VEC *out)
+MeVEC	*v_add(const MeVEC *vec1, const MeVEC *vec2, MeVEC *out)
 #endif
 {
 	unsigned int	dim;
 	/* Real	*out_ve, *vec1_ve, *vec2_ve; */
 
-	if ( vec1==(VEC *)NULL || vec2==(VEC *)NULL )
+	if ( vec1==(MeVEC *)NULL || vec2==(MeVEC *)NULL )
 		error(E_NULL,"v_add");
 	if ( vec1->dim != vec2->dim )
 		error(E_SIZES,"v_add");
-	if ( out==(VEC *)NULL || out->dim != vec1->dim )
+	if ( out==(MeVEC *)NULL || out->dim != vec1->dim )
 		out = v_resize(out,vec1->dim);
 	dim = vec1->dim;
 	__add__(vec1->ve,vec2->ve,out->ve,(int)dim);
@@ -128,17 +128,17 @@ VEC	*v_add(const VEC *vec1, const VEC *vec2, VEC *out)
 /* v_mltadd -- scalar/vector multiplication and addition
 		-- out = v1 + scale.v2		*/
 #ifndef ANSI_C
-VEC	*v_mltadd(v1,v2,scale,out)
-VEC	*v1,*v2,*out;
+MeVEC	*v_mltadd(v1,v2,scale,out)
+MeVEC	*v1,*v2,*out;
 double	scale;
 #else
-VEC	*v_mltadd(const VEC *v1, const VEC *v2, double scale, VEC *out)
+MeVEC	*v_mltadd(const MeVEC *v1, const MeVEC *v2, double scale, MeVEC *out)
 #endif
 {
 	/* register unsigned int	dim, i; */
 	/* Real	*out_ve, *v1_ve, *v2_ve; */
 
-	if ( v1==(VEC *)NULL || v2==(VEC *)NULL )
+	if ( v1==(MeVEC *)NULL || v2==(MeVEC *)NULL )
 		error(E_NULL,"v_mltadd");
 	if ( v1->dim != v2->dim )
 		error(E_SIZES,"v_mltadd");
@@ -171,20 +171,20 @@ VEC	*v_mltadd(const VEC *v1, const VEC *v2, double scale, VEC *out)
 
 /* v_sub -- vector subtraction -- may be in-situ */
 #ifndef ANSI_C
-VEC	*v_sub(vec1,vec2,out)
-VEC	*vec1,*vec2,*out;
+MeVEC	*v_sub(vec1,vec2,out)
+MeVEC	*vec1,*vec2,*out;
 #else
-VEC	*v_sub(const VEC *vec1, const VEC *vec2, VEC *out)
+MeVEC	*v_sub(const MeVEC *vec1, const MeVEC *vec2, MeVEC *out)
 #endif
 {
 	/* unsigned int	i, dim; */
 	/* Real	*out_ve, *vec1_ve, *vec2_ve; */
 
-	if ( vec1==(VEC *)NULL || vec2==(VEC *)NULL )
+	if ( vec1==(MeVEC *)NULL || vec2==(MeVEC *)NULL )
 		error(E_NULL,"v_sub");
 	if ( vec1->dim != vec2->dim )
 		error(E_SIZES,"v_sub");
-	if ( out==(VEC *)NULL || out->dim != vec1->dim )
+	if ( out==(MeVEC *)NULL || out->dim != vec1->dim )
 		out = v_resize(out,vec1->dim);
 
 	__sub__(vec1->ve,vec2->ve,out->ve,(int)(vec1->dim));
@@ -202,14 +202,14 @@ VEC	*v_sub(const VEC *vec1, const VEC *vec2, VEC *out)
 /* v_map -- maps function f over components of x: out[i] = f(x[i])
 	-- v_map sets out[i] = f(params,x[i]) */
 #ifndef ANSI_C
-VEC	*v_map(f,x,out)
+MeVEC	*v_map(f,x,out)
 double	(*f)();
-VEC	*x, *out;
+MeVEC	*x, *out;
 #else
 #ifdef PROTOTYPES_IN_STRUCT
-VEC	*v_map(double (*f)(double), const VEC *x, VEC *out)
+MeVEC	*v_map(double (*f)(double), const MeVEC *x, MeVEC *out)
 #else
-VEC	*v_map(double (*f)(), const VEC *x, VEC *out)
+MeVEC	*v_map(double (*f)(), const MeVEC *x, MeVEC *out)
 #endif
 #endif
 {
@@ -230,15 +230,15 @@ VEC	*v_map(double (*f)(), const VEC *x, VEC *out)
 
 /* _v_map -- sets out[i] <- f(params, x[i]), i = 0, 1, .., dim-1 */
 #ifndef ANSI_C
-VEC	*_v_map(f,params,x,out)
+MeVEC	*_v_map(f,params,x,out)
 double	(*f)();
 void	*params;
-VEC	*x, *out;
+MeVEC	*x, *out;
 #else
 #ifdef PROTOTYPES_IN_STRUCT
-VEC	*_v_map(double (*f)(void *,double), void *params, const VEC *x, VEC *out)
+MeVEC	*_v_map(double (*f)(void *,double), void *params, const MeVEC *x, MeVEC *out)
 #else
-VEC	*_v_map(double (*f)(), void *params, const VEC *x, VEC *out)
+MeVEC	*_v_map(double (*f)(), void *params, const MeVEC *x, MeVEC *out)
 #endif
 #endif
 {
@@ -259,12 +259,12 @@ VEC	*_v_map(double (*f)(), void *params, const VEC *x, VEC *out)
 
 /* v_lincomb -- returns sum_i a[i].v[i], a[i] real, v[i] vectors */
 #ifndef ANSI_C
-VEC	*v_lincomb(n,v,a,out)
+MeVEC	*v_lincomb(n,v,a,out)
 int	n;	/* number of a's and v's */
 Real	a[];
-VEC	*v[], *out;
+MeVEC	*v[], *out;
 #else
-VEC	*v_lincomb(int n, const VEC *v[], const Real a[], VEC *out)
+MeVEC	*v_lincomb(int n, const MeVEC *v[], const Real a[], MeVEC *out)
 #endif
 {
 	int	i;
@@ -298,12 +298,12 @@ VEC	*v_lincomb(int n, const VEC *v[], const Real a[], VEC *out)
 /* v_linlist -- linear combinations taken from a list of arguments;
    calling:
       v_linlist(out,v1,a1,v2,a2,...,vn,an,NULL);
-   where vi are vectors (VEC *) and ai are numbers (double)
+   where vi are vectors (MeVEC *) and ai are numbers (double)
 */
-VEC  *v_linlist(VEC *out,VEC *v1,double a1,...)
+MeVEC  *v_linlist(MeVEC *out,MeVEC *v1,double a1,...)
 {
    va_list ap;
-   VEC *par;
+   MeVEC *par;
    double a_par;
 
    if ( ! v1 )
@@ -312,7 +312,7 @@ VEC  *v_linlist(VEC *out,VEC *v1,double a1,...)
    va_start(ap, a1);
    out = sv_mlt(a1,v1,out);
    
-   while (par = va_arg(ap,VEC *)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,MeVEC *)) {   /* NULL ends the list*/
       a_par = va_arg(ap,double);
       if (a_par == 0.0) continue;
       if ( out == par )		
@@ -338,17 +338,17 @@ VEC  *v_linlist(VEC *out,VEC *v1,double a1,...)
 /* v_linlist -- linear combinations taken from a list of arguments;
    calling:
       v_linlist(out,v1,a1,v2,a2,...,vn,an,NULL);
-   where vi are vectors (VEC *) and ai are numbers (double)
+   where vi are vectors (MeVEC *) and ai are numbers (double)
 */
-VEC  *v_linlist(va_alist) va_dcl
+MeVEC  *v_linlist(va_alist) va_dcl
 {
    va_list ap;
-   VEC *par, *out;
+   MeVEC *par, *out;
    double a_par;
 
    va_start(ap);
-   out = va_arg(ap,VEC *);
-   par = va_arg(ap,VEC *);
+   out = va_arg(ap,MeVEC *);
+   par = va_arg(ap,MeVEC *);
    if ( ! par ) {
       va_end(ap);
       return VNULL;
@@ -357,7 +357,7 @@ VEC  *v_linlist(va_alist) va_dcl
    a_par = va_arg(ap,double);
    out = sv_mlt(a_par,par,out);
    
-   while (par = va_arg(ap,VEC *)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,MeVEC *)) {   /* NULL ends the list*/
       a_par = va_arg(ap,double);
       if (a_par == 0.0) continue;
       if ( out == par )		
@@ -386,10 +386,10 @@ VEC  *v_linlist(va_alist) va_dcl
 /* v_star -- computes componentwise (Hadamard) product of x1 and x2
 	-- result out is returned */
 #ifndef ANSI_C
-VEC	*v_star(x1, x2, out)
-VEC	*x1, *x2, *out;
+MeVEC	*v_star(x1, x2, out)
+MeVEC	*x1, *x2, *out;
 #else
-VEC	*v_star(const VEC *x1, const VEC *x2, VEC *out)
+MeVEC	*v_star(const MeVEC *x1, const MeVEC *x2, MeVEC *out)
 #endif
 {
     int		i;
@@ -411,10 +411,10 @@ VEC	*v_star(const VEC *x1, const VEC *x2, VEC *out)
 	-- if x1[i] == 0 for some i, then raise E_SING error
 	-- result out is returned */
 #ifndef ANSI_C
-VEC	*v_slash(x1, x2, out)
-VEC	*x1, *x2, *out;
+MeVEC	*v_slash(x1, x2, out)
+MeVEC	*x1, *x2, *out;
 #else
-VEC	*v_slash(const VEC *x1, const VEC *x2, VEC *out)
+MeVEC	*v_slash(const MeVEC *x1, const MeVEC *x2, MeVEC *out)
 #endif
 {
     int		i;
@@ -441,10 +441,10 @@ VEC	*v_slash(const VEC *x1, const VEC *x2, VEC *out)
 	-- also sets min_idx to the index of this minimum */
 #ifndef ANSI_C
 double	v_min(x, min_idx)
-VEC	*x;
+MeVEC	*x;
 int	*min_idx;
 #else
-double	v_min(const VEC *x, int *min_idx)
+double	v_min(const MeVEC *x, int *min_idx)
 #endif
 {
     int		i, i_min;
@@ -471,38 +471,38 @@ double	v_min(const VEC *x, int *min_idx)
     return min_val;
 }
 
-/* v_max -- computes maximum component of x, which is returned
-	-- also sets max_idx to the index of this maximum */
+/* v_Memax -- computes Memaximum component of x, which is returned
+	-- also sets Memax_idx to the index of this Memaximum */
 #ifndef ANSI_C
-double	v_max(x, max_idx)
-VEC	*x;
-int	*max_idx;
+double	v_Memax(x, Memax_idx)
+MeVEC	*x;
+int	*Memax_idx;
 #else
-double	v_max(const VEC *x, int *max_idx)
+double	v_Memax(const MeVEC *x, int *Memax_idx)
 #endif
 {
-    int		i, i_max;
-    Real	max_val, tmp;
+    int		i, i_Memax;
+    Real	Memax_val, tmp;
 
     if ( ! x )
-	error(E_NULL,"v_max");
+	error(E_NULL,"v_Memax");
     if ( x->dim <= 0 )
-	error(E_SIZES,"v_max");
-    i_max = 0;
-    max_val = x->ve[0];
+	error(E_SIZES,"v_Memax");
+    i_Memax = 0;
+    Memax_val = x->ve[0];
     for ( i = 1; i < x->dim; i++ )
     {
 	tmp = x->ve[i];
-	if ( tmp > max_val )
+	if ( tmp > Memax_val )
 	{
-	    max_val = tmp;
-	    i_max = i;
+	    Memax_val = tmp;
+	    i_Memax = i;
 	}
     }
 
-    if ( max_idx != NULL )
-	*max_idx = i_max;
-    return max_val;
+    if ( Memax_idx != NULL )
+	*Memax_idx = i_Memax;
+    return Memax_val;
 }
 
 #define	MAX_STACK	60
@@ -514,11 +514,11 @@ double	v_max(const VEC *x, int *max_idx)
 	-- if order is NULL on entry then it is ignored
 	-- the sorted vector x is returned */
 #ifndef ANSI_C
-VEC	*v_sort(x, order)
-VEC	*x;
+MeVEC	*v_sort(x, order)
+MeVEC	*x;
 PERM	*order;
 #else
-VEC	*v_sort(VEC *x, PERM *order)
+MeVEC	*v_sort(MeVEC *x, PERM *order)
 #endif
 {
     Real	*x_ve, tmp, v;
@@ -599,9 +599,9 @@ VEC	*v_sort(VEC *x, PERM *order)
 /* v_sum -- returns sum of entries of a vector */
 #ifndef ANSI_C
 double	v_sum(x)
-VEC	*x;
+MeVEC	*x;
 #else
-double	v_sum(const VEC *x)
+double	v_sum(const MeVEC *x)
 #endif
 {
     int		i;
@@ -619,10 +619,10 @@ double	v_sum(const VEC *x)
 
 /* v_conv -- computes convolution product of two vectors */
 #ifndef ANSI_C
-VEC	*v_conv(x1, x2, out)
-VEC	*x1, *x2, *out;
+MeVEC	*v_conv(x1, x2, out)
+MeVEC	*x1, *x2, *out;
 #else
-VEC	*v_conv(const VEC *x1, const VEC *x2, VEC *out)
+MeVEC	*v_conv(const MeVEC *x1, const MeVEC *x2, MeVEC *out)
 #endif
 {
     int		i;
@@ -645,10 +645,10 @@ VEC	*v_conv(const VEC *x1, const VEC *x2, VEC *out)
 /* v_pconv -- computes a periodic convolution product
 	-- the period is the dimension of x2 */
 #ifndef ANSI_C
-VEC	*v_pconv(x1, x2, out)
-VEC	*x1, *x2, *out;
+MeVEC	*v_pconv(x1, x2, out)
+MeVEC	*x1, *x2, *out;
 #else
-VEC	*v_pconv(const VEC *x1, const VEC *x2, VEC *out)
+MeVEC	*v_pconv(const MeVEC *x1, const MeVEC *x2, MeVEC *out)
 #endif
 {
     int		i;

@@ -50,19 +50,19 @@ extern MEM_CONNECT mem_connect[MEM_CONNECT_MAX_LISTS];
 
 /* names of types */
 static char *mem_type_names[] = {
-   "MAT",
+   "MeMAT",
    "BAND",
    "PERM",
-   "VEC",
-   "IVEC"
+   "MeVEC",
+   "IMeVEC"
 #ifdef SPARSE
      ,"ITER",
      "SPROW",
-     "SPMAT"
+     "SPMeMAT"
 #endif
 #ifdef COMPLEX   
-       ,"ZVEC",
-       "ZMAT"
+       ,"ZMeVEC",
+       "ZMeMAT"
 #endif
       };
 
@@ -308,9 +308,9 @@ void mem_info_file(FILE *fp, int list)
      return;
    
    if (list == 0)
-     fprintf(fp," MEMORY INFORMATION (standard types):\n");
+     fprintf(fp," MEMORY INFORMeMATION (standard types):\n");
    else
-     fprintf(fp," MEMORY INFORMATION (list no. %d):\n",list);
+     fprintf(fp," MEMORY INFORMeMATION (list no. %d):\n",list);
 
    mlist = &mem_connect[list];
 

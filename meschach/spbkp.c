@@ -77,10 +77,10 @@ int	unord_get_idx(SPROW *r, int j)
 	-- same assumptions as unord_get_idx() */
 #ifndef ANSI_C
 double	unord_get_val(A,i,j)
-SPMAT	*A;
+SPMeMAT	*A;
 int	i, j;
 #else
-double	unord_get_val(SPMAT *A, int i, int j)
+double	unord_get_val(SPMeMAT *A, int i, int j)
 #endif
 {
     SPROW	*r;
@@ -103,11 +103,11 @@ double	unord_get_val(SPMAT *A, int i, int j)
 /* bkp_swap_elt -- swaps the (i,j) with the (k,l) entry of sparse matrix
 	-- either or both of the entries may be unallocated */
 #ifndef ANSI_C
-static SPMAT	*bkp_swap_elt(A,i1,j1,idx1,i2,j2,idx2)
-SPMAT	*A;
+static SPMeMAT	*bkp_swap_elt(A,i1,j1,idx1,i2,j2,idx2)
+SPMeMAT	*A;
 int	i1, j1, idx1, i2, j2, idx2;
 #else
-static SPMAT	*bkp_swap_elt(SPMAT *A, int i1, int j1, 
+static SPMeMAT	*bkp_swap_elt(SPMeMAT *A, int i1, int j1, 
 			      int idx1, int i2, int j2, int idx2)
 #endif
 {
@@ -136,8 +136,8 @@ static SPMAT	*bkp_swap_elt(SPMAT *A, int i1, int j1,
     if ( idx1 < 0 )	/* assume not allocated */
     {
 	idx1 = r1->len;
-	if ( idx1 >= r1->maxlen )
-	{    tracecatch(sprow_xpd(r1,2*r1->maxlen+1,TYPE_SPMAT),
+	if ( idx1 >= r1->Memaxlen )
+	{    tracecatch(sprow_xpd(r1,2*r1->Memaxlen+1,TYPE_SPMeMAT),
 			"bkp_swap_elt");	}
 	r1->len = idx1+1;
 	r1->elt[idx1].col = j1;
@@ -169,8 +169,8 @@ static SPMAT	*bkp_swap_elt(SPMAT *A, int i1, int j1,
     if ( idx2 < 0 )
     {
 	idx2 = r2->len;
-	if ( idx2 >= r2->maxlen )
-	{    tracecatch(sprow_xpd(r2,2*r2->maxlen+1,TYPE_SPMAT),
+	if ( idx2 >= r2->Memaxlen )
+	{    tracecatch(sprow_xpd(r2,2*r2->Memaxlen+1,TYPE_SPMeMAT),
 			"bkp_swap_elt");	}
 
 	r2->len = idx2+1;
@@ -212,10 +212,10 @@ static SPMAT	*bkp_swap_elt(SPMAT *A, int i1, int j1,
 /* bkp_bump_col -- bumps row and idx to next entry in column j */
 #ifndef ANSI_C
 row_elt	*bkp_bump_col(A, j, row, idx)
-SPMAT	*A;
+SPMeMAT	*A;
 int	j, *row, *idx;
 #else
-row_elt	*bkp_bump_col(SPMAT *A, int j, int *row, int *idx)
+row_elt	*bkp_bump_col(SPMeMAT *A, int j, int *row, int *idx)
 #endif
 {
     SPROW	*r;
@@ -244,18 +244,18 @@ row_elt	*bkp_bump_col(SPMAT *A, int j, int *row, int *idx)
 /* bkp_interchange -- swap rows/cols i and j (symmetric pivot)
 	-- uses just the upper triangular part */
 #ifndef ANSI_C
-SPMAT	*bkp_interchange(A, i1, i2)
-SPMAT	*A;
+SPMeMAT	*bkp_interchange(A, i1, i2)
+SPMeMAT	*A;
 int	i1, i2;
 #else
-SPMAT	*bkp_interchange(SPMAT *A, int i1, int i2)
+SPMeMAT	*bkp_interchange(SPMeMAT *A, int i1, int i2)
 #endif
 {
     int		tmp_row, tmp_idx;
     int		row1, row2, idx1, idx2, tmp_row1, tmp_idx1, tmp_row2, tmp_idx2;
     SPROW	*r1, *r2;
     row_elt	*e1, *e2;
-    IVEC	*done_list = IVNULL;
+    IMeVEC	*done_list = IVNULL;
 
     if ( ! A )
 	error(E_NULL,"bkp_interchange");
@@ -431,10 +431,10 @@ SPMAT	*bkp_interchange(SPMAT *A, int i1, int i2)
    -- sets index to the position in iv if index != NULL */
 #ifndef ANSI_C
 int	iv_min(iv,index)
-IVEC	*iv;
+IMeVEC	*iv;
 int	*index;
 #else
-int	iv_min(IVEC *iv, int *index)
+int	iv_min(IMeVEC *iv, int *index)
 #endif
 {
     int		i, i_min, min_val, tmp;
@@ -461,27 +461,27 @@ int	iv_min(IVEC *iv, int *index)
     return min_val;
 }
 
-/* max_row_col -- returns max { |A[j][k]| : k >= i, k != j, k != l } given j
+/* Memax_row_col -- returns Memax { |A[j][k]| : k >= i, k != j, k != l } given j
 	using symmetry and only the upper triangular part of A */
 #ifndef ANSI_C
-static double max_row_col(A,i,j,l)
-SPMAT	*A;
+static double Memax_row_col(A,i,j,l)
+SPMeMAT	*A;
 int	i, j, l;
 #else
-static double max_row_col(SPMAT *A, int i,int j, int l)
+static double Memax_row_col(SPMeMAT *A, int i,int j, int l)
 #endif
 {
     int		row_num, idx;
     SPROW	*r;
     row_elt	*e;
-    Real	max_val, tmp;
+    Real	Memax_val, tmp;
 
     if ( ! A )
-	error(E_NULL,"max_row_col");
+	error(E_NULL,"Memax_row_col");
     if ( i < 0 || i > A->n || j < 0 || j >= A->n )
-	error(E_BOUNDS,"max_row_col");
+	error(E_BOUNDS,"Memax_row_col");
 
-    max_val = 0.0;
+    Memax_val = 0.0;
 
     idx = unord_get_idx(&(A->row[i]),j);
     if ( idx < 0 )
@@ -499,8 +499,8 @@ static double max_row_col(SPMAT *A, int i,int j, int l)
 	if ( row_num != l )
 	{
 	    tmp = fabs(e->val);
-	    if ( tmp > max_val )
-		max_val = tmp;
+	    if ( tmp > Memax_val )
+		Memax_val = tmp;
 	}
 	e = bump_col(A,j,&row_num,&idx);
     }
@@ -510,20 +510,20 @@ static double max_row_col(SPMAT *A, int i,int j, int l)
 	if ( e->col > j && e->col != l )
 	{
 	    tmp = fabs(e->val);
-	    if ( tmp > max_val )
-		max_val = tmp;
+	    if ( tmp > Memax_val )
+		Memax_val = tmp;
 	}
     }
 
-    return max_val;
+    return Memax_val;
 }
 
 /* nonzeros -- counts non-zeros in A */
 #ifndef ANSI_C
 static int	nonzeros(A)
-SPMAT	*A;
+SPMeMAT	*A;
 #else
-static int	nonzeros(const SPMAT *A)
+static int	nonzeros(const SPMeMAT *A)
 #endif
 {
     int		cnt, i;
@@ -541,9 +541,9 @@ static int	nonzeros(const SPMAT *A)
 	-- checks that column access path is OK */
 #ifndef ANSI_C
 int	chk_col_access(A)
-SPMAT	*A;
+SPMeMAT	*A;
 #else
-int	chk_col_access(const SPMAT *A)
+int	chk_col_access(const SPMeMAT *A)
 #endif
 {
     int		cnt_nz, j, row, idx;
@@ -598,12 +598,12 @@ static int	col_cmp(const row_elt *e1, const row_elt *e2)
    diagonal with blocks of size 1 or 2
    -- P is stored in pivot; blocks[i]==i iff D[i][i] is a block */
 #ifndef ANSI_C
-SPMAT	*spBKPfactor(A,pivot,blocks,tol)
-SPMAT	*A;
+SPMeMAT	*spBKPfactor(A,pivot,blocks,tol)
+SPMeMAT	*A;
 PERM	*pivot, *blocks;
 double	tol;
 #else
-SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
+SPMeMAT	*spBKPfactor(SPMeMAT *A, PERM *pivot, PERM *blocks, double tol)
 #endif
 {
     int		i, j, k, l, n, onebyone, r;
@@ -615,11 +615,11 @@ SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
     SPROW	*row, *r_piv, *r1_piv;
     row_elt	*e, *e1;
     Real	aii, aip1, aip1i;
-    Real	det, max_j, max_l, s, t;
-    STATIC IVEC	*scan_row = IVNULL, *scan_idx = IVNULL, *col_list = IVNULL,
+    Real	det, Memax_j, Memax_l, s, t;
+    STATIC IMeVEC	*scan_row = IVNULL, *scan_idx = IVNULL, *col_list = IVNULL,
 		*tmp_iv = IVNULL;
-    STATIC IVEC *deg_list = IVNULL;
-    STATIC IVEC	*orig_idx = IVNULL, *orig1_idx = IVNULL;
+    STATIC IMeVEC *deg_list = IVNULL;
+    STATIC IMeVEC	*orig_idx = IVNULL, *orig1_idx = IVNULL;
     STATIC PERM	*order = PNULL;
 
     if ( ! A || ! pivot || ! blocks )
@@ -641,7 +641,7 @@ SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
     if ( order != NULL )
       px_ident(order);
     order = px_resize(order,n);
-    MEM_STAT_REG(deg_list,TYPE_IVEC);
+    MEM_STAT_REG(deg_list,TYPE_IMeVEC);
     MEM_STAT_REG(order,TYPE_PERM);
 
     scan_row = iv_resize(scan_row,5);
@@ -650,12 +650,12 @@ SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
     orig_idx = iv_resize(orig_idx,5);
     orig_idx = iv_resize(orig1_idx,5);
     orig_idx = iv_resize(tmp_iv,5);
-    MEM_STAT_REG(scan_row,TYPE_IVEC);
-    MEM_STAT_REG(scan_idx,TYPE_IVEC);
-    MEM_STAT_REG(col_list,TYPE_IVEC);
-    MEM_STAT_REG(orig_idx,TYPE_IVEC);
-    MEM_STAT_REG(orig1_idx,TYPE_IVEC);
-    MEM_STAT_REG(tmp_iv,TYPE_IVEC);
+    MEM_STAT_REG(scan_row,TYPE_IMeVEC);
+    MEM_STAT_REG(scan_idx,TYPE_IMeVEC);
+    MEM_STAT_REG(col_list,TYPE_IMeVEC);
+    MEM_STAT_REG(orig_idx,TYPE_IMeVEC);
+    MEM_STAT_REG(orig1_idx,TYPE_IMeVEC);
+    MEM_STAT_REG(tmp_iv,TYPE_IMeVEC);
 
     for ( i = 0; i < n-1; i = onebyone ? i+1 : i+2 )
     {
@@ -718,7 +718,7 @@ SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
 		if ( j < i )
 		    continue;
 		/* can we use row/col j for a 1 x 1 pivot? */
-		/* find max_j = max_{k>=i} {|A[k][j]|,|A[j][k]|} */
+		/* find Memax_j = Memax_{k>=i} {|A[k][j]|,|A[j][k]|} */
 		ajj = fabs(unord_get_val(A,j,j));
 		if ( ajj == 0.0 )
 		{
@@ -726,8 +726,8 @@ SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
 		    continue;	/* can't use this for 1 x 1 pivot */
 		}
 
-		max_j = max_row_col(A,i,j,-1);
-		if ( ajj >= tol/* *alpha */ *max_j )
+		Memax_j = Memax_row_col(A,i,j,-1);
+		if ( ajj >= tol/* *alpha */ *Memax_j )
 		{
 		    onebyone = TRUE;
 		    best_j = j;
@@ -760,10 +760,10 @@ SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
 		    det = fabs(ajj*all - ajl*ajl);
 		    if ( det == 0.0 )
 			continue;
-		    max_j = max_row_col(A,i,j,l);
-		    max_l = max_row_col(A,i,l,j);
-		    if ( tol*(all*max_j+ajl*max_l) < det &&
-			 tol*(ajl*max_j+ajj*max_l) < det )
+		    Memax_j = Memax_row_col(A,i,j,l);
+		    Memax_l = Memax_row_col(A,i,l,j);
+		    if ( tol*(all*Memax_j+ajl*Memax_l) < det &&
+			 tol*(ajl*Memax_j+ajj*Memax_l) < det )
 		    {
 			/* acceptably stable 2 x 2 pivot */
 			/* this is actually an overestimate of the
@@ -939,8 +939,8 @@ SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
 			idx = row->len;
 
 			/* sprow_set_val(row,k,-t*e_ik->val); */
-			if ( row->len >= row->maxlen )
-			{ tracecatch(sprow_xpd(row,2*row->maxlen+1,TYPE_SPMAT),
+			if ( row->len >= row->Memaxlen )
+			{ tracecatch(sprow_xpd(row,2*row->Memaxlen+1,TYPE_SPMeMAT),
 				     "spBKPfactor");		}
 
 			row->len = idx+1;
@@ -1151,9 +1151,9 @@ SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
 			    old_idx = scan_idx->ive[s_idx2];
 
 			    idx = row->len;
-			    if ( row->len >= row->maxlen )
-			    {  tracecatch(sprow_xpd(row,2*row->maxlen+1,
-						    TYPE_SPMAT),
+			    if ( row->len >= row->Memaxlen )
+			    {  tracecatch(sprow_xpd(row,2*row->Memaxlen+1,
+						    TYPE_SPMeMAT),
 					   "spBKPfactor");	    }
 
 			    row->len = idx + 1;
@@ -1199,9 +1199,9 @@ SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
 		    }
 		    /* sprow_set_val(r_piv,j,s); */
 		    idx = r_piv->len;
-		    if ( r_piv->len >= r_piv->maxlen )
-		    {	tracecatch(sprow_xpd(r_piv,2*r_piv->maxlen+1,
-					     TYPE_SPMAT),
+		    if ( r_piv->len >= r_piv->Memaxlen )
+		    {	tracecatch(sprow_xpd(r_piv,2*r_piv->Memaxlen+1,
+					     TYPE_SPMeMAT),
 				   "spBKPfactor");		    }
 
 		    r_piv->len = idx + 1;
@@ -1246,9 +1246,9 @@ SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
 			       "spBKPfactor");
 		    /* sprow_set_val(r1_piv,j,t); */
 		    idx1 = r1_piv->len;
-		    if ( r1_piv->len >= r1_piv->maxlen )
-		    {	tracecatch(sprow_xpd(r1_piv,2*r1_piv->maxlen+1,
-					     TYPE_SPMAT),
+		    if ( r1_piv->len >= r1_piv->Memaxlen )
+		    {	tracecatch(sprow_xpd(r1_piv,2*r1_piv->Memaxlen+1,
+					     TYPE_SPMeMAT),
 				   "spBKPfactor");		    }
 
 		    r1_piv->len = idx1 + 1;
@@ -1300,16 +1300,16 @@ SPMAT	*spBKPfactor(SPMAT *A, PERM *pivot, PERM *blocks, double tol)
 /* spBKPsolve -- solves A.x = b where A has been factored a la BKPfactor()
    -- returns x, which is created if NULL */
 #ifndef ANSI_C
-VEC	*spBKPsolve(A,pivot,block,b,x)
-SPMAT	*A;
+MeVEC	*spBKPsolve(A,pivot,block,b,x)
+SPMeMAT	*A;
 PERM	*pivot, *block;
-VEC	*b, *x;
+MeVEC	*b, *x;
 #else
-VEC	*spBKPsolve(SPMAT *A, PERM *pivot, PERM *block,
-		    const VEC *b, VEC *x)
+MeVEC	*spBKPsolve(SPMeMAT *A, PERM *pivot, PERM *block,
+		    const MeVEC *b, MeVEC *x)
 #endif
 {
-    STATIC VEC	*tmp=VNULL;	/* dummy storage needed */
+    STATIC MeVEC	*tmp=VNULL;	/* dummy storage needed */
     int		i /* , j */, n, onebyone;
     int		row_num, idx;
     Real	a11, a12, a22, b1, b2, det, sum, *tmp_ve, tmp_diag;
@@ -1325,7 +1325,7 @@ VEC	*spBKPsolve(SPMAT *A, PERM *pivot, PERM *block,
 	error(E_SIZES,"spBKPsolve");
     x = v_resize(x,n);
     tmp = v_resize(tmp,n);
-    MEM_STAT_REG(tmp,TYPE_VEC);
+    MEM_STAT_REG(tmp,TYPE_MeVEC);
     
     tmp_ve = tmp->ve;
 

@@ -4,11 +4,11 @@
 #include "../meschach/matrix.h"
 #include "../parameters.h"
 
-VEC *VMGMM(
+MeVEC *VMGMM(
 
-		  VEC *,
+		  MeVEC *,
 		  Data *,
-		  VEC *,
+		  MeVEC *,
 		  Real *,
       Parameters * parameters
 

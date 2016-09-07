@@ -45,15 +45,15 @@ static char rcsid[] = "$Id: zschur.c,v 1.4 1995/04/07 16:28:58 des Exp $";
 /* zschur -- computes the Schur decomposition of the matrix A in situ
 	-- optionally, gives Q matrix such that Q^*.A.Q is upper triangular
 	-- returns upper triangular Schur matrix */
-ZMAT	*zschur(A,Q)
-ZMAT	*A, *Q;
+ZMeMAT	*zschur(A,Q)
+ZMeMAT	*A, *Q;
 {
-    int		i, j, iter, k, k_min, k_max, k_tmp, n, split;
+    int		i, j, iter, k, k_min, k_Memax, k_tmp, n, split;
     Real	c;
     complex	det, discrim, lambda, lambda0, lambda1, s, sum, ztmp;
     complex	x, y;	/* for chasing algorithm */
     complex	**A_me;
-    STATIC	ZVEC	*diag=ZVNULL;
+    STATIC	ZMeVEC	*diag=ZVNULL;
     
     if ( ! A )
 	error(E_NULL,"zschur");
@@ -63,7 +63,7 @@ ZMAT	*A, *Q;
 	error(E_SIZES,"zschur");
     n = A->n;
     diag = zv_resize(diag,A->n);
-    MEM_STAT_REG(diag,TYPE_ZVEC);
+    MEM_STAT_REG(diag,TYPE_ZMeVEC);
     /* compute Hessenberg form */
     zHfactor(A,diag);
     
@@ -74,16 +74,16 @@ ZMAT	*A, *Q;
 
     while ( k_min < n )
     {
-	/* find k_max to suit:
-	   submatrix k_min..k_max should be irreducible */
-	k_max = n-1;
-	for ( k = k_min; k < k_max; k++ )
+	/* find k_Memax to suit:
+	   submatrix k_min..k_Memax should be irreducible */
+	k_Memax = n-1;
+	for ( k = k_min; k < k_Memax; k++ )
 	    if ( is_zero(A_me[k+1][k]) )
-	    {	k_max = k;	break;	}
+	    {	k_Memax = k;	break;	}
 
-	if ( k_max <= k_min )
+	if ( k_Memax <= k_min )
 	{
-	    k_min = k_max + 1;
+	    k_min = k_Memax + 1;
 	    continue;		/* outer loop */
 	}
 
@@ -97,12 +97,12 @@ ZMAT	*A, *Q;
 	    
 	    /* set up Wilkinson/Francis complex shift */
 	    /* use the smallest eigenvalue of the bottom 2 x 2 submatrix */
-	    k_tmp = k_max - 1;
+	    k_tmp = k_Memax - 1;
 
 	    a00 = A_me[k_tmp][k_tmp];
-	    a01 = A_me[k_tmp][k_max];
-	    a10 = A_me[k_max][k_tmp];
-	    a11 = A_me[k_max][k_max];
+	    a01 = A_me[k_tmp][k_Memax];
+	    a10 = A_me[k_Memax][k_tmp];
+	    a11 = A_me[k_Memax][k_Memax];
 	    ztmp.re = 0.5*(a00.re - a11.re);
 	    ztmp.im = 0.5*(a00.im - a11.im);
 	    discrim = zsqrt(zadd(zmlt(ztmp,ztmp),zmlt(a01,a10)));
@@ -135,7 +135,7 @@ ZMAT	*A, *Q;
 	    y = A->me[k_min+1][k_min];
 
 	    /* use Givens' rotations to "chase" off-Hessenberg entry */
-	    for ( k = k_min; k <= k_max-1; k++ )
+	    for ( k = k_min; k <= k_Memax-1; k++ )
 	    {
 		zgivens(x,y,&c,&s);
 		zrot_cols(A,k,k+1,c,s,A);
@@ -149,20 +149,20 @@ ZMAT	*A, *Q;
 
 		/* get next entry to chase along sub-diagonal */
 		x = A->me[k+1][k];
-		if ( k <= k_max - 2 )
+		if ( k <= k_Memax - 2 )
 		    y = A->me[k+2][k];
 		else
 		    y.re = y.im = 0.0;
 	    }
 
-	    for ( k = k_min; k <= k_max-2; k++ )
+	    for ( k = k_min; k <= k_Memax-2; k++ )
 	    {
 		/* zero appropriate sub-diagonals */
 		A->me[k+2][k].re = A->me[k+2][k].im = 0.0;
 	    }
 
 	    /* test to see if matrix should split */
-	    for ( k = k_min; k < k_max; k++ )
+	    for ( k = k_min; k < k_Memax; k++ )
 		if ( zabs(A_me[k+1][k]) < MACHEPS*
 		    (zabs(A_me[k][k])+zabs(A_me[k+1][k+1])) )
 		{
@@ -200,8 +200,8 @@ ZMAT	*A, *Q;
 	-- X_re is the real part of the matrix of eigenvectors,
 		and X_im is the imaginary part of the matrix.
 	-- X_re is returned */
-MAT	*schur_vecs(T,Q,X_re,X_im)
-MAT	*T, *Q, *X_re, *X_im;
+MeMAT	*schur_vecs(T,Q,X_re,X_im)
+MeMAT	*T, *Q, *X_re, *X_im;
 {
 	int	i, j, limit;
 	Real	t11_re, t11_im, t12, t21, t22_re, t22_im;
@@ -209,7 +209,7 @@ MAT	*T, *Q, *X_re, *X_im;
 		val1_re, val1_im, val2_re, val2_im,
 		tmp_val1_re, tmp_val1_im, tmp_val2_re, tmp_val2_im, **T_me;
 	Real	sum, diff, discrim, magdet, norm, scale;
-	STATIC VEC	*tmp1_re=VNULL, *tmp1_im=VNULL,
+	STATIC MeVEC	*tmp1_re=VNULL, *tmp1_im=VNULL,
 			*tmp2_re=VNULL, *tmp2_im=VNULL;
 
 	if ( ! T || ! X_re )
@@ -227,10 +227,10 @@ MAT	*T, *Q, *X_re, *X_im;
 	tmp1_im = v_resize(tmp1_im,T->m);
 	tmp2_re = v_resize(tmp2_re,T->m);
 	tmp2_im = v_resize(tmp2_im,T->m);
-	MEM_STAT_REG(tmp1_re,TYPE_VEC);
-	MEM_STAT_REG(tmp1_im,TYPE_VEC);
-	MEM_STAT_REG(tmp2_re,TYPE_VEC);
-	MEM_STAT_REG(tmp2_im,TYPE_VEC);
+	MEM_STAT_REG(tmp1_re,TYPE_MeVEC);
+	MEM_STAT_REG(tmp1_im,TYPE_MeVEC);
+	MEM_STAT_REG(tmp2_re,TYPE_MeVEC);
+	MEM_STAT_REG(tmp2_im,TYPE_MeVEC);
 
 	T_me = T->me;
 	i = 0;

@@ -76,7 +76,7 @@ int parse_argument_value(int argc, char *argv[], int i, Real * value) {
 }
 
 // Maps a Pararameters struct to a vector of all active parameter values
-VEC * parameters_to_vec(Parameters * parameters) {
+MeVEC * parameters_to_vec(Parameters * parameters) {
   // Determine the number of parameters which are active
   int activeParameterCount = 0;
   for(int i = 0; i < parameters->count; i++) {
@@ -86,7 +86,7 @@ VEC * parameters_to_vec(Parameters * parameters) {
   }
 
   // Load all active parameter values into a theta vector
-  VEC *theta = v_get(activeParameterCount);
+  MeVEC *theta = v_get(activeParameterCount);
   int iTheta = 0;
   for(int i = 0; i < parameters->count; i++) {
     if(parameters->parameter[i]->active == TRUE) {

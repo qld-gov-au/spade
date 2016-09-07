@@ -39,13 +39,13 @@ static char rcsid[] = "$Id: $";
 
 void main()
 {
-   VEC *x;
-   MAT *A;
+   MeVEC *x;
+   MeMAT *A;
    PERM *pivot;
-   IVEC *ix;
-   SPMAT *spA;
-   ZVEC *zx;
-   ZMAT *ZA;
+   IMeVEC *ix;
+   SPMeMAT *spA;
+   ZMeVEC *zx;
+   ZMeMAT *ZA;
    char yes;
    int i;
    FILE *fp;
@@ -77,19 +77,19 @@ void main()
       if (i > 0) sp_set_val(spA,i-1,i,-1.0);
    }
 
-   notice(" VEC output");
+   notice(" MeVEC output");
    v_foutput(fp,x);
-   notice(" MAT output");
+   notice(" MeMAT output");
    m_foutput(fp,A);
-   notice(" ZVEC output");
+   notice(" ZMeVEC output");
    zv_foutput(fp,zx);
-   notice(" ZMAT output");
+   notice(" ZMeMAT output");
    zm_foutput(fp,ZA);
    notice(" PERM output");
    px_foutput(fp,pivot);
-   notice(" IVEC output");
+   notice(" IMeVEC output");
    iv_foutput(fp,ix);
-   notice(" SPMAT output");
+   notice(" SPMeMAT output");
    sp_foutput(fp,spA);
    fprintf(fp,"Y");
    fclose(fp);
@@ -101,19 +101,19 @@ void main()
       exit(1);
    }
 
-   notice(" VEC input/output");
+   notice(" MeVEC input/output");
    x = v_finput(fp,x);
    v_output(x);
 
-   notice(" MAT input/output");
+   notice(" MeMAT input/output");
    A = m_finput(fp,A);
    m_output(A);
 
-   notice(" ZVEC input/output");
+   notice(" ZMeVEC input/output");
    zx = zv_finput(fp,zx);
    zv_output(zx);
 
-   notice(" ZMAT input/output");
+   notice(" ZMeMAT input/output");
    ZA = zm_finput(fp,ZA);
    zm_output(ZA);
 
@@ -121,11 +121,11 @@ void main()
    pivot = px_finput(fp,pivot);
    px_output(pivot);
 
-   notice(" IVEC input/output");
+   notice(" IMeVEC input/output");
    ix = iv_finput(fp,ix);
    iv_output(ix);
 
-   notice(" SPMAT input/output");
+   notice(" SPMeMAT input/output");
    SP_FREE(spA);
    spA = sp_finput(fp);
    sp_output(spA);

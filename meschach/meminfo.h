@@ -46,25 +46,25 @@
 
 /* available standard types */
 #define TYPE_NULL              (-1)
-#define TYPE_MAT    	        0
+#define TYPE_MeMAT    	        0
 #define TYPE_BAND               1
 #define TYPE_PERM		2
-#define TYPE_VEC		3
-#define TYPE_IVEC		4
+#define TYPE_MeVEC		3
+#define TYPE_IMeVEC		4
 
 #ifdef SPARSE
 #define TYPE_ITER		5
 #define TYPE_SPROW              6
-#define TYPE_SPMAT		7
+#define TYPE_SPMeMAT		7
 #endif
 
 #ifdef COMPLEX
 #ifdef SPARSE
-#define TYPE_ZVEC		8
-#define TYPE_ZMAT		9
+#define TYPE_ZMeVEC		8
+#define TYPE_ZMeMAT		9
 #else
-#define TYPE_ZVEC		5
-#define TYPE_ZMAT		6
+#define TYPE_ZMeVEC		5
+#define TYPE_ZMeMAT		6
 #endif
 #endif
 
@@ -153,11 +153,11 @@ int mem_stat_reg_vars();
 typedef struct {
    char **type_names;        /* array of names of types (strings) */
    int  (**free_funcs)();    /* array of functions for releasing types */
-   unsigned ntypes;          /* max number of types */
+   unsigned ntypes;          /* Memax number of types */
    MEM_ARRAY *info_sum;      /* local array for keeping track of memory */
 } MEM_CONNECT;
 
-/* max number of lists of types */
+/* Memax number of lists of types */
 #define MEM_CONNECT_MAX_LISTS    5
 
 

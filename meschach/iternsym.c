@@ -43,9 +43,9 @@ static char rcsid[] = "$Header: iternsym.c,v 1.6 1995/01/30 14:53:01 des Exp $";
 
 
 #ifdef ANSI_C
-VEC	*spCHsolve(SPMAT *,VEC *,VEC *);
+MeVEC	*spCHsolve(SPMeMAT *,MeVEC *,MeVEC *);
 #else
-VEC	*spCHsolve();
+MeVEC	*spCHsolve();
 #endif
 
 
@@ -53,16 +53,16 @@ VEC	*spCHsolve();
   iter_cgs -- uses CGS to compute a solution x to A.x=b
 */
 #ifndef ANSI_C
-VEC	*iter_cgs(ip,r0)
+MeVEC	*iter_cgs(ip,r0)
 ITER *ip;
-VEC *r0;
+MeVEC *r0;
 #else
-VEC	*iter_cgs(ITER *ip, VEC *r0)
+MeVEC	*iter_cgs(ITER *ip, MeVEC *r0)
 #endif
 {
-   STATIC VEC  *p = VNULL, *q = VNULL, *r = VNULL, *u = VNULL;
-   STATIC VEC  *v = VNULL, *z = VNULL;
-   VEC  *tmp;
+   STATIC MeVEC  *p = VNULL, *q = VNULL, *r = VNULL, *u = VNULL;
+   STATIC MeVEC  *v = VNULL, *z = VNULL;
+   MeVEC  *tmp;
    Real	alpha, beta, nres, rho, old_rho, sigma, inner;
 
    if (ip == INULL)
@@ -84,15 +84,15 @@ VEC	*iter_cgs(ITER *ip, VEC *r0)
    u = v_resize(u,ip->b->dim);
    v = v_resize(v,ip->b->dim);
 
-   MEM_STAT_REG(p,TYPE_VEC);
-   MEM_STAT_REG(q,TYPE_VEC);
-   MEM_STAT_REG(r,TYPE_VEC);
-   MEM_STAT_REG(u,TYPE_VEC);
-   MEM_STAT_REG(v,TYPE_VEC);
+   MEM_STAT_REG(p,TYPE_MeVEC);
+   MEM_STAT_REG(q,TYPE_MeVEC);
+   MEM_STAT_REG(r,TYPE_MeVEC);
+   MEM_STAT_REG(u,TYPE_MeVEC);
+   MEM_STAT_REG(v,TYPE_MeVEC);
 
    if (ip->Bx) {
       z = v_resize(z,ip->b->dim);
-      MEM_STAT_REG(z,TYPE_VEC); 
+      MEM_STAT_REG(z,TYPE_MeVEC); 
    }
 
    if (ip->x != VNULL) {
@@ -170,7 +170,7 @@ VEC	*iter_cgs(ITER *ip, VEC *r0)
 
 
 
-/* iter_spcgs -- simple interface for SPMAT data structures 
+/* iter_spcgs -- simple interface for SPMeMAT data structures 
    use always as follows:
       x = iter_spcgs(A,B,b,r0,tol,x,limit,steps);
    or 
@@ -179,14 +179,14 @@ VEC	*iter_cgs(ITER *ip, VEC *r0)
    If B is not NULL then it is a preconditioner. 
 */
 #ifndef ANSI_C
-VEC	*iter_spcgs(A,B,b,r0,tol,x,limit,steps)
-SPMAT	*A, *B;
-VEC	*b, *r0, *x;
+MeVEC	*iter_spcgs(A,B,b,r0,tol,x,limit,steps)
+SPMeMAT	*A, *B;
+MeVEC	*b, *r0, *x;
 double	tol;
 int     *steps,limit;
 #else
-VEC	*iter_spcgs(SPMAT *A, SPMAT *B, VEC *b, VEC *r0, double tol,
-		    VEC *x, int limit, int *steps)
+MeVEC	*iter_spcgs(SPMeMAT *A, SPMeMAT *B, MeVEC *b, MeVEC *r0, double tol,
+		    MeVEC *x, int limit, int *steps)
 #endif
 {	
    ITER *ip;
@@ -217,25 +217,25 @@ VEC	*iter_spcgs(SPMAT *A, SPMAT *B, VEC *b, VEC *r0, double tol,
 }
 
 /*
-  Routine for performing LSQR -- the least squares QR algorithm
+  Routine for performing LSQR -- the least Mesquares QR algorithm
   of Paige and Saunders:
   "LSQR: an algorithm for sparse linear equations and
-  sparse least squares", ACM Trans. Math. Soft., v. 8
+  sparse least Mesquares", ACM Trans. Math. Soft., v. 8
   pp. 43--71 (1982)
   */
-/* iter_lsqr -- sparse CG-like least squares routine:
+/* iter_lsqr -- sparse CG-like least Mesquares routine:
    -- finds min_x ||A.x-b||_2 using A defined through A & AT
    -- returns x (if x != NULL) */
 #ifndef ANSI_C
-VEC	*iter_lsqr(ip)
+MeVEC	*iter_lsqr(ip)
 ITER *ip;
 #else
-VEC	*iter_lsqr(ITER *ip)
+MeVEC	*iter_lsqr(ITER *ip)
 #endif
 {
-   STATIC VEC	*u = VNULL, *v = VNULL, *w = VNULL, *tmp = VNULL;
+   STATIC MeVEC	*u = VNULL, *v = VNULL, *w = VNULL, *tmp = VNULL;
    Real	alpha, beta, phi, phi_bar;
-   Real rho, rho_bar, rho_max, theta, nres;
+   Real rho, rho_bar, rho_Memax, theta, nres;
    Real	s, c;	/* for Givens' rotations */
    int  m, n;
    
@@ -256,10 +256,10 @@ VEC	*iter_lsqr(ITER *ip)
    w = v_resize(w,(unsigned int)n);
    tmp = v_resize(tmp,(unsigned int)n);
 
-   MEM_STAT_REG(u,TYPE_VEC);
-   MEM_STAT_REG(v,TYPE_VEC);
-   MEM_STAT_REG(w,TYPE_VEC);
-   MEM_STAT_REG(tmp,TYPE_VEC);  
+   MEM_STAT_REG(u,TYPE_MeVEC);
+   MEM_STAT_REG(v,TYPE_MeVEC);
+   MEM_STAT_REG(w,TYPE_MeVEC);
+   MEM_STAT_REG(tmp,TYPE_MeVEC);  
 
    if (ip->x != VNULL) {
       ip->Ax(ip->A_par,ip->x,u);    		/* u = A*x */
@@ -284,7 +284,7 @@ VEC	*iter_lsqr(ITER *ip)
    phi_bar = beta;
    rho_bar = alpha;
    
-   rho_max = 1.0;
+   rho_Memax = 1.0;
    for (ip->steps = 0; ip->steps <= ip->limit; ip->steps++) {
 
       tmp = v_resize(tmp,m);
@@ -301,8 +301,8 @@ VEC	*iter_lsqr(ITER *ip)
       sv_mlt(1.0/alpha,v,v);
       
       rho = sqrt(rho_bar*rho_bar+beta*beta);
-      if ( rho > rho_max )
-	rho_max = rho;
+      if ( rho > rho_Memax )
+	rho_Memax = rho;
       c   = rho_bar/rho;
       s   = beta/rho;
       theta   =  s*alpha;
@@ -316,7 +316,7 @@ VEC	*iter_lsqr(ITER *ip)
       v_mltadd(ip->x,w,phi/rho,ip->x);
       v_mltadd(v,w,-theta/rho,w);
 
-      nres = fabs(phi_bar*alpha*c)*rho_max;
+      nres = fabs(phi_bar*alpha*c)*rho_Memax;
 
       if (ip->info) ip->info(ip,nres,w,VNULL);
       if (ip->steps == 0) ip->init_res = nres;
@@ -330,16 +330,16 @@ VEC	*iter_lsqr(ITER *ip)
    return ip->x;
 }
 
-/* iter_splsqr -- simple interface for SPMAT data structures */
+/* iter_splsqr -- simple interface for SPMeMAT data structures */
 #ifndef ANSI_C
-VEC	*iter_splsqr(A,b,tol,x,limit,steps)
-SPMAT	*A;
-VEC	*b, *x;
+MeVEC	*iter_splsqr(A,b,tol,x,limit,steps)
+SPMeMAT	*A;
+MeVEC	*b, *x;
 double	tol;
 int *steps,limit;
 #else
-VEC	*iter_splsqr(SPMAT *A, VEC *b, double tol, 
-		     VEC *x, int limit, int *steps)
+MeVEC	*iter_splsqr(SPMeMAT *A, MeVEC *b, double tol, 
+		     MeVEC *x, int limit, int *steps)
 #endif
 {
    ITER *ip;
@@ -371,16 +371,16 @@ VEC	*iter_splsqr(SPMAT *A, VEC *b, double tol,
    iterative refinement is applied.
 */
 #ifndef ANSI_C
-MAT	*iter_arnoldi_iref(ip,h_rem,Q,H)
+MeMAT	*iter_arnoldi_iref(ip,h_rem,Q,H)
 ITER  *ip;
 Real  *h_rem;
-MAT   *Q, *H;
+MeMAT   *Q, *H;
 #else
-MAT	*iter_arnoldi_iref(ITER *ip, Real *h_rem, MAT *Q, MAT *H)
+MeMAT	*iter_arnoldi_iref(ITER *ip, Real *h_rem, MeMAT *Q, MeMAT *H)
 #endif
 {
-   STATIC VEC *u=VNULL, *r=VNULL, *s=VNULL, *tmp=VNULL;
-   VEC v;     /* auxiliary vector */
+   STATIC MeVEC *u=VNULL, *r=VNULL, *s=VNULL, *tmp=VNULL;
+   MeVEC v;     /* auxiliary vector */
    int	i,j;
    Real	h_val, c;
    
@@ -401,12 +401,12 @@ MAT	*iter_arnoldi_iref(ITER *ip, Real *h_rem, MAT *Q, MAT *H)
    r = v_resize(r,ip->k);
    s = v_resize(s,ip->k);
    tmp = v_resize(tmp,ip->x->dim);
-   MEM_STAT_REG(u,TYPE_VEC);
-   MEM_STAT_REG(r,TYPE_VEC);
-   MEM_STAT_REG(s,TYPE_VEC);
-   MEM_STAT_REG(tmp,TYPE_VEC);
+   MEM_STAT_REG(u,TYPE_MeVEC);
+   MEM_STAT_REG(r,TYPE_MeVEC);
+   MEM_STAT_REG(s,TYPE_MeVEC);
+   MEM_STAT_REG(tmp,TYPE_MeVEC);
 
-   v.dim = v.max_dim = ip->x->dim;
+   v.dim = v.Memax_dim = ip->x->dim;
 
    c = v_norm2(ip->x);
    if ( c <= 0.0)
@@ -476,16 +476,16 @@ MAT	*iter_arnoldi_iref(ITER *ip, Real *h_rem, MAT *Q, MAT *H)
    modified Gram-Schmidt algorithm
 */
 #ifndef ANSI_C
-MAT	*iter_arnoldi(ip,h_rem,Q,H)
+MeMAT	*iter_arnoldi(ip,h_rem,Q,H)
 ITER  *ip;
 Real  *h_rem;
-MAT   *Q, *H;
+MeMAT   *Q, *H;
 #else
-MAT	*iter_arnoldi(ITER *ip, Real *h_rem, MAT *Q, MAT *H)
+MeMAT	*iter_arnoldi(ITER *ip, Real *h_rem, MeMAT *Q, MeMAT *H)
 #endif
 {
-   STATIC VEC *u=VNULL, *r=VNULL;
-   VEC v;     /* auxiliary vector */
+   STATIC MeVEC *u=VNULL, *r=VNULL;
+   MeVEC v;     /* auxiliary vector */
    int	i,j;
    Real	h_val, c;
    
@@ -504,10 +504,10 @@ MAT	*iter_arnoldi(ITER *ip, Real *h_rem, MAT *Q, MAT *H)
 
    u = v_resize(u,ip->x->dim);
    r = v_resize(r,ip->k);
-   MEM_STAT_REG(u,TYPE_VEC);
-   MEM_STAT_REG(r,TYPE_VEC);
+   MEM_STAT_REG(u,TYPE_MeVEC);
+   MEM_STAT_REG(r,TYPE_MeVEC);
 
-   v.dim = v.max_dim = ip->x->dim;
+   v.dim = v.Memax_dim = ip->x->dim;
 
    c = v_norm2(ip->x);
    if ( c <= 0.0)
@@ -558,14 +558,14 @@ MAT	*iter_arnoldi(ITER *ip, Real *h_rem, MAT *Q, MAT *H)
 
 /* iter_sparnoldi -- uses arnoldi() with an explicit representation of A */
 #ifndef ANSI_C
-MAT	*iter_sparnoldi(A,x0,m,h_rem,Q,H)
-SPMAT	*A;
-VEC	*x0;
+MeMAT	*iter_sparnoldi(A,x0,m,h_rem,Q,H)
+SPMeMAT	*A;
+MeVEC	*x0;
 int	m;
 Real	*h_rem;
-MAT	*Q, *H;
+MeMAT	*Q, *H;
 #else
-MAT	*iter_sparnoldi(SPMAT *A, VEC *x0, int m, Real *h_rem, MAT *Q, MAT *H)
+MeMAT	*iter_sparnoldi(SPMeMAT *A, MeVEC *x0, int m, Real *h_rem, MeMAT *Q, MeMAT *H)
 #endif
 {
    ITER *ip;
@@ -587,16 +587,16 @@ MAT	*iter_sparnoldi(SPMAT *A, VEC *x0, int m, Real *h_rem, MAT *Q, MAT *H)
 static void test_gmres(ip,i,Q,R,givc,givs,h_val)
 ITER *ip;
 int i;
-MAT *Q, *R;
-VEC *givc, *givs;
+MeMAT *Q, *R;
+MeVEC *givc, *givs;
 double h_val;
 #else
-static void test_gmres(ITER *ip, int i, MAT *Q, MAT *R,
-		       VEC *givc, VEC *givs, double h_val)
+static void test_gmres(ITER *ip, int i, MeMAT *Q, MeMAT *R,
+		       MeVEC *givc, MeVEC *givs, double h_val)
 #endif
 {
-   VEC vt, vt1;
-   STATIC MAT *Q1=MNULL, *R1=MNULL;
+   MeVEC vt, vt1;
+   STATIC MeMAT *Q1=MNULL, *R1=MNULL;
    int j;
    
    /* test Q*A*Q^T = R  */
@@ -604,11 +604,11 @@ static void test_gmres(ITER *ip, int i, MAT *Q, MAT *R,
    Q = m_resize(Q,i+1,ip->b->dim);
    Q1 = m_resize(Q1,i+1,ip->b->dim);
    R1 = m_resize(R1,i+1,i+1);
-   MEM_STAT_REG(Q1,TYPE_MAT);
-   MEM_STAT_REG(R1,TYPE_MAT);
+   MEM_STAT_REG(Q1,TYPE_MeMAT);
+   MEM_STAT_REG(R1,TYPE_MeMAT);
 
-   vt.dim = vt.max_dim = ip->b->dim;
-   vt1.dim = vt1.max_dim = ip->b->dim;
+   vt.dim = vt.Memax_dim = ip->b->dim;
+   vt1.dim = vt1.Memax_dim = ip->b->dim;
    for (j=0; j <= i; j++) {
       vt.ve = Q->me[j];
       vt1.ve = Q1->me[j];
@@ -653,16 +653,16 @@ static void test_gmres(ITER *ip, int i, MAT *Q, MAT *R,
    SIAM J. Sci. Stat. Comp. v.7, pp.856--869 (1986)
 */
 #ifndef ANSI_C
-VEC	*iter_gmres(ip)
+MeVEC	*iter_gmres(ip)
 ITER *ip;
 #else
-VEC	*iter_gmres(ITER *ip)
+MeVEC	*iter_gmres(ITER *ip)
 #endif
 {
-   STATIC VEC *u=VNULL, *r=VNULL, *rhs = VNULL;
-   STATIC VEC *givs=VNULL, *givc=VNULL, *z = VNULL;
-   STATIC MAT *Q = MNULL, *R = MNULL;
-   VEC *rr, v, v1;   /* additional pointers (not real vectors) */
+   STATIC MeVEC *u=VNULL, *r=VNULL, *rhs = VNULL;
+   STATIC MeVEC *givs=VNULL, *givc=VNULL, *z = VNULL;
+   STATIC MeMAT *Q = MNULL, *R = MNULL;
+   MeVEC *rr, v, v1;   /* additional pointers (not real vectors) */
    int	i,j, done;
    Real	nres;
 /*   Real last_h;  */
@@ -685,28 +685,28 @@ VEC	*iter_gmres(ITER *ip)
    givs = v_resize(givs,ip->k);  /* Givens rotations */
    givc = v_resize(givc,ip->k); 
    
-   MEM_STAT_REG(r,TYPE_VEC);
-   MEM_STAT_REG(u,TYPE_VEC);
-   MEM_STAT_REG(rhs,TYPE_VEC);
-   MEM_STAT_REG(givs,TYPE_VEC);
-   MEM_STAT_REG(givc,TYPE_VEC);
+   MEM_STAT_REG(r,TYPE_MeVEC);
+   MEM_STAT_REG(u,TYPE_MeVEC);
+   MEM_STAT_REG(rhs,TYPE_MeVEC);
+   MEM_STAT_REG(givs,TYPE_MeVEC);
+   MEM_STAT_REG(givc,TYPE_MeVEC);
    
    R = m_resize(R,ip->k+1,ip->k);
    Q = m_resize(Q,ip->k,ip->b->dim);
-   MEM_STAT_REG(R,TYPE_MAT);
-   MEM_STAT_REG(Q,TYPE_MAT);		
+   MEM_STAT_REG(R,TYPE_MeMAT);
+   MEM_STAT_REG(Q,TYPE_MeMAT);		
 
    if (ip->x == VNULL) {  /* ip->x == 0 */
       ip->x = v_get(ip->b->dim);
       ip->shared_x = FALSE;
    }   
 
-   v.dim = v.max_dim = ip->b->dim;      /* v and v1 are pointers to rows */
-   v1.dim = v1.max_dim = ip->b->dim;  	/* of matrix Q */
+   v.dim = v.Memax_dim = ip->b->dim;      /* v and v1 are pointers to rows */
+   v1.dim = v1.Memax_dim = ip->b->dim;  	/* of matrix Q */
    
    if (ip->Bx != (Fun_Ax)NULL) {    /* if precondition is defined */
       z = v_resize(z,ip->b->dim);
-      MEM_STAT_REG(z,TYPE_VEC);
+      MEM_STAT_REG(z,TYPE_MeVEC);
    }
    
    done = FALSE;
@@ -854,14 +854,14 @@ VEC	*iter_gmres(ITER *ip)
 
 /* iter_spgmres - a simple interface to iter_gmres */
 #ifndef ANSI_C
-VEC	*iter_spgmres(A,B,b,tol,x,k,limit,steps)
-SPMAT	*A, *B;
-VEC	*b, *x;
+MeVEC	*iter_spgmres(A,B,b,tol,x,k,limit,steps)
+SPMeMAT	*A, *B;
+MeVEC	*b, *x;
 double	tol;
 int *steps,k,limit;
 #else
-VEC	*iter_spgmres(SPMAT *A, SPMAT *B, VEC *b, double tol,
-		      VEC *x, int k, int limit, int *steps)
+MeVEC	*iter_spgmres(SPMeMAT *A, SPMeMAT *B, MeVEC *b, double tol,
+		      MeVEC *x, int k, int limit, int *steps)
 #endif
 {
    ITER *ip;
@@ -897,30 +897,30 @@ VEC	*iter_spgmres(SPMAT *A, SPMAT *B, VEC *b, double tol,
 static void test_mgcr(ip,i,Q,R)
 ITER *ip;
 int i;
-MAT *Q, *R;
+MeMAT *Q, *R;
 #else
-static void test_mgcr(ITER *ip, int i, MAT *Q, MAT *R)
+static void test_mgcr(ITER *ip, int i, MeMAT *Q, MeMAT *R)
 #endif
 {
-   VEC vt, vt1;
-   static MAT *R1=MNULL;
-   static VEC *r=VNULL, *r1=VNULL;
-   VEC *rr;
+   MeVEC vt, vt1;
+   static MeMAT *R1=MNULL;
+   static MeVEC *r=VNULL, *r1=VNULL;
+   MeVEC *rr;
    int k,j;
    Real sm;
    
    
    /* check Q*Q^T = I */
-   vt.dim = vt.max_dim = ip->b->dim;
-   vt1.dim = vt1.max_dim = ip->b->dim;
+   vt.dim = vt.Memax_dim = ip->b->dim;
+   vt1.dim = vt1.Memax_dim = ip->b->dim;
    
    Q = m_resize(Q,i+1,ip->b->dim);
    R1 = m_resize(R1,i+1,i+1);
    r = v_resize(r,ip->b->dim);
    r1 = v_resize(r1,ip->b->dim);
-   MEM_STAT_REG(R1,TYPE_MAT);
-   MEM_STAT_REG(r,TYPE_VEC);
-   MEM_STAT_REG(r1,TYPE_VEC);
+   MEM_STAT_REG(R1,TYPE_MeMAT);
+   MEM_STAT_REG(r,TYPE_MeVEC);
+   MEM_STAT_REG(r1,TYPE_MeVEC);
 
    m_zero(R1);
    for (k=1; k <= i; k++)
@@ -952,11 +952,11 @@ static void test_mgcr(ITER *ip, int i, MAT *Q, MAT *R)
    sm = 0.0;
    for (j = 1; j <= i; j++) {
       vt.ve = Q->me[j];
-      sm = max(sm,in_prod(&vt,rr));
+      sm = Memax(sm,in_prod(&vt,rr));
    }
 #ifndef MEX
    if (sm >= MACHEPS*ip->b->dim)
-     printf(" ! (mgcr:) max_j (r,Ap_j) = %g\n",sm);
+     printf(" ! (mgcr:) Memax_j (r,Ap_j) = %g\n",sm);
 #endif
 
 }
@@ -969,16 +969,16 @@ static void test_mgcr(ITER *ip, int i, MAT *Q, MAT *R)
   fast version of GCR;
 */
 #ifndef ANSI_C
-VEC *iter_mgcr(ip)
+MeVEC *iter_mgcr(ip)
 ITER *ip;
 #else
-VEC *iter_mgcr(ITER *ip)
+MeVEC *iter_mgcr(ITER *ip)
 #endif
 {
-   STATIC VEC *As=VNULL, *beta=VNULL, *alpha=VNULL, *z=VNULL;
-   STATIC MAT *N=MNULL, *H=MNULL;
+   STATIC MeVEC *As=VNULL, *beta=VNULL, *alpha=VNULL, *z=VNULL;
+   STATIC MeMAT *N=MNULL, *H=MNULL;
    
-   VEC *rr, v, s;  /* additional pointer and structures */
+   MeVEC *rr, v, s;  /* additional pointer and structures */
    Real nres;      /* norm of a residual */
    Real dd;        /* coefficient d_i */
    int i,j;
@@ -1002,20 +1002,20 @@ VEC *iter_mgcr(ITER *ip)
    alpha = v_resize(alpha,ip->k);
    beta = v_resize(beta,ip->k);
    
-   MEM_STAT_REG(As,TYPE_VEC);
-   MEM_STAT_REG(alpha,TYPE_VEC);
-   MEM_STAT_REG(beta,TYPE_VEC);
+   MEM_STAT_REG(As,TYPE_MeVEC);
+   MEM_STAT_REG(alpha,TYPE_MeVEC);
+   MEM_STAT_REG(beta,TYPE_MeVEC);
    
    H = m_resize(H,ip->k,ip->k);
    N = m_resize(N,ip->k,dim);
    
-   MEM_STAT_REG(H,TYPE_MAT);
-   MEM_STAT_REG(N,TYPE_MAT);
+   MEM_STAT_REG(H,TYPE_MeMAT);
+   MEM_STAT_REG(N,TYPE_MeMAT);
    
    /* if a preconditioner is defined */
    if (ip->Bx) {
       z = v_resize(z,dim);
-      MEM_STAT_REG(z,TYPE_VEC);
+      MEM_STAT_REG(z,TYPE_MeVEC);
    }
    
    /* if x is NULL then it is assumed that x has 
@@ -1027,7 +1027,7 @@ VEC *iter_mgcr(ITER *ip)
    
    /* v and s are additional pointers to rows of N */
    /* they must have the same dimension as rows of N */
-   v.dim = v.max_dim = s.dim = s.max_dim = dim;
+   v.dim = v.Memax_dim = s.dim = s.Memax_dim = dim;
    
    
    done = FALSE;
@@ -1197,14 +1197,14 @@ VEC *iter_mgcr(ITER *ip)
 /* iter_spmgcr - a simple interface to iter_mgcr */
 /* no preconditioner */
 #ifndef ANSI_C
-VEC	*iter_spmgcr(A,B,b,tol,x,k,limit,steps)
-SPMAT	*A, *B;
-VEC	*b, *x;
+MeVEC	*iter_spmgcr(A,B,b,tol,x,k,limit,steps)
+SPMeMAT	*A, *B;
+MeVEC	*b, *x;
 double	tol;
 int *steps,k,limit;
 #else
-VEC	*iter_spmgcr(SPMAT *A, SPMAT *B, VEC *b, double tol,
-		     VEC *x, int k, int limit, int *steps)
+MeVEC	*iter_spmgcr(SPMeMAT *A, SPMeMAT *B, MeVEC *b, double tol,
+		     MeVEC *x, int k, int limit, int *steps)
 #endif
 {
    ITER *ip;
@@ -1242,15 +1242,15 @@ VEC	*iter_spmgcr(SPMAT *A, SPMAT *B, VEC *b, double tol,
   a preconditioner B must be symmetric !!
 */
 #ifndef ANSI_C
-VEC  *iter_cgne(ip)
+MeVEC  *iter_cgne(ip)
 ITER *ip;
 #else
-VEC  *iter_cgne(ITER *ip)
+MeVEC  *iter_cgne(ITER *ip)
 #endif
 {
-   STATIC VEC *r = VNULL, *p = VNULL, *q = VNULL, *z = VNULL;
+   STATIC MeVEC *r = VNULL, *p = VNULL, *q = VNULL, *z = VNULL;
    Real	alpha, beta, inner, old_inner, nres;
-   VEC *rr1;   /* pointer only */
+   MeVEC *rr1;   /* pointer only */
    
    if (ip == INULL)
      error(E_NULL,"iter_cgne");
@@ -1267,12 +1267,12 @@ VEC  *iter_cgne(ITER *ip)
    p = v_resize(p,ip->b->dim);
    q = v_resize(q,ip->b->dim);
 
-   MEM_STAT_REG(r,TYPE_VEC);
-   MEM_STAT_REG(p,TYPE_VEC);
-   MEM_STAT_REG(q,TYPE_VEC);
+   MEM_STAT_REG(r,TYPE_MeVEC);
+   MEM_STAT_REG(p,TYPE_MeVEC);
+   MEM_STAT_REG(q,TYPE_MeVEC);
 
    z = v_resize(z,ip->b->dim);
-   MEM_STAT_REG(z,TYPE_VEC);
+   MEM_STAT_REG(z,TYPE_MeVEC);
 
    if (ip->x) {
       if (ip->x->dim != ip->b->dim)
@@ -1353,14 +1353,14 @@ VEC  *iter_cgne(ITER *ip)
    In the second case the solution vector is created.
 */
 #ifndef ANSI_C
-VEC  *iter_spcgne(A,B,b,eps,x,limit,steps)
-SPMAT	*A, *B;
-VEC	*b, *x;
+MeVEC  *iter_spcgne(A,B,b,eps,x,limit,steps)
+SPMeMAT	*A, *B;
+MeVEC	*b, *x;
 double	eps;
 int *steps, limit;
 #else
-VEC  *iter_spcgne(SPMAT *A,SPMAT *B, VEC *b, double eps,
-		  VEC *x, int limit, int *steps)
+MeVEC  *iter_spcgne(SPMeMAT *A,SPMeMAT *B, MeVEC *b, double eps,
+		  MeVEC *x, int limit, int *steps)
 #endif
 {	
    ITER *ip;

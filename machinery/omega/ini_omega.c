@@ -3,11 +3,11 @@
 #include "../../common.h"
 #include "../../parameters.h"
 
-VEC *ini_omega(
+MeVEC *ini_omega(
 
 	       Parameters *parameters,
-	       VEC *x,
-	       VEC *p
+	       MeVEC *x,
+	       MeVEC *p
 
 		)
 {

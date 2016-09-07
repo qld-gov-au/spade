@@ -43,11 +43,11 @@ static char rcsid[] = "$Id: itersym.c,v 1.2 1995/01/30 14:55:54 des Exp $";
 
 
 #ifdef ANSI_C
-VEC	*spCHsolve(const SPMAT *,VEC *,VEC *);
-VEC	*trieig(VEC *,VEC *,MAT *);
+MeVEC	*spCHsolve(const SPMeMAT *,MeVEC *,MeVEC *);
+MeVEC	*trieig(MeVEC *,MeVEC *,MeMAT *);
 #else
-VEC	*spCHsolve();
-VEC	*trieig();
+MeVEC	*spCHsolve();
+MeVEC	*trieig();
 #endif
 
 
@@ -63,13 +63,13 @@ VEC	*trieig();
    In the second case the solution vector is created.
    */
 #ifndef ANSI_C
-VEC  *iter_spcg(A,LLT,b,eps,x,limit,steps)
-SPMAT	*A, *LLT;
-VEC	*b, *x;
+MeVEC  *iter_spcg(A,LLT,b,eps,x,limit,steps)
+SPMeMAT	*A, *LLT;
+MeVEC	*b, *x;
 double	eps;
 int *steps, limit;
 #else
-VEC  *iter_spcg(SPMAT *A, SPMAT *LLT, VEC *b, double eps, VEC *x,
+MeVEC  *iter_spcg(SPMeMAT *A, SPMeMAT *LLT, MeVEC *b, double eps, MeVEC *x,
 		int limit, int *steps)
 #endif
 {	
@@ -97,15 +97,15 @@ VEC  *iter_spcg(SPMAT *A, SPMAT *LLT, VEC *b, double eps, VEC *x,
   Conjugate gradients method;
   */
 #ifndef ANSI_C
-VEC  *iter_cg(ip)
+MeVEC  *iter_cg(ip)
 ITER *ip;
 #else
-VEC  *iter_cg(ITER *ip)
+MeVEC  *iter_cg(ITER *ip)
 #endif
 {
-   STATIC VEC *r = VNULL, *p = VNULL, *q = VNULL, *z = VNULL;
+   STATIC MeVEC *r = VNULL, *p = VNULL, *q = VNULL, *z = VNULL;
    Real	alpha, beta, inner, old_inner, nres;
-   VEC *rr;   /* rr == r or rr == z */
+   MeVEC *rr;   /* rr == r or rr == z */
    
    if (ip == INULL)
      error(E_NULL,"iter_cg");
@@ -123,13 +123,13 @@ VEC  *iter_cg(ITER *ip)
    p = v_resize(p,ip->b->dim);
    q = v_resize(q,ip->b->dim);
    
-   MEM_STAT_REG(r,TYPE_VEC);
-   MEM_STAT_REG(p,TYPE_VEC);
-   MEM_STAT_REG(q,TYPE_VEC);
+   MEM_STAT_REG(r,TYPE_MeVEC);
+   MEM_STAT_REG(p,TYPE_MeVEC);
+   MEM_STAT_REG(q,TYPE_MeVEC);
    
    if (ip->Bx != (Fun_Ax)NULL) {
       z = v_resize(z,ip->b->dim);
-      MEM_STAT_REG(z,TYPE_VEC);
+      MEM_STAT_REG(z,TYPE_MeVEC);
       rr = z;
    }
    else rr = r;
@@ -195,15 +195,15 @@ VEC  *iter_cg(ITER *ip)
 #ifndef ANSI_C
 void	iter_lanczos(ip,a,b,beta2,Q)
 ITER    *ip;
-VEC	*a, *b;
+MeVEC	*a, *b;
 Real	*beta2;
-MAT	*Q;
+MeMAT	*Q;
 #else
-void	iter_lanczos(ITER *ip, VEC *a, VEC *b, Real *beta2, MAT *Q)
+void	iter_lanczos(ITER *ip, MeVEC *a, MeVEC *b, Real *beta2, MeMAT *Q)
 #endif
 {
    int	j;
-   STATIC VEC	*v = VNULL, *w = VNULL, *tmp = VNULL;
+   STATIC MeVEC	*v = VNULL, *w = VNULL, *tmp = VNULL;
    Real	alpha, beta, c;
    
    if ( ! ip )
@@ -220,9 +220,9 @@ void	iter_lanczos(ITER *ip, VEC *a, VEC *b, Real *beta2, MAT *Q)
    v = v_resize(v,ip->x->dim);
    w = v_resize(w,ip->x->dim);
    tmp = v_resize(tmp,ip->x->dim);
-   MEM_STAT_REG(v,TYPE_VEC);
-   MEM_STAT_REG(w,TYPE_VEC);
-   MEM_STAT_REG(tmp,TYPE_VEC);
+   MEM_STAT_REG(v,TYPE_MeVEC);
+   MEM_STAT_REG(w,TYPE_MeVEC);
+   MEM_STAT_REG(tmp,TYPE_MeVEC);
    
    beta = 1.0;
    v_zero(a);
@@ -273,14 +273,14 @@ void	iter_lanczos(ITER *ip, VEC *a, VEC *b, Real *beta2, MAT *Q)
 /* iter_splanczos -- version that uses sparse matrix data structure */
 #ifndef ANSI_C
 void    iter_splanczos(A,m,x0,a,b,beta2,Q)
-SPMAT	*A;
+SPMeMAT	*A;
 int     m;
-VEC     *x0, *a, *b;
+MeVEC     *x0, *a, *b;
 Real    *beta2;
-MAT     *Q;
+MeMAT     *Q;
 #else
-void    iter_splanczos(SPMAT *A, int m, VEC *x0, 
-		       VEC *a, VEC *b, Real *beta2, MAT *Q)
+void    iter_splanczos(SPMeMAT *A, int m, MeVEC *x0, 
+		       MeVEC *a, MeVEC *b, Real *beta2, MeMAT *Q)
 #endif
 {	
    ITER *ip;
@@ -307,11 +307,11 @@ extern	double	frexp(double num, int *exponent),
    -- answer stored in mant (mantissa) and expt (exponent) */
 #ifndef ANSI_C
 static	double	product(a,offset,expt)
-VEC	*a;
+MeVEC	*a;
 double	offset;
 int	*expt;
 #else
-static	double	product(VEC *a, double offset, int *expt)
+static	double	product(MeVEC *a, double offset, int *expt)
 #endif
 {
    Real	mant, tmp_fctr;
@@ -358,11 +358,11 @@ static	double	product(VEC *a, double offset, int *expt)
    -- answer stored in mant (mantissa) and expt (exponent) */
 #ifndef ANSI_C
 static	double	product2(a,k,expt)
-VEC	*a;
+MeVEC	*a;
 int	k;	/* entry of a to leave out */
 int	*expt;
 #else
-static	double	product2(VEC *a, int k, int *expt)
+static	double	product2(MeVEC *a, int k, int *expt)
 #endif
 {
    Real	mant, mu, tmp_fctr;
@@ -415,16 +415,16 @@ static	int	dbl_cmp(Real *x, Real *y)
    -- returns multiple e-vals where multiple e-vals may not exist
    -- returns evals vector */
 #ifndef ANSI_C
-VEC	*iter_lanczos2(ip,evals,err_est)
+MeVEC	*iter_lanczos2(ip,evals,err_est)
 ITER 	*ip;            /* ITER structure */
-VEC	*evals;		/* eigenvalue vector */
-VEC	*err_est;	/* error estimates of eigenvalues */
+MeVEC	*evals;		/* eigenvalue vector */
+MeVEC	*err_est;	/* error estimates of eigenvalues */
 #else
-VEC	*iter_lanczos2(ITER *ip, VEC *evals, VEC *err_est)
+MeVEC	*iter_lanczos2(ITER *ip, MeVEC *evals, MeVEC *err_est)
 #endif
 {
-   VEC		*a;
-   STATIC	VEC	*b=VNULL, *a2=VNULL, *b2=VNULL;
+   MeVEC		*a;
+   STATIC	MeVEC	*b=VNULL, *a2=VNULL, *b2=VNULL;
    Real	beta, pb_mant, det_mant, det_mant1, det_mant2;
    int	i, pb_expt, det_expt, det_expt1, det_expt2;
    
@@ -438,7 +438,7 @@ VEC	*iter_lanczos2(ITER *ip, VEC *evals, VEC *err_est)
    a = evals;
    a = v_resize(a,(unsigned int)ip->k);
    b = v_resize(b,(unsigned int)(ip->k-1));
-   MEM_STAT_REG(b,TYPE_VEC);
+   MEM_STAT_REG(b,TYPE_MeVEC);
    
    iter_lanczos(ip,a,b,&beta,MNULL);
    
@@ -454,8 +454,8 @@ VEC	*iter_lanczos2(ITER *ip, VEC *evals, VEC *err_est)
    /* printf("# off diags =\n");	v_output(b); */
    a2 = v_resize(a2,a->dim - 1);
    b2 = v_resize(b2,b->dim - 1);
-   MEM_STAT_REG(a2,TYPE_VEC);
-   MEM_STAT_REG(b2,TYPE_VEC);
+   MEM_STAT_REG(a2,TYPE_MeVEC);
+   MEM_STAT_REG(b2,TYPE_MeVEC);
    for ( i = 0; i < a2->dim - 1; i++ )
    {
       a2->ve[i] = a->ve[i+1];
@@ -516,18 +516,18 @@ VEC	*iter_lanczos2(ITER *ip, VEC *evals, VEC *err_est)
 /* iter_splanczos2 -- version of iter_lanczos2() that uses sparse matrix data
    structure */
 #ifndef ANSI_C
-VEC    *iter_splanczos2(A,m,x0,evals,err_est)
-SPMAT	*A;
+MeVEC    *iter_splanczos2(A,m,x0,evals,err_est)
+SPMeMAT	*A;
 int	 m;
-VEC	*x0;		/* initial vector */
-VEC	*evals;		/* eigenvalue vector */
-VEC	*err_est;	/* error estimates of eigenvalues */
+MeVEC	*x0;		/* initial vector */
+MeVEC	*evals;		/* eigenvalue vector */
+MeVEC	*err_est;	/* error estimates of eigenvalues */
 #else
-VEC    *iter_splanczos2(SPMAT *A, int m, VEC *x0, VEC *evals, VEC *err_est)
+MeVEC    *iter_splanczos2(SPMeMAT *A, int m, MeVEC *x0, MeVEC *evals, MeVEC *err_est)
 #endif
 {	
    ITER *ip;
-   VEC *a;
+   MeVEC *a;
    
    ip = iter_get(0,0);
    ip->Ax = (Fun_Ax) sp_mv_mlt;
@@ -548,16 +548,16 @@ VEC    *iter_splanczos2(SPMAT *A, int m, VEC *x0, VEC *evals, VEC *err_est)
   Another variant - mainly for testing
   */
 #ifndef ANSI_C
-VEC  *iter_cg1(ip)
+MeVEC  *iter_cg1(ip)
 ITER *ip;
 #else
-VEC  *iter_cg1(ITER *ip)
+MeVEC  *iter_cg1(ITER *ip)
 #endif
 {
-   STATIC VEC *r = VNULL, *p = VNULL, *q = VNULL, *z = VNULL;
+   STATIC MeVEC *r = VNULL, *p = VNULL, *q = VNULL, *z = VNULL;
    Real	alpha;
    double inner,nres;
-   VEC *rr;   /* rr == r or rr == z */
+   MeVEC *rr;   /* rr == r or rr == z */
    
    if (ip == INULL)
      error(E_NULL,"iter_cg");
@@ -575,13 +575,13 @@ VEC  *iter_cg1(ITER *ip)
    p = v_resize(p,ip->b->dim);
    q = v_resize(q,ip->b->dim);
    
-   MEM_STAT_REG(r,TYPE_VEC);
-   MEM_STAT_REG(p,TYPE_VEC);
-   MEM_STAT_REG(q,TYPE_VEC);
+   MEM_STAT_REG(r,TYPE_MeVEC);
+   MEM_STAT_REG(p,TYPE_MeVEC);
+   MEM_STAT_REG(q,TYPE_MeVEC);
    
    if (ip->Bx != (Fun_Ax)NULL) {
       z = v_resize(z,ip->b->dim);
-      MEM_STAT_REG(z,TYPE_VEC);
+      MEM_STAT_REG(z,TYPE_MeVEC);
       rr = z;
    }
    else rr = r;
