@@ -52,10 +52,10 @@ double	diag;
     complex	**mat_ent, *mat_row, *b_ent, *out_ent, *out_col, sum;
     
     if ( matrix==ZMNULL || b==ZVNULL )
-	error(E_NULL,"zUsolve");
-    dim = min(matrix->m,matrix->n);
+	Meerror(E_NULL,"zUsolve");
+    dim = Memin(matrix->m,matrix->n);
     if ( b->dim < dim )
-	error(E_SIZES,"zUsolve");
+	Meerror(E_SIZES,"zUsolve");
     if ( out==ZVNULL || out->dim < dim )
 	out = zv_resize(out,matrix->n);
     mat_ent = matrix->me;	b_ent = b->ve;	out_ent = out->ve;
@@ -81,7 +81,7 @@ double	diag;
 	if ( diag == 0.0 )
 	{
 	    if ( is_zero(mat_ent[i][i]) )
-		error(E_SING,"zUsolve");
+		Meerror(E_SING,"zUsolve");
 	    else
 		/* out_ent[i] = sum/mat_ent[i][i]; */
 		out_ent[i] = zdiv(sum,mat_ent[i][i]);
@@ -97,7 +97,7 @@ double	diag;
     return (out);
 }
 
-/* zLsolve -- forward elimination with (optional) default diagonal value */
+/* zLsolve -- forward eliMemination with (optional) default diagonal value */
 ZMeVEC	*zLsolve(matrix,b,out,diag)
 ZMeMAT	*matrix;
 ZMeVEC	*b,*out;
@@ -107,10 +107,10 @@ double	diag;
     complex	**mat_ent, *mat_row, *b_ent, *out_ent, *out_col, sum;
     
     if ( matrix==ZMNULL || b==ZVNULL )
-	error(E_NULL,"zLsolve");
-    dim = min(matrix->m,matrix->n);
+	Meerror(E_NULL,"zLsolve");
+    dim = Memin(matrix->m,matrix->n);
     if ( b->dim < dim )
-	error(E_SIZES,"zLsolve");
+	Meerror(E_SIZES,"zLsolve");
     if ( out==ZVNULL || out->dim < dim )
 	out = zv_resize(out,matrix->n);
     mat_ent = matrix->me;	b_ent = b->ve;	out_ent = out->ve;
@@ -136,7 +136,7 @@ double	diag;
 	if ( diag == 0.0 )
 	{
 	    if ( is_zero(mat_ent[i][i]) )
-		error(E_SING,"zLsolve");
+		Meerror(E_SING,"zLsolve");
 	    else
 		out_ent[i] = zdiv(sum,mat_ent[i][i]);
 	}
@@ -151,7 +151,7 @@ double	diag;
 }
 
 
-/* zUAsolve -- forward elimination with (optional) default diagonal value
+/* zUAsolve -- forward eliMemination with (optional) default diagonal value
 		using UPPER triangular part of matrix */
 ZMeVEC	*zUAsolve(U,b,out,diag)
 ZMeMAT	*U;
@@ -163,10 +163,10 @@ double	diag;
     Real	invdiag;
     
     if ( ! U || ! b )
-	error(E_NULL,"zUAsolve");
-    dim = min(U->m,U->n);
+	Meerror(E_NULL,"zUAsolve");
+    dim = Memin(U->m,U->n);
     if ( b->dim < dim )
-	error(E_SIZES,"zUAsolve");
+	Meerror(E_SIZES,"zUAsolve");
     out = zv_resize(out,U->n);
     U_me = U->me;	b_ve = b->ve;	out_ve = out->ve;
     
@@ -190,7 +190,7 @@ double	diag;
 	{
 	    tmp = zconj(U_me[i][i]);
 	    if ( is_zero(tmp) )
-		error(E_SING,"zUAsolve");
+		Meerror(E_SING,"zUAsolve");
 	    /* out_ve[i] /= tmp; */
 	    out_ve[i] = zdiv(out_ve[i],tmp);
 	    tmp.re = - out_ve[i].re;
@@ -221,16 +221,16 @@ ZMeVEC	*b,*x;
     unsigned int	dim, i;
     
     if ( ! A || ! b )
-	error(E_NULL,"zDsolve");
-    dim = min(A->m,A->n);
+	Meerror(E_NULL,"zDsolve");
+    dim = Memin(A->m,A->n);
     if ( b->dim < dim )
-	error(E_SIZES,"zDsolve");
+	Meerror(E_SIZES,"zDsolve");
     x = zv_resize(x,A->n);
     
     dim = b->dim;
     for ( i=0; i<dim; i++ )
 	if ( is_zero(A->me[i][i]) )
-	    error(E_SING,"zDsolve");
+	    Meerror(E_SING,"zDsolve");
 	else
 	    x->ve[i] = zdiv(b->ve[i],A->me[i][i]);
     
@@ -251,10 +251,10 @@ double	diag;
     Real	invdiag;
     
     if ( ! L || ! b )
-	error(E_NULL,"zLAsolve");
-    dim = min(L->m,L->n);
+	Meerror(E_NULL,"zLAsolve");
+    dim = Memin(L->m,L->n);
     if ( b->dim < dim )
-	error(E_SIZES,"zLAsolve");
+	Meerror(E_SIZES,"zLAsolve");
     out = zv_resize(out,L->n);
     L_me = L->me;	b_ve = b->ve;	out_ve = out->ve;
     
@@ -276,7 +276,7 @@ double	diag;
 	{
 	    tmp = zconj(L_me[i][i]);
 	    if ( is_zero(tmp) )
-		error(E_SING,"zLAsolve");
+		Meerror(E_SING,"zLAsolve");
 	    out_ve[i] = zdiv(out_ve[i],tmp);
 	    tmp.re = - out_ve[i].re;
 	    tmp.im = - out_ve[i].im;

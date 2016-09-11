@@ -5,6 +5,13 @@
 #include "../common.h"
 #include "../parameters.h"
 
+Real K_no(
+
+	  Parameters * parameters,
+	  Da * d
+	  
+	  );
+
 Real K(
 
      Parameters * parameters,

@@ -132,7 +132,7 @@ MeVEC * bfgs(
       v_copy(g,oldg);
 
       // More-Thuente line search
-      nfev += cvsrch(model,x,f,g,p,opt.stp,opt.ftol,opt.gtol,opt.xtol,opt.stpmin,opt.stpMemax,opt.Memaxfev,data,parameters,&fv);
+      nfev += cvsrch(model,x,f,g,p,opt.stp,opt.ftol,opt.gtol,opt.xtol,opt.stpmin,opt.stpmax,opt.maxfev,data,parameters,&fv);
     
       v_sub(x,oldx,s);
       v_sub(g,oldg,y);
@@ -202,8 +202,8 @@ int cvsrch(
     Real gtol,
     Real xtol,
     Real stpmin,
-    Real stpMemax,
-    int Memaxfev,
+    Real stpmax,
+    int maxfev,
     Data *d,
     Parameters * parameters,
     Real *fv
@@ -258,7 +258,7 @@ int cvsrch(
     %     The subroutine statement is
     %
     %        subroutine cvsrch(fcn,n,x,f,g,s,stp,ftol,gtol,xtol,
-    %                          stpmin,stpMemax,Memaxfev,info,nfev,wa)
+    %                          stpmin,stpmax,maxfev,info,nfev,wa)
     %     where
     %
     % fcn is the name of the user-supplied subroutine which
@@ -309,12 +309,12 @@ int cvsrch(
     %         when the relative width of the interval of uncertainty 
     %   is at most xtol.
     %
-    % stpmin and stpMemax are nonnegative input variables which 
+    % stpmin and stpmax are nonnegative input variables which 
     %   specify lower and upper bounds for the step.
     %
-    % Memaxfev is a positive integer input variable. Termination
+    % maxfev is a positive integer input variable. Termination
     %         occurs when the number of calls to fcn is at least
-    %         Memaxfev by the end of an iteration.
+    %         maxfev by the end of an iteration.
     %
     % info is an integer output variable set as follows:
     %   
@@ -326,11 +326,11 @@ int cvsrch(
     %   info = 2  Relative width of the interval of uncertainty
     %       is at most xtol.
     %
-    %   info = 3  Number of calls to fcn has reached Memaxfev.
+    %   info = 3  Number of calls to fcn has reached maxfev.
     %
     %   info = 4  The step is at the lower bound stpmin.
     %
-    %   info = 5  The step is at the upper bound stpMemax.
+    %   info = 5  The step is at the upper bound stpmax.
     %
     %   info = 6  Rounding errors prevent further progress.
     %                   There may not be a step which satisfies the
@@ -348,7 +348,7 @@ int cvsrch(
     %
     % MINPACK-supplied...cstep
     %
-    % FORTRAN-supplied...abs,Memax,min
+    % FORTRAN-supplied...abs,fmax,fmin
     %   
     %     Argonne National Laboratory. MINPACK Project. June 1983
     %     Jorge J. More', David J. Thuente
@@ -376,7 +376,7 @@ int cvsrch(
   int nfev = 0;
   Real finit = f;
   Real dgtest = ftol*dginit;
-  Real width = stpMemax - stpmin;
+  Real width = stpmax - stpmin;
   Real width1 = 2*width;
   MeVEC *wa = v_get(x->dim);
   v_copy(x,wa);
@@ -404,36 +404,36 @@ int cvsrch(
     {
 
       //%
-      //%        Set the minimum and Memaximum steps to correspond
+      //%        Set the minimum and maximum steps to correspond
       //%        to the present interval of uncertainty.
       //%
 
-      Real stmin,stMemax;
+      Real stmin,stmax;
 
       if (brackt)
   {
-    stmin = min(stx,sty);
-    stMemax = Memax(stx,sty);
+    stmin = fmin(stx,sty);
+    stmax = fmax(stx,sty);
   }
       else
   {
     stmin = stx;
-    stMemax = stp + xtrapf*(stp - stx);
+    stmax = stp + xtrapf*(stp - stx);
   }
 
       //%
-      //%        Force the step to be within the bounds stpMemax and stpmin.
+      //%        Force the step to be within the bounds stpmax and stpmin.
       //%
 
-      stp = Memax(stp,stpmin);
-      stp = min(stp,stpMemax);
+      stp = fmax(stp,stpmin);
+      stp = fmin(stp,stpmax);
 
       //%
       //%        If an unusual termination is to occur then let 
       //%        stp be the lowest point obtained so far.
       //%
 
-      if ((brackt && (stp <= stmin || stp >= stMemax)) || nfev >= Memaxfev-1 || infoc == 0 || (brackt && stMemax-stmin <= xtol*stMemax))
+      if ((brackt && (stp <= stmin || stp >= stmax)) || nfev >= maxfev-1 || infoc == 0 || (brackt && stmax-stmin <= xtol*stmax))
   stp = stx;
 
       //%
@@ -464,19 +464,19 @@ int cvsrch(
       //%        Test for convergence.
       //%
 
-      if ((brackt && (stp <= stmin || stp >= stMemax)) || infoc == 0)
+      if ((brackt && (stp <= stmin || stp >= stmax)) || infoc == 0)
   info = 6;
 
-      if (stp == stpMemax && f <= ftest1 && dg <= dgtest)
+      if (stp == stpmax && f <= ftest1 && dg <= dgtest)
   info = 5;
 
       if (stp == stpmin && (f > ftest1 || dg >= dgtest))
   info = 4;
 
-      if (nfev >= Memaxfev)
+      if (nfev >= maxfev)
   info = 3;
 
-      if (brackt && stMemax - stmin <= xtol*stMemax)
+      if (brackt && stmax - stmin <= xtol*stmax)
   info = 2;
 
       if (f <= ftest1 && fabs(dg) <= gtol*(-dginit))
@@ -501,7 +501,7 @@ int cvsrch(
       //%        function has a nonpositive value and nonnegative derivative.
       //%
 
-      if (stage1 && f <= ftest1 && dg >= min(ftol,gtol)*dginit)
+      if (stage1 && f <= ftest1 && dg >= fmin(ftol,gtol)*dginit)
   stage1 = 0;
       //%
       //%        A modified function is used to predict the step only if
@@ -529,7 +529,7 @@ int cvsrch(
     //%           and to compute the new step.
     //%
 
-    infoc = cstep(&stx,&fxm,&dgxm,&sty,&fym,&dgym,&stp,fm,dgm,&brackt,stmin,stMemax);
+    infoc = cstep(&stx,&fxm,&dgxm,&sty,&fym,&dgym,&stp,fm,dgm,&brackt,stmin,stmax);
 
     //%
     //%           Reset the function and gradient values for f.
@@ -549,7 +549,7 @@ int cvsrch(
     //%           and to compute the new step.
     //%
 
-    infoc = cstep(&stx,&fx,&dgx,&sty,&fy,&dgy,&stp,f,dg,&brackt,stmin,stMemax);
+    infoc = cstep(&stx,&fx,&dgx,&sty,&fy,&dgy,&stp,f,dg,&brackt,stmin,stmax);
   }
 
       //
@@ -591,7 +591,7 @@ int cstep(
 	  Real dp,
 	  int *brackt,
 	  Real stpmin,
-	  Real stpMemax
+	  Real stpmax
 
 	  )
 {
@@ -622,7 +622,7 @@ int cstep(
     %     The subroutine statement is
     %
     %       subroutine cstep(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,
-    %                        stpmin,stpMemax,info)
+    %                        stpmin,stpmax,info)
     % 
     %     where
     %
@@ -647,7 +647,7 @@ int cstep(
     %         then on input brackt must be set false. If the minimizer
     %         is bracketed then on output brackt is set true.
     %
-    %       stpmin and stpMemax are input variables which specify lower 
+    %       stpmin and stpmax are input variables which specify lower 
     %         and upper bounds for the step.
     %
     %       info is an integer output variable set as follows:
@@ -657,7 +657,7 @@ int cstep(
     %
     %     Subprograms called
     %
-    %       FORTRAN-supplied ... abs,Memax,min,sqrt
+    %       FORTRAN-supplied ... abs,fmax,fmin,sqrt
     %                        ... dble
     %
     %     Argonne National Laboratory. MINPACK Project. June 1983
@@ -744,7 +744,7 @@ int cstep(
       *brackt = 1;
     }
 
-  //% Third case. A lower function value, derivatives of the same sign, and the magnitude of the derivative decreases. The cubic step is only used if the cubic tends to infinity in the direction of the step or if the minimum of the cubic is beyond stp. Otherwise the cubic step is defined to be either stpmin or stpMemax. The quadratic (secant) step is also computed and if the minimum is bracketed then the the step closest to stx is taken, else the step farthest away is taken.
+  //% Third case. A lower function value, derivatives of the same sign, and the magnitude of the derivative decreases. The cubic step is only used if the cubic tends to infinity in the direction of the step or if the minimum of the cubic is beyond stp. Otherwise the cubic step is defined to be either stpmin or stpmax. The quadratic (secant) step is also computed and if the minimum is bracketed then the the step closest to stx is taken, else the step farthest away is taken.
 
   else if (fabs(dp) < fabs(*dx)) 
     {
@@ -761,7 +761,7 @@ int cstep(
       V_FREE(tmp);
       // % The case gamma = 0 only arises if the cubic does not tend to infinity in the direction of the step.
 
-      gamma = ss*sqrt(Memax(0.,pow(theta/ss,2.) - (*dx/ss)*(dp/ss)));
+      gamma = ss*sqrt(fmax(0.,pow(theta/ss,2.) - (*dx/ss)*(dp/ss)));
 
       if ((*stp) > (*stx)) 
 	gamma = -gamma;
@@ -775,7 +775,7 @@ int cstep(
       if (r < 0.0 && gamma != 0.0)
 	stpc = (*stp) + r*((*stx) - (*stp));
       else if ((*stp) > (*stx))
-	stpc = stpMemax;
+	stpc = stpmax;
       else
 	stpc = stpmin;
 
@@ -792,7 +792,7 @@ int cstep(
 	  stpf = stpq;
     }
 
-  //% Fourth case. A lower function value, derivatives of the same sign, and the magnitude of the derivative does not decrease. If the minimum is not bracketed, the step is either stpmin or stpMemax, else the cubic step is taken.
+  //% Fourth case. A lower function value, derivatives of the same sign, and the magnitude of the derivative does not decrease. If the minimum is not bracketed, the step is either stpmin or stpmax, else the cubic step is taken.
 
   else
     {
@@ -822,7 +822,7 @@ int cstep(
           stpf = stpc;
 	}
       else if (*stp > (*stx))
-	stpf = stpMemax;
+	stpf = stpmax;
       else
 	stpf = stpmin;
     
@@ -852,14 +852,14 @@ int cstep(
 
   //% Compute the new step and safeguard it.
 
-  stpf = min(stpMemax,stpf);
-  stpf = Memax(stpmin,stpf);
+  stpf = fmin(stpmax,stpf);
+  stpf = fmax(stpmin,stpf);
   *stp = stpf;
   if (*brackt && bound)
     if (*sty > *stx) 
-      *stp = min(*stx+.66*(*sty-*stx),*stp);
+      *stp = fmin(*stx+.66*(*sty-*stx),*stp);
     else
-      *stp = Memax(*stx+.66*(*sty-*stx),*stp);
+      *stp = fmax(*stx+.66*(*sty-*stx),*stp);
          
   return info;
 

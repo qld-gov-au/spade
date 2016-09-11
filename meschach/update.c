@@ -57,9 +57,9 @@ MeMAT	*LDLupdate(MeMAT *CHmat, MeVEC *w, double alpha)
 	Real	diag,new_diag,beta,p;
 
 	if ( CHmat==(MeMAT *)NULL || w==(MeVEC *)NULL )
-		error(E_NULL,"LDLupdate");
+		Meerror(E_NULL,"LDLupdate");
 	if ( CHmat->m != CHmat->n || w->dim != CHmat->m )
-		error(E_SIZES,"LDLupdate");
+		Meerror(E_SIZES,"LDLupdate");
 
 	for ( j=0; j < w->dim; j++ )
 	{
@@ -67,7 +67,7 @@ MeMAT	*LDLupdate(MeMAT *CHmat, MeVEC *w, double alpha)
 		diag = CHmat->me[j][j];
 		new_diag = CHmat->me[j][j] = diag + alpha*p*p;
 		if ( new_diag <= 0.0 )
-			error(E_POSDEF,"LDLupdate");
+			Meerror(E_POSDEF,"LDLupdate");
 		beta = p*alpha/new_diag;
 		alpha *= diag/new_diag;
 
@@ -99,10 +99,10 @@ MeMAT	*QRupdate(MeMAT *Q, MeMAT *R, MeVEC *u, MeVEC *v)
 	Real	c,s,temp;
 
 	if ( ! R || ! u || ! v )
-		error(E_NULL,"QRupdate");
+		Meerror(E_NULL,"QRupdate");
 	if ( ( Q && ( Q->m != Q->n || R->m != Q->n ) ) ||
 					u->dim != R->m || v->dim != R->n )
-		error(E_SIZES,"QRupdate");
+		Meerror(E_SIZES,"QRupdate");
 
 	/* find largest k s.t. u[k] != 0 */
 	for ( k=R->m-1; k>=0; k-- )

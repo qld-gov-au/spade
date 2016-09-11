@@ -50,11 +50,11 @@ MeMAT	*Q, *H;
 	Real	h_val;
 
 	if ( ! A || ! Q || ! x0 )
-	    error(E_NULL,"arnoldi");
+	    Meerror(E_NULL,"arnoldi");
 	if ( m <= 0 )
-	    error(E_BOUNDS,"arnoldi");
+	    Meerror(E_BOUNDS,"arnoldi");
 	if ( Q->n != x0->dim ||	Q->m != m )
-	    error(E_SIZES,"arnoldi");
+	    Meerror(E_SIZES,"arnoldi");
 
 	m_zero(Q);
 	H = m_resize(H,m,m);
@@ -119,7 +119,7 @@ Real	*h_rem;
 MeMAT	*Q, *H;
 {	return arnoldi(sp_mv_mlt,A,x0,m,h_rem,Q,H);	}
 
-/* gmres -- generalised minimum residual algorithm of Saad & Schultz
+/* gmres -- generalised Meminimum residual algorithm of Saad & Schultz
 		SIAM J. Sci. Stat. Comp. v.7, pp.856--869 (1986)
 	-- y is overwritten with the solution */
 MeVEC	*gmres(A,A_param,m,Q,R,b,tol,x)
@@ -136,11 +136,11 @@ double	tol;
     Real	h_val, norm_b;
     
     if ( ! A || ! Q || ! b || ! R )
-	error(E_NULL,"gmres");
+	Meerror(E_NULL,"gmres");
     if ( m <= 0 )
-	error(E_BOUNDS,"gmres");
+	Meerror(E_BOUNDS,"gmres");
     if ( Q->n != b->dim || Q->m != m )
-	error(E_SIZES,"gmres");
+	Meerror(E_SIZES,"gmres");
     
     x = v_copy(b,x);
     m_zero(Q);
@@ -157,7 +157,7 @@ double	tol;
     MEM_STAT_REG(rhs,TYPE_MeVEC);
     norm_b = v_norm2(x);
     if ( norm_b == 0.0 )
-	error(E_RANGE,"gmres");
+	Meerror(E_RANGE,"gmres");
     sv_mlt(1.0/norm_b,x,v);
     
     for ( i = 0; i < m; i++ )

@@ -53,38 +53,38 @@ MeMAT	*Q;
 MeVEC	*trieig(MeVEC *a, MeVEC *b, MeMAT *Q)
 #endif
 {
-	int	i, i_min, i_Memax, n, split;
+	int	i, i_Memin, i_MeMemax, n, split;
 	Real	*a_ve, *b_ve;
 	Real	b_sqr, bk, ak1, bk1, ak2, bk2, z;
 	Real	c, c2, cs, s, s2, d, mu;
 
 	if ( ! a || ! b )
-		error(E_NULL,"trieig");
+		Meerror(E_NULL,"trieig");
 	if ( a->dim != b->dim + 1 || ( Q && Q->m != a->dim ) )
-		error(E_SIZES,"trieig");
+		Meerror(E_SIZES,"trieig");
 	if ( Q && Q->m != Q->n )
-		error(E_SQUARE,"trieig");
+		Meerror(E_SQUARE,"trieig");
 
 	n = a->dim;
 	a_ve = a->ve;		b_ve = b->ve;
 
-	i_min = 0;
-	while ( i_min < n )		/* outer while loop */
+	i_Memin = 0;
+	while ( i_Memin < n )		/* outer while loop */
 	{
-		/* find i_Memax to suit;
-			submatrix i_min..i_Memax should be irreducible */
-		i_Memax = n-1;
-		for ( i = i_min; i < n-1; i++ )
+		/* find i_MeMemax to suit;
+			submatrix i_Memin..i_MeMemax should be irreducible */
+		i_MeMemax = n-1;
+		for ( i = i_Memin; i < n-1; i++ )
 		    if ( b_ve[i] == 0.0 )
-		    {	i_Memax = i;	break;	}
-		if ( i_Memax <= i_min )
+		    {	i_MeMemax = i;	break;	}
+		if ( i_MeMemax <= i_Memin )
 		{
-		    /* printf("# i_min = %d, i_Memax = %d\n",i_min,i_Memax); */
-		    i_min = i_Memax + 1;
+		    /* printf("# i_Memin = %d, i_MeMemax = %d\n",i_Memin,i_MeMemax); */
+		    i_Memin = i_MeMemax + 1;
 		    continue;	/* outer while loop */
 		}
 
-		/* printf("# i_min = %d, i_Memax = %d\n",i_min,i_Memax); */
+		/* printf("# i_Memin = %d, i_MeMemax = %d\n",i_Memin,i_MeMemax); */
 
 		/* repeatedly perform QR method until matrix splits */
 		split = FALSE;
@@ -92,13 +92,13 @@ MeVEC	*trieig(MeVEC *a, MeVEC *b, MeMAT *Q)
 		{
 
 		    /* find Wilkinson shift */
-		    d = (a_ve[i_Memax-1] - a_ve[i_Memax])/2;
-		    b_sqr = b_ve[i_Memax-1]*b_ve[i_Memax-1];
-		    mu = a_ve[i_Memax] - b_sqr/(d + sgn(d)*sqrt(d*d+b_sqr));
+		    d = (a_ve[i_MeMemax-1] - a_ve[i_MeMemax])/2;
+		    b_sqr = b_ve[i_MeMemax-1]*b_ve[i_MeMemax-1];
+		    mu = a_ve[i_MeMemax] - b_sqr/(d + sgn(d)*sqrt(d*d+b_sqr));
 		    /* printf("# Wilkinson shift = %g\n",mu); */
 
 		    /* initial Givens' rotation */
-		    givens(a_ve[i_min]-mu,b_ve[i_min],&c,&s);
+		    givens(a_ve[i_Memin]-mu,b_ve[i_Memin],&c,&s);
 		    s = -s;
 		    /* printf("# c = %g, s = %g\n",c,s); */
 		    if ( fabs(c) < SQRT2 )
@@ -106,24 +106,24 @@ MeVEC	*trieig(MeVEC *a, MeVEC *b, MeMAT *Q)
 		    else
 		    {	s2 = s*s;	c2 = 1-s2;	}
 		    cs = c*s;
-		    ak1 = c2*a_ve[i_min]+s2*a_ve[i_min+1]-2*cs*b_ve[i_min];
-		    bk1 = cs*(a_ve[i_min]-a_ve[i_min+1]) +
-						(c2-s2)*b_ve[i_min];
-		    ak2 = s2*a_ve[i_min]+c2*a_ve[i_min+1]+2*cs*b_ve[i_min];
-		    bk2 = ( i_min < i_Memax-1 ) ? c*b_ve[i_min+1] : 0.0;
-		    z  = ( i_min < i_Memax-1 ) ? -s*b_ve[i_min+1] : 0.0;
-		    a_ve[i_min] = ak1;
-		    a_ve[i_min+1] = ak2;
-		    b_ve[i_min] = bk1;
-		    if ( i_min < i_Memax-1 )
-			b_ve[i_min+1] = bk2;
+		    ak1 = c2*a_ve[i_Memin]+s2*a_ve[i_Memin+1]-2*cs*b_ve[i_Memin];
+		    bk1 = cs*(a_ve[i_Memin]-a_ve[i_Memin+1]) +
+						(c2-s2)*b_ve[i_Memin];
+		    ak2 = s2*a_ve[i_Memin]+c2*a_ve[i_Memin+1]+2*cs*b_ve[i_Memin];
+		    bk2 = ( i_Memin < i_MeMemax-1 ) ? c*b_ve[i_Memin+1] : 0.0;
+		    z  = ( i_Memin < i_MeMemax-1 ) ? -s*b_ve[i_Memin+1] : 0.0;
+		    a_ve[i_Memin] = ak1;
+		    a_ve[i_Memin+1] = ak2;
+		    b_ve[i_Memin] = bk1;
+		    if ( i_Memin < i_MeMemax-1 )
+			b_ve[i_Memin+1] = bk2;
 		    if ( Q )
-			rot_cols(Q,i_min,i_min+1,c,-s,Q);
+			rot_cols(Q,i_Memin,i_Memin+1,c,-s,Q);
 		    /* printf("# z = %g\n",z); */
 		    /* printf("# a [temp1] =\n");	v_output(a); */
 		    /* printf("# b [temp1] =\n");	v_output(b); */
 
-		    for ( i = i_min+1; i < i_Memax; i++ )
+		    for ( i = i_Memin+1; i < i_MeMemax; i++ )
 		    {
 			/* get Givens' rotation for sub-block -- k == i-1 */
 			givens(b_ve[i-1],z,&c,&s);
@@ -141,13 +141,13 @@ MeVEC	*trieig(MeVEC *a, MeVEC *b, MeMAT *Q)
 			bk1 = cs*(a_ve[i]-a_ve[i+1]) +
 						(c2-s2)*b_ve[i];
 			ak2 = s2*a_ve[i]+c2*a_ve[i+1]+2*cs*b_ve[i];
-			bk2 = ( i+1 < i_Memax ) ? c*b_ve[i+1] : 0.0;
-			z  = ( i+1 < i_Memax ) ? -s*b_ve[i+1] : 0.0;
+			bk2 = ( i+1 < i_MeMemax ) ? c*b_ve[i+1] : 0.0;
+			z  = ( i+1 < i_MeMemax ) ? -s*b_ve[i+1] : 0.0;
 			a_ve[i] = ak1;	a_ve[i+1] = ak2;
 			b_ve[i] = bk1;
-			if ( i < i_Memax-1 )
+			if ( i < i_MeMemax-1 )
 			    b_ve[i+1] = bk2;
-			if ( i > i_min )
+			if ( i > i_Memin )
 			    b_ve[i-1] = bk;
 			if ( Q )
 			    rot_cols(Q,i,i+1,c,-s,Q);
@@ -156,7 +156,7 @@ MeVEC	*trieig(MeVEC *a, MeVEC *b, MeMAT *Q)
 		    }
 
 		    /* test to see if matrix should be split */
-		    for ( i = i_min; i < i_Memax; i++ )
+		    for ( i = i_Memin; i < i_MeMemax; i++ )
 			if ( fabs(b_ve[i]) < MACHEPS*
 					(fabs(a_ve[i])+fabs(a_ve[i+1])) )
 			{   b_ve[i] = 0.0;	split = TRUE;	}
@@ -187,9 +187,9 @@ MeVEC	*symmeig(const MeMAT *A, MeMAT *Q, MeVEC *out)
 	STATIC MeVEC	*b   = VNULL, *diag = VNULL, *beta = VNULL;
 
 	if ( ! A )
-		error(E_NULL,"symmeig");
+		Meerror(E_NULL,"symmeig");
 	if ( A->m != A->n )
-		error(E_SQUARE,"symmeig");
+		Meerror(E_SQUARE,"symmeig");
 	if ( ! out || out->dim != A->m )
 		out = v_resize(out,A->m);
 

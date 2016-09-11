@@ -35,21 +35,32 @@ typedef struct {
   Real gtol;
   Real xtol;
   Real stpmin;
-  Real stpMemax;
-  int Memaxfev;
+  Real stpmax;
+  int maxfev;
 } OptimControl;
 
 typedef struct {
   int nK;          // number knots
   int B;
-  MeVEC *knots_e;    // knots effort
-  MeVEC *knots_c;    // knots catch
+  MeVEC *knots_e;      // knots effort
+  MeVEC *knots_c;      // knots catch
   MeVEC *splcoef_e;    // knots effort
   MeVEC *splcoef_c;    // knots catch
   int Nlf;
   MeVEC *ln;
   MeVEC *tl;
 } NewData;
+
+typedef struct {
+  int N;
+  int I;
+  int J;
+  Real k;
+  Real *cat;
+  Real *eff;
+  Real **p;
+  Real *Qp;
+} Da;
 
 typedef struct {
   MeVEC *eff;
@@ -87,15 +98,16 @@ typedef struct {
   Parameters *parameters;
 } Grad_Args;
 
-Real iota1;
-Real iota2;
-Real phi;
-Real eta1;
-Real eta2;
 
-Real h;
-int J;
-int interactive_mode_requested;
+extern Real iota1;
+extern Real iota2;
+extern Real phi;
+extern Real eta1;
+extern Real eta2;
+
+extern Real h;
+extern int J;
+extern int interactive_mode_requested;
 
 void request_interactive_mode(int a);
 
@@ -104,6 +116,8 @@ void spade_v_output(MeVEC* vec);
 void data_read_ce(const char * data_file_name, Data * data, int * N, Real k);
 
 void data_read_lf(const char * data_file_name, Data * data, int N, Real k, int minfish);
+
+void data_read(const char * data_file_name, Da * data);
 
 void data_read_ce_new(const char * data_file_name, NewData * newdata);
 

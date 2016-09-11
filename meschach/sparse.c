@@ -53,9 +53,9 @@ double	sp_get_val(const SPMeMAT *A, int i, int j)
    int	idx;
    
    if ( A == SMNULL )
-     error(E_NULL,"sp_get_val");
+     Meerror(E_NULL,"sp_get_val");
    if ( i < 0 || i >= A->m || j < 0 || j >= A->n )
-     error(E_SIZES,"sp_get_val");
+     Meerror(E_SIZES,"sp_get_val");
    
    r = A->row+i;
    idx = sprow_idx(r,j);
@@ -79,9 +79,9 @@ double	sp_set_val(SPMeMAT *A, int i, int j, double val)
    int	idx, idx2, new_len;
    
    if ( A == SMNULL )
-     error(E_NULL,"sp_set_val");
+     Meerror(E_NULL,"sp_set_val");
    if ( i < 0 || i >= A->m || j < 0 || j >= A->n )
-     error(E_SIZES,"sp_set_val");
+     Meerror(E_SIZES,"sp_set_val");
    
    r = A->row+i;
    idx = sprow_idx(r,j);
@@ -94,19 +94,19 @@ double	sp_set_val(SPMeMAT *A, int i, int j, double val)
       A->flag_col = A->flag_diag = FALSE;
       /* shift & insert new value */
       idx = -(idx+2);	/* this is the intended insertion index */
-      if ( r->len >= r->Memaxlen )
+      if ( r->len >= r->MeMemaxlen )
       {
-	 r->len = r->Memaxlen;
-	 new_len = Memax(2*r->Memaxlen+1,5);
+	 r->len = r->MeMemaxlen;
+	 new_len = MeMemax(2*r->MeMemaxlen+1,5);
 	 if (mem_info_is_on()) {
-	    mem_bytes(TYPE_SPMeMAT,A->row[i].Memaxlen*sizeof(row_elt),
+	    mem_bytes(TYPE_SPMeMAT,A->row[i].MeMemaxlen*sizeof(row_elt),
 			    new_len*sizeof(row_elt));
 	 }
 
 	 r->elt = RENEW(r->elt,new_len,row_elt);
 	 if ( ! r->elt )	/* can't allocate */
-	   error(E_MEM,"sp_set_val");
-	 r->Memaxlen = 2*r->Memaxlen+1;
+	   Meerror(E_MEM,"sp_set_val");
+	 r->MeMemaxlen = 2*r->MeMemaxlen+1;
       }
       for ( idx2 = r->len-1; idx2 >= idx; idx2-- )
 	MEM_COPY((char *)(&(r->elt[idx2])),
@@ -120,7 +120,7 @@ double	sp_set_val(SPMeMAT *A, int i, int j, double val)
       r->elt[idx].col = j;
       return r->elt[idx].val = val;
    }
-   /* else -- idx == -1, error in index/matrix! */
+   /* else -- idx == -1, Meerror in index/matrix! */
    return 0.0;
 }
 
@@ -135,19 +135,19 @@ MeVEC	*x, *out;
 MeVEC	*sp_mv_mlt(const SPMeMAT *A, const MeVEC *x, MeVEC *out)
 #endif
 {
-   int	i, j_idx, m, n, Memax_idx;
+   int	i, j_idx, m, n, MeMemax_idx;
    Real	sum, *x_ve;
    SPROW	*r;
    row_elt	*elts;
    
    if ( ! A || ! x )
-     error(E_NULL,"sp_mv_mlt");
+     Meerror(E_NULL,"sp_mv_mlt");
    if ( x->dim != A->n )
-     error(E_SIZES,"sp_mv_mlt");
+     Meerror(E_SIZES,"sp_mv_mlt");
    if ( ! out || out->dim < A->m )
      out = v_resize(out,A->m);
    if ( out == x )
-     error(E_INSITU,"sp_mv_mlt");
+     Meerror(E_INSITU,"sp_mv_mlt");
    m = A->m;	n = A->n;
    x_ve = x->ve;
    
@@ -155,9 +155,9 @@ MeVEC	*sp_mv_mlt(const SPMeMAT *A, const MeVEC *x, MeVEC *out)
    {
       sum = 0.0;
       r = &(A->row[i]);
-      Memax_idx = r->len;
+      MeMemax_idx = r->len;
       elts    = r->elt;
-      for ( j_idx = 0; j_idx < Memax_idx; j_idx++, elts++ )
+      for ( j_idx = 0; j_idx < MeMemax_idx; j_idx++, elts++ )
 	sum += elts->val*x_ve[elts->col];
       out->ve[i] = sum;
    }
@@ -175,19 +175,19 @@ MeVEC	*x, *out;
 MeVEC	*sp_vm_mlt(const SPMeMAT *A, const MeVEC *x, MeVEC *out)
 #endif
 {
-   int	i, j_idx, m, n, Memax_idx;
+   int	i, j_idx, m, n, MeMemax_idx;
    Real	tmp, *x_ve, *out_ve;
    SPROW	*r;
    row_elt	*elts;
    
    if ( ! A || ! x )
-     error(E_NULL,"sp_vm_mlt");
+     Meerror(E_NULL,"sp_vm_mlt");
    if ( x->dim != A->m )
-     error(E_SIZES,"sp_vm_mlt");
+     Meerror(E_SIZES,"sp_vm_mlt");
    if ( ! out || out->dim < A->n )
      out = v_resize(out,A->n);
    if ( out == x )
-     error(E_INSITU,"sp_vm_mlt");
+     Meerror(E_INSITU,"sp_vm_mlt");
    
    m = A->m;	n = A->n;
    v_zero(out);
@@ -196,10 +196,10 @@ MeVEC	*sp_vm_mlt(const SPMeMAT *A, const MeVEC *x, MeVEC *out)
    for ( i = 0; i < m; i++ )
    {
       r = A->row+i;
-      Memax_idx = r->len;
+      MeMemax_idx = r->len;
       elts    = r->elt;
       tmp = x_ve[i];
-      for ( j_idx = 0; j_idx < Memax_idx; j_idx++, elts++ )
+      for ( j_idx = 0; j_idx < MeMemax_idx; j_idx++, elts++ )
 	out_ve[elts->col] += elts->val*tmp;
    }
    
@@ -211,10 +211,10 @@ MeVEC	*sp_vm_mlt(const SPMeMAT *A, const MeVEC *x, MeVEC *out)
    -- len is number of elements available for each row without
    allocating further memory */
 #ifndef ANSI_C
-SPMeMAT	*sp_get(m,n,Memaxlen)
-int	m, n, Memaxlen;
+SPMeMAT	*sp_get(m,n,MeMemaxlen)
+int	m, n, MeMemaxlen;
 #else
-SPMeMAT	*sp_get(int m, int n, int Memaxlen)
+SPMeMAT	*sp_get(int m, int n, int MeMemaxlen)
 #endif
 {
    SPMeMAT	*A;
@@ -222,13 +222,13 @@ SPMeMAT	*sp_get(int m, int n, int Memaxlen)
    int	i;
    
    if ( m < 0 || n < 0 )
-     error(E_NEG,"sp_get");
+     Meerror(E_NEG,"sp_get");
 
-   Memaxlen = Memax(Memaxlen,1);
+   MeMemaxlen = MeMemax(MeMemaxlen,1);
    
    A = NEW(SPMeMAT);
    if ( ! A )		/* can't allocate */
-     error(E_MEM,"sp_get");
+     Meerror(E_MEM,"sp_get");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_SPMeMAT,0,sizeof(SPMeMAT));
       mem_numvar(TYPE_SPMeMAT,1);
@@ -237,7 +237,7 @@ SPMeMAT	*sp_get(int m, int n, int Memaxlen)
    
    A->row = rows = NEW_A(m,SPROW);
    if ( ! A->row )		/* can't allocate */
-     error(E_MEM,"sp_get");
+     Meerror(E_MEM,"sp_get");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_SPMeMAT,0,m*sizeof(SPROW));
    }
@@ -246,7 +246,7 @@ SPMeMAT	*sp_get(int m, int n, int Memaxlen)
    A->start_row = NEW_A(n,int);
    A->start_idx = NEW_A(n,int);
    if ( ! A->start_row || ! A->start_idx )	/* can't allocate */
-     error(E_MEM,"sp_get");
+     Meerror(E_MEM,"sp_get");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_SPMeMAT,0,2*n*sizeof(int));
    }
@@ -254,20 +254,20 @@ SPMeMAT	*sp_get(int m, int n, int Memaxlen)
      A->start_row[i] = A->start_idx[i] = -1;
    /* fprintf(stderr,"Have start_row array\n"); */
    
-   A->m = A->Memax_m = m;
-   A->n = A->Memax_n = n;
+   A->m = A->MeMemax_m = m;
+   A->n = A->MeMemax_n = n;
    
    for ( i = 0; i < m; i++, rows++ )
    {
-      rows->elt = NEW_A(Memaxlen,row_elt);
+      rows->elt = NEW_A(MeMemaxlen,row_elt);
       if ( ! rows->elt )
-	error(E_MEM,"sp_get");
+	Meerror(E_MEM,"sp_get");
       else if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,0,Memaxlen*sizeof(row_elt));
+	 mem_bytes(TYPE_SPMeMAT,0,MeMemaxlen*sizeof(row_elt));
       }
       /* fprintf(stderr,"Have row %d element array\n",i); */
       rows->len = 0;
-      rows->Memaxlen = Memaxlen;
+      rows->MeMemaxlen = MeMemaxlen;
       rows->diag = -1;
    }
    
@@ -290,13 +290,13 @@ int	sp_free(SPMeMAT *A)
      return -1;
    if ( A->start_row != (int *)NULL ) {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,A->Memax_n*sizeof(int),0);
+	 mem_bytes(TYPE_SPMeMAT,A->MeMemax_n*sizeof(int),0);
       }
       free((char *)(A->start_row));
    }
    if ( A->start_idx != (int *)NULL ) {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,A->Memax_n*sizeof(int),0);
+	 mem_bytes(TYPE_SPMeMAT,A->MeMemax_n*sizeof(int),0);
       }
       
       free((char *)(A->start_idx));
@@ -316,7 +316,7 @@ int	sp_free(SPMeMAT *A)
       r = &(A->row[i]);
       if ( r->elt != (row_elt *)NULL ) {
 	 if (mem_info_is_on()) {
-	    mem_bytes(TYPE_SPMeMAT,A->row[i].Memaxlen*sizeof(row_elt),0);
+	    mem_bytes(TYPE_SPMeMAT,A->row[i].MeMemaxlen*sizeof(row_elt),0);
 	 }
 	 free((char *)(r->elt));
       }
@@ -324,7 +324,7 @@ int	sp_free(SPMeMAT *A)
    
    if (mem_info_is_on()) {
       if (A->row) 
-	mem_bytes(TYPE_SPMeMAT,A->Memax_m*sizeof(SPROW),0);
+	mem_bytes(TYPE_SPMeMAT,A->MeMemax_m*sizeof(SPROW),0);
       mem_bytes(TYPE_SPMeMAT,sizeof(SPMeMAT),0);
       mem_numvar(TYPE_SPMeMAT,-1);
    }
@@ -337,7 +337,7 @@ int	sp_free(SPMeMAT *A)
 
 
 /* sp_copy -- constructs a copy of a given matrix
-   -- note that the Memax_len fields (etc) are no larger in the copy
+   -- note that the MeMemax_len fields (etc) are no larger in the copy
    than necessary
    -- result is returned */
 #ifndef ANSI_C
@@ -352,18 +352,18 @@ SPMeMAT	*sp_copy(const SPMeMAT *A)
    int	i;
    
    if ( A == SMNULL )
-     error(E_NULL,"sp_copy");
+     Meerror(E_NULL,"sp_copy");
    if ( ! (out=NEW(SPMeMAT)) )
-     error(E_MEM,"sp_copy");
+     Meerror(E_MEM,"sp_copy");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_SPMeMAT,0,sizeof(SPMeMAT));
       mem_numvar(TYPE_SPMeMAT,1);
    }
-   out->m = out->Memax_m = A->m;	out->n = out->Memax_n = A->n;
+   out->m = out->MeMemax_m = A->m;	out->n = out->MeMemax_n = A->n;
    
    /* set up rows */
    if ( ! (out->row=NEW_A(A->m,SPROW)) )
-     error(E_MEM,"sp_copy");
+     Meerror(E_MEM,"sp_copy");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_SPMeMAT,0,A->m*sizeof(SPROW));
    }
@@ -371,13 +371,13 @@ SPMeMAT	*sp_copy(const SPMeMAT *A)
    {
       row1 = &(A->row[i]);
       row2 = &(out->row[i]);
-      if ( ! (row2->elt=NEW_A(Memax(row1->len,3),row_elt)) )
-	error(E_MEM,"sp_copy");
+      if ( ! (row2->elt=NEW_A(MeMemax(row1->len,3),row_elt)) )
+	Meerror(E_MEM,"sp_copy");
       else if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,0,Memax(row1->len,3)*sizeof(row_elt));
+	 mem_bytes(TYPE_SPMeMAT,0,MeMemax(row1->len,3)*sizeof(row_elt));
       }
       row2->len = row1->len;
-      row2->Memaxlen = Memax(row1->len,3);
+      row2->MeMemaxlen = MeMemax(row1->len,3);
       row2->diag = row1->diag;
       MEM_COPY((char *)(row1->elt),(char *)(row2->elt),
 	       row1->len*sizeof(row_elt));
@@ -386,7 +386,7 @@ SPMeMAT	*sp_copy(const SPMeMAT *A)
    /* set up start arrays -- for column access */
    if ( ! (out->start_idx=NEW_A(A->n,int)) ||
        ! (out->start_row=NEW_A(A->n,int)) )
-     error(E_MEM,"sp_copy");
+     Meerror(E_MEM,"sp_copy");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_SPMeMAT,0,2*A->n*sizeof(int));
    }
@@ -413,7 +413,7 @@ SPMeMAT	*sp_col_access(SPMeMAT *A)
    int	*start_row, *start_idx;
    
    if ( A == SMNULL )
-     error(E_NULL,"sp_col_access");
+     Meerror(E_NULL,"sp_col_access");
    
    m = A->m;	n = A->n;
    
@@ -456,7 +456,7 @@ SPMeMAT	*sp_diag_access(SPMeMAT *A)
    SPROW	*row;
    
    if ( A == SMNULL )
-     error(E_NULL,"sp_diag_access");
+     Meerror(E_NULL,"sp_diag_access");
    
    m = A->m;
    
@@ -483,7 +483,7 @@ MeMAT	*sp_m2dense(const SPMeMAT *A, MeMAT *out)
    row_elt	*elt;
    
    if ( ! A )
-     error(E_NULL,"sp_m2dense");
+     Meerror(E_NULL,"sp_m2dense");
    if ( ! out || out->m < A->m || out->n < A->n )
      out = m_get(A->m,A->n);
    
@@ -513,9 +513,9 @@ SPMeMAT *sp_add(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *C)
    STATIC SPROW *tmp = NULL;
 
    if ( ! A || ! B )
-     error(E_NULL,"sp_add");
+     Meerror(E_NULL,"sp_add");
    if ( A->m != B->m || A->n != B->n )
-     error(E_SIZES,"sp_add");
+     Meerror(E_SIZES,"sp_add");
    if (C == A || C == B)
      in_situ = TRUE;
    else in_situ = FALSE;
@@ -524,7 +524,7 @@ SPMeMAT *sp_add(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *C)
      C = sp_get(A->m,A->n,5);
    else {
       if ( C->m != A->m || C->n != A->n  )
-	error(E_SIZES,"sp_add");
+	Meerror(E_SIZES,"sp_add");
       if (!in_situ) sp_zero(C);
    }
 
@@ -568,9 +568,9 @@ SPMeMAT *sp_sub(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *C)
    STATIC SPROW *tmp = NULL;
    
    if ( ! A || ! B )
-     error(E_NULL,"sp_sub");
+     Meerror(E_NULL,"sp_sub");
    if ( A->m != B->m || A->n != B->n )
-     error(E_SIZES,"sp_sub");
+     Meerror(E_SIZES,"sp_sub");
    if (C == A || C == B)
      in_situ = TRUE;
    else in_situ = FALSE;
@@ -579,7 +579,7 @@ SPMeMAT *sp_sub(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *C)
      C = sp_get(A->m,A->n,5);
    else {
       if ( C->m != A->m || C->n != A->n  )
-	error(E_SIZES,"sp_sub");
+	Meerror(E_SIZES,"sp_sub");
       if (!in_situ) sp_zero(C);
    }
 
@@ -624,9 +624,9 @@ SPMeMAT *sp_mltadd(const SPMeMAT *A, const SPMeMAT *B, double alpha, SPMeMAT *C)
    STATIC SPROW *tmp = NULL;
 
    if ( ! A || ! B )
-     error(E_NULL,"sp_mltadd");
+     Meerror(E_NULL,"sp_mltadd");
    if ( A->m != B->m || A->n != B->n )
-     error(E_SIZES,"sp_mltadd");
+     Meerror(E_SIZES,"sp_mltadd");
    if (C == A || C == B)
      in_situ = TRUE;
    else in_situ = FALSE;
@@ -635,7 +635,7 @@ SPMeMAT *sp_mltadd(const SPMeMAT *A, const SPMeMAT *B, double alpha, SPMeMAT *C)
      C = sp_get(A->m,A->n,5);
    else {
       if ( C->m != A->m || C->n != A->n  )
-	error(E_SIZES,"sp_mltadd");
+	Meerror(E_SIZES,"sp_mltadd");
       if (!in_situ) sp_zero(C);
    }
 
@@ -681,12 +681,12 @@ SPMeMAT *sp_smlt(const SPMeMAT *A, double alpha, SPMeMAT *B)
    int i;
 
    if ( ! A )
-     error(E_NULL,"sp_smlt");
+     Meerror(E_NULL,"sp_smlt");
    if ( ! B )
      B = sp_get(A->m,A->n,5);
    else
      if ( A->m != B->m || A->n != B->n )
-       error(E_SIZES,"sp_smlt");
+       Meerror(E_SIZES,"sp_smlt");
 
    for (i=0; i < A->m; i++) {
       sprow_smlt(&(A->row[i]),alpha,0,&(B->row[i]),TYPE_SPMeMAT);
@@ -708,7 +708,7 @@ SPMeMAT	*sp_zero(SPMeMAT *A)
    row_elt	*elt;
    
    if ( ! A )
-     error(E_NULL,"sp_zero");
+     Meerror(E_NULL,"sp_zero");
    
    for ( i = 0; i < A->m; i++ )
    {
@@ -736,7 +736,7 @@ SPMeMAT	*sp_copy2(const SPMeMAT *A, SPMeMAT *OUT)
    /* row_elt	*e1, *e2; */
    
    if ( ! A )
-     error(E_NULL,"sp_copy2");
+     Meerror(E_NULL,"sp_copy2");
    if ( ! OUT )
      OUT = sp_get(A->m,A->n,10);
    if ( ! scratch ) {
@@ -747,24 +747,24 @@ SPMeMAT	*sp_copy2(const SPMeMAT *A, SPMeMAT *OUT)
    if ( OUT->m < A->m )
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,A->Memax_m*sizeof(SPROW),
+	 mem_bytes(TYPE_SPMeMAT,A->MeMemax_m*sizeof(SPROW),
 		      A->m*sizeof(SPROW));
       }
 
       OUT->row = RENEW(OUT->row,A->m,SPROW);
       if ( ! OUT->row )
-	error(E_MEM,"sp_copy2");
+	Meerror(E_MEM,"sp_copy2");
       
       for ( i = OUT->m; i < A->m; i++ )
       {
 	 OUT->row[i].elt = NEW_A(MINROWLEN,row_elt);
 	 if ( ! OUT->row[i].elt )
-	   error(E_MEM,"sp_copy2");
+	   Meerror(E_MEM,"sp_copy2");
 	 else if (mem_info_is_on()) {
 	    mem_bytes(TYPE_SPMeMAT,0,MINROWLEN*sizeof(row_elt));
 	 }
 	 
-	 OUT->row[i].Memaxlen = MINROWLEN;
+	 OUT->row[i].MeMemaxlen = MINROWLEN;
 	 OUT->row[i].len = 0;
       }
       OUT->m = A->m;
@@ -777,7 +777,7 @@ SPMeMAT	*sp_copy2(const SPMeMAT *A, SPMeMAT *OUT)
    {
       r1 = &(A->row[i]);	r2 = &(OUT->row[i]);
       sprow_copy(r1,r2,scratch,TYPE_SPROW);
-      if ( r2->Memaxlen < scratch->len )
+      if ( r2->MeMemaxlen < scratch->len )
 	sprow_xpd(r2,scratch->len,TYPE_SPMeMAT);
       MEM_COPY((char *)(scratch->elt),(char *)(r2->elt),
 	       scratch->len*sizeof(row_elt));
@@ -816,7 +816,7 @@ SPMeMAT	*sp_resize(SPMeMAT *A, int m, int n)
    SPROW	*r;
    
    if (m < 0 || n < 0)
-     error(E_NEG,"sp_resize");
+     Meerror(E_NEG,"sp_resize");
 
    if ( ! A )
      return sp_get(m,n,10);
@@ -824,7 +824,7 @@ SPMeMAT	*sp_resize(SPMeMAT *A, int m, int n)
    if (m == A->m && n == A->n)
      return A;
 
-   if ( m <= A->Memax_m )
+   if ( m <= A->MeMemax_m )
    {
       for ( i = A->m; i < m; i++ )
 	A->row[i].len = 0;
@@ -833,42 +833,42 @@ SPMeMAT	*sp_resize(SPMeMAT *A, int m, int n)
    else
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,A->Memax_m*sizeof(SPROW),
+	 mem_bytes(TYPE_SPMeMAT,A->MeMemax_m*sizeof(SPROW),
 			 m*sizeof(SPROW));
       }
 
       A->row = RENEW(A->row,(unsigned)m,SPROW);
       if ( ! A->row )
-	error(E_MEM,"sp_resize");
+	Meerror(E_MEM,"sp_resize");
       for ( i = A->m; i < m; i++ )
       {
 	 if ( ! (A->row[i].elt = NEW_A(MINROWLEN,row_elt)) )
-	   error(E_MEM,"sp_resize");
+	   Meerror(E_MEM,"sp_resize");
 	 else if (mem_info_is_on()) {
 	    mem_bytes(TYPE_SPMeMAT,0,MINROWLEN*sizeof(row_elt));
 	 }
-	 A->row[i].len = 0;	A->row[i].Memaxlen = MINROWLEN;
+	 A->row[i].len = 0;	A->row[i].MeMemaxlen = MINROWLEN;
       }
-      A->m = A->Memax_m = m;
+      A->m = A->MeMemax_m = m;
    }
 
    /* update number of rows */
    A->n = n;
 
    /* do we need to increase the size of start_idx[] and start_row[] ? */
-   if ( n > A->Memax_n )
+   if ( n > A->MeMemax_n )
    {	/* only have to update the start_idx & start_row arrays */
       if (mem_info_is_on())
       {
-	  mem_bytes(TYPE_SPMeMAT,2*A->Memax_n*sizeof(int),
+	  mem_bytes(TYPE_SPMeMAT,2*A->MeMemax_n*sizeof(int),
 		    2*n*sizeof(int));
       }
 
       A->start_row = RENEW(A->start_row,(unsigned)n,int);
       A->start_idx = RENEW(A->start_idx,(unsigned)n,int);
       if ( ! A->start_row || ! A->start_idx )
-	error(E_MEM,"sp_resize");
-      A->Memax_n = n;	/* ...and update Memax_n */
+	Meerror(E_MEM,"sp_resize");
+      A->MeMemax_n = n;	/* ...and update MeMemax_n */
 
       return A;
    }
@@ -882,7 +882,7 @@ SPMeMAT	*sp_resize(SPMeMAT *A, int m, int n)
 	   if ( len < 0 )
 	       len = -(len+2);
 	   if ( len < 0 )
-	       error(E_MEM,"sp_resize");
+	       Meerror(E_MEM,"sp_resize");
 	   r->len = len;
        }
    
@@ -904,9 +904,9 @@ SPMeMAT	*sp_compact(SPMeMAT *A, double tol)
    row_elt	*elt1, *elt2;
    
    if (  ! A )
-     error(E_NULL,"sp_compact");
+     Meerror(E_NULL,"sp_compact");
    if ( tol < 0.0 )
-     error(E_RANGE,"sp_compact");
+     Meerror(E_RANGE,"sp_compact");
    
    A->flag_col = A->flag_diag = FALSE;
    
@@ -940,9 +940,9 @@ SPMeMAT   *sp_mlt(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *out)
   double  valA;
 
   if ( ! A || ! B )
-    error(E_NULL,"sp_mlt");
+    Meerror(E_NULL,"sp_mlt");
   if ( A->n != B->m )
-    error(E_SIZES,"sp_mlt");
+    Meerror(E_SIZES,"sp_mlt");
   out = sp_resize(out,A->m,B->n);
   sp_zero(out);
   rtemp = sprow_get(B->n);

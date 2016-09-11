@@ -33,7 +33,7 @@ static char rcsid[] = "$Id: $";
 #include "zmatrix.h"
 
 
-#define	errmesg(mesg)	printf("Error: %s error: line %d\n",mesg,__LINE__)
+#define	errmesg(mesg)	printf("Error: %s Meerror: line %d\n",mesg,__LINE__)
 #define notice(mesg)	printf("# Testing %s...\n",mesg);
 
 
@@ -101,37 +101,37 @@ void main()
       exit(1);
    }
 
-   notice(" MeVEC input/output");
-   x = v_finput(fp,x);
+   notice(" MeVEC me_input/output");
+   x = v_fme_input(fp,x);
    v_output(x);
 
-   notice(" MeMAT input/output");
-   A = m_finput(fp,A);
+   notice(" MeMAT me_input/output");
+   A = m_fme_input(fp,A);
    m_output(A);
 
-   notice(" ZMeVEC input/output");
-   zx = zv_finput(fp,zx);
+   notice(" ZMeVEC me_input/output");
+   zx = zv_fme_input(fp,zx);
    zv_output(zx);
 
-   notice(" ZMeMAT input/output");
-   ZA = zm_finput(fp,ZA);
+   notice(" ZMeMAT me_input/output");
+   ZA = zm_fme_input(fp,ZA);
    zm_output(ZA);
 
-   notice(" PERM input/output");
-   pivot = px_finput(fp,pivot);
+   notice(" PERM me_input/output");
+   pivot = px_fme_input(fp,pivot);
    px_output(pivot);
 
-   notice(" IMeVEC input/output");
-   ix = iv_finput(fp,ix);
+   notice(" IMeVEC me_input/output");
+   ix = iv_fme_input(fp,ix);
    iv_output(ix);
 
-   notice(" SPMeMAT input/output");
+   notice(" SPMeMAT me_input/output");
    SP_FREE(spA);
-   spA = sp_finput(fp);
+   spA = sp_fme_input(fp);
    sp_output(spA);
 
-   notice(" general input");
-   finput(fp," finish the test?  ","%c",&yes);
+   notice(" general me_input");
+   fme_input(fp," finish the test?  ","%c",&yes);
    if (yes == 'y' || yes == 'Y' )
      printf(" YES\n");
    else printf(" NO\n");

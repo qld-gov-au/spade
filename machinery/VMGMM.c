@@ -14,6 +14,25 @@
 #include <math.h>
 #include "VMGMM.h"
 
+
+
+MeVEC *_VMGMM(
+
+	     MeVEC *theta,
+	     Da *d,
+	     MeVEC *g,
+	     Real *f,
+	     Parameters * parameters
+
+	     )
+{
+
+  Real ans = K_no(parameters,d);
+
+  return g;
+
+}
+
 MeVEC *VMGMM(
 
 		  MeVEC *theta,

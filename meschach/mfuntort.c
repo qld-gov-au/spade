@@ -34,7 +34,7 @@ static char rcsid[] = "$Id: mfuntort.c,v 1.2 1994/01/14 01:08:06 des Exp $";
 #include        "matrix2.h"
 
 
-#define errmesg(mesg)   printf("Error: %s error: line %d\n",mesg,__LINE__)
+#define errmesg(mesg)   printf("Error: %s Meerror: line %d\n",mesg,__LINE__)
 #define notice(mesg)    printf("# Testing %s...\n",mesg);
 
 #define DIM  10

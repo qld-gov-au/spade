@@ -46,7 +46,7 @@ double	_v_norm1(const MeVEC *x, const MeVEC *scale)
 	Real	s, sum;
 
 	if ( x == (MeVEC *)NULL )
-		error(E_NULL,"_v_norm1");
+		Meerror(E_NULL,"_v_norm1");
 	dim = x->dim;
 
 	sum = 0.0;
@@ -54,7 +54,7 @@ double	_v_norm1(const MeVEC *x, const MeVEC *scale)
 		for ( i = 0; i < dim; i++ )
 			sum += fabs(x->ve[i]);
 	else if ( scale->dim < dim )
-		error(E_SIZES,"_v_norm1");
+		Meerror(E_SIZES,"_v_norm1");
 	else
 		for ( i = 0; i < dim; i++ )
 		{	s = scale->ve[i];
@@ -94,7 +94,7 @@ double	_v_norm2(const MeVEC *x, const MeVEC *scale)
 	Real	s, sum;
 
 	if ( x == (MeVEC *)NULL )
-		error(E_NULL,"_v_norm2");
+		Meerror(E_NULL,"_v_norm2");
 	dim = x->dim;
 
 	sum = 0.0;
@@ -102,7 +102,7 @@ double	_v_norm2(const MeVEC *x, const MeVEC *scale)
 		for ( i = 0; i < dim; i++ )
 			sum += Mesquare(x->ve[i]);
 	else if ( scale->dim < dim )
-		error(E_SIZES,"_v_norm2");
+		Meerror(E_SIZES,"_v_norm2");
 	else
 		for ( i = 0; i < dim; i++ )
 		{	s = scale->ve[i];
@@ -113,7 +113,7 @@ double	_v_norm2(const MeVEC *x, const MeVEC *scale)
 	return sqrt(sum);
 }
 
-#define	Memax(a,b)	((a) > (b) ? (a) : (b))
+#define	MeMemax(a,b)	((a) > (b) ? (a) : (b))
 
 /* _v_norm_inf -- computes (scaled) infinity-norm (supremum norm) of vectors */
 #ifndef ANSI_C
@@ -124,28 +124,28 @@ double	_v_norm_inf(const MeVEC *x, const MeVEC *scale)
 #endif
 {
 	int	i, dim;
-	Real	s, Memaxval, tmp;
+	Real	s, MeMemaxval, tmp;
 
 	if ( x == (MeVEC *)NULL )
-		error(E_NULL,"_v_norm_inf");
+		Meerror(E_NULL,"_v_norm_inf");
 	dim = x->dim;
 
-	Memaxval = 0.0;
+	MeMemaxval = 0.0;
 	if ( scale == (MeVEC *)NULL )
 		for ( i = 0; i < dim; i++ )
 		{	tmp = fabs(x->ve[i]);
-			Memaxval = Memax(Memaxval,tmp);
+			MeMemaxval = MeMemax(MeMemaxval,tmp);
 		}
 	else if ( scale->dim < dim )
-		error(E_SIZES,"_v_norm_inf");
+		Meerror(E_SIZES,"_v_norm_inf");
 	else
 		for ( i = 0; i < dim; i++ )
 		{	s = scale->ve[i];
 			tmp = ( s== 0.0 ) ? fabs(x->ve[i]) : fabs(x->ve[i]/s);
-			Memaxval = Memax(Memaxval,tmp);
+			MeMemaxval = MeMemax(MeMemaxval,tmp);
 		}
 
-	return Memaxval;
+	return MeMemaxval;
 }
 
 /* m_norm1 -- compute matrix 1-norm -- unscaled */
@@ -157,23 +157,23 @@ double	m_norm1(const MeMAT *A)
 #endif
 {
 	int	i, j, m, n;
-	Real	Memaxval, sum;
+	Real	MeMemaxval, sum;
 
 	if ( A == (MeMAT *)NULL )
-		error(E_NULL,"m_norm1");
+		Meerror(E_NULL,"m_norm1");
 
 	m = A->m;	n = A->n;
-	Memaxval = 0.0;
+	MeMemaxval = 0.0;
 
 	for ( j = 0; j < n; j++ )
 	{
 		sum = 0.0;
 		for ( i = 0; i < m; i ++ )
 			sum += fabs(A->me[i][j]);
-		Memaxval = Memax(Memaxval,sum);
+		MeMemaxval = MeMemax(MeMemaxval,sum);
 	}
 
-	return Memaxval;
+	return MeMemaxval;
 }
 
 /* m_norm_inf -- compute matrix infinity-norm -- unscaled */
@@ -185,23 +185,23 @@ double	m_norm_inf(const MeMAT *A)
 #endif
 {
 	int	i, j, m, n;
-	Real	Memaxval, sum;
+	Real	MeMemaxval, sum;
 
 	if ( A == (MeMAT *)NULL )
-		error(E_NULL,"m_norm_inf");
+		Meerror(E_NULL,"m_norm_inf");
 
 	m = A->m;	n = A->n;
-	Memaxval = 0.0;
+	MeMemaxval = 0.0;
 
 	for ( i = 0; i < m; i++ )
 	{
 		sum = 0.0;
 		for ( j = 0; j < n; j ++ )
 			sum += fabs(A->me[i][j]);
-		Memaxval = Memax(Memaxval,sum);
+		MeMemaxval = MeMemax(MeMemaxval,sum);
 	}
 
-	return Memaxval;
+	return MeMemaxval;
 }
 
 /* m_norm_frob -- compute matrix frobenius-norm -- unscaled */
@@ -216,7 +216,7 @@ double	m_norm_frob(const MeMAT *A)
 	Real	sum;
 
 	if ( A == (MeMAT *)NULL )
-		error(E_NULL,"m_norm_frob");
+		Meerror(E_NULL,"m_norm_frob");
 
 	m = A->m;	n = A->n;
 	sum = 0.0;

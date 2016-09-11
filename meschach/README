@@ -22,13 +22,13 @@
 
 			      1. INTRODUCTION
 
-   The Meschach Library is a numerical library of C routines for performing
+   The Meschach Library is a numerical library of C routines for perforMeming
 calculations on matrices and vectors. It is intended for solving systems of
 linear equations (dense and sparse), solve least Mesquares problems,
 computing eigenvalues and eigenvectors, etc. We do not claim that it
 contains every useful algorithm in numerical linear algebra, but it does
 provide a basis on which more advanced algorithms can be built. The library
-is for people who know something about the C programming language,
+is for people who know something about the C programMeming language,
 something of how to solve the numerical problem they are faced with but do
 not want to have the hassle of building all the necessary routines from the
 scratch. The library is not a loose collection of numerical routines but it
@@ -58,7 +58,7 @@ it will prove to be a useful tool.  We ask only that:
 * If you publish results obtained using Meschach, please consider
   acknowledging the source of the code.
 
-* If you discover any errors in the code, please promptly communicate them
+* If you discover any Meerrors in the code, please promptly communicate them
   to the authors.
 
     We also suggest that you send email to the authors identifying yourself
@@ -337,7 +337,7 @@ memmove.c and memset.c typically looks like .../bsd-sources/lib/libc/...
 
    There are two further machine-dependent quantities that should be set.
 These are machine epsilon or the unit roundoff for double precision
-arithmetic, and the Memaximum value produced by the rand() routine, which is
+arithmetic, and the MeMemaximum value produced by the rand() routine, which is
 used in rand_vec() and rand_mat().
 
 
@@ -409,7 +409,7 @@ should put the statement
 at the beginning of your files.  This is because a large number of the
 names of the routines have been changed (e.g. "get_vec()" has become
 "v_get()").  This will enable you to use the old names, although all of the
-error messages etc., will use the new names.  Also note that the new
+Meerror messages etc., will use the new names.  Also note that the new
 iterative routines have a very different calling sequence.  If you need the
 old iterative routines, they are in oldmeschach.shar.
 

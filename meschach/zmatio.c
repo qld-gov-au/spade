@@ -41,10 +41,10 @@ static char line[MAXLINE];
   **************************************************************************/
 
 #ifndef ANSI_C
-complex	z_finput(fp)
+complex	z_fme_input(fp)
 FILE	*fp;
 #else
-complex	z_finput(FILE *fp)
+complex	z_fme_input(FILE *fp)
 #endif
 {
     int		io_code;
@@ -56,7 +56,7 @@ complex	z_finput(FILE *fp)
 	do {
 	    fprintf(stderr,"real and imag parts: ");
 	    if ( fgets(line,MAXLINE,fp) == NULL )
-		error(E_EOF,"z_finput");
+		Meerror(E_EOF,"z_fme_input");
 #if REAL == DOUBLE
 	    io_code = sscanf(line,"%lf%lf",&z.re,&z.im);
 #elif REAL == FLOAT
@@ -71,34 +71,34 @@ complex	z_finput(FILE *fp)
 #elif REAL == FLOAT
       if ( (io_code=fscanf(fp," (%f,%f)",&z.re,&z.im)) < 2 )
 #endif
-	    error((io_code == EOF) ? E_EOF : E_FORMeMAT,"z_finput");
+	    Meerror((io_code == EOF) ? E_EOF : E_FORMeMAT,"z_fme_input");
 
     return z;
 }
 
 #ifndef ANSI_C
-ZMeMAT	*zm_finput(fp,a)
+ZMeMAT	*zm_fme_input(fp,a)
 FILE    *fp;
 ZMeMAT	*a;
 #else
-ZMeMAT	*zm_finput(FILE *fp,ZMeMAT *a)
+ZMeMAT	*zm_fme_input(FILE *fp,ZMeMAT *a)
 #endif
 {
-     ZMeMAT        *izm_finput(),*bzm_finput();
+     ZMeMAT        *izm_fme_input(),*bzm_fme_input();
      
      if ( isatty(fileno(fp)) )
-	  return izm_finput(fp,a);
+	  return izm_fme_input(fp,a);
      else
-	  return bzm_finput(fp,a);
+	  return bzm_fme_input(fp,a);
 }
 
-/* izm_finput -- interactive input of matrix */
+/* izm_fme_input -- interactive me_input of matrix */
 #ifndef ANSI_C
-ZMeMAT     *izm_finput(fp,mat)
+ZMeMAT     *izm_fme_input(fp,mat)
 FILE    *fp;
 ZMeMAT     *mat;
 #else
-ZMeMAT     *izm_finput(FILE *fp, ZMeMAT *mat)
+ZMeMAT     *izm_fme_input(FILE *fp, ZMeMAT *mat)
 #endif
 {
      char       c;
@@ -115,12 +115,12 @@ ZMeMAT     *izm_finput(FILE *fp, ZMeMAT *mat)
 	  {
 	       fprintf(stderr,"ComplexMatrix: rows cols:");
 	       if ( fgets(line,MAXLINE,fp)==NULL )
-		    error(E_INPUT,"izm_finput");
+		    Meerror(E_INPUT,"izm_fme_input");
 	  } while ( sscanf(line,"%u%u",&m,&n)<2 || m>MAXDIM || n>MAXDIM );
 	  mat = zm_get(m,n);
      }
      
-     /* input elements */
+     /* me_input elements */
      for ( i=0; i<m; i++ )
      {
      redo:
@@ -134,7 +134,7 @@ ZMeMAT     *izm_finput(FILE *fp, ZMeMAT *mat)
 			 fprintf(stderr,"old (%14.9g,%14.9g) new: ",
 				 mat->me[i][j].re,mat->me[i][j].im);
 		    if ( fgets(line,MAXLINE,fp)==NULL )
-			 error(E_INPUT,"izm_finput");
+			 Meerror(E_INPUT,"izm_fme_input");
 		    if ( (*line == 'b' || *line == 'B') && j > 0 )
 		    {   j--;    dynamic = FALSE;        goto redo2;     }
 		    if ( (*line == 'f' || *line == 'F') && j < n-1 )
@@ -160,13 +160,13 @@ ZMeMAT     *izm_finput(FILE *fp, ZMeMAT *mat)
      return (mat);
 }
 
-/* bzm_finput -- batch-file input of matrix */
+/* bzm_fme_input -- batch-file me_input of matrix */
 #ifndef ANSI_C
-ZMeMAT     *bzm_finput(fp,mat)
+ZMeMAT     *bzm_fme_input(fp,mat)
 FILE    *fp;
 ZMeMAT     *mat;
 #else
-ZMeMAT     *bzm_finput(FILE *fp,ZMeMAT *mat)
+ZMeMAT     *bzm_fme_input(FILE *fp,ZMeMAT *mat)
 #endif
 {
      unsigned int      i,j,m,n,dummy;
@@ -176,7 +176,7 @@ ZMeMAT     *bzm_finput(FILE *fp,ZMeMAT *mat)
      skipjunk(fp);
      if ((io_code=fscanf(fp," ComplexMatrix: %u by %u",&m,&n)) < 2 ||
 	 m>MAXDIM || n>MAXDIM )
-	  error(io_code==EOF ? E_EOF : E_FORMeMAT,"bzm_finput");
+	  Meerror(io_code==EOF ? E_EOF : E_FORMeMAT,"bzm_fme_input");
      
      /* allocate memory if necessary */
      if ( mat==ZMNULL || mat->m<m || mat->n<n )
@@ -187,17 +187,17 @@ ZMeMAT     *bzm_finput(FILE *fp,ZMeMAT *mat)
      {
 	  skipjunk(fp);
 	  if ( fscanf(fp," row %u:",&dummy) < 1 )
-	       error(E_FORMeMAT,"bzm_finput");
+	       Meerror(E_FORMeMAT,"bzm_fme_input");
 	  for ( j=0; j<n; j++ )
 	  {
-	      /* printf("bzm_finput: j = %d\n", j); */
+	      /* printf("bzm_fme_input: j = %d\n", j); */
 #if REAL == DOUBLE
 	      if ((io_code=fscanf(fp," ( %lf , %lf )",
 #elif REAL == FLOAT
 	      if ((io_code=fscanf(fp," ( %f , %f )",
 #endif
 				  &mat->me[i][j].re,&mat->me[i][j].im)) < 2 )
-		  error(io_code==EOF ? E_EOF : E_FORMeMAT,"bzm_finput");
+		  Meerror(io_code==EOF ? E_EOF : E_FORMeMAT,"bzm_fme_input");
 	  }
      }
      
@@ -205,28 +205,28 @@ ZMeMAT     *bzm_finput(FILE *fp,ZMeMAT *mat)
 }
 
 #ifndef ANSI_C
-ZMeVEC     *zv_finput(fp,x)
+ZMeVEC     *zv_fme_input(fp,x)
 FILE    *fp;
 ZMeVEC     *x;
 #else
-ZMeVEC     *zv_finput(FILE *fp,ZMeVEC *x)
+ZMeVEC     *zv_fme_input(FILE *fp,ZMeVEC *x)
 #endif
 {
-     ZMeVEC        *izv_finput(),*bzv_finput();
+     ZMeVEC        *izv_fme_input(),*bzv_fme_input();
      
      if ( isatty(fileno(fp)) )
-	  return izv_finput(fp,x);
+	  return izv_fme_input(fp,x);
      else
-	  return bzv_finput(fp,x);
+	  return bzv_fme_input(fp,x);
 }
 
-/* izv_finput -- interactive input of vector */
+/* izv_fme_input -- interactive me_input of vector */
 #ifndef ANSI_C
-ZMeVEC     *izv_finput(fp,vec)
+ZMeVEC     *izv_fme_input(fp,vec)
 FILE    *fp;
 ZMeVEC     *vec;
 #else
-ZMeVEC     *izv_finput(FILE *fp,ZMeVEC *vec)
+ZMeVEC     *izv_fme_input(FILE *fp,ZMeVEC *vec)
 #endif
 {
      unsigned int      i,dim,dynamic;  /* dynamic set if memory allocated here */
@@ -241,12 +241,12 @@ ZMeVEC     *izv_finput(FILE *fp,ZMeVEC *vec)
 	  {
 	       fprintf(stderr,"ComplexVector: dim: ");
 	       if ( fgets(line,MAXLINE,fp)==NULL )
-		    error(E_INPUT,"izv_finput");
+		    Meerror(E_INPUT,"izv_fme_input");
 	  } while ( sscanf(line,"%u",&dim)<1 || dim>MAXDIM );
 	  vec = zv_get(dim);
      }
      
-     /* input elements */
+     /* me_input elements */
      for ( i=0; i<dim; i++ )
 	  do
 	  {
@@ -256,7 +256,7 @@ ZMeVEC     *izv_finput(FILE *fp,ZMeVEC *vec)
 		    fprintf(stderr,"old (%14.9g,%14.9g) new: ",
 			    vec->ve[i].re,vec->ve[i].im);
 	       if ( fgets(line,MAXLINE,fp)==NULL )
-		    error(E_INPUT,"izv_finput");
+		    Meerror(E_INPUT,"izv_fme_input");
 	       if ( (*line == 'b' || *line == 'B') && i > 0 )
 	       {        i--;    dynamic = FALSE;        goto redo;         }
 	       if ( (*line == 'f' || *line == 'F') && i < dim-1 )
@@ -272,13 +272,13 @@ ZMeVEC     *izv_finput(FILE *fp,ZMeVEC *vec)
      return (vec);
 }
 
-/* bzv_finput -- batch-file input of vector */
+/* bzv_fme_input -- batch-file me_input of vector */
 #ifndef ANSI_C
-ZMeVEC     *bzv_finput(fp,vec)
+ZMeVEC     *bzv_fme_input(fp,vec)
 FILE    *fp;
 ZMeVEC    *vec;
 #else
-ZMeVEC     *bzv_finput(FILE *fp, ZMeVEC *vec)
+ZMeVEC     *bzv_fme_input(FILE *fp, ZMeVEC *vec)
 #endif
 {
      unsigned int      i,dim;
@@ -288,7 +288,7 @@ ZMeVEC     *bzv_finput(FILE *fp, ZMeVEC *vec)
      skipjunk(fp);
      if ((io_code=fscanf(fp," ComplexVector: dim:%u",&dim)) < 1 ||
 	  dim>MAXDIM )
-	 error(io_code==EOF ? 7 : 6,"bzv_finput");
+	 Meerror(io_code==EOF ? 7 : 6,"bzv_fme_input");
 
      
      /* allocate memory if necessary */
@@ -304,7 +304,7 @@ ZMeVEC     *bzv_finput(FILE *fp, ZMeVEC *vec)
           if ((io_code=fscanf(fp," (%f,%f)",
 #endif
 			      &vec->ve[i].re,&vec->ve[i].im)) < 2 )
-	       error(io_code==EOF ? 7 : 6,"bzv_finput");
+	       Meerror(io_code==EOF ? 7 : 6,"bzv_fme_input");
      
      return (vec);
 }
@@ -404,8 +404,8 @@ void    zm_dump(FILE *fp, ZMeMAT *a)
      if ( a == ZMNULL )
      {  fprintf(fp,"ComplexMatrix: NULL\n");   return;         }
      fprintf(fp,"ComplexMatrix: %d by %d @ 0x%lx\n",a->m,a->n,(long)a);
-     fprintf(fp,"\tMemax_m = %d, Memax_n = %d, Memax_size = %d\n",
-	     a->Memax_m, a->Memax_n, a->Memax_size);
+     fprintf(fp,"\tMeMemax_m = %d, MeMemax_n = %d, MeMemax_size = %d\n",
+	     a->MeMemax_m, a->MeMemax_n, a->MeMemax_size);
      if ( a->me == (complex **)NULL )
      {  fprintf(fp,"NULL\n");           return;         }
      fprintf(fp,"a->me @ 0x%lx\n",(long)(a->me));

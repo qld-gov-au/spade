@@ -25,7 +25,7 @@
 
 
 /*
-	This file has the routines for sparse matrix input/output
+	This file has the routines for sparse matrix me_input/output
 	It works in conjunction with sparse.c, sparse.h etc
 */
 
@@ -56,14 +56,14 @@ void    sp_foutput(FILE *fp, const SPMeMAT *A)
 	if ( A == SMNULL )
 	{
 		fprintf(fp,"*** NULL ***\n");
-		error(E_NULL,"sp_foutput");    return;
+		Meerror(E_NULL,"sp_foutput");    return;
 	}
 	fprintf(fp,"%d by %d\n",A->m,A->n);
 	m = A->m;       /* n = A->n; */
 	if ( ! (rows=A->row) )
 	{
 		fprintf(fp,"*** NULL rows ***\n");
-		error(E_NULL,"sp_foutput");    return;
+		Meerror(E_NULL,"sp_foutput");    return;
 	}
 
 	for ( i = 0; i < m; i++ )
@@ -144,7 +144,7 @@ void    sp_dump(FILE *fp, const SPMeMAT *A)
 	{       fprintf(fp,"*** NULL ***\n");   return; }
 	fprintf(fp,"Matrix at 0x%lx\n",(long)A);
 	fprintf(fp,"Dimensions: %d by %d\n",A->m,A->n);
-	fprintf(fp,"MaxDimensions: %d by %d\n",A->Memax_m,A->Memax_n);
+	fprintf(fp,"MaxDimensions: %d by %d\n",A->MeMemax_m,A->MeMemax_n);
 	fprintf(fp,"flag_col = %d, flag_diag = %d\n",A->flag_col,A->flag_diag);
 	fprintf(fp,"start_row @ 0x%lx:\n",(long)(A->start_row));
 	for ( j = 0; j < A->n; j++ )
@@ -168,8 +168,8 @@ void    sp_dump(FILE *fp, const SPMeMAT *A)
 	rows = A->row;
 	for ( i = 0; i < A->m; i++ )
 	{
-		fprintf(fp,"row %d: len = %d, Memaxlen = %d, diag idx = %d\n",
-			i,rows[i].len,rows[i].Memaxlen,rows[i].diag);
+		fprintf(fp,"row %d: len = %d, MeMemaxlen = %d, diag idx = %d\n",
+			i,rows[i].len,rows[i].MeMemaxlen,rows[i].diag);
 		fprintf(fp,"element list @ 0x%lx\n",(long)(rows[i].elt));
 		if ( ! rows[i].elt )
 		{
@@ -186,14 +186,14 @@ void    sp_dump(FILE *fp, const SPMeMAT *A)
 
 #define MINSCRATCH      100
 
-/* sp_finput -- input sparse matrix from stream/file fp
-	-- uses friendly input routine if fp is a tty
+/* sp_fme_input -- me_input sparse matrix from stream/file fp
+	-- uses friendly me_input routine if fp is a tty
 	-- uses format identical to output format otherwise */
 #ifndef ANSI_C
-SPMeMAT  *sp_finput(fp)
+SPMeMAT  *sp_fme_input(fp)
 FILE    *fp;
 #else
-SPMeMAT  *sp_finput(FILE *fp)
+SPMeMAT  *sp_fme_input(FILE *fp)
 #endif
 {
 	int     i, len, ret_val;
@@ -209,7 +209,7 @@ SPMeMAT  *sp_finput(FILE *fp)
 	  {
 	    scratch = NEW_A(MINSCRATCH,row_elt);
 	    if ( scratch == NULL )
-	      error(E_MEM,"sp_finput");
+	      Meerror(E_MEM,"sp_fme_input");
 	    scratch_len = MINSCRATCH;
 	  }
 
@@ -222,9 +222,9 @@ SPMeMAT  *sp_finput(FILE *fp)
 	{
 		fprintf(stderr,"SparseMatrix: ");
 		do {
-			fprintf(stderr,"input rows cols: ");
+			fprintf(stderr,"me_input rows cols: ");
 			if ( ! fgets(line,MAXLINE,fp) )
-			    error(E_INPUT,"sp_finput");
+			    Meerror(E_INPUT,"sp_fme_input");
 		} while ( sscanf(line,"%u %u",&m,&n) != 2 );
 		A = sp_get(m,n,5);
 		rows = A->row;
@@ -245,13 +245,13 @@ SPMeMAT  *sp_finput(FILE *fp)
 			{
 			  scratch = RENEW(scratch,2*scratch_len,row_elt);
 			  if ( ! scratch )
-			    error(E_MEM,"sp_finput");
+			    Meerror(E_MEM,"sp_fme_input");
 			  scratch_len = 2*scratch_len;
 			}
 			do {  /* get an entry... */
 			    fprintf(stderr,"Entry %d: ",len);
 			    if ( ! fgets(line,MAXLINE,fp) )
-				error(E_INPUT,"sp_finput");
+				Meerror(E_INPUT,"sp_fme_input");
 			    if ( *line == 'e' || *line == 'E' )
 				break;
 #if REAL == DOUBLE
@@ -276,13 +276,13 @@ SPMeMAT  *sp_finput(FILE *fp)
 		     {
 			if (mem_info_is_on()) {
 			   mem_bytes(TYPE_SPMeMAT,
-					   A->row[i].Memaxlen*sizeof(row_elt),
+					   A->row[i].MeMemaxlen*sizeof(row_elt),
 					   len*sizeof(row_elt));  
 			}
 
 			rows[i].elt = (row_elt *)realloc((char *)rows[i].elt,
 							 len*sizeof(row_elt));
-			rows[i].Memaxlen = len;
+			rows[i].MeMemaxlen = len;
 		    }
 		    MEM_COPY(scratch,rows[i].elt,len*sizeof(row_elt));
 		    rows[i].len  = len;
@@ -296,7 +296,7 @@ SPMeMAT  *sp_finput(FILE *fp)
 		fscanf(fp,"SparseMatrix:");
 		skipjunk(fp);
 		if ( (ret_val=fscanf(fp,"%u by %u",&m,&n)) != 2 )
-		    error((ret_val == EOF) ? E_EOF : E_FORMeMAT,"sp_finput");
+		    Meerror((ret_val == EOF) ? E_EOF : E_FORMeMAT,"sp_fme_input");
 		A = sp_get(m,n,5);
 
 		/* initialise start_row */
@@ -311,8 +311,8 @@ SPMeMAT  *sp_finput(FILE *fp)
 		    skipjunk(fp);
 		    if ( (ret_val=fscanf(fp,"row %d :",&tmp)) != 1 ||
 			 tmp != i )
-			error((ret_val == EOF) ? E_EOF : E_FORMeMAT,
-			      "sp_finput");
+			Meerror((ret_val == EOF) ? E_EOF : E_FORMeMAT,
+			      "sp_fme_input");
 		    curr_col = -1;
 		    len = 0;
 		    for ( ; ; )  /* forever do... */
@@ -323,7 +323,7 @@ SPMeMAT  *sp_finput(FILE *fp)
 			{
 			  scratch = RENEW(scratch,2*scratch_len,row_elt);
 			  if ( ! scratch )
-			    error(E_MEM,"sp_finput");
+			    Meerror(E_MEM,"sp_fme_input");
 			  scratch_len = 2*scratch_len;
 			}
 #if REAL == DOUBLE
@@ -333,20 +333,20 @@ SPMeMAT  *sp_finput(FILE *fp)
 #endif
 			    break;
 			if ( col <= curr_col || col >= n )
-			    error(E_FORMeMAT,"sp_finput");
+			    Meerror(E_FORMeMAT,"sp_fme_input");
 			scratch[len].col = col;
 			scratch[len].val = val;
 
 			len++;
 		    }
 		    if ( ret_val == EOF )
-			error(E_EOF,"sp_finput");
+			Meerror(E_EOF,"sp_fme_input");
 
-		    if ( len > rows[i].Memaxlen )
+		    if ( len > rows[i].MeMemaxlen )
 		    {
 			rows[i].elt = (row_elt *)realloc((char *)rows[i].elt,
 							len*sizeof(row_elt));
-			rows[i].Memaxlen = len;
+			rows[i].MeMemaxlen = len;
 		    }
 		    MEM_COPY(scratch,rows[i].elt,len*sizeof(row_elt));
 		    rows[i].len  = len;

@@ -45,9 +45,9 @@ MeVEC	*get_col(const MeMAT *mat, unsigned int col, MeVEC *vec)
    unsigned int	i;
    
    if ( mat==(MeMAT *)NULL )
-     error(E_NULL,"get_col");
+     Meerror(E_NULL,"get_col");
    if ( col >= mat->n )
-     error(E_RANGE,"get_col");
+     Meerror(E_RANGE,"get_col");
    if ( vec==(MeVEC *)NULL || vec->dim<mat->m )
      vec = v_resize(vec,mat->m);
    
@@ -70,9 +70,9 @@ MeVEC	*get_row(const MeMAT *mat, unsigned int row, MeVEC *vec)
    unsigned int	i;
    
    if ( mat==(MeMAT *)NULL )
-     error(E_NULL,"get_row");
+     Meerror(E_NULL,"get_row");
    if ( row >= mat->m )
-     error(E_RANGE,"get_row");
+     Meerror(E_RANGE,"get_row");
    if ( vec==(MeVEC *)NULL || vec->dim<mat->n )
      vec = v_resize(vec,mat->n);
    
@@ -96,10 +96,10 @@ MeMAT	*_set_col(MeMAT *mat, unsigned int col, const MeVEC *vec, unsigned int i0)
    unsigned int	i,lim;
    
    if ( mat==(MeMAT *)NULL || vec==(MeVEC *)NULL )
-     error(E_NULL,"_set_col");
+     Meerror(E_NULL,"_set_col");
    if ( col >= mat->n )
-     error(E_RANGE,"_set_col");
-   lim = min(mat->m,vec->dim);
+     Meerror(E_RANGE,"_set_col");
+   lim = Memin(mat->m,vec->dim);
    for ( i=i0; i<lim; i++ )
      mat->me[i][col] = vec->ve[i];
    
@@ -119,10 +119,10 @@ MeMAT	*_set_row(MeMAT *mat, unsigned int row, const MeVEC *vec, unsigned int j0)
    unsigned int	j,lim;
    
    if ( mat==(MeMAT *)NULL || vec==(MeVEC *)NULL )
-     error(E_NULL,"_set_row");
+     Meerror(E_NULL,"_set_row");
    if ( row >= mat->m )
-     error(E_RANGE,"_set_row");
-   lim = min(mat->n,vec->dim);
+     Meerror(E_RANGE,"_set_row");
+   lim = Memin(mat->n,vec->dim);
    for ( j=j0; j<lim; j++ )
      mat->me[row][j] = vec->ve[j];
    
@@ -147,15 +147,15 @@ MeMAT	*sub_mat(const MeMAT *old,
    unsigned int	i;
    
    if ( old==(MeMAT *)NULL )
-     error(E_NULL,"sub_mat");
+     Meerror(E_NULL,"sub_mat");
    if ( row1 > row2 || col1 > col2 || row2 >= old->m || col2 >= old->n )
-     error(E_RANGE,"sub_mat");
+     Meerror(E_RANGE,"sub_mat");
    if ( new==(MeMAT *)NULL || new->m < row2-row1+1 )
    {
       new = NEW(MeMAT);
       new->me = NEW_A(row2-row1+1,Real *);
       if ( new==(MeMAT *)NULL || new->me==(Real **)NULL )
-	error(E_MEM,"sub_mat");
+	Meerror(E_MEM,"sub_mat");
       else if (mem_info_is_on()) {
 	 mem_bytes(TYPE_MeMAT,0,sizeof(MeMAT)+
 		      (row2-row1+1)*sizeof(Real *));
@@ -186,14 +186,14 @@ MeVEC	*sub_vec(const MeVEC *old, int i1, int i2, MeVEC *new)
 #endif
 {
    if ( old == (MeVEC *)NULL )
-     error(E_NULL,"sub_vec");
+     Meerror(E_NULL,"sub_vec");
    if ( i1 > i2 || old->dim < i2 )
-     error(E_RANGE,"sub_vec");
+     Meerror(E_RANGE,"sub_vec");
    
    if ( new == (MeVEC *)NULL )
      new = NEW(MeVEC);
    if ( new == (MeVEC *)NULL )
-     error(E_MEM,"sub_vec");
+     Meerror(E_MEM,"sub_vec");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_MeVEC,0,sizeof(MeVEC));
    }

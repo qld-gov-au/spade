@@ -9,7 +9,7 @@
 /* type for 3 dimensional matrices */
 typedef struct {
 	int l,m,n;    /* actual dimensions */
-	int Memax_l, Memax_m, Memax_n;    /* Memaximal dimensions */
+	int MeMemax_l, MeMemax_m, MeMemax_n;    /* MeMemaximal dimensions */
 	Real ***me;    /* pointer to matrix elements */
 	               /* we do not consider segmented memory */
         Real *base, **me2d;  /* me and me2d are additional pointers 
@@ -27,11 +27,11 @@ int l,m,n;
 
   /* check if arguments are positive */
   if (l <= 0 || m <= 0 || n <= 0)
-    error(E_NEG,"m3d_get");
+    Meerror(E_NEG,"m3d_get");
 
 	/* new structure */
   if ((mat = NEW(MeMAT3D)) == (MeMAT3D *)NULL)
-    error(E_MEM,"m3d_get");
+    Meerror(E_MEM,"m3d_get");
   else if (mem_info_is_on()) {
 	/* record how many bytes is allocated */
     mem_bytes_list(TYPE_MeMAT3D,0,sizeof(MeMAT3D),M3D_LIST);
@@ -39,25 +39,25 @@ int l,m,n;
     mem_numvar_list(TYPE_MeMAT3D,1,M3D_LIST);
   }
 
-  mat->l = mat->Memax_l = l;
-  mat->m = mat->Memax_m = m;
-  mat->n = mat->Memax_n = n;
+  mat->l = mat->MeMemax_l = l;
+  mat->m = mat->MeMemax_m = m;
+  mat->n = mat->MeMemax_n = n;
 
 	/* allocate memory for 3D array */
   if ((mat->base = NEW_A(l*m*n,Real)) == (Real *)NULL) 
-    error(E_MEM,"m3d_get");
+    Meerror(E_MEM,"m3d_get");
   else if (mem_info_is_on())
     mem_bytes_list(TYPE_MeMAT3D,0,l*m*n*sizeof(Real),M3D_LIST);
 
 	/* allocate memory for 2D pointers */
   if ((mat->me2d = NEW_A(l*m,Real *)) == (Real **)NULL)
-    error(E_MEM,"m3d_get");
+    Meerror(E_MEM,"m3d_get");
   else if (mem_info_is_on())
     mem_bytes_list(TYPE_MeMAT3D,0,l*m*sizeof(Real *),M3D_LIST);  	
 
 	/* allocate  memory for 1D pointers */
   if ((mat->me = NEW_A(l,Real **)) == (Real ***)NULL)
-    error(E_MEM,"m3d_get");
+    Meerror(E_MEM,"m3d_get");
   else if (mem_info_is_on())
     mem_bytes_list(TYPE_MeMAT3D,0,l*sizeof(Real **),M3D_LIST);
 
@@ -87,7 +87,7 @@ MeMAT3D *mat;
   if (mat->base != (Real *)NULL) {
     if (mem_info_is_on())
 	/* record how many bytes is deallocated */
-      mem_bytes_list(TYPE_MeMAT3D,mat->Memax_l*mat->Memax_m*mat->Memax_n*sizeof(Real),
+      mem_bytes_list(TYPE_MeMAT3D,mat->MeMemax_l*mat->MeMemax_m*mat->MeMemax_n*sizeof(Real),
 		     0,M3D_LIST);
     free((char *)mat->base);
   }
@@ -96,7 +96,7 @@ MeMAT3D *mat;
   if (mat->me2d != (Real **)NULL) {
     if (mem_info_is_on())
 	/* record how many bytes is deallocated */
-      mem_bytes_list(TYPE_MeMAT3D,mat->Memax_l*mat->Memax_m*sizeof(Real *),
+      mem_bytes_list(TYPE_MeMAT3D,mat->MeMemax_l*mat->MeMemax_m*sizeof(Real *),
 		     0,M3D_LIST);
     free((char *)mat->me2d);
   }
@@ -105,7 +105,7 @@ MeMAT3D *mat;
   if (mat->me != (Real ***)NULL) {
     if (mem_info_is_on())
 	/* record how many bytes is deallocated */
-      mem_bytes_list(TYPE_MeMAT3D,mat->Memax_l*sizeof(Real **),0,M3D_LIST);
+      mem_bytes_list(TYPE_MeMAT3D,mat->MeMemax_l*sizeof(Real **),0,M3D_LIST);
     free((char *)mat->me);
   }
 

@@ -26,7 +26,7 @@
 
 
 /*
-		File containing routines for determining Hessenberg
+		File containing routines for deterMemining Hessenberg
 	factorisations.
 */
 
@@ -53,11 +53,11 @@ MeMAT	*Hfactor(MeMAT *A, MeVEC *diag, MeVEC *beta)
 	int	k, limit;
 
 	if ( ! A || ! diag || ! beta )
-		error(E_NULL,"Hfactor");
+		Meerror(E_NULL,"Hfactor");
 	if ( diag->dim < A->m - 1 || beta->dim < A->m - 1 )
-		error(E_SIZES,"Hfactor");
+		Meerror(E_SIZES,"Hfactor");
 	if ( A->m != A->n )
-		error(E_SQUARE,"Hfactor");
+		Meerror(E_SQUARE,"Hfactor");
 	limit = A->m - 1;
 
 	hh = v_resize(hh,A->m);
@@ -104,12 +104,12 @@ MeMAT	*makeHQ(MeMAT *H, MeVEC *diag, MeVEC *beta, MeMAT *Qout)
 	STATIC	MeVEC	*tmp1 = VNULL, *tmp2 = VNULL;
 
 	if ( H==(MeMAT *)NULL || diag==(MeVEC *)NULL || beta==(MeVEC *)NULL )
-		error(E_NULL,"makeHQ");
+		Meerror(E_NULL,"makeHQ");
 	limit = H->m - 1;
 	if ( diag->dim < limit || beta->dim < limit )
-		error(E_SIZES,"makeHQ");
+		Meerror(E_SIZES,"makeHQ");
 	if ( H->m != H->n )
-		error(E_SQUARE,"makeHQ");
+		Meerror(E_SQUARE,"makeHQ");
 	Qout = m_resize(Qout,H->m,H->m);
 
 	tmp1 = v_resize(tmp1,H->m);
@@ -157,9 +157,9 @@ MeMAT	*makeH(const MeMAT *H, MeMAT *Hout)
 	int	i, j, limit;
 
 	if ( H==(MeMAT *)NULL )
-		error(E_NULL,"makeH");
+		Meerror(E_NULL,"makeH");
 	if ( H->m != H->n )
-		error(E_SQUARE,"makeH");
+		Meerror(E_SQUARE,"makeH");
 	Hout = m_resize(Hout,H->m,H->m);
 	Hout = m_copy(H,Hout);
 

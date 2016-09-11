@@ -233,6 +233,149 @@ Real newK(
 	}
 */
 	  
+Real K_no(
+
+	  Parameters *parameters,
+	  Da *d
+
+	  )
+{
+
+  Real aa = parameters->alpha.value;
+  Real bb = parameters->beta.value;
+  Real gg = parameters->gamma.value*1e-7;
+  Real kk = parameters->kappa.value;
+  Real ww = parameters->omega.value;
+  Real ii = parameters->iota.value*1e-3;
+  
+  Real * restrict x = (Real *)calloc(d->J,sizeof(Real));
+  Real * restrict u = (Real *)calloc(d->J,sizeof(Real));
+  Real * restrict r = (Real *)calloc(d->J,sizeof(Real));
+  Real * restrict o = (Real *)calloc(d->J,sizeof(Real));
+  
+  /* 
+     initialize x
+  */
+  int J = (d->J+1) - (d->I+1);
+
+  Real h = ww/J;
+  
+  // 'active': first J values in first 'row'
+  for (int j=0;j<J;j++) {
+    x[j] = h*j;
+  }
+
+  // 'neutral': all the rest (J+1.. I+J)
+  for (int j=J;j<=d->J;j++)
+    x[j] = ww;
+
+  /*
+     ok, now initialize u
+  */
+  
+  // prelims
+  Real zeta = sqrt( 81*kk*kk*ww*ww*pow(aa*A1+2*aa*A2*ww,2.) - 12*kk*pow(aa*A1*ww+kk,3.) );
+  Real eta = 9*aa*A1*kk*kk*ww + 18*aa*A2*kk*kk*ww*ww + kk*zeta;
+  Real Z = pow(eta,1./3) / (3*pow(2./3,1./3)) + pow(2./3,1./3)*kk*(aa*A1*ww+kk) / pow(eta,1./3);
+
+  Real ubar = (Z - bb - kk) / gg; 
+  Real vbar = (kk*ww*ubar) / (bb+gg*ubar+kk);
+  Real wbar = (2*kk*ww*vbar) / (bb+gg*ubar+2*kk);  
+  
+  // set
+  for (int j=0;j<=d->J;j++)
+    {
+      u[j] = (aa*A1*vbar+aa*A2*wbar)*pow(ww-x[j],(bb+gg*ubar)/kk-1) / (kk*pow(ww,(bb+gg*ubar)/kk));
+      r[j] = w(x[j])*s(x[j])*u[j]*ii*_e(d->eff,d->k,d->k*(0-d->N));
+    }
+
+  Real ff = 0;
+  
+  Real U = 0;
+  Real C = 0;
+  for (int j=0;j<=d->J;j++)
+    {
+      U += .5 * (x[j+1] - x[j]) * (u[j+1] + u[j]);
+      C += .5 * (x[j+1] - x[j]) * (r[j+1] + r[j]);
+    } 
+
+  for (int j=0;j<=d->J;j++) 
+    o[j] = pow(_c(d->cat,d->k,d->k*(0-d->N-1)) * (d->p[0][j] + (1-d->Qp[0]) * r[j]/C) - r[j],2.0);                      
+
+  for (int j=0;j<=d->J;j++)   
+    ff += .5 * (x[j+1] - x[j]) * (o[j+1] + o[j]);
+  
+  Real * restrict xh = (Real *) calloc(d->J,sizeof(Real));  
+  Real * restrict uh = (Real *) calloc(d->J,sizeof(Real));  
+
+  for (int i=1;i<=d->I;i++)
+    {
+  
+      Real t = d->k*(i-d->N-1);
+      Real th = d->k*(i-d->N-.5);
+	 
+      for (int j=0;j<=d->J;j++)
+	{	  
+	  xh[j] = x[j] + d->k/2 * kk*(ww - x[j]);
+	  uh[j] = u[j] * exp( -d->k/2 * (bb + gg*U + s(x[j])* ii * _e(d->eff,d->k,t) - kk) );
+	}
+      
+      // only valid for models where fish are size zero at birth
+      Real uh_0 = xh[0] * b(aa,xh[0])*uh[0];
+
+      for (int j=0;j<=d->J;j++)
+	uh_0 += (b(aa,xh[j])*uh[j] + b(aa,xh[j+1])*uh[j+1]) * (xh[j+1]-xh[j]);
+
+      uh_0 /= (2*kk*ww - xh[0]*b(aa,0));
+            
+      Real Uh = .5 * xh[0] * (uh_0 + uh[0]);
+      for (int j=0;j<d->J;j++)
+	Uh += .5 * (xh[j+1] - xh[j]) * (uh[j+1] + uh[j]);
+      
+      for (int j=d->J;j>0;j--) 
+	{
+	  x[j] = x[j-1] + d->k * kk*(ww-xh[j-1]);      
+	  u[j] = u[j-1] * exp ( -d->k * (bb + gg*Uh + s(xh[j-1]) * ii * _e(d->eff,d->k,th) - kk));
+	}      
+
+      x[0] = 0;
+      u[0] = x[1] * b(aa,x[1])*u[1];
+      
+      for (int j=1;j<d->J;j++)
+	u[0] += (b(aa,x[j])*u[j] + b(aa,x[j+1])*u[j+1]) * (x[j+1]-x[j]);
+
+      u[0] /= (2*kk*ww - x[1]*b(aa,0));
+
+      for (int j=0;j<=d->J;j++)
+	r[j] = w(x[j])*s(x[j])*u[j]*ii*_e(d->eff,d->k,t);
+            
+      U = 0;
+      C = 0;
+      for (int j=0;j<d->J;j++)
+	{
+	  U += .5 * (x[j+1] - x[j]) * (u[j+1] + u[j]);
+	  C += .5 * (x[j+1] - x[j]) * (r[j+1] + r[j]);
+	}
+      
+      for (int j=0;j<=d->J;j++)
+	o[j] = pow(_c(d->cat,d->k,t) * (d->p[i][j] + (1-d->Qp[i]) * r[j]/C) - r[j],2.0);
+
+      for (int j=0;j<=d->J;j++)
+	ff += .5 * (x[j+1] - x[j]) * (o[j+1] + o[j]);
+      
+    }
+
+  free(o);
+  free(r);
+  free(x);
+  free(u);
+  free(xh);
+  free(uh);
+
+  return ff;
+	  
+}
+	  
 Real K(
 
        Parameters *parameters,
@@ -247,7 +390,7 @@ Real K(
     solve(parameters,d->eff,d->k,d->S,d->Y,core_args);
   else
     solve_clean(parameters,d->eff,d->k,d->S,d->Y,core_args);
-
+  
   MeMAT *x = core_args->x;
   MeMAT *u = core_args->u;
 

@@ -66,15 +66,15 @@ MeVEC	*iter_cgs(ITER *ip, MeVEC *r0)
    Real	alpha, beta, nres, rho, old_rho, sigma, inner;
 
    if (ip == INULL)
-     error(E_NULL,"iter_cgs");
+     Meerror(E_NULL,"iter_cgs");
    if (!ip->Ax || !ip->b || !r0)
-     error(E_NULL,"iter_cgs");
+     Meerror(E_NULL,"iter_cgs");
    if ( ip->x == ip->b )
-     error(E_INSITU,"iter_cgs");
+     Meerror(E_INSITU,"iter_cgs");
    if (!ip->stop_crit)
-     error(E_NULL,"iter_cgs");
+     Meerror(E_NULL,"iter_cgs");
    if ( r0->dim != ip->b->dim )
-     error(E_SIZES,"iter_cgs");
+     Meerror(E_SIZES,"iter_cgs");
    
    if ( ip->eps <= 0.0 ) ip->eps = MACHEPS;
    
@@ -97,7 +97,7 @@ MeVEC	*iter_cgs(ITER *ip, MeVEC *r0)
 
    if (ip->x != VNULL) {
       if (ip->x->dim != ip->b->dim)
-	error(E_SIZES,"iter_cgs");
+	Meerror(E_SIZES,"iter_cgs");
       ip->Ax(ip->A_par,ip->x,v);    		/* v = A*x */
       if (ip->Bx) {
 	 v_sub(ip->b,v,v);			/* v = b - A*x */
@@ -127,7 +127,7 @@ MeVEC	*iter_cgs(ITER *ip, MeVEC *r0)
 
       rho = in_prod(r0,r);
       if ( old_rho == 0.0 )
-	error(E_BREAKDOWN,"iter_cgs");
+	Meerror(E_BREAKDOWN,"iter_cgs");
       beta = rho/old_rho;
       v_mltadd(r,q,beta,u);
       v_mltadd(q,p,beta,v);
@@ -142,7 +142,7 @@ MeVEC	*iter_cgs(ITER *ip, MeVEC *r0)
       
       sigma = in_prod(r0,tmp);
       if ( sigma == 0.0 )
-	error(E_BREAKDOWN,"iter_cgs");
+	Meerror(E_BREAKDOWN,"iter_cgs");
       alpha = rho/sigma;
       v_mltadd(u,tmp,-alpha,q);
       v_add(u,q,v);
@@ -217,14 +217,14 @@ MeVEC	*iter_spcgs(SPMeMAT *A, SPMeMAT *B, MeVEC *b, MeVEC *r0, double tol,
 }
 
 /*
-  Routine for performing LSQR -- the least Mesquares QR algorithm
+  Routine for perforMeming LSQR -- the least Mesquares QR algorithm
   of Paige and Saunders:
   "LSQR: an algorithm for sparse linear equations and
   sparse least Mesquares", ACM Trans. Math. Soft., v. 8
   pp. 43--71 (1982)
   */
 /* iter_lsqr -- sparse CG-like least Mesquares routine:
-   -- finds min_x ||A.x-b||_2 using A defined through A & AT
+   -- finds Memin_x ||A.x-b||_2 using A defined through A & AT
    -- returns x (if x != NULL) */
 #ifndef ANSI_C
 MeVEC	*iter_lsqr(ip)
@@ -235,16 +235,16 @@ MeVEC	*iter_lsqr(ITER *ip)
 {
    STATIC MeVEC	*u = VNULL, *v = VNULL, *w = VNULL, *tmp = VNULL;
    Real	alpha, beta, phi, phi_bar;
-   Real rho, rho_bar, rho_Memax, theta, nres;
+   Real rho, rho_bar, rho_MeMemax, theta, nres;
    Real	s, c;	/* for Givens' rotations */
    int  m, n;
    
    if ( ! ip || ! ip->b || !ip->Ax || !ip->ATx )
-     error(E_NULL,"iter_lsqr");
+     Meerror(E_NULL,"iter_lsqr");
    if ( ip->x == ip->b )
-     error(E_INSITU,"iter_lsqr");
+     Meerror(E_INSITU,"iter_lsqr");
    if (!ip->stop_crit || !ip->x)
-     error(E_NULL,"iter_lsqr");
+     Meerror(E_NULL,"iter_lsqr");
 
    if ( ip->eps <= 0.0 ) ip->eps = MACHEPS;
    
@@ -284,7 +284,7 @@ MeVEC	*iter_lsqr(ITER *ip)
    phi_bar = beta;
    rho_bar = alpha;
    
-   rho_Memax = 1.0;
+   rho_MeMemax = 1.0;
    for (ip->steps = 0; ip->steps <= ip->limit; ip->steps++) {
 
       tmp = v_resize(tmp,m);
@@ -301,8 +301,8 @@ MeVEC	*iter_lsqr(ITER *ip)
       sv_mlt(1.0/alpha,v,v);
       
       rho = sqrt(rho_bar*rho_bar+beta*beta);
-      if ( rho > rho_Memax )
-	rho_Memax = rho;
+      if ( rho > rho_MeMemax )
+	rho_MeMemax = rho;
       c   = rho_bar/rho;
       s   = beta/rho;
       theta   =  s*alpha;
@@ -312,11 +312,11 @@ MeVEC	*iter_lsqr(ITER *ip)
       
       /* update ip->x & w */
       if ( rho == 0.0 )
-	error(E_BREAKDOWN,"iter_lsqr");
+	Meerror(E_BREAKDOWN,"iter_lsqr");
       v_mltadd(ip->x,w,phi/rho,ip->x);
       v_mltadd(v,w,-theta/rho,w);
 
-      nres = fabs(phi_bar*alpha*c)*rho_Memax;
+      nres = fabs(phi_bar*alpha*c)*rho_MeMemax;
 
       if (ip->info) ip->info(ip,nres,w,VNULL);
       if (ip->steps == 0) ip->init_res = nres;
@@ -385,13 +385,13 @@ MeMAT	*iter_arnoldi_iref(ITER *ip, Real *h_rem, MeMAT *Q, MeMAT *H)
    Real	h_val, c;
    
    if (ip == INULL)
-     error(E_NULL,"iter_arnoldi_iref");
+     Meerror(E_NULL,"iter_arnoldi_iref");
    if ( ! ip->Ax || ! Q || ! ip->x )
-     error(E_NULL,"iter_arnoldi_iref");
+     Meerror(E_NULL,"iter_arnoldi_iref");
    if ( ip->k <= 0 )
-     error(E_BOUNDS,"iter_arnoldi_iref");
+     Meerror(E_BOUNDS,"iter_arnoldi_iref");
    if ( Q->n != ip->x->dim ||	Q->m != ip->k )
-     error(E_SIZES,"iter_arnoldi_iref");
+     Meerror(E_SIZES,"iter_arnoldi_iref");
    
    m_zero(Q);
    H = m_resize(H,ip->k,ip->k);
@@ -406,7 +406,7 @@ MeMAT	*iter_arnoldi_iref(ITER *ip, Real *h_rem, MeMAT *Q, MeMAT *H)
    MEM_STAT_REG(s,TYPE_MeVEC);
    MEM_STAT_REG(tmp,TYPE_MeVEC);
 
-   v.dim = v.Memax_dim = ip->x->dim;
+   v.dim = v.MeMemax_dim = ip->x->dim;
 
    c = v_norm2(ip->x);
    if ( c <= 0.0)
@@ -490,13 +490,13 @@ MeMAT	*iter_arnoldi(ITER *ip, Real *h_rem, MeMAT *Q, MeMAT *H)
    Real	h_val, c;
    
    if (ip == INULL)
-     error(E_NULL,"iter_arnoldi");
+     Meerror(E_NULL,"iter_arnoldi");
    if ( ! ip->Ax || ! Q || ! ip->x )
-     error(E_NULL,"iter_arnoldi");
+     Meerror(E_NULL,"iter_arnoldi");
    if ( ip->k <= 0 )
-     error(E_BOUNDS,"iter_arnoldi");
+     Meerror(E_BOUNDS,"iter_arnoldi");
    if ( Q->n != ip->x->dim ||	Q->m != ip->k )
-     error(E_SIZES,"iter_arnoldi");
+     Meerror(E_SIZES,"iter_arnoldi");
    
    m_zero(Q);
    H = m_resize(H,ip->k,ip->k);
@@ -507,7 +507,7 @@ MeMAT	*iter_arnoldi(ITER *ip, Real *h_rem, MeMAT *Q, MeMAT *H)
    MEM_STAT_REG(u,TYPE_MeVEC);
    MEM_STAT_REG(r,TYPE_MeVEC);
 
-   v.dim = v.Memax_dim = ip->x->dim;
+   v.dim = v.MeMemax_dim = ip->x->dim;
 
    c = v_norm2(ip->x);
    if ( c <= 0.0)
@@ -607,8 +607,8 @@ static void test_gmres(ITER *ip, int i, MeMAT *Q, MeMAT *R,
    MEM_STAT_REG(Q1,TYPE_MeMAT);
    MEM_STAT_REG(R1,TYPE_MeMAT);
 
-   vt.dim = vt.Memax_dim = ip->b->dim;
-   vt1.dim = vt1.Memax_dim = ip->b->dim;
+   vt.dim = vt.MeMemax_dim = ip->b->dim;
+   vt1.dim = vt1.MeMemax_dim = ip->b->dim;
    for (j=0; j <= i; j++) {
       vt.ve = Q->me[j];
       vt1.ve = Q1->me[j];
@@ -649,7 +649,7 @@ static void test_gmres(ITER *ip, int i, MeMAT *Q, MeMAT *R,
 }
 
 
-/* gmres -- generalised minimum residual algorithm of Saad & Schultz
+/* gmres -- generalised Meminimum residual algorithm of Saad & Schultz
    SIAM J. Sci. Stat. Comp. v.7, pp.856--869 (1986)
 */
 #ifndef ANSI_C
@@ -668,15 +668,15 @@ MeVEC	*iter_gmres(ITER *ip)
 /*   Real last_h;  */
    
    if (ip == INULL)
-     error(E_NULL,"iter_gmres");
+     Meerror(E_NULL,"iter_gmres");
    if ( ! ip->Ax || ! ip->b )
-     error(E_NULL,"iter_gmres");
+     Meerror(E_NULL,"iter_gmres");
    if ( ! ip->stop_crit )
-     error(E_NULL,"iter_gmres");
+     Meerror(E_NULL,"iter_gmres");
    if ( ip->k <= 0 )
-     error(E_BOUNDS,"iter_gmres");
+     Meerror(E_BOUNDS,"iter_gmres");
    if (ip->x != VNULL && ip->x->dim != ip->b->dim)
-     error(E_SIZES,"iter_gmres");
+     Meerror(E_SIZES,"iter_gmres");
    if (ip->eps <= 0.0) ip->eps = MACHEPS;
 
    r = v_resize(r,ip->k+1);
@@ -701,8 +701,8 @@ MeVEC	*iter_gmres(ITER *ip)
       ip->shared_x = FALSE;
    }   
 
-   v.dim = v.Memax_dim = ip->b->dim;      /* v and v1 are pointers to rows */
-   v1.dim = v1.Memax_dim = ip->b->dim;  	/* of matrix Q */
+   v.dim = v.MeMemax_dim = ip->b->dim;      /* v and v1 are pointers to rows */
+   v1.dim = v1.MeMemax_dim = ip->b->dim;  	/* of matrix Q */
    
    if (ip->Bx != (Fun_Ax)NULL) {    /* if precondition is defined */
       z = v_resize(z,ip->b->dim);
@@ -911,8 +911,8 @@ static void test_mgcr(ITER *ip, int i, MeMAT *Q, MeMAT *R)
    
    
    /* check Q*Q^T = I */
-   vt.dim = vt.Memax_dim = ip->b->dim;
-   vt1.dim = vt1.Memax_dim = ip->b->dim;
+   vt.dim = vt.MeMemax_dim = ip->b->dim;
+   vt1.dim = vt1.MeMemax_dim = ip->b->dim;
    
    Q = m_resize(Q,i+1,ip->b->dim);
    R1 = m_resize(R1,i+1,i+1);
@@ -952,11 +952,11 @@ static void test_mgcr(ITER *ip, int i, MeMAT *Q, MeMAT *R)
    sm = 0.0;
    for (j = 1; j <= i; j++) {
       vt.ve = Q->me[j];
-      sm = Memax(sm,in_prod(&vt,rr));
+      sm = MeMemax(sm,in_prod(&vt,rr));
    }
 #ifndef MEX
    if (sm >= MACHEPS*ip->b->dim)
-     printf(" ! (mgcr:) Memax_j (r,Ap_j) = %g\n",sm);
+     printf(" ! (mgcr:) MeMemax_j (r,Ap_j) = %g\n",sm);
 #endif
 
 }
@@ -986,15 +986,15 @@ MeVEC *iter_mgcr(ITER *ip)
    int dim;       /* dimension of the problem */
    
    /* ip cannot be NULL */
-   if (ip == INULL) error(E_NULL,"mgcr");
+   if (ip == INULL) Meerror(E_NULL,"mgcr");
    /* Ax, b and stopping criterion must be given */
    if (! ip->Ax || ! ip->b || ! ip->stop_crit) 
-     error(E_NULL,"mgcr");
+     Meerror(E_NULL,"mgcr");
    /* at least one direction vector must exist */
-   if ( ip->k <= 0) error(E_BOUNDS,"mgcr");
+   if ( ip->k <= 0) Meerror(E_BOUNDS,"mgcr");
    /* if the vector x is given then b and x must have the same dimension */
    if ( ip->x && ip->x->dim != ip->b->dim)
-     error(E_SIZES,"mgcr");
+     Meerror(E_SIZES,"mgcr");
    if (ip->eps <= 0.0) ip->eps = MACHEPS;
    
    dim = ip->b->dim;
@@ -1027,7 +1027,7 @@ MeVEC *iter_mgcr(ITER *ip)
    
    /* v and s are additional pointers to rows of N */
    /* they must have the same dimension as rows of N */
-   v.dim = v.Memax_dim = s.dim = s.Memax_dim = dim;
+   v.dim = v.MeMemax_dim = s.dim = s.MeMemax_dim = dim;
    
    
    done = FALSE;
@@ -1253,13 +1253,13 @@ MeVEC  *iter_cgne(ITER *ip)
    MeVEC *rr1;   /* pointer only */
    
    if (ip == INULL)
-     error(E_NULL,"iter_cgne");
+     Meerror(E_NULL,"iter_cgne");
    if (!ip->Ax || ! ip->ATx || !ip->b)
-     error(E_NULL,"iter_cgne");
+     Meerror(E_NULL,"iter_cgne");
    if ( ip->x == ip->b )
-     error(E_INSITU,"iter_cgne");
+     Meerror(E_INSITU,"iter_cgne");
    if (!ip->stop_crit)
-     error(E_NULL,"iter_cgne");
+     Meerror(E_NULL,"iter_cgne");
    
    if ( ip->eps <= 0.0 ) ip->eps = MACHEPS;
    
@@ -1276,7 +1276,7 @@ MeVEC  *iter_cgne(ITER *ip)
 
    if (ip->x) {
       if (ip->x->dim != ip->b->dim)
-	error(E_SIZES,"iter_cgne");
+	Meerror(E_SIZES,"iter_cgne");
       ip->Ax(ip->A_par,ip->x,p);    		/* p = A*x */
       v_sub(ip->b,p,z);		 		/* z = b - A*x */
    }

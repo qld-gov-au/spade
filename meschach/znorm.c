@@ -45,7 +45,7 @@ MeVEC	*scale;
     Real	s, sum;
     
     if ( x == ZVNULL )
-	error(E_NULL,"_zv_norm1");
+	Meerror(E_NULL,"_zv_norm1");
     dim = x->dim;
     
     sum = 0.0;
@@ -53,7 +53,7 @@ MeVEC	*scale;
 	for ( i = 0; i < dim; i++ )
 	    sum += zabs(x->ve[i]);
     else if ( scale->dim < dim )
-	error(E_SIZES,"_zv_norm1");
+	Meerror(E_SIZES,"_zv_norm1");
     else
 	for ( i = 0; i < dim; i++ )
 	{
@@ -82,7 +82,7 @@ MeVEC	*scale;
     Real	s, sum;
     
     if ( x == ZVNULL )
-	error(E_NULL,"_zv_norm2");
+	Meerror(E_NULL,"_zv_norm2");
     dim = x->dim;
     
     sum = 0.0;
@@ -90,7 +90,7 @@ MeVEC	*scale;
 	for ( i = 0; i < dim; i++ )
 	    sum += Mesquare(x->ve[i].re) + Mesquare(x->ve[i].im);
     else if ( scale->dim < dim )
-	error(E_SIZES,"_v_norm2");
+	Meerror(E_SIZES,"_v_norm2");
     else
 	for ( i = 0; i < dim; i++ )
 	{
@@ -102,7 +102,7 @@ MeVEC	*scale;
     return sqrt(sum);
 }
 
-#define	Memax(a,b)	((a) > (b) ? (a) : (b))
+#define	MeMemax(a,b)	((a) > (b) ? (a) : (b))
 
 /* _zv_norm_inf -- computes (scaled) infinity-norm (supremum norm) of vectors */
 double	_zv_norm_inf(x,scale)
@@ -110,30 +110,30 @@ ZMeVEC	*x;
 MeVEC	*scale;
 {
     int	i, dim;
-    Real	s, Memaxval, tmp;
+    Real	s, MeMemaxval, tmp;
     
     if ( x == ZVNULL )
-	error(E_NULL,"_zv_norm_inf");
+	Meerror(E_NULL,"_zv_norm_inf");
     dim = x->dim;
     
-    Memaxval = 0.0;
+    MeMemaxval = 0.0;
     if ( scale == VNULL )
 	for ( i = 0; i < dim; i++ )
 	{
 	    tmp = zabs(x->ve[i]);
-	    Memaxval = Memax(Memaxval,tmp);
+	    MeMemaxval = MeMemax(MeMemaxval,tmp);
 	}
     else if ( scale->dim < dim )
-	error(E_SIZES,"_zv_norm_inf");
+	Meerror(E_SIZES,"_zv_norm_inf");
     else
 	for ( i = 0; i < dim; i++ )
 	{
 	    s = scale->ve[i];
 	    tmp = ( s == 0.0 ) ? zabs(x->ve[i]) : zabs(x->ve[i])/fabs(s);
-	    Memaxval = Memax(Memaxval,tmp);
+	    MeMemaxval = MeMemax(MeMemaxval,tmp);
 	}
     
-    return Memaxval;
+    return MeMemaxval;
 }
 
 /* zm_norm1 -- compute matrix 1-norm -- unscaled
@@ -142,23 +142,23 @@ double	zm_norm1(A)
 ZMeMAT	*A;
 {
     int	i, j, m, n;
-    Real	Memaxval, sum;
+    Real	MeMemaxval, sum;
     
     if ( A == ZMNULL )
-	error(E_NULL,"zm_norm1");
+	Meerror(E_NULL,"zm_norm1");
 
     m = A->m;	n = A->n;
-    Memaxval = 0.0;
+    MeMemaxval = 0.0;
     
     for ( j = 0; j < n; j++ )
     {
 	sum = 0.0;
 	for ( i = 0; i < m; i ++ )
 	    sum += zabs(A->me[i][j]);
-	Memaxval = Memax(Memaxval,sum);
+	MeMemaxval = MeMemax(MeMemaxval,sum);
     }
     
-    return Memaxval;
+    return MeMemaxval;
 }
 
 /* zm_norm_inf -- compute matrix infinity-norm -- unscaled
@@ -167,23 +167,23 @@ double	zm_norm_inf(A)
 ZMeMAT	*A;
 {
     int	i, j, m, n;
-    Real	Memaxval, sum;
+    Real	MeMemaxval, sum;
     
     if ( A == ZMNULL )
-	error(E_NULL,"zm_norm_inf");
+	Meerror(E_NULL,"zm_norm_inf");
     
     m = A->m;	n = A->n;
-    Memaxval = 0.0;
+    MeMemaxval = 0.0;
     
     for ( i = 0; i < m; i++ )
     {
 	sum = 0.0;
 	for ( j = 0; j < n; j ++ )
 	    sum += zabs(A->me[i][j]);
-	Memaxval = Memax(Memaxval,sum);
+	MeMemaxval = MeMemax(MeMemaxval,sum);
     }
     
-    return Memaxval;
+    return MeMemaxval;
 }
 
 /* zm_norm_frob -- compute matrix frobenius-norm -- unscaled */
@@ -194,7 +194,7 @@ ZMeMAT	*A;
     Real	sum;
     
     if ( A == ZMNULL )
-	error(E_NULL,"zm_norm_frob");
+	Meerror(E_NULL,"zm_norm_frob");
     
     m = A->m;	n = A->n;
     sum = 0.0;

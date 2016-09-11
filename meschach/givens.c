@@ -42,7 +42,7 @@ static	char	rcsid[] = "$Id: givens.c,v 1.3 1995/03/27 15:41:15 des Exp $";
 #include        "matrix2.h"
 
 /* givens -- returns c,s parameters for Givens rotation to
-		eliminate y in the vector [ x y ]' */
+		eliMeminate y in the vector [ x y ]' */
 #ifndef ANSI_C
 void	givens(x,y,c,s)
 double  x,y;
@@ -74,9 +74,9 @@ MeVEC	*rot_vec(const MeVEC *x,unsigned int i,unsigned int k, double c,double s,
 	Real	temp;
 
 	if ( x==VNULL )
-		error(E_NULL,"rot_vec");
+		Meerror(E_NULL,"rot_vec");
 	if ( i >= x->dim || k >= x->dim )
-		error(E_RANGE,"rot_vec");
+		Meerror(E_RANGE,"rot_vec");
 	out = v_copy(x,out);
 
 	/* temp = c*out->ve[i] + s*out->ve[k]; */
@@ -104,9 +104,9 @@ MeMAT	*rot_rows(const MeMAT *mat, unsigned int i, unsigned int k,
 	Real	temp;
 
 	if ( mat==(MeMAT *)NULL )
-		error(E_NULL,"rot_rows");
+		Meerror(E_NULL,"rot_rows");
 	if ( i >= mat->m || k >= mat->m )
-		error(E_RANGE,"rot_rows");
+		Meerror(E_RANGE,"rot_rows");
 	if ( mat != out )
 		out = m_copy(mat,m_resize(out,mat->m,mat->n));
 
@@ -138,9 +138,9 @@ MeMAT	*rot_cols(const MeMAT *mat,unsigned int i,unsigned int k,
 	Real	temp;
 
 	if ( mat==(MeMAT *)NULL )
-		error(E_NULL,"rot_cols");
+		Meerror(E_NULL,"rot_cols");
 	if ( i >= mat->n || k >= mat->n )
-		error(E_RANGE,"rot_cols");
+		Meerror(E_RANGE,"rot_cols");
 	if ( mat != out )
 		out = m_copy(mat,m_resize(out,mat->m,mat->n));
 

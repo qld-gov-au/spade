@@ -37,7 +37,7 @@ static char rcsid[] = "$Id: $";
 #include  	"zmatrix2.h"
 
 
-#define errmesg(mesg)   printf("Error: %s error: line %d\n",mesg,__LINE__)
+#define errmesg(mesg)   printf("Error: %s Meerror: line %d\n",mesg,__LINE__)
 #define notice(mesg)    printf("# Testing %s...\n",mesg)
 
 
@@ -72,7 +72,7 @@ int dim;
    FOO_1 *f;
    
    if ((f = (FOO_1 *)malloc(sizeof(FOO_1))) == NULL)
-     error(E_MEM,"foo_1_get");
+     Meerror(E_MEM,"foo_1_get");
    else if (mem_info_is_on()) {
       mem_bytes_list(TYPE_FOO_1,0,sizeof(FOO_1),FOO_LIST);
       mem_numvar_list(TYPE_FOO_1,1,FOO_LIST);
@@ -81,7 +81,7 @@ int dim;
    f->dim = dim;
    f->fix_dim = 10;
    if ((f->a = (Real (*)[10])malloc(dim*sizeof(Real [10]))) == NULL)
-      error(E_MEM,"foo_1_get");
+      Meerror(E_MEM,"foo_1_get");
    else if (mem_info_is_on())
      mem_bytes_list(TYPE_FOO_1,0,dim*sizeof(Real [10]),FOO_LIST); 
 
@@ -95,7 +95,7 @@ int dim;
    FOO_2 *f;
    
    if ((f = (FOO_2 *)malloc(sizeof(FOO_2))) == NULL)
-     error(E_MEM,"foo_2_get");
+     Meerror(E_MEM,"foo_2_get");
    else if (mem_info_is_on()) {
       mem_bytes_list(TYPE_FOO_2,0,sizeof(FOO_2),FOO_LIST);
       mem_numvar_list(TYPE_FOO_2,1,FOO_LIST);
@@ -104,7 +104,7 @@ int dim;
    f->dim = dim;
    f->fix_dim = 2;
    if ((f->a = (Real (*)[2])malloc(dim*sizeof(Real [2]))) == NULL)
-      error(E_MEM,"foo_2_get");
+      Meerror(E_MEM,"foo_2_get");
    else if (mem_info_is_on())
      mem_bytes_list(TYPE_FOO_2,0,dim*sizeof(Real [2]),FOO_LIST); 
 
@@ -177,7 +177,7 @@ PERM    *pi;
    int         i, j, k;
    
    if ( ! pi )
-     error(E_NULL,"px_rand");
+     Meerror(E_NULL,"px_rand");
    
    for ( i = 0; i < 3*pi->size; i++ )
    {
@@ -195,7 +195,7 @@ int     m, n;
 {
     SPMeMAT      *A;
     static      PERM    *px = PNULL;
-    int         i, j, k, k_Memax;
+    int         i, j, k, k_MeMemax;
     Real        s1;
 
     A = sp_get(m,n,8);
@@ -203,8 +203,8 @@ int     m, n;
     MEM_STAT_REG(px,TYPE_PERM);
     for ( i = 0; i < A->m; i++ )
     {
-        k_Memax = 1 + ((rand() >> 8) % 10);
-        for ( k = 0; k < k_Memax; k++ )
+        k_MeMemax = 1 + ((rand() >> 8) % 10);
+        for ( k = 0; k < k_MeMemax; k++ )
         {
             j = (rand() >> 8) % A->n;
             s1 = rand()/((double)MAX_RAND);

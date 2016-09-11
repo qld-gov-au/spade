@@ -200,23 +200,23 @@ Real	*x, *y;
 #define	ABS(x)	((x) >= 0 ? (x) : -(x))
 #endif
 
-/* Mnorminf -- returns ||x||_inf */
-double	Mnorminf(len,x)
+/* MnorMeminf -- returns ||x||_inf */
+double	MnorMeminf(len,x)
 int	len;
 Real	*x;
 {
     register int	i;
-    register Real	tmp, Memax_val;
+    register Real	tmp, MeMemax_val;
 
-    Memax_val = 0.0;
+    MeMemax_val = 0.0;
     for ( i = 0; i < len; i++ )
     {
 	tmp = ABS(x[i]);
-	if ( Memax_val < tmp )
-	    Memax_val = tmp;
+	if ( MeMemax_val < tmp )
+	    MeMemax_val = tmp;
     }
 
-    return Memax_val;
+    return MeMemax_val;
 }
 
 /* Mnorm1 -- returns ||x||_1 */
@@ -242,7 +242,7 @@ Real	*x;
     register int	i;
     register Real	norm, invnorm, sum, tmp;
 
-    norm = Mnorminf(len,x);
+    norm = MnorMeminf(len,x);
     if ( norm == 0.0 )
 	return 0.0;
     invnorm = 1.0/norm;

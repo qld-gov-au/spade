@@ -74,7 +74,7 @@ static	void	hhldr3cols(MeMAT *A, int k, int j0, double beta,
 	int	j, n;
 
 	if ( k < 0 || k+3 > A->m || j0 < 0 )
-		error(E_BOUNDS,"hhldr3cols");
+		Meerror(E_BOUNDS,"hhldr3cols");
 	A_me = A->me;		n = A->n;
 
 	/* printf("hhldr3cols:(l.%d) j0 = %d, k = %d, A at 0x%lx, m = %d, n = %d\n",
@@ -125,9 +125,9 @@ static	void	hhldr3rows(MeMAT *A, int k, int i0, double beta,
 	/* printf("hhldr3rows:(l.%d) A at 0x%lx\n", __LINE__, (long)A); */
 	/* printf("hhldr3rows: k = %d\n", k); */
 	if ( k < 0 || k+3 > A->n )
-		error(E_BOUNDS,"hhldr3rows");
+		Meerror(E_BOUNDS,"hhldr3rows");
 	A_me = A->me;		m = A->m;
-	i0 = min(i0,m-1);
+	i0 = Memin(i0,m-1);
 
 	for ( i = 0; i <= i0; i++ )
 	{
@@ -158,18 +158,18 @@ MeMAT	*A, *Q;
 MeMAT	*schur(MeMAT *A, MeMAT *Q)
 #endif
 {
-    int		i, j, iter, k, k_min, k_Memax, k_tmp, n, split;
+    int		i, j, iter, k, k_Memin, k_MeMemax, k_tmp, n, split;
     Real	beta2, c, discrim, dummy, nu1, s, t, tmp, x, y, z;
     Real	**A_me;
     Real	sqrt_macheps;
     STATIC	MeVEC	*diag=VNULL, *beta=VNULL;
     
     if ( ! A )
-	error(E_NULL,"schur");
+	Meerror(E_NULL,"schur");
     if ( A->m != A->n || ( Q && Q->m != Q->n ) )
-	error(E_SQUARE,"schur");
+	Meerror(E_SQUARE,"schur");
     if ( Q != MNULL && Q->m != A->m )
-	error(E_SIZES,"schur");
+	Meerror(E_SIZES,"schur");
     n = A->n;
     diag = v_resize(diag,A->n);
     beta = v_resize(beta,A->n);
@@ -185,39 +185,39 @@ MeMAT	*schur(MeMAT *A, MeMAT *Q)
 
     sqrt_macheps = sqrt(MACHEPS);
 
-    k_min = 0;	A_me = A->me;
+    k_Memin = 0;	A_me = A->me;
 
-    while ( k_min < n )
+    while ( k_Memin < n )
     {
 	Real	a00, a01, a10, a11;
 	double	scale, t, numer, denom;
 
-	/* find k_Memax to suit:
-	   submatrix k_min..k_Memax should be irreducible */
-	k_Memax = n-1;
-	for ( k = k_min; k < k_Memax; k++ )
+	/* find k_MeMemax to suit:
+	   submatrix k_Memin..k_MeMemax should be irreducible */
+	k_MeMemax = n-1;
+	for ( k = k_Memin; k < k_MeMemax; k++ )
 	    /* if ( A_me[k+1][k] == 0.0 ) */
 	    if ( m_entry(A,k+1,k) == 0.0 )
-	    {	k_Memax = k;	break;	}
+	    {	k_MeMemax = k;	break;	}
 
-	if ( k_Memax <= k_min )
+	if ( k_MeMemax <= k_Memin )
 	{
-	    k_min = k_Memax + 1;
+	    k_Memin = k_MeMemax + 1;
 	    continue;		/* outer loop */
 	}
 
 	/* check to see if we have a 2 x 2 block
 	   with complex eigenvalues */
-	if ( k_Memax == k_min + 1 )
+	if ( k_MeMemax == k_Memin + 1 )
 	{
-	    /* tmp = A_me[k_min][k_min] - A_me[k_Memax][k_Memax]; */
-	    a00 = m_entry(A,k_min,k_min);
-	    a01 = m_entry(A,k_min,k_Memax);
-	    a10 = m_entry(A,k_Memax,k_min);
-	    a11 = m_entry(A,k_Memax,k_Memax);
+	    /* tmp = A_me[k_Memin][k_Memin] - A_me[k_MeMemax][k_MeMemax]; */
+	    a00 = m_entry(A,k_Memin,k_Memin);
+	    a01 = m_entry(A,k_Memin,k_MeMemax);
+	    a10 = m_entry(A,k_MeMemax,k_Memin);
+	    a11 = m_entry(A,k_MeMemax,k_MeMemax);
 	    tmp = a00 - a11;
 	    /* discrim = tmp*tmp +
-		4*A_me[k_min][k_Memax]*A_me[k_Memax][k_min]; */
+		4*A_me[k_Memin][k_MeMemax]*A_me[k_MeMemax][k_Memin]; */
 	    discrim = tmp*tmp + 4*a01*a10;
 	    if ( discrim < 0.0 )
 	    {	/* yes -- e-vals are complex
@@ -238,11 +238,11 @@ MeMAT	*schur(MeMAT *A, MeMAT *Q)
 		    c = 1.0;
 		    s = 0.0;
 		}
-		rot_cols(A,k_min,k_Memax,c,s,A);
-		rot_rows(A,k_min,k_Memax,c,s,A);
+		rot_cols(A,k_Memin,k_MeMemax,c,s,A);
+		rot_rows(A,k_Memin,k_MeMemax,c,s,A);
 		if ( Q != MNULL )
-		    rot_cols(Q,k_min,k_Memax,c,s,Q);
-		k_min = k_Memax + 1;
+		    rot_cols(Q,k_Memin,k_MeMemax,c,s,Q);
+		k_Memin = k_MeMemax + 1;
 		continue;
 	    }
 	    else /* discrim >= 0; i.e. block has two real eigenvalues */
@@ -270,12 +270,12 @@ MeMAT	*schur(MeMAT *A, MeMAT *Q)
 		    c = 0.0;
 		    s = 1.0;
 		}
-		rot_cols(A,k_min,k_Memax,c,s,A);
-		rot_rows(A,k_min,k_Memax,c,s,A);
-		/* A->me[k_Memax][k_min] = 0.0; */
+		rot_cols(A,k_Memin,k_MeMemax,c,s,A);
+		rot_rows(A,k_Memin,k_MeMemax,c,s,A);
+		/* A->me[k_MeMemax][k_Memin] = 0.0; */
 		if ( Q != MNULL )
-		    rot_cols(Q,k_min,k_Memax,c,s,Q);
-		k_min = k_Memax + 1;	/* go to next block */
+		    rot_cols(Q,k_Memin,k_MeMemax,c,s,Q);
+		k_Memin = k_MeMemax + 1;	/* go to next block */
 		continue;
 	    }
 	}
@@ -288,12 +288,12 @@ MeMAT	*schur(MeMAT *A, MeMAT *Q)
 	    iter++;
 	    
 	    /* set up Wilkinson/Francis complex shift */
-	    k_tmp = k_Memax - 1;
+	    k_tmp = k_MeMemax - 1;
 
 	    a00 = m_entry(A,k_tmp,k_tmp);
-	    a01 = m_entry(A,k_tmp,k_Memax);
-	    a10 = m_entry(A,k_Memax,k_tmp);
-	    a11 = m_entry(A,k_Memax,k_Memax);
+	    a01 = m_entry(A,k_tmp,k_MeMemax);
+	    a10 = m_entry(A,k_MeMemax,k_tmp);
+	    a11 = m_entry(A,k_MeMemax,k_MeMemax);
 
 	    /* treat degenerate cases differently
 	       -- if there are still no splits after five iterations
@@ -309,10 +309,10 @@ MeMAT	*schur(MeMAT *A, MeMAT *Q)
 		  fabs(a10) < sqrt_macheps*(fabs(a00)+fabs(a11))) )
 	    {
 	      if ( fabs(a01) < sqrt_macheps*(fabs(a00)+fabs(a11)) )
-		m_set_val(A,k_tmp,k_Memax,0.0);
+		m_set_val(A,k_tmp,k_MeMemax,0.0);
 	      if ( fabs(a10) < sqrt_macheps*(fabs(a00)+fabs(a11)) )
 		{
-		  m_set_val(A,k_Memax,k_tmp,0.0);
+		  m_set_val(A,k_MeMemax,k_tmp,0.0);
 		  split = TRUE;
 		  continue;
 		}
@@ -322,7 +322,7 @@ MeMAT	*schur(MeMAT *A, MeMAT *Q)
 	    t = a00*a11 - a01*a10;
 
 	    /* break loop if a 2 x 2 complex block */
-	    if ( k_Memax == k_min + 1 && s*s < 4.0*t )
+	    if ( k_MeMemax == k_Memin + 1 && s*s < 4.0*t )
 	    {
 		split = TRUE;
 		continue;
@@ -334,44 +334,44 @@ MeMAT	*schur(MeMAT *A, MeMAT *Q)
 	    }
 
 	    /* set up Householder transformations */
-	    k_tmp = k_min + 1;
+	    k_tmp = k_Memin + 1;
 	    /********************
-	    x = A_me[k_min][k_min]*A_me[k_min][k_min] +
-		A_me[k_min][k_tmp]*A_me[k_tmp][k_min] -
-		    s*A_me[k_min][k_min] + t;
-	    y = A_me[k_tmp][k_min]*
-		(A_me[k_min][k_min]+A_me[k_tmp][k_tmp]-s);
-	    if ( k_min + 2 <= k_Memax )
-		z = A_me[k_tmp][k_min]*A_me[k_min+2][k_tmp];
+	    x = A_me[k_Memin][k_Memin]*A_me[k_Memin][k_Memin] +
+		A_me[k_Memin][k_tmp]*A_me[k_tmp][k_Memin] -
+		    s*A_me[k_Memin][k_Memin] + t;
+	    y = A_me[k_tmp][k_Memin]*
+		(A_me[k_Memin][k_Memin]+A_me[k_tmp][k_tmp]-s);
+	    if ( k_Memin + 2 <= k_MeMemax )
+		z = A_me[k_tmp][k_Memin]*A_me[k_Memin+2][k_tmp];
 	    else
 		z = 0.0;
 	    ********************/
 
-	    a00 = m_entry(A,k_min,k_min);
-	    a01 = m_entry(A,k_min,k_tmp);
-	    a10 = m_entry(A,k_tmp,k_min);
+	    a00 = m_entry(A,k_Memin,k_Memin);
+	    a01 = m_entry(A,k_Memin,k_tmp);
+	    a10 = m_entry(A,k_tmp,k_Memin);
 	    a11 = m_entry(A,k_tmp,k_tmp);
 
 	    /********************
-	    a00 = A->me[k_min][k_min];
-	    a01 = A->me[k_min][k_tmp];
-	    a10 = A->me[k_tmp][k_min];
+	    a00 = A->me[k_Memin][k_Memin];
+	    a01 = A->me[k_Memin][k_tmp];
+	    a10 = A->me[k_tmp][k_Memin];
 	    a11 = A->me[k_tmp][k_tmp];
 	    ********************/
 	    x = a00*a00 + a01*a10 - s*a00 + t;
 	    y = a10*(a00+a11-s);
-	    if ( k_min + 2 <= k_Memax )
-		z = a10* /* m_entry(A,k_min+2,k_tmp) */ A->me[k_min+2][k_tmp];
+	    if ( k_Memin + 2 <= k_MeMemax )
+		z = a10* /* m_entry(A,k_Memin+2,k_tmp) */ A->me[k_Memin+2][k_tmp];
 	    else
 		z = 0.0;
 
-	    for ( k = k_min; k <= k_Memax-1; k++ )
+	    for ( k = k_Memin; k <= k_MeMemax-1; k++ )
 	    {
-		if ( k < k_Memax - 1 )
+		if ( k < k_MeMemax - 1 )
 		{
 		    hhldr3(x,y,z,&nu1,&beta2,&dummy);
-		    tracecatch(hhldr3cols(A,k,Memax(k-1,0),  beta2,nu1,y,z),"schur");
-		    tracecatch(hhldr3rows(A,k,min(n-1,k+3),beta2,nu1,y,z),"schur");
+		    tracecatch(hhldr3cols(A,k,MeMemax(k-1,0),  beta2,nu1,y,z),"schur");
+		    tracecatch(hhldr3rows(A,k,Memin(n-1,k+3),beta2,nu1,y,z),"schur");
 		    if ( Q != MNULL )
 			hhldr3rows(Q,k,n-1,beta2,nu1,y,z);
 		}
@@ -387,31 +387,31 @@ MeMAT	*schur(MeMAT *A, MeMAT *Q)
 		    m_set_val(A,k,k-2,0.0); */
 		/* x = A_me[k+1][k]; */
 		x = m_entry(A,k+1,k);
-		if ( k <= k_Memax - 2 )
+		if ( k <= k_MeMemax - 2 )
 		    /* y = A_me[k+2][k];*/
 		    y = m_entry(A,k+2,k);
 		else
 		    y = 0.0;
-		if ( k <= k_Memax - 3 )
+		if ( k <= k_MeMemax - 3 )
 		    /* z = A_me[k+3][k]; */
 		    z = m_entry(A,k+3,k);
 		else
 		    z = 0.0;
 	    }
-	    /* if ( k_min > 0 )
-		m_set_val(A,k_min,k_min-1,0.0);
-	    if ( k_Memax < n - 1 )
-		m_set_val(A,k_Memax+1,k_Memax,0.0); */
-	    for ( k = k_min; k <= k_Memax-2; k++ )
+	    /* if ( k_Memin > 0 )
+		m_set_val(A,k_Memin,k_Memin-1,0.0);
+	    if ( k_MeMemax < n - 1 )
+		m_set_val(A,k_MeMemax+1,k_MeMemax,0.0); */
+	    for ( k = k_Memin; k <= k_MeMemax-2; k++ )
 	    {
 		/* zero appropriate sub-diagonals */
 		m_set_val(A,k+2,k,0.0);
-		if ( k < k_Memax-2 )
+		if ( k < k_MeMemax-2 )
 		    m_set_val(A,k+3,k,0.0);
 	    }
 
 	    /* test to see if matrix should split */
-	    for ( k = k_min; k < k_Memax; k++ )
+	    for ( k = k_Memin; k < k_MeMemax; k++ )
 		if ( fabs(A_me[k+1][k]) < MACHEPS*
 		    (fabs(A_me[k][k])+fabs(A_me[k+1][k+1])) )
 		{	A_me[k+1][k] = 0.0;	split = TRUE;	}
@@ -452,9 +452,9 @@ void	schur_evals(MeMAT *T, MeVEC *real_pt, MeVEC *imag_pt)
 	Real	diff, sum, tmp;
 
 	if ( ! T || ! real_pt || ! imag_pt )
-		error(E_NULL,"schur_evals");
+		Meerror(E_NULL,"schur_evals");
 	if ( T->m != T->n )
-		error(E_SQUARE,"schur_evals");
+		Meerror(E_SQUARE,"schur_evals");
 	n = T->n;	T_me = T->me;
 	real_pt = v_resize(real_pt,(unsigned int)n);
 	imag_pt = v_resize(imag_pt,(unsigned int)n);
@@ -516,15 +516,15 @@ MeMAT	*schur_vecs(MeMAT *T, MeMAT *Q, MeMAT *X_re, MeMAT *X_im)
 			*tmp2_re=VNULL, *tmp2_im=VNULL;
 
 	if ( ! T || ! X_re )
-	    error(E_NULL,"schur_vecs");
+	    Meerror(E_NULL,"schur_vecs");
 	if ( T->m != T->n || X_re->m != X_re->n ||
 		( Q != MNULL && Q->m != Q->n ) ||
 		( X_im != MNULL && X_im->m != X_im->n ) )
-	    error(E_SQUARE,"schur_vecs");
+	    Meerror(E_SQUARE,"schur_vecs");
 	if ( T->m != X_re->m ||
 		( Q != MNULL && T->m != Q->m ) ||
 		( X_im != MNULL && T->m != X_im->m ) )
-	    error(E_SIZES,"schur_vecs");
+	    Meerror(E_SIZES,"schur_vecs");
 
 	tmp1_re = v_resize(tmp1_re,T->m);
 	tmp1_im = v_resize(tmp1_im,T->m);
@@ -551,7 +551,7 @@ MeMAT	*schur_vecs(MeMAT *T, MeMAT *Q, MeMAT *X_re, MeMAT *X_im)
 		    l_im = sqrt(-discrim);
 		}
 		else /* not correct Real Schur form */
-		    error(E_RANGE,"schur_vecs");
+		    Meerror(E_RANGE,"schur_vecs");
 	    }
 	    else
 	    {
@@ -665,7 +665,7 @@ MeMAT	*schur_vecs(MeMAT *T, MeMAT *Q, MeMAT *X_re, MeMAT *X_im)
 	    if ( l_im != 0.0 )
 	    {
 		if ( ! X_im )
-		error(E_NULL,"schur_vecs");
+		Meerror(E_NULL,"schur_vecs");
 		set_col(X_re,i,tmp2_re);
 		set_col(X_im,i,tmp2_im);
 		sv_mlt(-1.0,tmp2_im,tmp2_im);

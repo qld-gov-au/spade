@@ -40,22 +40,22 @@ static	char	rcsid[] = "$Id: zlufctr.c,v 1.3 1996/08/20 20:07:09 stewart Exp $";
 
 /* Most matrix factorisation routines are in-situ unless otherwise specified */
 
-/* zLUfactor -- Gaussian elimination with scaled partial pivoting
+/* zLUfactor -- Gaussian eliMemination with scaled partial pivoting
 		-- Note: returns LU matrix which is A */
 ZMeMAT	*zLUfactor(A,pivot)
 ZMeMAT	*A;
 PERM	*pivot;
 {
 	unsigned int	i, j, m, n;
-	int	i_Memax, k, k_Memax;
-	Real	dtemp, Memax1;
+	int	i_MeMemax, k, k_MeMemax;
+	Real	dtemp, MeMemax1;
 	complex	**A_v, *A_piv, *A_row, temp;
 	STATIC	MeVEC	*scale = VNULL;
 
 	if ( A==ZMNULL || pivot==PNULL )
-		error(E_NULL,"zLUfactor");
+		Meerror(E_NULL,"zLUfactor");
 	if ( pivot->size != A->m )
-		error(E_SIZES,"zLUfactor");
+		Meerror(E_SIZES,"zLUfactor");
 	m = A->m;	n = A->n;
 	scale = v_resize(scale,A->m);
 	MEM_STAT_REG(scale,TYPE_MeVEC);
@@ -68,41 +68,41 @@ PERM	*pivot;
 	/* set scale parameters */
 	for ( i=0; i<m; i++ )
 	{
-		Memax1 = 0.0;
+		MeMemax1 = 0.0;
 		for ( j=0; j<n; j++ )
 		{
 			dtemp = zabs(A_v[i][j]);
-			Memax1 = Memax(Memax1,dtemp);
+			MeMemax1 = MeMemax(MeMemax1,dtemp);
 		}
-		scale->ve[i] = Memax1;
+		scale->ve[i] = MeMemax1;
 	}
 
 	/* main loop */
-	k_Memax = min(m,n)-1;
-	for ( k=0; k<k_Memax; k++ )
+	k_MeMemax = Memin(m,n)-1;
+	for ( k=0; k<k_MeMemax; k++ )
 	{
 	    /* find best pivot row */
-	    Memax1 = 0.0;	i_Memax = -1;
+	    MeMemax1 = 0.0;	i_MeMemax = -1;
 	    for ( i=k; i<m; i++ )
 		if ( scale->ve[i] > 0.0 )
 		{
 		    dtemp = zabs(A_v[i][k])/scale->ve[i];
-		    if ( dtemp > Memax1 )
-		    { Memax1 = dtemp;	i_Memax = i;	}
+		    if ( dtemp > MeMemax1 )
+		    { MeMemax1 = dtemp;	i_MeMemax = i;	}
 		}
 	    
 	    /* if no pivot then ignore column k... */
-	    if ( i_Memax == -1 )
+	    if ( i_MeMemax == -1 )
 		continue;
 
 	    /* do we pivot ? */
-	    if ( i_Memax != k )	/* yes we do... */
+	    if ( i_MeMemax != k )	/* yes we do... */
 	    {
-		px_transp(pivot,i_Memax,k);
+		px_transp(pivot,i_MeMemax,k);
 		for ( j=0; j<n; j++ )
 		{
-		    temp = A_v[i_Memax][j];
-		    A_v[i_Memax][j] = A_v[k][j];
+		    temp = A_v[i_MeMemax][j];
+		    A_v[i_MeMemax][j] = A_v[k][j];
 		    A_v[k][j] = temp;
 		}
 	    }
@@ -140,9 +140,9 @@ PERM	*pivot;
 ZMeVEC	*b,*x;
 {
 	if ( A==ZMNULL || b==ZVNULL || pivot==PNULL )
-		error(E_NULL,"zLUsolve");
+		Meerror(E_NULL,"zLUsolve");
 	if ( A->m != A->n || A->n != b->dim )
-		error(E_SIZES,"zLUsolve");
+		Meerror(E_SIZES,"zLUsolve");
 
 	x = px_zvec(pivot,b,x);	/* x := P.b */
 	zLsolve(A,x,x,1.0);	/* implicit diagonal = 1 */
@@ -158,9 +158,9 @@ PERM	*pivot;
 ZMeVEC	*b,*x;
 {
 	if ( ! LU || ! b || ! pivot )
-		error(E_NULL,"zLUAsolve");
+		Meerror(E_NULL,"zLUAsolve");
 	if ( LU->m != LU->n || LU->n != b->dim )
-		error(E_SIZES,"zLUAsolve");
+		Meerror(E_SIZES,"zLUAsolve");
 
 	x = zv_copy(b,x);
 	zUAsolve(LU,x,x,0.0);	/* explicit diagonal */
@@ -181,9 +181,9 @@ ZMeMAT	*A, *out;
 	STATIC PERM	*pivot=PNULL;
 
 	if ( ! A )
-	    error(E_NULL,"zm_inverse");
+	    Meerror(E_NULL,"zm_inverse");
 	if ( A->m != A->n )
-	    error(E_SQUARE,"zm_inverse");
+	    Meerror(E_SQUARE,"zm_inverse");
 	if ( ! out || out->m < A->m || out->n < A->n )
 	    out = zm_resize(out,A->m,A->n);
 
@@ -226,11 +226,11 @@ PERM	*pivot;
     int		i, j, n;
 
     if ( ! LU || ! pivot )
-	error(E_NULL,"zLUcondest");
+	Meerror(E_NULL,"zLUcondest");
     if ( LU->m != LU->n )
-	error(E_SQUARE,"zLUcondest");
+	Meerror(E_SQUARE,"zLUcondest");
     if ( LU->n != pivot->size )
-	error(E_SIZES,"zLUcondest");
+	Meerror(E_SIZES,"zLUcondest");
 
     n = LU->n;
     y = zv_resize(y,n);

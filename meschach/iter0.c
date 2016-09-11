@@ -98,7 +98,7 @@ ITER *iter_get(int lenb, int lenx)
    ITER *ip;
 
    if ((ip = NEW(ITER)) == (ITER *) NULL)
-     error(E_MEM,"iter_get");
+     Meerror(E_MEM,"iter_get");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_ITER,0,sizeof(ITER));
       mem_numvar(TYPE_ITER,1);
@@ -167,7 +167,7 @@ ITER *iter_resize(ITER *ip, int new_lenb, int new_lenx)
    MeVEC *old;
 
    if ( ip == (ITER *) NULL)
-     error(E_NULL,"iter_resize");
+     Meerror(E_NULL,"iter_resize");
 
    old = ip->x;
    ip->x = v_resize(ip->x,new_lenx);
@@ -229,11 +229,11 @@ ITER *iter_copy2(ITER *ip1, ITER *ip2)
    int shx, shb;
 
    if (ip1 == (ITER *)NULL) 
-     error(E_NULL,"iter_copy2");
+     Meerror(E_NULL,"iter_copy2");
 
    if (ip2 == (ITER *)NULL) {
       if ((ip2 = NEW(ITER)) == (ITER *) NULL)
-	error(E_MEM,"iter_copy2");
+	Meerror(E_MEM,"iter_copy2");
       else if (mem_info_is_on()) {
 	 mem_bytes(TYPE_ITER,0,sizeof(ITER));
 	 mem_numvar(TYPE_ITER,1);
@@ -267,11 +267,11 @@ ITER *iter_copy(const ITER *ip1, ITER *ip2)
    MeVEC *x, *b;
 
    if (ip1 == (ITER *)NULL) 
-     error(E_NULL,"iter_copy");
+     Meerror(E_NULL,"iter_copy");
 
    if (ip2 == (ITER *)NULL) {
       if ((ip2 = NEW(ITER)) == (ITER *) NULL)
-	error(E_MEM,"iter_copy2");
+	Meerror(E_MEM,"iter_copy2");
       else if (mem_info_is_on()) {
 	 mem_bytes(TYPE_ITER,0,sizeof(ITER));
 	 mem_numvar(TYPE_ITER,1);
@@ -310,7 +310,7 @@ SPMeMAT	*iter_gen_sym(int n, int nrow)
    SPMeMAT	*A;
    MeVEC	        *u;
    Real       s1;
-   int		i, j, k, k_Memax;
+   int		i, j, k, k_MeMemax;
    
    if (nrow <= 1) nrow = 2;
    /* nrow should be even */
@@ -320,8 +320,8 @@ SPMeMAT	*iter_gen_sym(int n, int nrow)
    v_zero(u);
    for ( i = 0; i < A->m; i++ )
    {
-      k_Memax = ((rand() >> 8) % (nrow/2));
-      for ( k = 0; k <= k_Memax; k++ )
+      k_MeMemax = ((rand() >> 8) % (nrow/2));
+      for ( k = 0; k <= k_MeMemax; k++ )
       {
 	 j = (rand() >> 8) % A->n;
 	 s1 = mrand();
@@ -355,7 +355,7 @@ SPMeMAT	*iter_gen_nonsym(int m, int n, int nrow, double diag)
 {
    SPMeMAT	*A;
    PERM		*px;
-   int		i, j, k, k_Memax;
+   int		i, j, k, k_MeMemax;
    Real		s1;
    
    if (nrow <= 1) nrow = 2;
@@ -364,8 +364,8 @@ SPMeMAT	*iter_gen_nonsym(int m, int n, int nrow, double diag)
    px = px_get(n);
    for ( i = 0; i < A->m; i++ )
    {
-      k_Memax = (rand() >> 8) % (nrow-1);
-      for ( k = 0; k <= k_Memax; k++ )
+      k_MeMemax = (rand() >> 8) % (nrow-1);
+      for ( k = 0; k <= k_MeMemax; k++ )
       {
 	 j = (rand() >> 8) % A->n;
 	 s1 = mrand();
@@ -401,7 +401,7 @@ SPMeMAT	*iter_gen_nonsym(int m, int n, int nrow, double diag)
    SPMeMAT	*A;
    PERM		*px;
    MeVEC          *u;
-   int		i, j, k, k_Memax;
+   int		i, j, k, k_MeMemax;
    Real		s1;
    
    if (nrow <= 1) nrow = 2;
@@ -411,8 +411,8 @@ SPMeMAT	*iter_gen_nonsym(int m, int n, int nrow, double diag)
    v_zero(u);
    for ( i = 0; i < A->m; i++ )
    {
-      k_Memax = (rand() >> 8) % (nrow-1);
-      for ( k = 0; k <= k_Memax; k++ )
+      k_MeMemax = (rand() >> 8) % (nrow-1);
+      for ( k = 0; k <= k_MeMemax; k++ )
       {
 	 j = (rand() >> 8) % A->n;
 	 s1 = mrand();

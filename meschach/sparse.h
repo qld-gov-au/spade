@@ -47,16 +47,16 @@ typedef struct row_elt	{
 		} row_elt;
 
 typedef struct SPROW {
-	int	len, Memaxlen, diag;
-	row_elt	*elt;		/* elt[Memaxlen] */
+	int	len, MeMemaxlen, diag;
+	row_elt	*elt;		/* elt[MeMemaxlen] */
 		} SPROW;
 
 typedef struct SPMeMAT {
-	int	m, n, Memax_m, Memax_n;
+	int	m, n, MeMemax_m, MeMemax_n;
 	char	flag_col, flag_diag;
-	SPROW	*row;		/* row[Memax_m] */
-	int	*start_row;	/* start_row[Memax_n] */
-	int	*start_idx;	/* start_idx[Memax_n] */
+	SPROW	*row;		/* row[MeMemax_m] */
+	int	*start_row;	/* start_row[MeMemax_n] */
+	int	*start_idx;	/* start_idx[MeMemax_n] */
 	      } SPMeMAT;
 
 /* Note that the first allocated entry in column j is start_row[j];
@@ -66,8 +66,8 @@ typedef struct SPMeMAT {
 typedef struct pair { int pos;	Real val; } pair;
 
 typedef struct SPMeVEC {
-	int	dim, Memax_dim;
-	pair	*elt;		/* elt[Memax_dim] */
+	int	dim, MeMemax_dim;
+	pair	*elt;		/* elt[MeMemax_dim] */
 	       } SPMeVEC;
 
 #define	SMNULL	((SPMeMAT*)NULL)
@@ -107,7 +107,7 @@ extern	SPMeMAT	*sp_diag_access();
 extern  int     chk_col_access();
 
 /* Input/output operations */
-extern	SPMeMAT	*sp_finput();
+extern	SPMeMAT	*sp_fme_input();
 extern	void sp_foutput(), sp_foutput2();
 
 /* algebraic operations */
@@ -142,7 +142,7 @@ SPMeMAT	*sp_diag_access(SPMeMAT *);
 int     chk_col_access(const SPMeMAT *);
 
 /* Input/output operations */
-SPMeMAT	*sp_finput(FILE *);
+SPMeMAT	*sp_fme_input(FILE *);
 void	sp_foutput(FILE *, const SPMeMAT *);
 
 /* algebraic operations */
@@ -175,7 +175,7 @@ MeMAT	*sp_m2dense(const SPMeMAT *A,MeMAT *out);
 
 /* MACROS */
 
-#define	sp_input()	sp_finput(stdin)
+#define	sp_me_input()	sp_fme_input(stdin)
 #define	sp_output(A)	sp_foutput(stdout,(A))
 #define	sp_output2(A)	sp_foutput2(stdout,(A))
 #define	row_mltadd(r1,r2,alpha,out)	sprow_mltadd(r1,r2,alpha,0,out)
@@ -184,7 +184,7 @@ MeMAT	*sp_m2dense(const SPMeMAT *A,MeMAT *out);
 #define SP_FREE(A)    ( sp_free((A)),  (A)=(SPMeMAT *)NULL) 
 
 /* utility for index computations -- ensures index returned >= 0 */
-#define	fixindex(idx)	((idx) == -1 ? (error(E_BOUNDS,"fixindex"),0) : \
+#define	fixindex(idx)	((idx) == -1 ? (Meerror(E_BOUNDS,"fixindex"),0) : \
 			 (idx) < 0 ? -((idx)+2) : (idx))
 
 
@@ -205,7 +205,7 @@ MeMAT	*sp_m2dense(const SPMeMAT *A,MeMAT *out);
 	  if ( ! (A)->flag_col )	sp_col_access((A));		\
 	  col_num = (col);						\
 	  if ( col_num < 0 || col_num >= A->n )				\
-	      error(E_BOUNDS,"loop_cols");				\
+	      Meerror(E_BOUNDS,"loop_cols");				\
           _r_num = (A)->start_row[_c]; _r_idx = (A)->start_idx[_c];	\
 	  while ( _r_num >= 0 )  {					\
 	      _r = &((A)->row[_r_num]);					\

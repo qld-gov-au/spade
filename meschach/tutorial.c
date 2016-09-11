@@ -42,7 +42,7 @@ MeVEC    *(*f)(), *x;
    
    /* do not work with NULL initial vector */
    if ( x == VNULL )
-     error(E_NULL,"rk4");
+     Meerror(E_NULL,"rk4");
 
    /* ensure that v1, ..., v4, temp are of the correct size */
    v1   = v_resize(v1,x->dim);
@@ -90,7 +90,7 @@ MeVEC    *(*f)(), *x;
    static MeVEC *v1, *v2, *v3, *v4, *temp;
    
    /* do not work with NULL initial vector */
-   if ( x == VNULL )        error(E_NULL,"rk4");
+   if ( x == VNULL )        Meerror(E_NULL,"rk4");
    
    /* ensure that v1, ..., v4, temp are of the correct size */
    v_resize_vars(x->dim, &v1, &v2, &v3, &v4, &temp, NULL);
@@ -120,9 +120,9 @@ MeVEC	*x, *out;
 double	t;
 {
    if ( x == VNULL || out == VNULL )
-     error(E_NULL,"f");
+     Meerror(E_NULL,"f");
    if ( x->dim != 2 || out->dim != 2 )
-     error(E_SIZES,"f");
+     Meerror(E_SIZES,"f");
    
    out->ve[0] = x->ve[1];
    out->ve[1] = - x->ve[0];
@@ -138,18 +138,18 @@ void tutor_rk4()
    double     h, t, t_fin;
    double     rk4();
    
-   input("Input initial time: ","%lf",&t);
-   input("Input final time: ",  "%lf",&t_fin);
+   me_input("Input initial time: ","%lf",&t);
+   me_input("Input final time: ",  "%lf",&t_fin);
    x = v_get(2);    /* this is the size needed by f() */
-   prompter("Input initial state:\n");	x = v_input(VNULL);
-   input("Input step size: ",   "%lf",&h);
+   prompter("Input initial state:\n");	x = v_me_input(VNULL);
+   me_input("Input step size: ",   "%lf",&h);
    
    printf("# At time %g, the state is\n",t);
    v_output(x);
    while (t < t_fin)
    {
-      /* you can use t = rk4_var(f,t,x,min(h,t_fin-t)); */
-      t = rk4(f,t,x,min(h,t_fin-t));   /* new t is returned */
+      /* you can use t = rk4_var(f,t,x,Memin(h,t_fin-t)); */
+      t = rk4(f,t,x,Memin(h,t_fin-t));   /* new t is returned */
       printf("# At time %g, the state is\n",t);
       v_output(x);
    }
@@ -168,7 +168,7 @@ void tutor_ls()
    /* read in A matrix */
    printf("Input A matrix:\n");
    
-   A = m_input(MNULL);     /* A has whatever size is input */
+   A = m_me_input(MNULL);     /* A has whatever size is me_input */
    
    if ( A->m < A->n )
    {
@@ -183,14 +183,14 @@ void tutor_ls()
    /* read in b vector */
    printf("Input b vector:\n");
    b = v_get(A->m);
-   b = v_input(b);
+   b = v_me_input(b);
    printf("# b =\n");       v_output(b);
    
    /* solve for x */
    x = QRsolve(QR,diag,b,VNULL);
    printf("Vector of best fit parameters is\n");
    v_output(x);
-   /* ... and work out norm of errors... */
+   /* ... and work out norm of Meerrors... */
    printf("||A*x-b|| = %g\n",
 	  v_norm2(v_sub(mv_mlt(A,x,VNULL),b,VNULL)));
 }
@@ -306,7 +306,7 @@ void main()
 {
    int i;
 
-   input("Choose the problem (1=Runge-Kutta, 2=least Mesquares,3=laplace): ",
+   me_input("Choose the problem (1=Runge-Kutta, 2=least Mesquares,3=laplace): ",
 	 "%d",&i);
    switch (i) {
     case 1: tutor_rk4(); break;

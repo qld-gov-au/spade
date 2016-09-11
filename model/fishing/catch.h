@@ -11,4 +11,12 @@ Real c(
 
 	  );
 
+Real _c(
+
+	  Real * ca,
+	  Real r,
+	  Real t
+
+	  );
+
 #endif

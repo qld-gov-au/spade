@@ -125,7 +125,7 @@ int mem_attach_list(int list, int ntypes,
    
    /* if a list exists do not overwrite */
    if ( mem_connect[list].ntypes != 0 )
-     error(E_OVERWRITE,"mem_attach_list");
+     Meerror(E_OVERWRITE,"mem_attach_list");
    
    mem_connect[list].ntypes = ntypes;
    mem_connect[list].type_names = type_names;
@@ -362,7 +362,7 @@ void mem_bytes_list(int type, int old_size, int new_size, int list)
      return;
 
    if ( old_size < 0 || new_size < 0 )
-     error(E_NEG,"mem_bytes_list");
+     Meerror(E_NEG,"mem_bytes_list");
 
    mlist->info_sum[type].bytes += new_size - old_size;
    

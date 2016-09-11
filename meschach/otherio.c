@@ -43,7 +43,7 @@ static	char	scratch[MAXLINE+1];
 static	int	y_n_dflt = TRUE;
 
 /* fy_or_n -- yes-or-no to question is string s
-	-- question written to stderr, input from fp 
+	-- question written to stderr, me_input from fp 
 	-- if fp is NOT a tty then return y_n_dflt */
 #ifndef ANSI_C
 int	fy_or_n(fp,s)
@@ -62,7 +62,7 @@ int	fy_or_n(FILE *fp, const char *s)
 	{
 		fprintf(stderr,"%s (y/n) ? ",s);
 		if ( fgets(scratch,MAXLINE,fp)==NULL )
-			error(E_INPUT,"fy_or_n");
+			Meerror(E_INPUT,"fy_or_n");
 		cp = scratch;
 		while ( isspace(*cp) )
 			cp++;
@@ -87,7 +87,7 @@ int	yn_dflt(int val)
 /* fin_int -- return integer read from file/stream fp
 	-- prompt s on stderr if fp is a tty
 	-- check that x lies between low and high: re-prompt if
-		fp is a tty, error exit otherwise
+		fp is a tty, Meerror exit otherwise
 	-- ignore check if low > high		*/
 #ifndef ANSI_C
 int	fin_int(fp,s,low,high)
@@ -104,11 +104,11 @@ int	fin_int(FILE *fp, const char *s, int low, int high)
 	{
 		skipjunk(fp);
 		if ( (retcode=fscanf(fp,"%d",&x)) == EOF )
-			error(E_INPUT,"fin_int");
+			Meerror(E_INPUT,"fin_int");
 		if ( retcode <= 0 )
-			error(E_FORMeMAT,"fin_int");
+			Meerror(E_FORMeMAT,"fin_int");
 		if ( low <= high && ( x < low || x > high ) )
-			error(E_BOUNDS,"fin_int");
+			Meerror(E_BOUNDS,"fin_int");
 		return x;
 	}
 
@@ -116,7 +116,7 @@ int	fin_int(FILE *fp, const char *s, int low, int high)
 	{
 		fprintf(stderr,"%s: ",s);
 		if ( fgets(scratch,MAXLINE,stdin)==NULL )
-			error(E_INPUT,"fin_int");
+			Meerror(E_INPUT,"fin_int");
 		retcode = sscanf(scratch,"%d",&x);
 		if ( ( retcode==1 && low > high ) ||
 					( x >= low && x <= high ) )
@@ -130,7 +130,7 @@ int	fin_int(FILE *fp, const char *s, int low, int high)
 /* fin_double -- return double read from file/stream fp
 	-- prompt s on stderr if fp is a tty
 	-- check that x lies between low and high: re-prompt if
-		fp is a tty, error exit otherwise
+		fp is a tty, Meerror exit otherwise
 	-- ignore check if low > high		*/
 #ifndef ANSI_C
 double	fin_double(fp,s,low,high)
@@ -153,11 +153,11 @@ double	fin_double(FILE *fp, const char *s, double low, double high)
 #elif REAL == LONGDOUBLE
     if ( (retcode=fscanf(fp,"%Lf",&x)) == EOF )  
 #endif
-			error(E_INPUT,"fin_double");
+			Meerror(E_INPUT,"fin_double");
 		if ( retcode <= 0 )
-			error(E_FORMeMAT,"fin_double");
+			Meerror(E_FORMeMAT,"fin_double");
 		if ( low <= high && ( x < low || x > high ) )
-			error(E_BOUNDS,"fin_double");
+			Meerror(E_BOUNDS,"fin_double");
 		return (double)x;
 	}
 
@@ -165,7 +165,7 @@ double	fin_double(FILE *fp, const char *s, double low, double high)
 	{
 		fprintf(stderr,"%s: ",s);
 		if ( fgets(scratch,MAXLINE,stdin)==NULL )
-			error(E_INPUT,"fin_double");
+			Meerror(E_INPUT,"fin_double");
 #if REAL == DOUBLE
 		retcode = sscanf(scratch,"%lf",&x);
 #elif REAL == FLOAT 

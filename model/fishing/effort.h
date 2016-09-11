@@ -10,4 +10,12 @@ Real e(
 
 	  );
 
+Real _e(
+
+	  Real * ef,
+	  Real r,
+	  Real t
+
+	  );
+
 #endif

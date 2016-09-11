@@ -48,14 +48,14 @@ typedef	unsigned int	u_int;
 
 /* vector definition */
 typedef	struct	{
-		unsigned int	dim, Memax_dim;
+		unsigned int	dim, MeMemax_dim;
 		Real	*ve;
 		} MeVEC;
 
 /* matrix definition */
 typedef	struct	{
 		unsigned int	m, n;
-		unsigned int	Memax_m, Memax_n, Memax_size;
+		unsigned int	MeMemax_m, MeMemax_n, MeMemax_size;
 		Real	**me,*base;	/* base is base of alloc'd mem */
 		} MeMAT;
 
@@ -68,12 +68,12 @@ typedef struct {
 
 /* permutation definition */
 typedef	struct	{
-		unsigned int	size, Memax_size, *pe;
+		unsigned int	size, MeMemax_size, *pe;
 		} PERM;
 
 /* integer vector definition */
 typedef struct	{
-		unsigned int	dim, Memax_dim;
+		unsigned int	dim, MeMemax_dim;
 		int	*ive;
 	        } IMeVEC;
 
@@ -148,13 +148,13 @@ void	m_version( void );
 
 #endif /* ANSI_C */
 
-/* type independent min and Memax operations */
-#ifndef Memax
-#define	Memax(a,b)	((a) > (b) ? (a) : (b))
-#endif /* Memax */
-#ifndef min
-#define	min(a,b)	((a) > (b) ? (b) : (a))
-#endif /* min */
+/* type independent Memin and MeMemax operations */
+#ifndef MeMemax
+#define	MeMemax(a,b)	((a) > (b) ? (a) : (b))
+#endif /* MeMemax */
+#ifndef Memin
+#define	Memin(a,b)	((a) > (b) ? (b) : (a))
+#endif /* Memin */
 
 
 #undef TRUE
@@ -163,7 +163,7 @@ void	m_version( void );
 #define	FALSE	0
 
 
-/* for input routines */
+/* for me_input routines */
 #define MAXLINE 81
 
 
@@ -221,38 +221,38 @@ extern   int bd_free(BAND *);
 /* routines to check indexes */
 #define	m_chk_idx(A,i,j)	((i)>=0 && (i)<(A)->m && (j)>=0 && (j)<=(A)->n)
 #define	v_chk_idx(x,i)		((i)>=0 && (i)<(x)->dim)
-#define	bd_chk_idx(A,i,j)	((i)>=Memax(0,(j)-(A)->ub) && \
-		(j)>=Memax(0,(i)-(A)->lb) && (i)<(A)->mat->n && (j)<(A)->mat->n)
+#define	bd_chk_idx(A,i,j)	((i)>=MeMemax(0,(j)-(A)->ub) && \
+		(j)>=MeMemax(0,(i)-(A)->lb) && (i)<(A)->mat->n && (j)<(A)->mat->n)
 
 #define	m_entry(A,i,j)		m_get_val(A,i,j)
 #define	v_entry(x,i)		v_get_val(x,i)
 #define	bd_entry(A,i,j)		bd_get_val(A,i,j)
 #ifdef DEBUG
 #define	m_set_val(A,i,j,val)	( m_chk_idx(A,i,j) ? \
-	(A)->me[(i)][(j)] = (val) : (error(E_BOUNDS,"m_set_val"), 0.0))
+	(A)->me[(i)][(j)] = (val) : (Meerror(E_BOUNDS,"m_set_val"), 0.0))
 #define	m_add_val(A,i,j,val)	( m_chk_idx(A,i,j) ? \
-	(A)->me[(i)][(j)] += (val) : (error(E_BOUNDS,"m_add_val"), 0.0))
+	(A)->me[(i)][(j)] += (val) : (Meerror(E_BOUNDS,"m_add_val"), 0.0))
 #define	m_sub_val(A,i,j,val)	( m_chk_idx(A,i,j) ? \
-	(A)->me[(i)][(j)] -= (val) : (error(E_BOUNDS,"m_sub_val"), 0.0))
+	(A)->me[(i)][(j)] -= (val) : (Meerror(E_BOUNDS,"m_sub_val"), 0.0))
 #define	m_get_val(A,i,j)	( m_chk_idx(A,i,j) ? \
-	(A)->me[(i)][(j)] : (error(E_BOUNDS,"m_get_val"), 0.0))
+	(A)->me[(i)][(j)] : (Meerror(E_BOUNDS,"m_get_val"), 0.0))
 #define	v_set_val(x,i,val)	( v_chk_idx(x,i) ? (x)->ve[(i)] = (val) : \
-	(error(E_BOUNDS,"v_set_val"), 0.0))
+	(Meerror(E_BOUNDS,"v_set_val"), 0.0))
 #define	v_add_val(x,i,val)	( v_chk_idx(x,i) ? (x)->ve[(i)] += (val) : \
-	(error(E_BOUNDS,"v_set_val"), 0.0))
+	(Meerror(E_BOUNDS,"v_set_val"), 0.0))
 #define	v_sub_val(x,i,val)	( v_chk_idx(x,i) ? (x)->ve[(i)] -= (val) : \
-	(error(E_BOUNDS,"v_set_val"), 0.0))
+	(Meerror(E_BOUNDS,"v_set_val"), 0.0))
 #define	v_get_val(x,i)	( v_chk_idx(x,i) ? (x)->ve[(i)] : \
-	(error(E_BOUNDS,"v_get_val"), 0.0))
+	(Meerror(E_BOUNDS,"v_get_val"), 0.0))
 #define	bd_set_val(A,i,j,val)	( bd_chk_idx(A,i,j) ? \
 	(A)->mat->me[(A)->lb+(j)-(i)][(j)] = (val) : \
-	(error(E_BOUNDS,"bd_set_val"), 0.0))
+	(Meerror(E_BOUNDS,"bd_set_val"), 0.0))
 #define	bd_add_val(A,i,j,val)	( bd_chk_idx(A,i,j) ? \
 	(A)->mat->me[(A)->lb+(j)-(i)][(j)] += (val) : \
-	(error(E_BOUNDS,"bd_set_val"), 0.0))
+	(Meerror(E_BOUNDS,"bd_set_val"), 0.0))
 #define	bd_get_val(A,i,j)	( bd_chk_idx(A,i,j) ? \
 	(A)->mat->me[(A)->lb+(j)-(i)][(j)] : \
-	(error(E_BOUNDS,"bd_get_val"), 0.0))
+	(Meerror(E_BOUNDS,"bd_get_val"), 0.0))
 #else /* no DEBUG */
 #define	m_set_val(A,i,j,val)	((A)->me[(i)][(j)] = (val))
 #define	m_add_val(A,i,j,val)	((A)->me[(i)][(j)] += (val))
@@ -273,10 +273,10 @@ extern   int bd_free(BAND *);
 
 extern	void v_foutput(),m_foutput(),px_foutput();
 extern  void iv_foutput();
-extern	MeVEC *v_finput();
-extern	MeMAT *m_finput();
-extern	PERM *px_finput();
-extern	IMeVEC *iv_finput();
+extern	MeVEC *v_fme_input();
+extern	MeMAT *m_fme_input();
+extern	PERM *px_fme_input();
+extern	IMeVEC *iv_fme_input();
 extern	int fy_or_n(), fin_int(), yn_dflt(), skipjunk();
 extern	double fin_double();
 
@@ -295,16 +295,16 @@ void iv_foutput(FILE *fp,const IMeVEC *ix);
         Also: if out is not NULL, then that size is assumed */
 
 /* read in vector from fp */
-MeVEC *v_finput(FILE *fp,MeVEC *out);
+MeVEC *v_fme_input(FILE *fp,MeVEC *out);
 /* read in matrix from fp */
-MeMAT *m_finput(FILE *fp,MeMAT *out);
+MeMAT *m_fme_input(FILE *fp,MeMAT *out);
 /* read in permutation from fp */
-PERM *px_finput(FILE *fp,PERM *out);
+PERM *px_fme_input(FILE *fp,PERM *out);
 /* read in int vector from fp */
-IMeVEC *iv_finput(FILE *fp,IMeVEC *out);
+IMeVEC *iv_fme_input(FILE *fp,IMeVEC *out);
 
 /* fy_or_n -- yes-or-no to question in string s
-        -- question written to stderr, input from fp 
+        -- question written to stderr, me_input from fp 
         -- if fp is NOT a tty then return y_n_dflt */
 int fy_or_n(FILE *fp, const char *s);
 
@@ -314,14 +314,14 @@ int yn_dflt(int val);
 /* fin_int -- return integer read from file/stream fp
         -- prompt s on stderr if fp is a tty
         -- check that x lies between low and high: re-prompt if
-                fp is a tty, error exit otherwise
+                fp is a tty, Meerror exit otherwise
         -- ignore check if low > high           */
 int fin_int(FILE *fp,const char *s,int low,int high);
 
 /* fin_double -- return double read from file/stream fp
         -- prompt s on stderr if fp is a tty
         -- check that x lies between low and high: re-prompt if
-                fp is a tty, error exit otherwise
+                fp is a tty, Meerror exit otherwise
         -- ignore check if low > high           */
 double fin_double(FILE *fp,const char *s,double low,double high);
 
@@ -336,19 +336,19 @@ int skipjunk(FILE *fp);
 
 /* macros to use stdout and stdin instead of explicit fp */
 #define	v_output(vec)	v_foutput(stdout,vec)
-#define	v_input(vec)	v_finput(stdin,vec)
+#define	v_me_input(vec)	v_fme_input(stdin,vec)
 #define	m_output(mat)	m_foutput(stdout,mat)
-#define	m_input(mat)	m_finput(stdin,mat)
+#define	m_me_input(mat)	m_fme_input(stdin,mat)
 #define	px_output(px)	px_foutput(stdout,px)
-#define	px_input(px)	px_finput(stdin,px)
+#define	px_me_input(px)	px_fme_input(stdin,px)
 #define	iv_output(iv)	iv_foutput(stdout,iv)
-#define	iv_input(iv)	iv_finput(stdin,iv)
+#define	iv_me_input(iv)	iv_fme_input(stdin,iv)
 
-/* general purpose input routine; skips comments # ... \n */
-#define	finput(fp,prompt,fmt,var) \
+/* general purpose me_input routine; skips comments # ... \n */
+#define	fme_input(fp,prompt,fmt,var) \
 	( ( isatty(fileno(fp)) ? fprintf(stderr,prompt) : skipjunk(fp) ), \
 							fscanf(fp,fmt,var) )
-#define	input(prompt,fmt,var)	finput(stdin,prompt,fmt,var)
+#define	me_input(prompt,fmt,var)	fme_input(stdin,prompt,fmt,var)
 #define	fprompter(fp,prompt) \
 	( isatty(fileno(fp)) ? fprintf(stderr,prompt) : skipjunk(fp) )
 #define	prompter(prompt)	fprompter(stdin,prompt)
@@ -409,7 +409,7 @@ extern  IMeVEC    *iv_zero(IMeVEC *);
 extern	MeVEC *sv_mlt(), *mv_mlt(), *vm_mlt(), *v_add(), *v_sub(),
 		*px_vec(), *pxinv_vec(), *v_mltadd(), *v_map(), *_v_map(),
 		*v_lincomb(), *v_linlist();
-extern	double	v_min(), v_Memax(), v_sum();
+extern	double	v_Memin(), v_MeMemax(), v_sum();
 extern	MeVEC	*v_star(), *v_slash(), *v_sort();
 extern	double _in_prod(), __ip__();
 extern	void	__mltadd__(), __add__(), __sub__(), 
@@ -437,10 +437,10 @@ extern	MeVEC	*sv_mlt(double s,const MeVEC *x,MeVEC *out),	/* out <- s.x */
                 *v_linlist(MeVEC *out,MeVEC *v1,double a1,...);
                                               /* out <- s1.x1 + s2.x2 + ... */
 
-/* returns min_j x[j] (== x[i]) */
-extern	double	v_min(const MeVEC *, int *), 
-     /* returns Memax_j x[j] (== x[i]) */		
-        v_Memax(const MeVEC *, int *), 
+/* returns Memin_j x[j] (== x[i]) */
+extern	double	v_Memin(const MeVEC *, int *), 
+     /* returns MeMemax_j x[j] (== x[i]) */		
+        v_MeMemax(const MeVEC *, int *), 
         /* returns sum_i x[i] */
         v_sum(const MeVEC *);
 
@@ -482,7 +482,7 @@ extern	double	_v_norm1(), _v_norm2(), _v_norm_inf(),
 extern	double	_v_norm1(const MeVEC *x,const MeVEC *scale),   
                /* returns (scaled) Euclidean norm */
                 _v_norm2(const MeVEC *x,const MeVEC *scale),
-               /* returns Memax_i |x[i]/scale[i]| */
+               /* returns MeMemax_i |x[i]/scale[i]| */
 		_v_norm_inf(const MeVEC *x,const MeVEC *scale);
 
 /* unscaled matrix norms */

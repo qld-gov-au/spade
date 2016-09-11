@@ -245,6 +245,64 @@ void data_read_lf_new(const char * data_file_name, NewData * newdata) {
   fclose(fp);
 }
 
+void data_read(const char * data_file_name, Da * data) {
+
+  char buffer[30];
+  sprintf(buffer,"%s.dat",data_file_name);
+
+  int N,I,J;
+  double k;
+  FILE * fp = fopen(buffer,"r");
+  fscanf(fp,"%d",&N);
+  fscanf(fp,"%d",&I);
+  fscanf(fp,"%d",&J);
+  fscanf(fp,"%lf",&k);
+
+  data->I = I;
+  data->J = J+I;
+  data->N = N;
+  data->k = k;
+
+  data->cat = (Real *) calloc(data->N+1,sizeof(Real));
+  data->eff = (Real *) calloc(4*data->N+1,sizeof(Real));
+
+  for (int i=0;i<=N;i++)
+    fscanf(fp, "%lf ",&data->cat[i]);
+  fscanf(fp,"\n");
+  
+  for (int i=0;i<=4*N;i++)
+    fscanf(fp, "%lf ",&data->eff[i]);
+  fscanf(fp,"\n");
+
+  data->p = (Real **) calloc(data->I,sizeof(Real *));
+
+  for (int i=0;i<=data->I;i++)
+    data->p[i] = (Real *) calloc(data->J,sizeof(Real));
+  			   
+  data->Qp = (Real *) calloc(data->I,sizeof(Real));
+
+  int dummy;
+  for (int i=0;i<=I;i++)
+    fscanf(fp, "%d ",&dummy);
+  fscanf(fp,"\n");
+
+  for (int i=0;i<=I;i++)
+    fscanf(fp, "%d ",&dummy);
+  fscanf(fp,"\n");
+
+  for (int i=0;i<=I;i++)
+    fscanf(fp, "%lf ",&data->Qp[i]);
+  fscanf(fp,"\n");
+
+  for (int i=0;i<=I;i++)
+    {
+      for (int j=0;j<=J+i;j++)
+	fscanf(fp, "%lf ",&data->p[i][j]);
+      fscanf(fp,"\n");
+    }
+  
+
+}
 
 void data_read_lf(const char * data_file_name, Data * data, int N, Real k, int minfish) {
   char buffer[30];
@@ -338,8 +396,8 @@ void optim_control_read(const char * optim_file_name, OptimControl * optim) {
   fscanf(fp,format,&optim->ftol);
   fscanf(fp,format,&optim->gtol);
   fscanf(fp,format,&optim->stpmin);
-  fscanf(fp,format,&optim->stpMemax);
-  fscanf(fp,"%d",&optim->Memaxfev);
+  fscanf(fp,format,&optim->stpmax);
+  fscanf(fp,"%d",&optim->maxfev);
   fclose(fp);
   optim->xtol = DBL_EPSILON;
 }

@@ -21,7 +21,9 @@
 #define HAVE_MEMORY_H
 #define HAVE_COMPLEX_H
 #define HAVE_MALLOC_H
+#ifndef STDC_HEADERS
 #define STDC_HEADERS
+#endif
 /* #undef HAVE_BCOPY */
 /* #undef HAVE_BZERO */
 /* #undef CHAR0ISDBL0 */
@@ -181,7 +183,7 @@
 #define LONGREAL LONGDOUBLE
 #endif
 
-/* machine epsilon or unit roundoff error */
+/* machine epsilon or unit roundoff Meerror */
 /* This is correct on most IEEE Real precision systems */
 #ifdef DBL_EPSILON
 #if REAL == DOUBLE
@@ -236,8 +238,8 @@
 #endif
 
 
-#ifdef ANSI_C
-extern	int	isatty(int);
-#endif
+//#ifdef ANSI_C
+//extern	int	isatty(int);
+//#endif
 
 #endif

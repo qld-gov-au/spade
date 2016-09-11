@@ -25,7 +25,7 @@
 
 
 /*
-		File containing routines for determining Hessenberg
+		File containing routines for deterMemining Hessenberg
 	factorisations.
 
 	Complex version
@@ -50,11 +50,11 @@ ZMeVEC	*diag;
 	int	k, limit;
 
 	if ( ! A || ! diag )
-		error(E_NULL,"zHfactor");
+		Meerror(E_NULL,"zHfactor");
 	if ( diag->dim < A->m - 1 )
-		error(E_SIZES,"zHfactor");
+		Meerror(E_SIZES,"zHfactor");
 	if ( A->m != A->n )
-		error(E_SQUARE,"zHfactor");
+		Meerror(E_SQUARE,"zHfactor");
 	limit = A->m - 1;
 
 	tmp1 = zv_resize(tmp1,A->m);
@@ -97,14 +97,14 @@ ZMeVEC	*diag;
 	STATIC	ZMeVEC	*tmp1 = ZVNULL, *tmp2 = ZVNULL;
 
 	if ( HQ==ZMNULL || diag==ZVNULL )
-		error(E_NULL,"zHQunpack");
+		Meerror(E_NULL,"zHQunpack");
 	if ( HQ == Q || H == Q )
-	    error(E_INSITU,"zHQunpack");
+	    Meerror(E_INSITU,"zHQunpack");
 	limit = HQ->m - 1;
 	if ( diag->dim < limit )
-		error(E_SIZES,"zHQunpack");
+		Meerror(E_SIZES,"zHQunpack");
 	if ( HQ->m != HQ->n )
-		error(E_SQUARE,"zHQunpack");
+		Meerror(E_SQUARE,"zHQunpack");
 
 
 	if ( Q != ZMNULL )

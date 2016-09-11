@@ -57,10 +57,10 @@ MeVEC	*Usolve(const MeMAT *matrix, const MeVEC *b, MeVEC *out, double diag)
 	Real	**mat_ent, *mat_row, *b_ent, *out_ent, *out_col, sum, tiny;
 
 	if ( matrix==MNULL || b==VNULL )
-		error(E_NULL,"Usolve");
-	dim = min(matrix->m,matrix->n);
+		Meerror(E_NULL,"Usolve");
+	dim = Memin(matrix->m,matrix->n);
 	if ( b->dim < dim )
-		error(E_SIZES,"Usolve");
+		Meerror(E_SIZES,"Usolve");
 	if ( out==VNULL || out->dim < dim )
 		out = v_resize(out,matrix->n);
 	mat_ent = matrix->me;	b_ent = b->ve;	out_ent = out->ve;
@@ -88,7 +88,7 @@ MeVEC	*Usolve(const MeMAT *matrix, const MeVEC *b, MeVEC *out, double diag)
 		if ( diag==0.0 )
 		{
 			if ( fabs(mat_ent[i][i]) <= tiny*fabs(sum) )
-				error(E_SING,"Usolve");
+				Meerror(E_SING,"Usolve");
 			else
 				out_ent[i] = sum/mat_ent[i][i];
 		}
@@ -99,7 +99,7 @@ MeVEC	*Usolve(const MeMAT *matrix, const MeVEC *b, MeVEC *out, double diag)
 	return (out);
 }
 
-/* Lsolve -- forward elimination with (optional) default diagonal value */
+/* Lsolve -- forward eliMemination with (optional) default diagonal value */
 #ifndef ANSI_C
 MeVEC	*Lsolve(matrix,b,out,diag)
 MeMAT	*matrix;
@@ -113,10 +113,10 @@ MeVEC	*Lsolve(const MeMAT *matrix, const MeVEC *b, MeVEC *out, double diag)
 	Real	**mat_ent, *mat_row, *b_ent, *out_ent, *out_col, sum, tiny;
 
 	if ( matrix==(MeMAT *)NULL || b==(MeVEC *)NULL )
-		error(E_NULL,"Lsolve");
-	dim = min(matrix->m,matrix->n);
+		Meerror(E_NULL,"Lsolve");
+	dim = Memin(matrix->m,matrix->n);
 	if ( b->dim < dim )
-		error(E_SIZES,"Lsolve");
+		Meerror(E_SIZES,"Lsolve");
 	if ( out==(MeVEC *)NULL || out->dim < dim )
 		out = v_resize(out,matrix->n);
 	mat_ent = matrix->me;	b_ent = b->ve;	out_ent = out->ve;
@@ -144,7 +144,7 @@ MeVEC	*Lsolve(const MeMAT *matrix, const MeVEC *b, MeVEC *out, double diag)
 		if ( diag==0.0 )
 		{
 			if ( fabs(mat_ent[i][i]) <= tiny*fabs(sum) )
-				error(E_SING,"Lsolve");
+				Meerror(E_SING,"Lsolve");
 			else
 				out_ent[i] = sum/mat_ent[i][i];
 		}
@@ -156,7 +156,7 @@ MeVEC	*Lsolve(const MeMAT *matrix, const MeVEC *b, MeVEC *out, double diag)
 }
 
 
-/* UTsolve -- forward elimination with (optional) default diagonal value
+/* UTsolve -- forward eliMemination with (optional) default diagonal value
 		using UPPER triangular part of matrix */
 #ifndef ANSI_C
 MeVEC	*UTsolve(U,b,out,diag)
@@ -171,10 +171,10 @@ MeVEC	*UTsolve(const MeMAT *U, const MeVEC *b, MeVEC *out, double diag)
     Real	**U_me, *b_ve, *out_ve, tmp, invdiag, tiny;
     
     if ( ! U || ! b )
-	error(E_NULL,"UTsolve");
-    dim = min(U->m,U->n);
+	Meerror(E_NULL,"UTsolve");
+    dim = Memin(U->m,U->n);
     if ( b->dim < dim )
-	error(E_SIZES,"UTsolve");
+	Meerror(E_SIZES,"UTsolve");
     out = v_resize(out,U->n);
     U_me = U->me;	b_ve = b->ve;	out_ve = out->ve;
 
@@ -198,7 +198,7 @@ MeVEC	*UTsolve(const MeMAT *U, const MeVEC *b, MeVEC *out, double diag)
 	{
 	    tmp = U_me[i][i];
 	    if ( fabs(tmp) <= tiny*fabs(out_ve[i]) )
-		error(E_SING,"UTsolve");
+		Meerror(E_SING,"UTsolve");
 	    out_ve[i] /= tmp;
 	    __mltadd__(&(out_ve[i+1]),&(U_me[i][i+1]),-out_ve[i],dim-i-1);
 	}
@@ -228,10 +228,10 @@ MeVEC	*Dsolve(const MeMAT *A, const MeVEC *b, MeVEC *x)
     Real	tiny;
     
     if ( ! A || ! b )
-	error(E_NULL,"Dsolve");
-    dim = min(A->m,A->n);
+	Meerror(E_NULL,"Dsolve");
+    dim = Memin(A->m,A->n);
     if ( b->dim < dim )
-	error(E_SIZES,"Dsolve");
+	Meerror(E_SIZES,"Dsolve");
     x = v_resize(x,A->n);
 
     tiny = 10.0/HUGE_VAL;
@@ -239,7 +239,7 @@ MeVEC	*Dsolve(const MeMAT *A, const MeVEC *b, MeVEC *x)
     dim = b->dim;
     for ( i=0; i<dim; i++ )
 	if ( fabs(A->me[i][i]) <= tiny*fabs(b->ve[i]) )
-	    error(E_SING,"Dsolve");
+	    Meerror(E_SING,"Dsolve");
 	else
 	    x->ve[i] = b->ve[i]/A->me[i][i];
     
@@ -263,10 +263,10 @@ MeVEC	*LTsolve(const MeMAT *L, const MeVEC *b, MeVEC *out, double diag)
     Real	**L_me, *b_ve, *out_ve, tmp, invdiag, tiny;
     
     if ( ! L || ! b )
-	error(E_NULL,"LTsolve");
-    dim = min(L->m,L->n);
+	Meerror(E_NULL,"LTsolve");
+    dim = Memin(L->m,L->n);
     if ( b->dim < dim )
-	error(E_SIZES,"LTsolve");
+	Meerror(E_SIZES,"LTsolve");
     out = v_resize(out,L->n);
     L_me = L->me;	b_ve = b->ve;	out_ve = out->ve;
 
@@ -289,7 +289,7 @@ MeVEC	*LTsolve(const MeMAT *L, const MeVEC *b, MeVEC *out, double diag)
 	{
 	    tmp = L_me[i][i];
 	    if ( fabs(tmp) <= tiny*fabs(out_ve[i]) )
-		error(E_SING,"LTsolve");
+		Meerror(E_SING,"LTsolve");
 	    out_ve[i] /= tmp;
 	    __mltadd__(out_ve,L_me[i],-out_ve[i],i);
 	}

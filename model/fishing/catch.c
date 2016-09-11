@@ -18,3 +18,23 @@ Real c(
       return ca->ve[idx];
     }
 }
+
+
+Real _c(
+
+	  Real * ca,
+	  Real r,
+	  Real t
+
+	  )
+{
+
+  if (t<0)
+    return ca[0];
+  else
+    {
+      int idx = floor((t + (r/2) - MACHEPS)/r);
+      return ca[idx];
+    }
+}
+

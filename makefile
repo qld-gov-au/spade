@@ -4,8 +4,8 @@ OBJ_NAME := spade.obj
 CC = cc
 CXX = g++
 LINKER_FLAGS = -lm -pthread
-INC = -I"/usr/local/admb/include" -I"/usr/local/admb/contrib/include"
-LIB = "/usr/local/admb/lib/libadmb-contrib.a"
+INC = -I"admb/build/debug/include" -I"admb/build/debug/contrib/include"
+LIB = "admb/build/debug/lib/libadmb-contrib.a"
 
 # Spade options
 SPADE_CFLAGS = -g -lm -pthread -std=c99
@@ -38,8 +38,9 @@ all: build
 
 # Generate executable
 build: clean $(OBJECTS)
-	$(CXX) -c $(INC) -o $(OBJ_NAME) spade.cpp
-	$(CXX) $(OBJECTS) $(LINKER_FLAGS) $(OBJ_NAME) -o $(OUTPUT_NAME) $(LIB)
+	$(MAKE) -C ./admb/ 
+	$(CXX) -c -g $(INC) -o $(OBJ_NAME) spade.cpp
+	$(CXX) -g $(OBJ_NAME) $(OBJECTS) $(LINKER_FLAGS) -o $(OUTPUT_NAME) $(LIB)
 	@echo "Build successful"
 
 

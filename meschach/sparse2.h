@@ -55,7 +55,7 @@ MeVEC	*cgs(MeVEC *(*A)(),void *A_par,MeVEC *b,MeVEC *r0,double tol,MeVEC *x);
 MeVEC	*sp_cgs(SPMeMAT *,MeVEC *,MeVEC *,double,MeVEC *);
 MeVEC	*lsqr(MeVEC *(*A)(),MeVEC *(*AT)(),void *A_par,MeVEC *b,double tol,MeVEC *x);
 MeVEC	*sp_lsqr(SPMeMAT *,MeVEC *,double,MeVEC *);
-int	cg_set_Memaxiter(int);
+int	cg_set_MeMemaxiter(int);
 
 void	lanczos(MeVEC *(*A)(),void *A_par,int m,MeVEC *x0,MeVEC *a,MeVEC *b,
 						Real *beta_m1,MeMAT *Q);
@@ -80,7 +80,7 @@ extern SPMeMAT	*spBKPfactor();
 extern MeVEC	*spBKPsolve();
 
 extern MeVEC	*pccg(), *sp_pccg(), *cgs(), *sp_cgs(), *lsqr(), *sp_lsqr();
-extern int	cg_set_Memaxiter();
+extern int	cg_set_MeMemaxiter();
 
 void	lanczos(), sp_lanczos();
 MeVEC	*lanczos2(), *sp_lanczos2();

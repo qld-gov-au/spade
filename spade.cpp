@@ -34,9 +34,7 @@ extern "C"  {
 
 extern "C" {
 #include "spade.h"
-#include "common.h"
 #include "arg.h"
-#include "parameters.h"
 #include "machinery/VMGMM.h"
 #include "machinery/objfns.h"
 #include "optim/optim.h"
@@ -51,6 +49,17 @@ extern "C" {
 #include "util/util.h"
 }
 
+
+  Real iota1=5.2;
+  Real iota2=0.619;
+  Real phi=17;
+  Real eta1=1.703205e-5;
+  Real eta2=2.9526;
+
+  int interactive_mode_requested = 0;
+
+int J;
+Real h;
 
 int feenableexcept(int);
 
@@ -93,25 +102,20 @@ void print_usage() {
 class model_data : public ad_comm{
   data_int N;
   data_int I;
-  data_int J;
+  data_int J_admb;
   data_number k;
   data_vector cat;
   data_vector eff;
-  data_int TNl;
-  data_vector tl;
-  data_vector ln;
   data_ivector start;
   data_ivector finish;
-  data_int Nla;
-  data_vector age;
-  data_vector length;
-  data_vector time;
-  double iota1;
-  double iota2;
-  double phi;
-  double phi2;
-  double eta1;
-  double eta2;
+  data_vector tbar;
+  data_matrix precomp;
+  double iota1_admb;
+  double iota2_admb;
+  double phi_admb;
+  double phi_admb2;
+  double eta1_admb;
+  double eta2_admb;
   dmatrix spb;
   dvector SpB;
   double SpBrat;
@@ -119,7 +123,6 @@ class model_data : public ad_comm{
   dmatrix Fj;
   dvector F;
   dvector M;
-  dvector tbar;
   double lastF;
   double lastSpB;
   double psi;
@@ -181,8 +184,6 @@ private:
   param_number vbar;
   param_number wbar;
   param_stddev_number obj1;
-  param_stddev_number obj2;
-  param_stddev_number obj3;
   param_matrix n;
   param_matrix nh;
   param_matrix x;
@@ -218,19 +219,14 @@ model_data::model_data(int argc,char * argv[]) : ad_comm(argc,argv)
 {
   N.allocate("N");
   I.allocate("I");
-  J.allocate("J");
+  J_admb.allocate("J_admb");
   k.allocate("k");
   cat.allocate(0,N,"cat");
   eff.allocate(0,4*N,"eff");
-  TNl.allocate("TNl");
-  tl.allocate(1,TNl,"tl");
-  ln.allocate(1,TNl,"ln");
   start.allocate(0,I,"start");
   finish.allocate(0,I,"finish");
-  Nla.allocate("Nla");
-  age.allocate(1,Nla,"age");
-  length.allocate(1,Nla,"length");
-  time.allocate(1,Nla,"time");
+  tbar.allocate(0,I,"tbar");
+  precomp.allocate(0,I,start,finish,"precomp");  
   spb.allocate(0,I,start,finish);
   SpB.allocate(0,I);
   Fj.allocate(0,I,start,finish);
@@ -243,12 +239,12 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
  model_data(argc,argv) , function_minimizer(sz)
 {
   initializationfunction();
-  alpha1.allocate(0,0.1,"alpha1");
-  alpha2.allocate(0,0.1,"alpha2");
-  kappa.allocate(0.05,0.9,"kappa");
-  omega.allocate(50,200,"omega");
+  alpha1.allocate(0,0.9,"alpha1");
+  alpha2.allocate(0,0.9,"alpha2");
+  kappa.allocate(0.05,0.9,-1,"kappa");
+  omega.allocate(50,200,-1,"omega");
   beta0.allocate(0,1.1,1,"beta0");
-  loggam.allocate(-19,-12,"loggam");
+  loggam.allocate(-29,-12,"loggam");
   iota.allocate(0,0.1,"iota");
   gam.allocate("gam");
   #ifndef NO_AD_INITIALIZE
@@ -279,8 +275,6 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
   wbar.initialize();
   #endif
   obj1.allocate("obj1");
-  obj2.allocate("obj2");
-  obj3.allocate("obj3");
   n.allocate(0,I,start,finish,"n");
   #ifndef NO_AD_INITIALIZE
     n.initialize();
@@ -325,73 +319,74 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
 
 void model_parameters::userfunction(void)
 {
-  ff =0.0;
-  sig1 = .05;
+  ff=0.0;
+  sig1=.05;
   sig2 = .7;
   psi = 200;
-  iota1=5.2;
-  iota2=0.619;
-  phi=16.5;
-  phi2=20.3;
-  eta1=1.703205e-5;
-  eta2=2.9526;
+  iota1_admb=5.2;
+  iota2_admb=0.619;
+  phi_admb=16.5;
+  phi_admb2=20.3;
+  eta1_admb=1.703205e-5;
+  eta2_admb=2.9526;
   gam = mfexp(loggam);
   ff=0;
   int i,j;
-  for (j=0;j<=J;j++) 
-    x(0,j) = j*omega/J;
-  x(0,J) -= 1e-9; // for pow base neq 0
-  if (81*kappa*kappa*omega*omega*(alpha1+2*alpha2*omega)*(alpha1+2*alpha2*omega) < 12*kappa*(alpha1*omega+kappa)*(alpha1*omega+kappa)*(alpha1*omega+kappa))
-    ff = 1e6;
-  else {
+  for (j=0;j<=J_admb;j++) 
+    x(0,j) = j*omega/J_admb;
+  x(0,J_admb) -= 1e-9; // for pow base neq 0
+  //if (81*kappa*kappa*omega*omega*(alpha1+2*alpha2*omega)*(alpha1+2*alpha2*omega) < 12*kappa*(alpha1*omega+kappa)*(alpha1*omega+kappa)*(alpha1*omega+kappa))
+  //  ff = 1e6;
+  //else {
   dvariable zeta = sqrt(81*kappa*kappa*omega*omega*(alpha1+2*alpha2*omega)*(alpha1+2*alpha2*omega) - 12*kappa*(alpha1*omega+kappa)*(alpha1*omega+kappa)*(alpha1*omega+kappa));
   inter = 9*alpha1*kappa*kappa*omega + 18*alpha2*kappa*kappa*omega*omega + kappa*zeta; 
   Z = pow(inter,1/3.0) / (3* pow(2/3.0,1/3.0)) + pow(2/3.0,1/3.0) * kappa * (alpha1*omega + kappa) / pow(inter,1/3.0);
   ubar = (Z-beta0-kappa)/gam;
-  if (ubar <= 0) 
-    ff = 1e6;
-  else {
+  //if (ubar <= 0) 
+  //  ff = 1e6;
+  //else {
   vbar = (kappa*omega*ubar) / (beta0+gam*ubar+kappa);
   wbar = (2*kappa*omega*vbar) / (beta0+gam*ubar+2*kappa);
-  for (j=0;j<=J;j++)
+  for (j=0;j<=J_admb;j++)
     n(0,j) = (alpha1*vbar+alpha2*wbar)*pow(omega-x(0,j),(beta0+gam*ubar)/kappa - 1) / (kappa*pow(omega,(beta0+gam*ubar)/kappa));
-  Qi(0) = Q(x(0),n(0),J);
-  for (j=0;j<=J;j++)
+  Qi(0) = Q(x(0),n(0),J_admb);
+  for (j=0;j<=J_admb;j++)
     spb(0,j) = value(b(x(0,j))*n(0,j)); 
-  SpB(0) = Q(value(x(0)),spb(0),J);
+  SpB(0) = Q(value(x(0)),spb(0),J_admb);
   i=0;
-  for (j=0;j<=J;j++)
+  x(0,0) = 1e-9;
+  for (j=0;j<=J_admb;j++)
     CR(i,j) = w(x(i,j))*s(x(i,j),k*(i-N))*n(i,j)*iota*e(k*(i-N));
   for (i=1;i<=I;i++) {
     double t = k*(i-N-1);
     double th = k*(i-N-.5);
     xh(i,0) = 1e-9;
-    for (j=1;j<J+i;j++) 
+    for (j=1;j<J_admb+i;j++) 
       xh(i,j)=x(i-1,j-1)+(k/2)*g(x(i-1,j-1));
-    xh(i,J+i)=omega;
-    for (j=1;j<=J+i;j++)
+    xh(i,J_admb+i)=omega;
+    for (j=1;j<=J_admb+i;j++)
       nh(i,j) = n(i-1,j-1)*mfexp(-(k/2)*zstar(x(i-1,j-1),Qi(i-1),t));
-    nh(i,0)= Q2(xh(i),nh(i),g(0),J+i); 
-    dvariable Qhalf = Q(xh(i),nh(i),J+i);
+    nh(i,0)= Q2(xh(i),nh(i),g(0),J_admb+i); 
+    dvariable Qhalf = Q(xh(i),nh(i),J_admb+i);
     x(i,0) = 1e-9;
-    for (j=1;j<J+i;j++)
+    for (j=1;j<J_admb+i;j++)
       x(i,j) = x(i-1,j-1) + k*g(xh(i,j));
-    x(i,J+i) = omega;
-    for (j=1;j<=J+i;j++)
+    x(i,J_admb+i) = omega;
+    for (j=1;j<=J_admb+i;j++)
       n(i,j) = n(i-1,j-1)*mfexp(-k*zstar(xh(i,j),Qhalf,th));
-    n(i,0) = Q2(x(i),n(i),g(0),J+i); 
-    Qi(i) = Q(x(i),n(i),J+i);
-    for (j=0;j<=J+i;j++)
+    n(i,0) = Q2(x(i),n(i),g(0),J_admb+i); 
+    Qi(i) = Q(x(i),n(i),J_admb+i);
+    for (j=0;j<=J_admb+i;j++)
       CR(i,j) = w(x(i,j))*s(x(i,j),k*(i-N))*n(i,j)*iota*e(k*(i-N)); 
-    HF(i) = Q(x(i),CR(i),J+i)/1e3; 
+    HF(i) = Q(x(i),CR(i),J_admb+i)/1e3; 
     if (k*(i-N)<0)
       F(i) = value(iota*e(k*(i-N)));
     else
       F(i) = value(iota*e(k*(i-N)));
     M(i) = value(Qi(i)*gam);
-    for (j=0;j<=J+i;j++)
+    for (j=0;j<=J_admb+i;j++)
       spb(i,j) = value(b(x(i,j))*n(i,j)); 
-    SpB(i) = Q(value(x(i)),spb(i),J+i);
+    SpB(i) = Q(value(x(i)),spb(i),J_admb+i);
   }
   dvariable avgHF = 0;
   for (i=N;i<=I;i++)
@@ -416,34 +411,16 @@ void model_parameters::userfunction(void)
   Uen *= k;
   Urat = Uen / value(ubar);
   // Objective function 1
-  for (i=0;i<=I;i++)
-    tbar(i) = sum( exp( -square(k*(i-N) - tl) / (2*square(sig1)) ) / sqrt( 2*M_PI*square(sig1) ) );
-  double mtbar = max(tbar);
-  tbar /= mtbar;
-  /*dmatrix nh_t(0,I,0,100);
-  nh_t.initialize();
   for (i=0;i<=I;i++) {
-    for (j=0;j<=100;j++) {
-      nh_t(i,j) = sum( elem_prod((1/mtbar)*exp( -square(k*(i-N) - tl) / (2*square(sig1)) ) / sqrt( 2*M_PI*square(sig1) ), exp( -square(j*value(omega)/100-ln) / (2*square(sig2)) ) / sqrt( 2*M_PI*square(sig2) ) ) );
-    }
-    //cout << i << " " << nh_t(i,10) << endl;
-  }
-  //cout << nh_t(I) << endl;
-  //exit(1);*/
-  for (i=0;i<=I;i++) {
-    dvariable Qcr = Q(x(i),CR(i),J+i);
+    dvariable Qcr = Q(x(i),CR(i),J_admb+i);
     for (j=0;j<=finish(i);j++) {
-      nh(i,j) = square(  c(k*(i-N)) * (tbar(i) * sum( elem_prod((1/mtbar)*exp( -square(k*(i-N) - tl) / (2*square(sig1)) ) / sqrt( 2*M_PI*square(sig1) ), exp( -square(x(i,j)-ln) / (2*square(sig2)) ) / sqrt( 2*M_PI*square(sig2) ) ) ) + (1-tbar(i)) * CR(i,j)/Qcr )  - CR(i,j) );
-      //(tbar(i) * sum( elem_prod((1/mtbar)*exp( -square(k*(i-N) - tl) / (2*square(sig1)) ) / sqrt( 2*M_PI*square(sig1) ), exp( -square(x(i,j)-ln) / (2*square(sig2)) ) / sqrt( 2*M_PI*square(sig2) ) ) ) + (1-tbar(i)) * ch(i,j)/Q(x(i),ch(i),J+i) );
+      nh(i,j) = square(  c(k*(i-N)) * (precomp(i,j) + (1-tbar(i)) * CR(i,j)/Qcr )  - CR(i,j) );
     }
-    cdr(i) = Q(x(i),nh(i),J+i);
-    //cout << i << " " << cdr(i) << endl;    
-    cdt(i) = k*i;
+    obj1 += Q(x(i),nh(i),J_admb+i);
   }
-  ff = Q(cdt,cdr,I);
-  cout << ff << endl;
-  }
-  }
+  ff=obj1;
+  //}
+  //}
   if (mceval_phase()) 
     cout << alpha1 << " " << alpha2 << " " << kappa << " " << omega << " " << beta0 << " " << loggam << " " << iota << " " << ff << " " << SpBrat << " " << lastF << " " << lastSpB << endl;
 }
@@ -485,21 +462,21 @@ dvariable model_parameters::b(const dvariable& x)
 dvariable model_parameters::s(const dvariable& x, const double t)
 {
   if (t<0) {
-    if (x < iota1*phi)
-      return mfexp(-square(x-iota1*phi)/(2*iota2*square(phi)));
+    if (x < iota1_admb*phi_admb)
+      return mfexp(-square(x-iota1_admb*phi_admb)/(2*iota2_admb*square(phi_admb)));
     else {
-      if (x < iota1*phi2)
+      if (x < iota1_admb*phi_admb2)
         return 1;
       else
-        return mfexp(-square(x-iota1*phi2)/(2*iota2*square(phi2)));
+        return mfexp(-square(x-iota1_admb*phi_admb2)/(2*iota2_admb*square(phi_admb2)));
     }
   } else 
-    return mfexp(-square(x-iota1*phi)/(2*iota2*square(phi)));
+    return mfexp(-square(x-iota1_admb*phi_admb)/(2*iota2_admb*square(phi_admb)));
 }
 
 dvariable model_parameters::w(const dvariable& x)
 {
-  return eta1*pow(x,eta2);
+  return eta1_admb*pow(x,eta2_admb);
 }
 
 dvariable model_parameters::Q2(const dvar_vector& X, const dvar_vector& W, const dvariable& g, const int sz)
@@ -569,20 +546,77 @@ int main(int argc, char *argv[])
   model_parameters mp(arrmblsize,argc,argv);
   mp.iprint=10;
   mp.preliminary_calculations();
-  mp.computations(argc,argv);
-  return 0;
-    
-  feenableexcept(FE_DIVBYZERO); 
-  feenableexcept(FE_INVALID); 
-  feenableexcept(FE_OVERFLOW);
+
   signal(SIGINT, request_interactive_mode);
 
-  // To test interactive mode in the debug environment,
-  // uncomment this line
-  //request_interactive_mode(1);
+  // Read and parse data files
+  char * data_file_name;
+  if(arg_read_string("fn", &data_file_name, argc, argv) == FALSE) {
+    print_usage();
+    exit(EXIT_FAILURE);
+  }
 
-  interactive_mode_requested = 0;
+  Da da;
+
+  data_read(data_file_name, &da);
+
+  // Read optim options
+  OptimControl optim;
+  optim_control_read("control.optim", &optim);
+
+  // Configure each parameter. This must be updated when a
+  // new parameter is created.
   
+  Parameters parameters =
+    {
+  alpha : { grad : &grad_alpha, value: 0, active: 0, gradient: 0, name: "alpha" },
+  beta : { grad : &grad_beta, value: 0, active: 0, gradient: 0, name : "beta",  },
+  gamma : { grad : &grad_gamma, value: 0, active: 0, gradient: 0, name : "gamma", },
+  iota : { grad : &grad_iota, value: 0, active: 0, gradient: 0, name : "iota"},
+  kappa : { grad : &grad_kappa, value: 0, active: 0, gradient: 0,name : "kappa" },
+  omega : { grad : &grad_omega, value: 0, active: 0, gradient: 0, name : "omega"}
+  };
+
+  parameters.alpha.grad = &grad_alpha_clean;
+  parameters.beta.grad = &grad_beta_clean;
+  parameters.gamma.grad = &grad_gamma_clean;
+  parameters.iota.grad = &grad_iota_clean;
+  parameters.kappa.grad = &grad_kappa_clean;
+  parameters.omega.grad = &grad_omega_clean;
+
+  // Map all parameters to the parameter array. This must
+  // be updated when a new parameter is created.
+  parameters.parameter[0] = &parameters.alpha;
+  parameters.parameter[1] = &parameters.beta;
+  parameters.parameter[2] = &parameters.gamma;
+  parameters.parameter[3] = &parameters.iota;
+  parameters.parameter[4] = &parameters.kappa;
+  parameters.parameter[5] = &parameters.omega;
+  parameters.count = PARAMETER_COUNT;
+
+  // Read all parameter values from the command line.
+  if(!parameters_read(&parameters, argc, argv)) {
+    print_usage();
+    exit(EXIT_FAILURE);
+  }
+
+  MeVEC *theta = parameters_to_vec(&parameters);
+
+  Real h = parameters.omega.value / (da.J-da.I);
+
+  char labbuffer[10];
+  sprintf(labbuffer,"before");
+  //plot(&parameters,&data,labbuffer);
+  
+  //theta = bfgs(VMGMM,theta,&data,&parameters,optim);
+
+  char labbuffer2[10];
+  sprintf(labbuffer2,"after");
+  //plot(&parameters,&data,labbuffer2);
+  
+  mp.computations(argc,argv,_VMGMM,theta,&da,&parameters);
+
+  /* 
   int N;
   int minfish;
   Real k;
@@ -595,7 +629,7 @@ int main(int argc, char *argv[])
       minfish = 250;
     }
   }
-
+  
   if(arg_read_int("J", &J, argc, argv) == FALSE) {
     J = 400;
   }
@@ -614,13 +648,7 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  // Read and parse data files
-  char * data_file_name;
-  if(arg_read_string("fn", &data_file_name, argc, argv) == FALSE) {
-    print_usage();
-    exit(EXIT_FAILURE);
-  }
-
+  
   Data data;
   NewData newdata; 
   
@@ -633,43 +661,8 @@ int main(int argc, char *argv[])
     {
       data_read_ce_new(data_file_name,&newdata);
       data_read_lf_new(data_file_name,&newdata);
-
-      // graph catch spline
-      /*
-  printf("\n");
-  MeVEC *mut = v_get(5000);
-  for (int i=1;i<5000;i++) {
-    mut->ve[i] = sple(newdata.nK,i/5000.0,newdata.knots_c,newdata.splcoef_c);
-    printf("%lf\n",mut->ve[i]);
-    }
-
-    exit(1);*/
-
-      // graph size structure kde
-      /*
-  Real bw = get_bw(newdata.ln);
-  Real bwt = get_bw(newdata.tl);
-  
-  MeVEC *x = v_get(1000);
-  for (int i=0;i<1000;i++)
-    x->ve[i] = 160.0*i/1000.0;
-  MeVEC *l  = v_get(1000);
-
-  Real div = 0;
-  for (int i=0;i<newdata.Nlf;i++)
-    div += exp(-pow((23 - newdata.tl->ve[i])/bwt,2.0));
-
-  for (int j=0;j<1000;j++)
-    for (int jj = 0;jj<newdata.Nlf;jj++)
-      l->ve[j] += (1.0/div)*exp(-pow((23 - newdata.tl->ve[jj])/bwt,2.0)) * exp( -pow((x->ve[j] - newdata.ln->ve[jj])/bw,2.0))/newdata.Nlf;
-
-  printf("\n");
-  for (int j=0;j<1000;j++)
-    printf("%lf %lf\n",x->ve[j],l->ve[j]);
-    exit(1);*/
       
     }
-
 		       
   // The model consists of two stages - a warmup stage followed by the model stage.
   // I (total number of time steps) = warmup_steps + N (number of time steps for model)
@@ -681,7 +674,7 @@ int main(int argc, char *argv[])
   int warmup_steps = floor(N * warmup_ratio);
   data.I = warmup_steps + N;
   data.S = warmup_steps;
-
+  
   if(!SGNM) {
     data.J = J + data.I;
   } else {
@@ -690,34 +683,6 @@ int main(int argc, char *argv[])
 
   data.k = k;
 
-  // Read optim options
-  OptimControl optim;
-  optim_control_read("control.optim", &optim);
-
-  iota1=5.2;
-  iota2=0.619;
-  phi=17;
-  eta1=1.703205e-5;
-  eta2=2.9526;
-
-  // Configure each parameter. This must be updated when a
-  // new parameter is created.
-  
-  Parameters parameters= {
-
-  alpha : { grad : &grad_alpha, value: 0, active: 0, gradient: 0, name: "alpha" },
-
-  beta : { grad : &grad_beta, value: 0, active: 0, gradient: 0, name : "beta",  },
-
- gamma : { grad : &grad_gamma, value: 0, active: 0, gradient: 0, name : "gamma", },
-    
-  iota : { grad : &grad_iota, value: 0, active: 0, gradient: 0, name : "iota"},
-  
-  kappa : { grad : &grad_kappa, value: 0, active: 0, gradient: 0,name : "kappa" },
-  
-  omega : { grad : &grad_omega, value: 0, active: 0, gradient: 0, name : "omega"}
-
-  };
 
   if (!MESCHACH)
     {
@@ -749,17 +714,19 @@ int main(int argc, char *argv[])
 
   MeVEC *theta = parameters_to_vec(&parameters);
 
-  h = parameters.omega.value / J;
+  Real h = parameters.omega.value / J;
 
   char labbuffer[10];
   sprintf(labbuffer,"before");
   //plot(&parameters,&data,labbuffer);
   
-  theta = bfgs(VMGMM,theta,&data,&parameters,optim);
+  //theta = bfgs(VMGMM,theta,&data,&parameters,optim);
 
   char labbuffer2[10];
   sprintf(labbuffer2,"after");
   //plot(&parameters,&data,labbuffer2);
+  
+  mp.computations(argc,argv,VMGMM,theta,&data,&parameters);
   
   V_FREE(theta);
   V_FREE(data.cat);
@@ -770,6 +737,15 @@ int main(int argc, char *argv[])
   for (int i=0;i<data.n;i++)
     free(data.lf[i]);
   free(data.lf);
+  
+  feenableexcept(FE_DIVBYZERO); 
+  feenableexcept(FE_INVALID); 
+  feenableexcept(FE_OVERFLOW);
+
+  // To test interactive mode in the debug environment,
+  // uncomment this line
+  //request_interactive_mode(1);
+  */
 
   return(0);
 }

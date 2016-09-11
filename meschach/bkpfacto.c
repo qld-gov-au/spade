@@ -112,11 +112,11 @@ MeMAT	*BKPfactor(MeMAT *A, PERM *pivot, PERM *blocks)
 	Real	det, s, t;
 
 	if ( ! A || ! pivot || ! blocks )
-		error(E_NULL,"BKPfactor");
+		Meerror(E_NULL,"BKPfactor");
 	if ( A->m != A->n )
-		error(E_SQUARE,"BKPfactor");
+		Meerror(E_SQUARE,"BKPfactor");
 	if ( A->m != pivot->size || pivot->size != blocks->size )
-		error(E_SIZES,"BKPfactor");
+		Meerror(E_SIZES,"BKPfactor");
 
 	n = A->n;
 	A_me = A->me;
@@ -139,7 +139,7 @@ MeMAT	*BKPfactor(MeMAT *A, PERM *pivot, PERM *blocks)
 		/* printf("# lambda = %g, r = %d\n", lambda, r); */
 		/* printf("# |A[%d][%d]| = %g\n",r,r,fabs(m_entry(A,r,r))); */
 
-		/* determine if 1x1 or 2x2 block, and do pivoting if needed */
+		/* deterMemine if 1x1 or 2x2 block, and do pivoting if needed */
 		if ( aii >= alpha*lambda )
 		{
 		    onebyone = TRUE;
@@ -243,12 +243,12 @@ MeVEC	*BKPsolve(const MeMAT *A, PERM *pivot, const PERM *block,
 	Real	**A_me, a11, a12, a22, b1, b2, det, sum, *tmp_ve, tmp_diag;
 
 	if ( ! A || ! pivot || ! block || ! b )
-		error(E_NULL,"BKPsolve");
+		Meerror(E_NULL,"BKPsolve");
 	if ( A->m != A->n )
-		error(E_SQUARE,"BKPsolve");
+		Meerror(E_SQUARE,"BKPsolve");
 	n = A->n;
 	if ( b->dim != n || pivot->size != n || block->size != n )
-		error(E_SIZES,"BKPsolve");
+		Meerror(E_SIZES,"BKPsolve");
 	x = v_resize(x,n);
 	tmp = v_resize(tmp,n);
 	MEM_STAT_REG(tmp,TYPE_MeVEC);
@@ -277,7 +277,7 @@ MeVEC	*BKPsolve(const MeMAT *A, PERM *pivot, const PERM *block,
 		{
 		    tmp_diag = m_entry(A,i,i);
 		    if ( tmp_diag == 0.0 )
-			error(E_SING,"BKPsolve");
+			Meerror(E_SING,"BKPsolve");
 		    /* tmp_ve[i] /= tmp_diag; */
 		    v_set_val(tmp,i,v_entry(tmp,i) / tmp_diag);
 		}
@@ -289,7 +289,7 @@ MeVEC	*BKPsolve(const MeMAT *A, PERM *pivot, const PERM *block,
 		    b1 = v_entry(tmp,i);	b2 = v_entry(tmp,i+1);
 		    det = a11*a22-a12*a12;	/* < 0 : see BKPfactor() */
 		    if ( det == 0.0 )
-			error(E_SING,"BKPsolve");
+			Meerror(E_SING,"BKPsolve");
 		    det = 1/det;
 		    v_set_val(tmp,i,det*(a22*b1-a12*b2));
 		    v_set_val(tmp,i+1,det*(a11*b2-a12*b1));

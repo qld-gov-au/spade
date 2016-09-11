@@ -26,7 +26,7 @@ int cstep(
 	  Real dp,
 	  int *brackt,
 	  Real stpmin,
-	  Real stpMemax
+	  Real stpmax
 
 	  );
 
