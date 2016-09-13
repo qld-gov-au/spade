@@ -29,35 +29,81 @@ MeVEC *_VMGMM(
 
   *f = K_no(parameters);
 
-  //pthread_t threads[theta->dim];
+  pthread_t threads[theta->dim];
 
-  //int iTheta = 0;
-  //for(int i = 0; i < parameters->count; i++) {
-  //    if(parameters->parameter[i]->active == TRUE) 
-  parameters->parameter[0]->grad((void *) parameters);
+  int iTheta = 0;
+
+  // multi-threaded mode
+  if(PTH) {
+    // launch a thread for each gradient function
+    for(int i = 0; i < parameters->count; i++) {
+      if(parameters->parameter[i]->active == TRUE)
+	{
+	  if(pthread_create(&(threads[iTheta]), NULL, (void *) parameters->parameter[i]->grad, (void *) parameters))
+	    {
+	      fprintf(stderr, "Error creating thread");
+	      exit(0);
+	    }
+	    
+	  iTheta++;
+	}
+    }
+
+    // await all threads
+    for(int i = 0; i < theta->dim; i++) {
+      pthread_join(threads[i], NULL);
+    }
+  }
+
+  // single-threaded mode
+  else {
+
+    for(int i = 0; i < parameters->count; i++) {
+      if(parameters->parameter[i]->active == TRUE)
+	{
+	  parameters->parameter[i]->grad((void *) parameters);
+	  iTheta++;
+	}
+    }
+  }
+
+  // load parameters[i].gradient back into g
+  iTheta=0;
+  for(int i = 0; i < parameters->count; i++) 
+    if(parameters->parameter[i]->active == TRUE) {
+      g->ve[iTheta] = parameters->parameter[i]->gradient;
+      iTheta++;
+    }
+
+
+  /*
+  int iTheta = 0;
+  for(int i = 0; i < parameters->count; i++) 
+      if(parameters->parameter[i]->active == TRUE)
+      parameters->parameter[i]->grad((void *) parameters);      				    */
+  
+  if (interactive_mode_requested)
+    {
+      check_derivative2(parameters,f);      
+      interactive_mode_requested = 0;
+    }
+  
+    
+  return g;
+  
+}
+
+  /*
   parameters->parameter[1]->grad((void *) parameters);
   parameters->parameter[2]->grad((void *) parameters);
   parameters->parameter[3]->grad((void *) parameters);
   parameters->parameter[4]->grad((void *) parameters);
-				       
-	//  }
-	//}
-	//}
-  
-  check_derivative2(parameters,f);
-  
-  // load parameters[i].gradient back into g
-  //iTheta=0;
-  //for(int i = 0; i < parameters->count; i++) 
-	//if(parameters->parameter[i]->active == TRUE) {
-      g->ve[0] = parameters->parameter[0]->gradient;
-      //iTheta++;
-      //}
-  
-  return g;
+      g->ve[1] = parameters->parameter[1]->gradient;
+      g->ve[2] = parameters->parameter[2]->gradient;
+      g->ve[3] = parameters->parameter[3]->gradient;
+      g->ve[4] = parameters->parameter[4]->gradient;*/
 
-}
-
+  
 MeVEC *VMGMM(
 
 		  MeVEC *theta,

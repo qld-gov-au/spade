@@ -6,11 +6,10 @@
 
 MeVEC * bfgs(
 
-	   MeVEC * (*model)(MeVEC *,Data *,MeVEC *,Real *,Parameters *),
+	   MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),
 	   MeVEC *x,
-	   Data *data,
 	   Parameters * parameters,
-     OptimControl opt
+	   OptimControl opt
 
 	   )   
 {
@@ -34,7 +33,7 @@ MeVEC * bfgs(
 
   m_ident(B);
 
-  g = (*model)(x,data,g,&f,parameters);
+  g = (*model)(x,g,&f,parameters);
   //exit(0);
   nfev += 1;
 /*
@@ -59,7 +58,7 @@ MeVEC * bfgs(
     {
 
     #if REAL == DOUBLE
-         printf("infnorm: %g fv: %lf a: %lf b: %lf g: %lf i: %lf k: %lf w: %lf\n",v_norm_inf(g),fv,parameters->alpha1.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
+      printf("infnorm: %g fv: %lf a1: %lf a2: %lf b: %lf g: %lf i: %lf\n",v_norm_inf(g),fv,parameters->alpha1.value,parameters->alpha2.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value);
     #elif REAL == FLOAT
          printf("infnorm: %g fv: %f a: %f b: %f g: %f i: %f k: %f w: %f\n",v_norm_inf(g),fv,parameters->alpha1.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
     #elif REAL == LONGDOUBLE
@@ -132,7 +131,7 @@ MeVEC * bfgs(
       v_copy(g,oldg);
 
       // More-Thuente line search
-      nfev += cvsrch(model,x,f,g,p,opt.stp,opt.ftol,opt.gtol,opt.xtol,opt.stpmin,opt.stpmax,opt.maxfev,data,parameters,&fv);
+      nfev += cvsrch(model,x,f,g,p,opt.stp,opt.ftol,opt.gtol,opt.xtol,opt.stpmin,opt.stpmax,opt.maxfev,parameters,&fv);
     
       v_sub(x,oldx,s);
       v_sub(g,oldg,y);
@@ -163,7 +162,7 @@ MeVEC * bfgs(
     
     }
 
-  (*model)(x,data,g,&f,parameters);
+  (*model)(x,g,&f,parameters);
   #if REAL == DOUBLE
     // lf
     printf("number function evals: %d, function value: %lf\n",nfev,f);
@@ -192,7 +191,7 @@ MeVEC * bfgs(
 
 int cvsrch(
 
-    MeVEC *(*fcn)(MeVEC *,Data *,MeVEC *,Real *,Parameters *),
+    MeVEC *(*fcn)(MeVEC *,MeVEC *,Real *,Parameters *),
     MeVEC *x,
     Real f,
     MeVEC *gr,
@@ -204,7 +203,6 @@ int cvsrch(
     Real stpmin,
     Real stpmax,
     int maxfev,
-    Data *d,
     Parameters * parameters,
     Real *fv
 
@@ -454,7 +452,7 @@ int cvsrch(
         }
       }
 
-      gr = (*fcn)(x,d,gr,&f,parameters);
+      gr = (*fcn)(x,gr,&f,parameters);
       nfev += 1;
       Real dg = in_prod(gr,sd);
       //printf("dg: %f\n",dg);

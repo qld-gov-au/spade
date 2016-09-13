@@ -5,9 +5,8 @@
 
 MeVEC * bfgs(
 
-	   MeVEC * (*model)(MeVEC *,Data *,MeVEC *,Real *,Parameters *),
+	   MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),
 	   MeVEC *x,
-	   Data *data,
      Parameters * parameters,
      OptimControl optim
 
@@ -30,5 +29,5 @@ int cstep(
 
 	  );
 
-int cvsrch(MeVEC *(*f)(MeVEC *,Data *,MeVEC *,Real *,Parameters *),MeVEC *,Real,MeVEC *,MeVEC *,Real,Real,Real,Real,Real,Real,int,Data *,Parameters *,Real *fv); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
+int cvsrch(MeVEC *(*f)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *,Real,MeVEC *,MeVEC *,Real,Real,Real,Real,Real,Real,int,Parameters *,Real *fv); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
 #endif

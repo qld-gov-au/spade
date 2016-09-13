@@ -79,7 +79,7 @@ Real K_no(
   for (int j=0;j<=d.J;j++) 
     o[j] = pow(_c(d.cat,d.k,d.k*(0-d.N)) * (d.p[0][j] + (1-d.Qp[0]) * r[j]/C) - r[j],2.0);                      
   for (int j=0;j<=d.J;j++)   
-    ff += .5 * (x[j+1] - x[j]) * (o[j+1] + o[j]);
+    ff += d.k * .5 * (x[j+1] - x[j]) * (o[j+1] + o[j]);
   
   Real * restrict xh = (Real *) calloc(d.J,sizeof(Real));  
   Real * restrict uh = (Real *) calloc(d.J,sizeof(Real));  
@@ -137,7 +137,7 @@ Real K_no(
 	o[j] = pow(_c(d.cat,d.k,d.k*(i-d.N)) * (d.p[i][j] + (1-d.Qp[i]) * r[j]/C) - r[j],2.0);
       
       for (int j=0;j<=d.J;j++)
-	ff += .5 * (x[j+1] - x[j]) * (o[j+1] + o[j]);
+	ff += d.k * .5 * (x[j+1] - x[j]) * (o[j+1] + o[j]);
       
     }
   

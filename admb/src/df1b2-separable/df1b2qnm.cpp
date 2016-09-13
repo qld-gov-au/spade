@@ -148,50 +148,59 @@ void function_minimizer::quasi_newton_block(int nvar,int _crit,independent_varia
     }
   }
 
+    int me_n = me_x->dim;
+    Real me_f;
+    MeVEC *me_g = v_get(me_n);
+
   if (!random_effects_flag || !unvar)
   {
     dvariable xf=initial_params::reset(dvar_vector(x));
     reset_gradient_stack();
-    gradcalc(0,g);
-
-    int me_n = me_x->dim;
-
-    Real me_f;
-
-    MeVEC *me_s = v_get(me_n);
-    MeVEC *me_y = v_get(me_n);
-    MeVEC *me_g = v_get(me_n);
-    MeVEC *me_p = v_get(me_n);
-    MeVEC *me_u = v_get(me_n);
-
-    MeVEC *me_oldx = v_get(me_n);
-    MeVEC *me_oldg = v_get(me_n);
-
-    MeMAT *me_B = m_get(me_n,me_n);
-
-    m_ident(me_B);
+    //gradcalc(0,g);
 
     me_g = (*model)(me_x,me_g,&me_f,parameters);
+
+    for (int iii=0;iii<5;iii++)
+      x.elem(iii+1) = me_x->ve[iii];
+
+    for (int iii=0;iii<5;iii++)
+      g.elem(iii+1) = me_g->ve[iii];
+
+    f = me_f;
     
     if (negdirections==0)
     {
       while (fmc.ireturn>=0)
       {
         fmc.fmin(f,x,g);
+
+	for (int iii=0;iii<5;iii++)
+	  me_x->ve[iii] = x.elem(iii+1);
 	
         if (fmc.ireturn>0)
         {
-          dvariable vf=0.0;
-          vf=initial_params::reset(dvar_vector(x));
-          *objective_function_value::pobjfun=0.0;
-          pre_userfunction();
-          if ( no_stuff ==0 && quadratic_prior::get_num_quadratic_prior()>0)
-          {
-            quadratic_prior::get_M_calculations();
-          }
-          vf+=*objective_function_value::pobjfun;
-          f=value(vf);
-          gradcalc(nvar,g);
+	  //          dvariable vf=0.0;
+          //vf=initial_params::reset(dvar_vector(x));
+          //*objective_function_value::pobjfun=0.0;
+          //pre_userfunction();
+
+	  me_g = (*model)(me_x,me_g,&me_f,parameters);
+
+	  for (int iii=0;iii<5;iii++)
+	    g.elem(iii+1) = me_g->ve[iii];
+
+	  f = me_f;
+	  
+    //          if ( no_stuff ==0 && quadratic_prior::get_num_quadratic_prior()>0)
+    //    {
+    //      quadratic_prior::get_M_calculations();
+    //    }
+    //    vf+=*objective_function_value::pobjfun;
+    // f=value(vf);
+    //f = me_f;
+    //gradcalc(nvar,g);
+
+    
         }
       }
     }

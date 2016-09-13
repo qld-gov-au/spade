@@ -615,13 +615,13 @@ int main(int argc, char *argv[])
   sprintf(labbuffer,"before");
   //plot(&parameters,&data,labbuffer);
   
-  //theta = bfgs(VMGMM,theta,&data,&parameters,optim);
+  theta = bfgs(_VMGMM,theta,&parameters,optim);
 
   char labbuffer2[10];
   sprintf(labbuffer2,"after");
   //plot(&parameters,&data,labbuffer2);
   
-  mp.computations(argc,argv,_VMGMM,theta,&parameters);
+  //mp.computations(argc,argv,_VMGMM,theta,&parameters);
 
   /* 
   int N;

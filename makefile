@@ -8,7 +8,7 @@ INC = -I"admb/build/debug/include" -I"admb/build/debug/contrib/include"
 LIB = "admb/build/debug/lib/libadmb-contrib.a"
 
 # Spade options
-SPADE_CFLAGS = -g -lm -pthread -std=c99
+SPADE_CFLAGS = -O3 -lm -pthread -std=c99 -Wall
 SPADE_SOURCE_DIRS = initial machinery model optim util plotting
 SPADE_SOURCES = \
 	common.c \

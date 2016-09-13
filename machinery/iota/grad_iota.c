@@ -101,7 +101,7 @@ void grad_iota(void *args)
 
   
   for (int j=0;j<d.J;j++)
-    ff += .5 * (x[j+1] - x[j]) * (o[j+1] + o[j]);
+    ff += k * .5 * (x[j+1] - x[j]) * (o[j+1] + o[j]);
 
   Real ff2=0;
   
@@ -272,7 +272,7 @@ void grad_iota(void *args)
 	o[j] = 2*(r[j] - _c(d.cat,d.k,d.k*(i-d.N)) * (d.p[i][j] + (1-d.Qp[i]) * r[j]/C))*(l[j] - _c(d.cat,d.k,d.k*(i-d.N))*(1 - d.Qp[i]) * ( l[j] * C - r[j] * L ) / (C*C));
 
       for (int j=0;j<=d.J;j++)
-	ff += .5 * (x[j+1] - x[j]) * (o[j+1] + o[j]);
+	ff += k * .5 * (x[j+1] - x[j]) * (o[j+1] + o[j]);
 
       for (int j=0;j<=d.J;j++)
 	m[j] = pow(_c(d.cat,d.k,d.k*(i-d.N)) * (d.p[i][j] + (1-d.Qp[i]) * r[j]/C) - r[j],2.0);
