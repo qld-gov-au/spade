@@ -9,7 +9,7 @@ LIB = "admb/build/debug/lib/libadmb-contrib.a"
 
 # Spade options
 SPADE_CFLAGS = -g -lm -pthread -std=c99
-SPADE_SOURCE_DIRS = initial machinery mathprop model optim util plotting
+SPADE_SOURCE_DIRS = initial machinery model optim util plotting
 SPADE_SOURCES = \
 	common.c \
 	parameters.c \

@@ -3,7 +3,7 @@
 
 #include "meschach/matrix.h"
 
-#define PARAMETER_COUNT 8
+#define PARAMETER_COUNT 7
 
 typedef struct {
   // The gradient function for a given parameter (e.g. grad_alpha)
@@ -26,7 +26,6 @@ typedef struct {
 } Parameter;
 
 typedef struct {
-  Parameter alpha;
   Parameter alpha1;
   Parameter alpha2;
   Parameter beta;

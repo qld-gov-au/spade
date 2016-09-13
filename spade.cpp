@@ -39,9 +39,9 @@ extern "C" {
 #include "machinery/objfns.h"
 #include "optim/optim.h"
 #include "plotting/plot.h"
-#include "mathprop/mathprop.h"
-#include "machinery/alpha/grad_alpha.h"
-#include "machinery/alpha1/grad_alpha1.h"  
+  //#include "mathprop/mathprop.h"
+#include "machinery/alpha1/grad_alpha1.h"
+#include "machinery/alpha2/grad_alpha2.h"  
 #include "machinery/beta/grad_beta.h"
 #include "machinery/gamma/grad_gamma.h"
 #include "machinery/iota/grad_iota.h"
@@ -579,9 +579,8 @@ int main(int argc, char *argv[])
   Parameters parameters =
     {
 
-    alpha : { grad : &grad_alpha, value: 0, active: 0, gradient: 0, name: "alpha" },
     alpha1 : { grad : &grad_alpha1, value: 0, active: 0, gradient: 0, name: "alpha1" },
-    alpha2 : { grad : &grad_alpha, value: 0, active: 0, gradient: 0, name: "alpha2" },
+    alpha2 : { grad : &grad_alpha2, value: 0, active: 0, gradient: 0, name: "alpha2" },
     beta : { grad : &grad_beta, value: 0, active: 0, gradient: 0, name : "beta",  },
     gamma : { grad : &grad_gamma, value: 0, active: 0, gradient: 0, name : "gamma", },
     iota : { grad : &grad_iota, value: 0, active: 0, gradient: 0, name : "iota"},
@@ -590,26 +589,16 @@ int main(int argc, char *argv[])
 
     };
 
-  parameters.alpha.grad = &grad_alpha;
-  parameters.alpha1.grad = &grad_alpha1;
-  parameters.alpha2.grad = &grad_alpha_clean;
-  parameters.beta.grad = &grad_beta_clean;
-  parameters.gamma.grad = &grad_gamma_clean;
-  parameters.iota.grad = &grad_iota_clean;
-  parameters.kappa.grad = &grad_kappa_clean;
-  parameters.omega.grad = &grad_omega_clean;
-
   // Map all parameters to the parameter array. This must
   // be updated when a new parameter is created.
 
-  parameters.parameter[0] = &parameters.alpha;
-  parameters.parameter[1] = &parameters.alpha1;
-  parameters.parameter[2] = &parameters.alpha2; 
-  parameters.parameter[3] = &parameters.beta;
-  parameters.parameter[4] = &parameters.gamma;
-  parameters.parameter[5] = &parameters.iota;
-  parameters.parameter[6] = &parameters.kappa;
-  parameters.parameter[7] = &parameters.omega;
+  parameters.parameter[0] = &parameters.alpha1;
+  parameters.parameter[1] = &parameters.alpha2; 
+  parameters.parameter[2] = &parameters.beta;
+  parameters.parameter[3] = &parameters.gamma;
+  parameters.parameter[4] = &parameters.iota;
+  parameters.parameter[5] = &parameters.kappa;
+  parameters.parameter[6] = &parameters.omega;
   parameters.count = PARAMETER_COUNT;
 
   // Read all parameter values from the command line.

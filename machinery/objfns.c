@@ -12,228 +12,6 @@
 #include "Q.h"
 #include "../util/util.h"
 
-Real K_dr(
-
-  Parameters * parameters,
-  Data *d
-  
-  )
-{
-
-  Solve_Core_Args core_args;
-  int I = d->I;
-  int J = d->J;
-    
-  core_args.x = m_get(I,J);
-  core_args.u = m_get(I,J);
-  core_args.xh = m_get(I,J+1);
-  core_args.uh = m_get(I,J+1);
-  core_args.xn = m_get(I,J+1);
-  core_args.xhh = m_get(I,J+1);
-  core_args.un = m_get(I,J+1);
-  core_args.Ui = v_get(I);
-  core_args.Uh = v_get(I);
-  core_args.Uhh = v_get(I);
-  core_args.idxi = iv_get(I-1);   
-  
-  solve(parameters,d->eff,d->k,d->S,d->Y,&core_args);
-
-  MeMAT *x = core_args.x;
-  MeMAT *u = core_args.u;
-
-  Real iota = parameters->iota.value;
-
-  iota *= 1e-3;
-  int S = d->S;
-  Real k = d->k;
-
-  int lfi=0;
-
-  MeVEC *ht = v_get(x->m);
-  MeVEC *tt = v_get(x->m);
-
-  for (int i=S;i<x->m;i++)
-    {
-
-      MeVEC *xt = v_get(x->n);
-      get_row(x,i,xt);      
-      MeVEC *ut = v_get(x->n);
-      get_row(u,i,ut);      
-      MeVEC *v = v_get(x->n);
-
-      for (int j=0;j<x->n;j++)
-  v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
-
-      if(lfi < d->n && d->t_id[lfi]==i) 
-  {
-      
-    MeVEC *dt = v_get(d->t_sz[lfi]);
-
-    for (int j=0;j<dt->dim;j++)
-      dt->ve[j] = d->lf[lfi][j];
-
-    Real bw = get_bw(dt);
-
-    MeVEC *l = v_get(xt->dim);
-
-    for (int j=0;j<xt->dim;j++)
-      for (int jj=0;jj<dt->dim;jj++)
-        l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
-
-    Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
-
-    MeVEC *ld = v_get(x->n);
-
-    for (int j=0;j<xt->dim;j++)
-      ld->ve[j] = pow(v->ve[j] - al*l->ve[j],2.);
-
-    ht->ve[i] = Q(xt,ld);
-
-    lfi += 1;
-
-    V_FREE(dt);
-    V_FREE(l);
-    V_FREE(ld);
-
-  } 
-      else 
-  {
-    ht->ve[i] = pow(Q(xt,v)-1e3*c(d->cat,k,k*(i - S)),2.);
-  }
-
-      tt->ve[i] = k*(i-S);
-
-      V_FREE(xt);
-      V_FREE(ut);
-      V_FREE(v);
-
-    }
-
-  Real blah = Q(tt,ht);
-
-  V_FREE(ht);
-  V_FREE(tt);
-
-  M_FREE(core_args.x);
-  M_FREE(core_args.u);
-  M_FREE(core_args.xh);
-  M_FREE(core_args.uh);
-  M_FREE(core_args.xn);
-  M_FREE(core_args.xhh);
-  M_FREE(core_args.un);
-  V_FREE(core_args.Ui);
-  V_FREE(core_args.Uh);
-  V_FREE(core_args.Uhh);
-  IV_FREE(core_args.idxi);
-
-  return blah; 
-
-}
-
-/*
-Real newK(
-	  
-     Parameters *parameters,
-		 Data *d,
-		 Solve_Core_Args *core_args
-		 
-	
-		 )
-{
-
-
-  solve(parameters,d->eff,d->k,d->S,d->Y,core_args);
-
-  MeMAT *x = core_args->x;
-  MeMAT *u = core_args->u;
-
-  Real iota = parameters->iota.value;
-
-  iota *= 1e-3;
-  int S = d->S;
-  Real k = d->k;
-
-  int lfi=0;
-
-  MeVEC *ht = v_get(x->m);
-  MeVEC *tt = v_get(x->m);
-
-  int J; 
-  int bigJ;
-  if (BIGMeMATRICES){
-    bigJ = x->n - 1;
-    J = x->n - x->m;
-
-  } else {
-    J = x->n - 1;
-   
-  }
-  
-  for (int i=S;i<x->m;i++)
-    {
-
-      int terminator;
-      if(BIGMeMATRICES)
-	terminator = J+i;
-      else
-	terminator = J;
-
-      MeVEC *xt = v_get(terminator+1);
-      get_row(x,i,xt);      
-      MeVEC *ut = v_get(terminator+1);
-      get_row(u,i,ut);
-      
-      if (BIGMeMATRICES)
-	{
-	  xt = v_resize(xt,terminator+1);
-	  ut = v_resize(ut,terminator+1);
-	}
-      
-      MeVEC *v = v_get(terminator+1);
-
-      for (int j=0;j<=terminator;j++)
-	v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
-
-      if(lfi < d->n && d->t_id[lfi]==i) 
-	{
-      
- 	  MeVEC *dt = v_get(d->t_sz[lfi]);
-
-	  for (int j=0;j<dt->dim;j++)
-	    dt->ve[j] = d->lf[lfi][j];
-
-	  Real bw = get_bw(dt);
-
-	  MeVEC *l = v_get(terminator+1);
-
-	  for (int j=0;j<=terminator;j++)
-	    for (int jj=0;jj<dt->dim;jj++)
-	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
-
-	  Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
-
-	  MeVEC *ld = v_get(terminator+1);
-
-	  //printf("\n");
-	  for (int j=0;j<=terminator;j++){
-	    
-	    ld->ve[j] = pow(v->ve[j] - al*l->ve[j],2.);
-		    //ld->ve[j] = fabs(v->ve[j] - al*l->ve[j]);
-	    //printf("%Lf %Lf\n",xt->ve[j],ld->ve[j]);
-	  }
-	  //exit(1);
-	  
-	  ht->ve[i] = Q(xt,ld);
-
-	  lfi += 1;
-
-	  V_FREE(dt);
-	  V_FREE(l);
-	  V_FREE(ld);
-
-	}
-*/
-	  
 Real K_no(
 
 	  Parameters *parameters
@@ -383,7 +161,7 @@ Real K_no2(
 	  )
 {
 
-  Real aa = parameters->alpha.value;
+  Real aa = 1; //parameters->alpha.value;
   Real bb = parameters->beta.value;
   Real gg = parameters->gamma.value*1e-7;
   Real kk = parameters->kappa.value;
@@ -395,9 +173,9 @@ Real K_no2(
   Real * restrict r = (Real *)calloc(d.J,sizeof(Real));
   Real * restrict o = (Real *)calloc(d.J,sizeof(Real));
   
-  /* 
-     initialize x
-  */
+   
+  //   initialize x
+  
   int J = (d.J+1) - (d.I+1);
   
   // 'active': first J values in first 'row'
@@ -409,9 +187,9 @@ Real K_no2(
   for (int j=J;j<=d.J;j++)
     x[j] = ww;
 
-  /*
-     ok, now initialize u
-  */
+  
+  //   ok, now initialize u
+  
   
   // prelims
   Real zeta = sqrt( 81*kk*kk*ww*ww*pow(aa*A1+2*aa*A2*ww,2.) - 12*kk*pow(aa*A1*ww+kk,3.) );
@@ -520,6 +298,127 @@ Real K_no2(
   return ff;
 	  
 }
+
+
+Real K_dr(
+
+  Parameters * parameters,
+  Data *d
+  
+  )
+{
+
+  Solve_Core_Args core_args;
+  int I = d->I;
+  int J = d->J;
+    
+  core_args.x = m_get(I,J);
+  core_args.u = m_get(I,J);
+  core_args.xh = m_get(I,J+1);
+  core_args.uh = m_get(I,J+1);
+  core_args.xn = m_get(I,J+1);
+  core_args.xhh = m_get(I,J+1);
+  core_args.un = m_get(I,J+1);
+  core_args.Ui = v_get(I);
+  core_args.Uh = v_get(I);
+  core_args.Uhh = v_get(I);
+  core_args.idxi = iv_get(I-1);   
+  
+  solve(parameters,d->eff,d->k,d->S,d->Y,&core_args);
+
+  MeMAT *x = core_args.x;
+  MeMAT *u = core_args.u;
+
+  Real iota = parameters->iota.value;
+
+  iota *= 1e-3;
+  int S = d->S;
+  Real k = d->k;
+
+  int lfi=0;
+
+  MeVEC *ht = v_get(x->m);
+  MeVEC *tt = v_get(x->m);
+
+  for (int i=S;i<x->m;i++)
+    {
+
+      MeVEC *xt = v_get(x->n);
+      get_row(x,i,xt);      
+      MeVEC *ut = v_get(x->n);
+      get_row(u,i,ut);      
+      MeVEC *v = v_get(x->n);
+
+      for (int j=0;j<x->n;j++)
+  v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+
+      if(lfi < d->n && d->t_id[lfi]==i) 
+  {
+      
+    MeVEC *dt = v_get(d->t_sz[lfi]);
+
+    for (int j=0;j<dt->dim;j++)
+      dt->ve[j] = d->lf[lfi][j];
+
+    Real bw = get_bw(dt);
+
+    MeVEC *l = v_get(xt->dim);
+
+    for (int j=0;j<xt->dim;j++)
+      for (int jj=0;jj<dt->dim;jj++)
+        l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
+
+    Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
+
+    MeVEC *ld = v_get(x->n);
+
+    for (int j=0;j<xt->dim;j++)
+      ld->ve[j] = pow(v->ve[j] - al*l->ve[j],2.);
+
+    ht->ve[i] = Q(xt,ld);
+
+    lfi += 1;
+
+    V_FREE(dt);
+    V_FREE(l);
+    V_FREE(ld);
+
+  } 
+      else 
+  {
+    ht->ve[i] = pow(Q(xt,v)-1e3*c(d->cat,k,k*(i - S)),2.);
+  }
+
+      tt->ve[i] = k*(i-S);
+
+      V_FREE(xt);
+      V_FREE(ut);
+      V_FREE(v);
+
+    }
+
+  Real blah = Q(tt,ht);
+
+  V_FREE(ht);
+  V_FREE(tt);
+
+  M_FREE(core_args.x);
+  M_FREE(core_args.u);
+  M_FREE(core_args.xh);
+  M_FREE(core_args.uh);
+  M_FREE(core_args.xn);
+  M_FREE(core_args.xhh);
+  M_FREE(core_args.un);
+  V_FREE(core_args.Ui);
+  V_FREE(core_args.Uh);
+  V_FREE(core_args.Uhh);
+  IV_FREE(core_args.idxi);
+
+  return blah; 
+
+}
+
+	  
 
 
 Real K(
@@ -1029,3 +928,107 @@ Real G_ni(
   return blah;
 
 }
+
+/*
+Real newK(
+	  
+     Parameters *parameters,
+		 Data *d,
+		 Solve_Core_Args *core_args
+		 
+	
+		 )
+{
+
+
+  solve(parameters,d->eff,d->k,d->S,d->Y,core_args);
+
+  MeMAT *x = core_args->x;
+  MeMAT *u = core_args->u;
+
+  Real iota = parameters->iota.value;
+
+  iota *= 1e-3;
+  int S = d->S;
+  Real k = d->k;
+
+  int lfi=0;
+
+  MeVEC *ht = v_get(x->m);
+  MeVEC *tt = v_get(x->m);
+
+  int J; 
+  int bigJ;
+  if (BIGMeMATRICES){
+    bigJ = x->n - 1;
+    J = x->n - x->m;
+
+  } else {
+    J = x->n - 1;
+   
+  }
+  
+  for (int i=S;i<x->m;i++)
+    {
+
+      int terminator;
+      if(BIGMeMATRICES)
+	terminator = J+i;
+      else
+	terminator = J;
+
+      MeVEC *xt = v_get(terminator+1);
+      get_row(x,i,xt);      
+      MeVEC *ut = v_get(terminator+1);
+      get_row(u,i,ut);
+      
+      if (BIGMeMATRICES)
+	{
+	  xt = v_resize(xt,terminator+1);
+	  ut = v_resize(ut,terminator+1);
+	}
+      
+      MeVEC *v = v_get(terminator+1);
+
+      for (int j=0;j<=terminator;j++)
+	v->ve[j] = iota*e(d->eff,k,k*(i-S),d->Y)*s(xt->ve[j])*w(xt->ve[j])*ut->ve[j];
+
+      if(lfi < d->n && d->t_id[lfi]==i) 
+	{
+      
+ 	  MeVEC *dt = v_get(d->t_sz[lfi]);
+
+	  for (int j=0;j<dt->dim;j++)
+	    dt->ve[j] = d->lf[lfi][j];
+
+	  Real bw = get_bw(dt);
+
+	  MeVEC *l = v_get(terminator+1);
+
+	  for (int j=0;j<=terminator;j++)
+	    for (int jj=0;jj<dt->dim;jj++)
+	      l->ve[j] += exp( -pow((xt->ve[j] - dt->ve[jj])/bw,2.) );
+
+	  Real al = 1e3*c(d->cat,k,k*(i - S)) / Q(xt,l); 
+
+	  MeVEC *ld = v_get(terminator+1);
+
+	  //printf("\n");
+	  for (int j=0;j<=terminator;j++){
+	    
+	    ld->ve[j] = pow(v->ve[j] - al*l->ve[j],2.);
+		    //ld->ve[j] = fabs(v->ve[j] - al*l->ve[j]);
+	    //printf("%Lf %Lf\n",xt->ve[j],ld->ve[j]);
+	  }
+	  //exit(1);
+	  
+	  ht->ve[i] = Q(xt,ld);
+
+	  lfi += 1;
+
+	  V_FREE(dt);
+	  V_FREE(l);
+	  V_FREE(ld);
+
+	}
+*/

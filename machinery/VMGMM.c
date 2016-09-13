@@ -4,7 +4,8 @@
 #include "../common.h"
 #include "../parameters.h"
 #include "spade_solve.h"
-#include "alpha/grad_alpha.h"
+#include "alpha1/grad_alpha1.h"
+#include "alpha2/grad_alpha2.h"
 #include "beta/grad_beta.h"
 #include "gamma/grad_gamma.h"
 #include "iota/grad_iota.h"
@@ -26,14 +27,18 @@ MeVEC *_VMGMM(
 	     )
 {
 
-  *f = K_no2(parameters);
-  
+  *f = K_no(parameters);
+
   //pthread_t threads[theta->dim];
 
   //int iTheta = 0;
   //for(int i = 0; i < parameters->count; i++) {
   //    if(parameters->parameter[i]->active == TRUE) 
   parameters->parameter[0]->grad((void *) parameters);
+  parameters->parameter[1]->grad((void *) parameters);
+  parameters->parameter[2]->grad((void *) parameters);
+  parameters->parameter[3]->grad((void *) parameters);
+  parameters->parameter[4]->grad((void *) parameters);
 				       
 	//  }
 	//}
@@ -313,7 +318,7 @@ void check_derivative2(Parameters * parameters, Real * f) {
 
     parameter->value = par_save + dX;
 
-    Real dY = K_no2(parameters) - *f;
+    Real dY = K_no(parameters) - *f;
 
   #if REAL == DOUBLE
     // lf
