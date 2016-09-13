@@ -26,9 +26,6 @@
 // Whether to run grad_* methods concurrently
 #define PTH 1
 
-#define A1 8.588e-5
-#define A2 0.00144
-
 typedef struct {
   Real stp;
   Real ftol;
@@ -76,6 +73,13 @@ typedef struct {
 } Data;
 
 typedef struct {
+  Da *d;
+  Real k;
+  int N;
+  Parameters *parameters;
+} Grad_Args_2;
+
+typedef struct {
   Data *d;
   MeVEC * eff;
   Real k;
@@ -109,6 +113,12 @@ extern Real h;
 extern int J;
 extern int interactive_mode_requested;
 
+extern Da d;
+
+
+extern Real A1; 
+extern Real A2;
+
 void request_interactive_mode(int a);
 
 void spade_v_output(MeVEC* vec);
@@ -117,7 +127,7 @@ void data_read_ce(const char * data_file_name, Data * data, int * N, Real k);
 
 void data_read_lf(const char * data_file_name, Data * data, int N, Real k, int minfish);
 
-void data_read(const char * data_file_name, Da * data);
+void data_read(const char * data_file_name);
 
 void data_read_ce_new(const char * data_file_name, NewData * newdata);
 

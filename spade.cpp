@@ -41,6 +41,7 @@ extern "C" {
 #include "plotting/plot.h"
 #include "mathprop/mathprop.h"
 #include "machinery/alpha/grad_alpha.h"
+#include "machinery/alpha1/grad_alpha1.h"  
 #include "machinery/beta/grad_beta.h"
 #include "machinery/gamma/grad_gamma.h"
 #include "machinery/iota/grad_iota.h"
@@ -49,17 +50,20 @@ extern "C" {
 #include "util/util.h"
 }
 
+Real iota1=5.2;
+Real iota2=0.619;
+Real phi=17;
+Real eta1=1.703205e-5;
+Real eta2=2.9526;
 
-  Real iota1=5.2;
-  Real iota2=0.619;
-  Real phi=17;
-  Real eta1=1.703205e-5;
-  Real eta2=2.9526;
-
-  int interactive_mode_requested = 0;
+int interactive_mode_requested = 0;
 
 int J;
 Real h;
+Da d;
+
+Real A1=8.588e-5;
+Real A2=0.00144;
 
 int feenableexcept(int);
 
@@ -174,9 +178,8 @@ private:
   param_init_bounded_number kappa;
   param_init_bounded_number omega;
   param_init_bounded_number beta0;
-  param_init_bounded_number loggam;
+  param_init_bounded_number gam;
   param_init_bounded_number iota;
-  param_number gam;
   param_number inter;
   param_number inter2;
   param_number Z;
@@ -243,13 +246,9 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
   alpha2.allocate(0,0.9,"alpha2");
   kappa.allocate(0.05,0.9,-1,"kappa");
   omega.allocate(50,200,-1,"omega");
-  beta0.allocate(0,1.1,1,"beta0");
-  loggam.allocate(-29,-12,"loggam");
+  beta0.allocate(0,2.1,1,"beta0");
+  gam.allocate(.1,3.1,"gam");
   iota.allocate(0,0.1,"iota");
-  gam.allocate("gam");
-  #ifndef NO_AD_INITIALIZE
-  gam.initialize();
-  #endif
   inter.allocate("inter");
   #ifndef NO_AD_INITIALIZE
   inter.initialize();
@@ -325,11 +324,13 @@ void model_parameters::userfunction(void)
   psi = 200;
   iota1_admb=5.2;
   iota2_admb=0.619;
-  phi_admb=16.5;
+  phi_admb=17;
   phi_admb2=20.3;
   eta1_admb=1.703205e-5;
   eta2_admb=2.9526;
-  gam = mfexp(loggam);
+  gam *= 1e-7;
+  iota *= 1e-3;
+  
   ff=0;
   int i,j;
   for (j=0;j<=J_admb;j++) 
@@ -347,9 +348,11 @@ void model_parameters::userfunction(void)
   //else {
   vbar = (kappa*omega*ubar) / (beta0+gam*ubar+kappa);
   wbar = (2*kappa*omega*vbar) / (beta0+gam*ubar+2*kappa);
+  //cout << endl;  
   for (j=0;j<=J_admb;j++)
     n(0,j) = (alpha1*vbar+alpha2*wbar)*pow(omega-x(0,j),(beta0+gam*ubar)/kappa - 1) / (kappa*pow(omega,(beta0+gam*ubar)/kappa));
   Qi(0) = Q(x(0),n(0),J_admb);
+  //cout << c(k*(0-N)) << endl;  
   for (j=0;j<=J_admb;j++)
     spb(0,j) = value(b(x(0,j))*n(0,j)); 
   SpB(0) = Q(value(x(0)),spb(0),J_admb);
@@ -376,6 +379,7 @@ void model_parameters::userfunction(void)
       n(i,j) = n(i-1,j-1)*mfexp(-k*zstar(xh(i,j),Qhalf,th));
     n(i,0) = Q2(x(i),n(i),g(0),J_admb+i); 
     Qi(i) = Q(x(i),n(i),J_admb+i);
+    //cout << c(k*(i-N)) << endl;
     for (j=0;j<=J_admb+i;j++)
       CR(i,j) = w(x(i,j))*s(x(i,j),k*(i-N))*n(i,j)*iota*e(k*(i-N)); 
     HF(i) = Q(x(i),CR(i),J_admb+i)/1e3; 
@@ -388,6 +392,7 @@ void model_parameters::userfunction(void)
       spb(i,j) = value(b(x(i,j))*n(i,j)); 
     SpB(i) = Q(value(x(i)),spb(i),J_admb+i);
   }
+  //exit(1);
   dvariable avgHF = 0;
   for (i=N;i<=I;i++)
     avgHF += HF(i);
@@ -411,18 +416,22 @@ void model_parameters::userfunction(void)
   Uen *= k;
   Urat = Uen / value(ubar);
   // Objective function 1
+  obj1=0;
   for (i=0;i<=I;i++) {
     dvariable Qcr = Q(x(i),CR(i),J_admb+i);
     for (j=0;j<=finish(i);j++) {
       nh(i,j) = square(  c(k*(i-N)) * (precomp(i,j) + (1-tbar(i)) * CR(i,j)/Qcr )  - CR(i,j) );
     }
+    //cout << Q(x(i),nh(i),J_admb+i) << endl;
     obj1 += Q(x(i),nh(i),J_admb+i);
+    //cout << obj1 << endl;
   }
   ff=obj1;
+  //exit(1);
   //}
   //}
   if (mceval_phase()) 
-    cout << alpha1 << " " << alpha2 << " " << kappa << " " << omega << " " << beta0 << " " << loggam << " " << iota << " " << ff << " " << SpBrat << " " << lastF << " " << lastSpB << endl;
+    cout << alpha1 << " " << alpha2 << " " << kappa << " " << omega << " " << beta0 << " " << iota << " " << ff << " " << SpBrat << " " << lastF << " " << lastSpB << endl;
 }
 
 dvariable model_parameters::zstar(const dvariable& x, const dvariable& N, const double t)
@@ -461,7 +470,8 @@ dvariable model_parameters::b(const dvariable& x)
 
 dvariable model_parameters::s(const dvariable& x, const double t)
 {
-  if (t<0) {
+
+  /*if (t<0) {
     if (x < iota1_admb*phi_admb)
       return mfexp(-square(x-iota1_admb*phi_admb)/(2*iota2_admb*square(phi_admb)));
     else {
@@ -470,7 +480,7 @@ dvariable model_parameters::s(const dvariable& x, const double t)
       else
         return mfexp(-square(x-iota1_admb*phi_admb2)/(2*iota2_admb*square(phi_admb2)));
     }
-  } else 
+    } else */
     return mfexp(-square(x-iota1_admb*phi_admb)/(2*iota2_admb*square(phi_admb)));
 }
 
@@ -556,9 +566,8 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  Da da;
 
-  data_read(data_file_name, &da);
+  data_read(data_file_name);
 
   // Read optim options
   OptimControl optim;
@@ -569,15 +578,21 @@ int main(int argc, char *argv[])
   
   Parameters parameters =
     {
-  alpha : { grad : &grad_alpha, value: 0, active: 0, gradient: 0, name: "alpha" },
-  beta : { grad : &grad_beta, value: 0, active: 0, gradient: 0, name : "beta",  },
-  gamma : { grad : &grad_gamma, value: 0, active: 0, gradient: 0, name : "gamma", },
-  iota : { grad : &grad_iota, value: 0, active: 0, gradient: 0, name : "iota"},
-  kappa : { grad : &grad_kappa, value: 0, active: 0, gradient: 0,name : "kappa" },
-  omega : { grad : &grad_omega, value: 0, active: 0, gradient: 0, name : "omega"}
-  };
 
-  parameters.alpha.grad = &grad_alpha_clean;
+    alpha : { grad : &grad_alpha, value: 0, active: 0, gradient: 0, name: "alpha" },
+    alpha1 : { grad : &grad_alpha1, value: 0, active: 0, gradient: 0, name: "alpha1" },
+    alpha2 : { grad : &grad_alpha, value: 0, active: 0, gradient: 0, name: "alpha2" },
+    beta : { grad : &grad_beta, value: 0, active: 0, gradient: 0, name : "beta",  },
+    gamma : { grad : &grad_gamma, value: 0, active: 0, gradient: 0, name : "gamma", },
+    iota : { grad : &grad_iota, value: 0, active: 0, gradient: 0, name : "iota"},
+    kappa : { grad : &grad_kappa, value: 0, active: 0, gradient: 0,name : "kappa" },
+    omega : { grad : &grad_omega, value: 0, active: 0, gradient: 0, name : "omega"}
+
+    };
+
+  parameters.alpha.grad = &grad_alpha;
+  parameters.alpha1.grad = &grad_alpha1;
+  parameters.alpha2.grad = &grad_alpha_clean;
   parameters.beta.grad = &grad_beta_clean;
   parameters.gamma.grad = &grad_gamma_clean;
   parameters.iota.grad = &grad_iota_clean;
@@ -586,12 +601,15 @@ int main(int argc, char *argv[])
 
   // Map all parameters to the parameter array. This must
   // be updated when a new parameter is created.
+
   parameters.parameter[0] = &parameters.alpha;
-  parameters.parameter[1] = &parameters.beta;
-  parameters.parameter[2] = &parameters.gamma;
-  parameters.parameter[3] = &parameters.iota;
-  parameters.parameter[4] = &parameters.kappa;
-  parameters.parameter[5] = &parameters.omega;
+  parameters.parameter[1] = &parameters.alpha1;
+  parameters.parameter[2] = &parameters.alpha2; 
+  parameters.parameter[3] = &parameters.beta;
+  parameters.parameter[4] = &parameters.gamma;
+  parameters.parameter[5] = &parameters.iota;
+  parameters.parameter[6] = &parameters.kappa;
+  parameters.parameter[7] = &parameters.omega;
   parameters.count = PARAMETER_COUNT;
 
   // Read all parameter values from the command line.
@@ -602,7 +620,7 @@ int main(int argc, char *argv[])
 
   MeVEC *theta = parameters_to_vec(&parameters);
 
-  Real h = parameters.omega.value / (da.J-da.I);
+  h = parameters.omega.value / (d.J-d.I);
 
   char labbuffer[10];
   sprintf(labbuffer,"before");
@@ -614,7 +632,7 @@ int main(int argc, char *argv[])
   sprintf(labbuffer2,"after");
   //plot(&parameters,&data,labbuffer2);
   
-  mp.computations(argc,argv,_VMGMM,theta,&da,&parameters);
+  mp.computations(argc,argv,_VMGMM,theta,&parameters);
 
   /* 
   int N;

@@ -245,7 +245,7 @@ void data_read_lf_new(const char * data_file_name, NewData * newdata) {
   fclose(fp);
 }
 
-void data_read(const char * data_file_name, Da * data) {
+void data_read(const char * data_file_name) {
 
   char buffer[30];
   sprintf(buffer,"%s.dat",data_file_name);
@@ -258,28 +258,28 @@ void data_read(const char * data_file_name, Da * data) {
   fscanf(fp,"%d",&J);
   fscanf(fp,"%lf",&k);
 
-  data->I = I;
-  data->J = J+I;
-  data->N = N;
-  data->k = k;
+  d.I = I;
+  d.J = J+I;
+  d.N = N;
+  d.k = k;
 
-  data->cat = (Real *) calloc(data->N+1,sizeof(Real));
-  data->eff = (Real *) calloc(4*data->N+1,sizeof(Real));
+  d.cat = (Real *) calloc(d.N+1,sizeof(Real));
+  d.eff = (Real *) calloc(4*d.N+1,sizeof(Real));
 
   for (int i=0;i<=N;i++)
-    fscanf(fp, "%lf ",&data->cat[i]);
+    fscanf(fp, "%lf ",&d.cat[i]);
   fscanf(fp,"\n");
   
   for (int i=0;i<=4*N;i++)
-    fscanf(fp, "%lf ",&data->eff[i]);
+    fscanf(fp, "%lf ",&d.eff[i]);
   fscanf(fp,"\n");
 
-  data->p = (Real **) calloc(data->I,sizeof(Real *));
+  d.p = (Real **) calloc(d.I,sizeof(Real *));
 
-  for (int i=0;i<=data->I;i++)
-    data->p[i] = (Real *) calloc(data->J,sizeof(Real));
+  for (int i=0;i<=d.I;i++)
+    d.p[i] = (Real *) calloc(d.J,sizeof(Real));
   			   
-  data->Qp = (Real *) calloc(data->I,sizeof(Real));
+  d.Qp = (Real *) calloc(d.I,sizeof(Real));
 
   int dummy;
   for (int i=0;i<=I;i++)
@@ -291,13 +291,13 @@ void data_read(const char * data_file_name, Da * data) {
   fscanf(fp,"\n");
 
   for (int i=0;i<=I;i++)
-    fscanf(fp, "%lf ",&data->Qp[i]);
+    fscanf(fp, "%lf ",&d.Qp[i]);
   fscanf(fp,"\n");
 
   for (int i=0;i<=I;i++)
     {
       for (int j=0;j<=J+i;j++)
-	fscanf(fp, "%lf ",&data->p[i][j]);
+	fscanf(fp, "%lf ",&d.p[i][j]);
       fscanf(fp,"\n");
     }
   

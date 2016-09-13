@@ -22,7 +22,7 @@ void solve_clean(
   MeMAT *core_x = core_args->x;
   MeMAT *core_u = core_args->u; 
   
-  Real aa = parameters->alpha.value;
+  Real aa = parameters->alpha1.value;
   Real bb = parameters->beta.value;
   Real gg = parameters->gamma.value*1e-7;
   Real kk = parameters->kappa.value;

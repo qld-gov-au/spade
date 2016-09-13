@@ -14,7 +14,7 @@ MeVEC *ini_gamma(
 
   x->ve[x->dim-1] -= 1e-5;
 
-  Real a = parameters->alpha.value;
+  Real a = parameters->alpha1.value;
   Real b = parameters->beta.value;
   Real g = parameters->gamma.value;
   Real k = parameters->kappa.value;

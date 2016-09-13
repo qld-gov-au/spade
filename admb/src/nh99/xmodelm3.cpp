@@ -45,7 +45,7 @@ void tracing_message(int traceflag,const char *s);
 
   int function_minimizer::bad_step_flag=0;
 
-  void function_minimizer::minimize(MeVEC * (*model)(MeVEC *,Da *,MeVEC *,Real *,Parameters *),MeVEC *me_x,Da *data,Parameters * parameters)
+  void function_minimizer::minimize(MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *me_x,Parameters * parameters)
   {
     int nopt=0;
     int on=0;
@@ -430,7 +430,7 @@ void tracing_message(int traceflag,const char *s);
               }
               if (lmnflag<0)
               {
-                quasi_newton_block(nvar,_crit,x,g,f,model,me_x,data,parameters);
+                quasi_newton_block(nvar,_crit,x,g,f,model,me_x,parameters);
               }
               else
               {

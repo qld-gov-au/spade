@@ -8,4 +8,12 @@ Real b(
 
 	 );
 
+Real _b(
+
+	 const Real a1,
+	 const Real a2,
+	 const Real x
+
+	 );
+
 #endif

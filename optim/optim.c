@@ -59,11 +59,11 @@ MeVEC * bfgs(
     {
 
     #if REAL == DOUBLE
-         printf("infnorm: %g fv: %lf a: %lf b: %lf g: %lf i: %lf k: %lf w: %lf\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
+         printf("infnorm: %g fv: %lf a: %lf b: %lf g: %lf i: %lf k: %lf w: %lf\n",v_norm_inf(g),fv,parameters->alpha1.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
     #elif REAL == FLOAT
-         printf("infnorm: %g fv: %f a: %f b: %f g: %f i: %f k: %f w: %f\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
+         printf("infnorm: %g fv: %f a: %f b: %f g: %f i: %f k: %f w: %f\n",v_norm_inf(g),fv,parameters->alpha1.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
     #elif REAL == LONGDOUBLE
-         printf("infnorm: %g fv: %Lf a: %Lf b: %Lf g: %Lf i: %Lf k: %Lf w: %Lf\n",v_norm_inf(g),fv,parameters->alpha.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
+         printf("infnorm: %g fv: %Lf a: %Lf b: %Lf g: %Lf i: %Lf k: %Lf w: %Lf\n",v_norm_inf(g),fv,parameters->alpha1.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
     #endif
 
       if (v_norm_inf(g) < 1)

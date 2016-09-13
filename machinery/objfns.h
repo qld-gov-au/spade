@@ -7,8 +7,12 @@
 
 Real K_no(
 
-	  Parameters * parameters,
-	  Da * d
+	  Parameters * parameters
+	  
+	  );
+Real K_no2(
+
+	  Parameters * parameters
 	  
 	  );
 

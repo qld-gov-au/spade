@@ -30,7 +30,7 @@ void ADSleep(unsigned int x);
 class admb_javapointers;
 extern admb_javapointers * adjm_ptr;
 
-void function_minimizer::computations(int argc,char * argv[],MeVEC * (*model)(MeVEC *,Da *,MeVEC *,Real *,Parameters *),MeVEC *x,Da *data,Parameters * parameters)
+void function_minimizer::computations(int argc,char * argv[],MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *x,Parameters * parameters)
   {
     //traceflag=1;
     tracing_message(traceflag,"A1");
@@ -45,7 +45,7 @@ void function_minimizer::computations(int argc,char * argv[],MeVEC * (*model)(Me
 #endif
     if (option_match(argc,argv,"-mceval") == -1)
     {
-      computations1(argc,argv,model,x,data,parameters);
+      computations1(argc,argv,model,x,parameters);
     }
     else
     {
@@ -60,7 +60,7 @@ void function_minimizer::computations(int argc,char * argv[],MeVEC * (*model)(Me
      // cleanup_laplace_stuff(lapprox);
   }
 
-  void function_minimizer::computations1(int argc,char * argv[],MeVEC * (*model)(MeVEC *,Da *,MeVEC *,Real *,Parameters *),MeVEC *x,Da *data,Parameters * parameters)
+  void function_minimizer::computations1(int argc,char * argv[],MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *x,Parameters * parameters)
   {
     tracing_message(traceflag,"B1");
 
@@ -148,7 +148,7 @@ void function_minimizer::computations(int argc,char * argv[],MeVEC * (*model)(Me
       {
         if (!function_minimizer::have_constraints)
         {
-          minimize(model,x,data,parameters);
+          minimize(model,x,parameters);
         }
         else
         {

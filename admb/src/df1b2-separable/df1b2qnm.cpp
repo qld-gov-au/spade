@@ -20,8 +20,7 @@ static int no_stuff=0;
  * Description not yet available.
  * \param
  */
-void function_minimizer::quasi_newton_block(int nvar,int _crit,
-  independent_variables& x,const dvector& _g,const double& _f,MeVEC * (*model)(MeVEC *,Da *,MeVEC *,Real *,Parameters *),MeVEC *me_x,Da *data,Parameters * parameters)
+void function_minimizer::quasi_newton_block(int nvar,int _crit,independent_variables& x,const dvector& _g,const double& _f,MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *me_x,Parameters * parameters)
 {
   int ifn_trap=0;
   int itn_trap=0;
@@ -172,8 +171,8 @@ void function_minimizer::quasi_newton_block(int nvar,int _crit,
 
     m_ident(me_B);
 
-    me_g = (*model)(me_x,data,me_g,&me_f,parameters);
-
+    me_g = (*model)(me_x,me_g,&me_f,parameters);
+    
     if (negdirections==0)
     {
       while (fmc.ireturn>=0)

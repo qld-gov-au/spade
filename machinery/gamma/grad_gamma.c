@@ -34,7 +34,7 @@ void grad_gamma_clean(void* args)
   int S = (*grad_args).S;
   Parameters *parameters = (*grad_args).parameters;
      
-  Real aa = parameters->alpha.value;
+  Real aa = parameters->alpha1.value;
   Real bb = parameters->beta.value;
   Real gg = parameters->gamma.value*1e-7;
   Real kk = parameters->kappa.value;
@@ -189,7 +189,7 @@ void grad_gamma_clean(void* args)
 
     }
   
-  parameters->alpha.gradient = G_ni(core_p, core_x, core_u, d, parameters->iota.value);
+  parameters->alpha1.gradient = G_ni(core_p, core_x, core_u, d, parameters->iota.value);
 
   free(x);
   free(u);
@@ -254,7 +254,7 @@ void grad_gamma(void* args)
       uht = v_get(J+1); ph = v_get(J+1); pn = v_get(J+1);
     }
 
-  Real aa = parameters->alpha.value;
+  Real aa = parameters->alpha1.value;
   Real bb = parameters->beta.value;
   Real gg = parameters->gamma.value*1e-7;
   Real kk = parameters->kappa.value;
