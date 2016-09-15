@@ -35,6 +35,7 @@ typedef struct {
   Parameter omega;
   Parameter * parameter[PARAMETER_COUNT];
   int count;
+  Real ff;  // objective function value
 } Parameters;
 
 int parameters_read(Parameters * parameters, int argc, char * argv[]);

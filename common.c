@@ -251,35 +251,31 @@ void data_read(const char * data_file_name) {
   sprintf(buffer,"%s.dat",data_file_name);
 
   int N,I,J;
-  double k;
   FILE * fp = fopen(buffer,"r");
-  fscanf(fp,"%d",&N);
   fscanf(fp,"%d",&I);
   fscanf(fp,"%d",&J);
   fscanf(fp,"%lf",&k);
 
   d.I = I;
   d.J = J+I;
-  d.N = N;
-  d.k = k;
 
-  d.cat = (Real *) calloc(d.N+1,sizeof(Real));
-  d.eff = (Real *) calloc(4*d.N+1,sizeof(Real));
+  d.cat = (Real *) calloc(I+1,sizeof(Real));
+  d.eff = (Real *) calloc(2*I+1,sizeof(Real));
 
-  for (int i=0;i<=N;i++)
+  for (int i=0;i<=I;i++)
     fscanf(fp, "%lf ",&d.cat[i]);
   fscanf(fp,"\n");
   
-  for (int i=0;i<=4*N;i++)
+  for (int i=0;i<=2*I;i++)
     fscanf(fp, "%lf ",&d.eff[i]);
   fscanf(fp,"\n");
 
-  d.p = (Real **) calloc(d.I,sizeof(Real *));
+  d.p = (Real **) calloc(I+1,sizeof(Real *));
 
-  for (int i=0;i<=d.I;i++)
-    d.p[i] = (Real *) calloc(d.J,sizeof(Real));
+  for (int i=0;i<=I;i++)
+    d.p[i] = (Real *) calloc(I+J+1,sizeof(Real));
   			   
-  d.Qp = (Real *) calloc(d.I,sizeof(Real));
+  d.Qp = (Real *) calloc(I+1,sizeof(Real));
 
   int dummy;
   for (int i=0;i<=I;i++)
@@ -303,6 +299,61 @@ void data_read(const char * data_file_name) {
   
 
 }
+
+
+void data_read_fast(const char * data_file_name) {
+
+  char buffer[30];
+  sprintf(buffer,"%s_fast.dat",data_file_name);
+
+  int N,I,J;
+  FILE * fp = fopen(buffer,"r");
+  fscanf(fp,"%d",&I);
+  fscanf(fp,"%d",&J);
+  fscanf(fp,"%lf",&k);
+
+  d.I = I;
+  d.J = J;
+
+  d.cat = (Real *) calloc(I+1,sizeof(Real));
+  d.eff = (Real *) calloc(2*I+1,sizeof(Real));
+
+  for (int i=0;i<=I;i++)
+    fscanf(fp, "%lf ",&d.cat[i]);
+  fscanf(fp,"\n");
+  
+  for (int i=0;i<=2*I;i++)
+    fscanf(fp, "%lf ",&d.eff[i]);
+  fscanf(fp,"\n");
+
+  d.p = (Real **) calloc(I+1,sizeof(Real *));
+
+  for (int i=0;i<=I;i++)
+    d.p[i] = (Real *) calloc(J+2,sizeof(Real));
+  			   
+  d.Qp = (Real *) calloc(I+1,sizeof(Real));
+
+  for (int i=0;i<=I;i++)
+    fscanf(fp, "%lf ",&d.Qp[i]);
+  fscanf(fp,"\n");
+
+  for (int i=0;i<=I;i++)
+    {
+      for (int j=0;j<=J;j++)
+	fscanf(fp, "%lf ",&d.p[i][j]);
+      fscanf(fp,"\n");
+    }
+
+  idx = (int *) calloc(I,sizeof(int));
+  
+  for (int i=0;i<I;i++)
+    {
+      fscanf(fp, "%d ",&idx[i]);
+      idx[i] = idx[i] - 1;
+    }
+
+}
+
 
 void data_read_lf(const char * data_file_name, Data * data, int N, Real k, int minfish) {
   char buffer[30];

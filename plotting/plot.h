@@ -7,7 +7,6 @@
 void plot(
 	
     Parameters *,
-	  Data *,
 	  char *
 
 	  );

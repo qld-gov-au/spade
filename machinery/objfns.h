@@ -5,17 +5,24 @@
 #include "../common.h"
 #include "../parameters.h"
 
+
+void Kfast(
+
+	   Parameters * parameters
+
+	   );
+
 Real K_no(
 
+	  void *args	  
+	  );
+
+/*Real K_no2(
+
 	  Parameters * parameters
 	  
 	  );
-
-Real K_no2(
-
-	  Parameters * parameters
-	  
-	  );
+*/
 
 Real K(
 

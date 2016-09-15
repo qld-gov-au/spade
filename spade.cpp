@@ -21,18 +21,18 @@
 //     0.100412718    0.121894385     1.10724432    0.079
 
 
-#include <admodel.h>
-#include <contrib.h>
+//#include <admodel.h>
+//#include <contrib.h>
 
-extern "C"  {
-  void ad_boundf(int i);
-}
+//extern "C"  {
+//  void ad_boundf(int i);
+//}
 
 #include <fenv.h>
 #include <math.h>
 #include <signal.h>
 
-extern "C" {
+//extern "C" {
 #include "spade.h"
 #include "arg.h"
 #include "machinery/VMGMM.h"
@@ -48,7 +48,7 @@ extern "C" {
 #include "machinery/kappa/grad_kappa.h"
 #include "machinery/omega/grad_omega.h"
 #include "util/util.h"
-}
+//}
 
 Real iota1=5.2;
 Real iota2=0.619;
@@ -61,9 +61,7 @@ int interactive_mode_requested = 0;
 int J;
 Real h;
 Da d;
-
-Real A1=8.588e-5;
-Real A2=0.00144;
+Real k;
 
 int feenableexcept(int);
 
@@ -103,6 +101,7 @@ void print_usage() {
   );
 }
 
+/*
 class model_data : public ad_comm{
   data_int N;
   data_int I;
@@ -471,7 +470,7 @@ dvariable model_parameters::b(const dvariable& x)
 dvariable model_parameters::s(const dvariable& x, const double t)
 {
 
-  /*if (t<0) {
+  if (t<0) {
     if (x < iota1_admb*phi_admb)
       return mfexp(-square(x-iota1_admb*phi_admb)/(2*iota2_admb*square(phi_admb)));
     else {
@@ -480,7 +479,7 @@ dvariable model_parameters::s(const dvariable& x, const double t)
       else
         return mfexp(-square(x-iota1_admb*phi_admb2)/(2*iota2_admb*square(phi_admb2)));
     }
-    } else */
+    } else 
     return mfexp(-square(x-iota1_admb*phi_admb)/(2*iota2_admb*square(phi_admb)));
 }
 
@@ -544,10 +543,12 @@ void model_parameters::set_runtime(void){}
 #endif
 
   long int arrmblsize=0;
+*/
 
 int main(int argc, char *argv[])
 {
 
+  /*
   ad_set_new_handler();
   ad_exit=&ad_boundf;
   gradient_structure::set_NO_DERIVATIVES();
@@ -556,7 +557,8 @@ int main(int argc, char *argv[])
   model_parameters mp(arrmblsize,argc,argv);
   mp.iprint=10;
   mp.preliminary_calculations();
-
+  */
+  
   signal(SIGINT, request_interactive_mode);
 
   // Read and parse data files
@@ -565,7 +567,6 @@ int main(int argc, char *argv[])
     print_usage();
     exit(EXIT_FAILURE);
   }
-
 
   data_read(data_file_name);
 
@@ -613,7 +614,8 @@ int main(int argc, char *argv[])
 
   char labbuffer[10];
   sprintf(labbuffer,"before");
-  //plot(&parameters,&data,labbuffer);
+  plot(&parameters,labbuffer);
+  exit(1);
   
   theta = bfgs(_VMGMM,theta,&parameters,optim);
 
@@ -757,13 +759,14 @@ int main(int argc, char *argv[])
   return(0);
 }
 
+/*
 extern "C"  {
   void ad_boundf(int i)
   {
-    /* so we can stop here */
+    /* so we can stop here 
     exit(i);
   }
-}
+}*/
 
 
 /*

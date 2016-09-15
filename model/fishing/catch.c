@@ -1,5 +1,6 @@
 ﻿#include <math.h>
 #include "../../meschach/matrix.h"
+#include "../../common.h"
 
 Real c(
 
@@ -23,18 +24,13 @@ Real c(
 Real _c(
 
 	  Real * ca,
-	  Real r,
 	  Real t
 
 	  )
 {
 
-  if (t<0)
-    return ca[0];
-  else
-    {
-      int idx = floor((t + (r/2) - MACHEPS)/r);
-      return ca[idx];
-    }
+  int idx = floor((t + (k/2) - MACHEPS)/k);
+  return ca[idx];
+    
 }
 

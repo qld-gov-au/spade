@@ -36,19 +36,15 @@ Real e(
 Real _e(
 
 	  Real * ef,
-	  Real r,
 	  Real t
 
 	  )
 {
 
   Real cek;
-
-  cek = r/2;
-
-  Real tt = t + 24;
+  cek = k/2;
     
-  int idx = floor((tt + (cek/2) - MACHEPS)/cek);
+  int idx = floor((t + (cek/2) - MACHEPS)/cek);
   return ef[idx];
     
 }

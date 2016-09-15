@@ -3,6 +3,7 @@
 
 #include "../meschach/matrix.h"
 #include "../parameters.h"
+#include "../common.h"
 
 
 MeVEC *_VMGMM(

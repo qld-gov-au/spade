@@ -49,10 +49,8 @@ typedef struct {
 } NewData;
 
 typedef struct {
-  int N;
   int I;
   int J;
-  Real k;
   Real *cat;
   Real *eff;
   Real **p;
@@ -112,9 +110,11 @@ extern Real eta2;
 extern Real h;
 extern int J;
 extern int interactive_mode_requested;
+extern Real k;
 
 extern Da d;
 
+extern int * idx;
 
 extern Real A1; 
 extern Real A2;
@@ -128,6 +128,8 @@ void data_read_ce(const char * data_file_name, Data * data, int * N, Real k);
 void data_read_lf(const char * data_file_name, Data * data, int N, Real k, int minfish);
 
 void data_read(const char * data_file_name);
+
+void data_read_fast(const char * data_file_name);
 
 void data_read_ce_new(const char * data_file_name, NewData * newdata);
 

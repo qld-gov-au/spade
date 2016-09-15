@@ -26,15 +26,14 @@ MeVEC *_VMGMM(
 
 	     )
 {
-
-  *f = K_no(parameters);
-
-  pthread_t threads[theta->dim];
+  
+  pthread_t threads[theta->dim+1];
 
   int iTheta = 0;
 
   // multi-threaded mode
   if(PTH) {
+
     // launch a thread for each gradient function
     for(int i = 0; i < parameters->count; i++) {
       if(parameters->parameter[i]->active == TRUE)
@@ -48,6 +47,14 @@ MeVEC *_VMGMM(
 	  iTheta++;
 	}
     }
+
+
+    // launch a thread for the objective function
+    if (pthread_create(&(threads[iTheta]), NULL, Kfast, (void *) parameters))
+      {
+	fprintf(stderr, "Error creating thread");
+	exit(0);
+      }   
 
     // await all threads
     for(int i = 0; i < theta->dim; i++) {
@@ -66,7 +73,7 @@ MeVEC *_VMGMM(
 	}
     }
   }
-
+  
   // load parameters[i].gradient back into g
   iTheta=0;
   for(int i = 0; i < parameters->count; i++) 
@@ -75,6 +82,7 @@ MeVEC *_VMGMM(
       iTheta++;
     }
 
+  *f = parameters->ff;
 
   /*
   int iTheta = 0;
@@ -364,7 +372,10 @@ void check_derivative2(Parameters * parameters, Real * f) {
 
     parameter->value = par_save + dX;
 
-    Real dY = K_no(parameters) - *f;
+    // recompute ff
+    Kfast((void *)parameters);
+  
+    Real dY = parameters->ff - *f;
 
   #if REAL == DOUBLE
     // lf

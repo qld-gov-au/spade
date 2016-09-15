@@ -20,7 +20,7 @@ SPADE_SOURCES = \
 SPADE_OBJECTS := $(patsubst %.c,%_SPADE.o,$(SPADE_SOURCES))
 
 # Meschach options
-MESCHACH_CFLAGS = -g
+MESCHACH_CFLAGS = -O3
 MESCHACH_SOURCES := \
 	copy.c err.c matrixio.c memory.c vecop.c matop.c pxop.c submat.c \
 	init.c otherio.c machine.c matlab.c ivecop.c version.c meminfo.c \
@@ -37,10 +37,12 @@ OBJECTS := $(SPADE_OBJECTS) $(MESCHACH_OBJECTS)
 all: build
 
 # Generate executable
+# $(MAKE) -C ./admb/
+# $(INC)
+# $(LIB)
 build: clean $(OBJECTS)
-	$(MAKE) -C ./admb/ 
-	$(CXX) -c -g $(INC) -o $(OBJ_NAME) spade.cpp
-	$(CXX) -g $(OBJ_NAME) $(OBJECTS) $(LINKER_FLAGS) -o $(OUTPUT_NAME) $(LIB)
+	$(CC) -c -O3 -o $(OBJ_NAME) spade.c
+	$(CC) -O3 $(OBJ_NAME) $(OBJECTS) $(LINKER_FLAGS) -o $(OUTPUT_NAME)
 	@echo "Build successful"
 
 
