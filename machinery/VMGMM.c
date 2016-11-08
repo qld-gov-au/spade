@@ -26,7 +26,10 @@ MeVEC *_VMGMM(
 
 	     )
 {
-  
+
+
+  Kveryfast((void *)parameters);
+    
   pthread_t threads[theta->dim+1];
 
   int iTheta = 0;
@@ -34,6 +37,7 @@ MeVEC *_VMGMM(
   // multi-threaded mode
   if(PTH) {
 
+    /*
     // launch a thread for each gradient function
     for(int i = 0; i < parameters->count; i++) {
       if(parameters->parameter[i]->active == TRUE)
@@ -47,10 +51,10 @@ MeVEC *_VMGMM(
 	  iTheta++;
 	}
     }
-
+    */
 
     // launch a thread for the objective function
-    if (pthread_create(&(threads[iTheta]), NULL, Kfast, (void *) parameters))
+    if (pthread_create(&(threads[iTheta]), NULL, Kveryfast, (void *) parameters))
       {
 	fprintf(stderr, "Error creating thread");
 	exit(0);
@@ -65,6 +69,8 @@ MeVEC *_VMGMM(
   // single-threaded mode
   else {
 
+    Kfast((void *)parameters);
+    
     for(int i = 0; i < parameters->count; i++) {
       if(parameters->parameter[i]->active == TRUE)
 	{

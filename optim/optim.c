@@ -34,7 +34,7 @@ MeVEC * bfgs(
   m_ident(B);
 
   g = (*model)(x,g,&f,parameters);
-  //exit(0);
+  //  exit(0);
   nfev += 1;
 /*
   Real dx = 1e-7;
@@ -60,7 +60,8 @@ MeVEC * bfgs(
     #if REAL == DOUBLE
       printf("infnorm: %g fv: %lf a1: %lf a2: %lf b: %lf g: %lf i: %lf\n",v_norm_inf(g),fv,parameters->alpha1.value,parameters->alpha2.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value);
     #elif REAL == FLOAT
-         printf("infnorm: %g fv: %f a: %f b: %f g: %f i: %f k: %f w: %f\n",v_norm_inf(g),fv,parameters->alpha1.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
+      printf("infnorm: %g fv: %f a1: %f a2: %f b: %f g: %f i: %f\n",v_norm_inf(g),fv,parameters->alpha1.value,parameters->alpha2.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value);
+      //      printf("infnorm: %g fv: %f a: %f b: %f g: %f i: %f k: %f w: %f\n",v_norm_inf(g),fv,parameters->alpha1.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
     #elif REAL == LONGDOUBLE
          printf("infnorm: %g fv: %Lf a: %Lf b: %Lf g: %Lf i: %Lf k: %Lf w: %Lf\n",v_norm_inf(g),fv,parameters->alpha1.value,parameters->beta.value,parameters->gamma.value,parameters->iota.value,parameters->kappa.value,parameters->omega.value);
     #endif
@@ -176,6 +177,16 @@ MeVEC * bfgs(
 
   v_output(x);
 
+  FILE *fp = fopen("out.txt","w");
+
+  fprintf(fp,"%lf\n",parameters->alpha1.value);
+  fprintf(fp,"%lf\n",parameters->alpha2.value);
+  fprintf(fp,"%lf\n",parameters->beta.value);
+  fprintf(fp,"%lf\n",parameters->gamma.value);
+  fprintf(fp,"%lf\n",parameters->ff);
+
+  fclose(fp);
+  
   V_FREE(oldx);
   V_FREE(oldg);
   V_FREE(s);

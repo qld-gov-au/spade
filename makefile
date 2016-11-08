@@ -8,7 +8,7 @@ INC = -I"admb/build/debug/include" -I"admb/build/debug/contrib/include"
 LIB = "admb/build/debug/lib/libadmb-contrib.a"
 
 # Spade options
-SPADE_CFLAGS = -O3 -lm -pthread -std=c99 -Wall
+SPADE_CFLAGS = -O3 -mavx2 -lm -pthread -std=c99 -Wall
 SPADE_SOURCE_DIRS = initial machinery model optim util plotting
 SPADE_SOURCES = \
 	common.c \
@@ -41,8 +41,8 @@ all: build
 # $(INC)
 # $(LIB)
 build: clean $(OBJECTS)
-	$(CC) -c -O3 -o $(OBJ_NAME) spade.c
-	$(CC) -O3 $(OBJ_NAME) $(OBJECTS) $(LINKER_FLAGS) -o $(OUTPUT_NAME)
+	$(CC) -c -O3 -mavx2 -o $(OBJ_NAME) spade.c
+	$(CC) -O3 -mavx2 $(OBJ_NAME) $(OBJECTS) $(LINKER_FLAGS) -o $(OUTPUT_NAME)
 	@echo "Build successful"
 
 

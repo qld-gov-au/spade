@@ -248,7 +248,7 @@ void data_read_lf_new(const char * data_file_name, NewData * newdata) {
 void data_read(const char * data_file_name) {
 
   char buffer[30];
-  sprintf(buffer,"%s.dat",data_file_name);
+  sprintf(buffer,"%s_go.dat",data_file_name);
 
   int N,I,J;
   FILE * fp = fopen(buffer,"r");
@@ -304,7 +304,8 @@ void data_read(const char * data_file_name) {
 void data_read_fast(const char * data_file_name) {
 
   char buffer[30];
-  sprintf(buffer,"%s_fast.dat",data_file_name);
+  //  sprintf(buffer,"%s_fast_smooth_wide.dat",data_file_name);
+  sprintf(buffer,"%s_go.dat",data_file_name);
 
   int N,I,J;
   FILE * fp = fopen(buffer,"r");
@@ -329,7 +330,7 @@ void data_read_fast(const char * data_file_name) {
   d.p = (Real **) calloc(I+1,sizeof(Real *));
 
   for (int i=0;i<=I;i++)
-    d.p[i] = (Real *) calloc(J+2,sizeof(Real));
+    posix_memalign( &(d.p[i]),32,(J+1)*sizeof(float));
   			   
   d.Qp = (Real *) calloc(I+1,sizeof(Real));
 
@@ -351,7 +352,16 @@ void data_read_fast(const char * data_file_name) {
       fscanf(fp, "%d ",&idx[i]);
       idx[i] = idx[i] - 1;
     }
-
+  fscanf(fp,"\n");
+  
+  fscanf(fp,"%lf\n",&iota1);
+  fscanf(fp,"%lf\n",&iota2);
+  fscanf(fp,"%lf\n",&phi);
+  fscanf(fp,"%lf\n",&eta1);
+  fscanf(fp,"%lf\n",&eta2);
+  
+  fclose(fp);
+  
 }
 
 

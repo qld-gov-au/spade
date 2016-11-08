@@ -11,4 +11,11 @@ void plot(
 
 	  );
 
+void plot_fast(
+	
+    Parameters *,
+	  char *
+
+	  );
+
 #endif

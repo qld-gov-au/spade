@@ -6,6 +6,13 @@
 #include "../parameters.h"
 
 
+void Kveryfast(
+
+	   Parameters * parameters
+
+	   );
+
+
 void Kfast(
 
 	   Parameters * parameters

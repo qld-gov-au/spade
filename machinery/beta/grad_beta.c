@@ -191,7 +191,7 @@ void grad_beta_fast(void *args)
       for (int j=0;j<=d.J+1;j++)
 	o[j] = 2*(r[j] - _c(d.cat,k*i) * (d.p[i][j] + (1-d.Qp[i]) * r[j]/C))*(l[j] - _c(d.cat,k*i)*(1 - d.Qp[i]) * ( l[j] * C - r[j] * L ) / (C*C));
 
-      for (int j=0;j<=d.J+1;j++)
+      for (int j=0;j<=d.J;j++)
 	ff += k * .5 * (xn[j+1] - xn[j]) * (o[j+1] + o[j]);
 
       // remove
