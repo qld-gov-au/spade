@@ -43,9 +43,9 @@ static char rcsid[] = "$Id: fft.c,v 1.4 1996/08/20 14:21:05 stewart Exp $";
         -- vector extended to a power of 2 */
 #ifndef ANSI_C
 void    fft(x_re,x_im)
-MeVEC     *x_re, *x_im;
+VEC     *x_re, *x_im;
 #else
-void    fft(MeVEC *x_re, MeVEC *x_im)
+void    fft(VEC *x_re, VEC *x_im)
 #endif
 {
     int         i, ip, j, k, li, n, length;
@@ -139,9 +139,9 @@ void    fft(MeVEC *x_re, MeVEC *x_im)
 /* ifft -- inverse FFT using the same interface as fft() */
 #ifndef ANSI_C
 void	ifft(x_re,x_im)
-MeVEC	*x_re, *x_im;
+VEC	*x_re, *x_im;
 #else
-void	ifft(MeVEC *x_re, MeVEC *x_im)
+void	ifft(VEC *x_re, VEC *x_im)
 #endif
 {
     /* we just use complex conjugates */

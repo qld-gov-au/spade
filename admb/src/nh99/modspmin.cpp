@@ -30,7 +30,7 @@ void ADSleep(unsigned int x);
 class admb_javapointers;
 extern admb_javapointers * adjm_ptr;
 
-void function_minimizer::computations(int argc,char * argv[],MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *x,Parameters * parameters)
+void function_minimizer::computations(int argc,char * argv[],VEC * (*model)(VEC *,VEC *,Real *,Parameters *),VEC *x,Parameters * parameters)
   {
     //traceflag=1;
     tracing_message(traceflag,"A1");
@@ -60,7 +60,7 @@ void function_minimizer::computations(int argc,char * argv[],MeVEC * (*model)(Me
      // cleanup_laplace_stuff(lapprox);
   }
 
-  void function_minimizer::computations1(int argc,char * argv[],MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *x,Parameters * parameters)
+  void function_minimizer::computations1(int argc,char * argv[],VEC * (*model)(VEC *,VEC *,Real *,Parameters *),VEC *x,Parameters * parameters)
   {
     tracing_message(traceflag,"B1");
 

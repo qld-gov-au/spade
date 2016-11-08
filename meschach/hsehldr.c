@@ -44,13 +44,13 @@ static	char	rcsid[] = "$Id: hsehldr.c,v 1.2 1994/01/13 05:36:29 des Exp $";
 /* hhvec -- calulates Householder vector to eliMeminate all entries after the
 	i0 entry of the vector vec. It is returned as out. May be in-situ */
 #ifndef ANSI_C
-MeVEC	*hhvec(vec,i0,beta,out,newval)
-MeVEC	*vec,*out;
+VEC	*hhvec(vec,i0,beta,out,newval)
+VEC	*vec,*out;
 unsigned int	i0;
 Real	*beta,*newval;
 #else
-MeVEC	*hhvec(const MeVEC *vec, unsigned int i0, Real *beta,
-	       MeVEC *out, Real *newval)
+VEC	*hhvec(const VEC *vec, unsigned int i0, Real *beta,
+	       VEC *out, Real *newval)
 #endif
 {
 	Real	norm;
@@ -76,13 +76,13 @@ MeVEC	*hhvec(const MeVEC *vec, unsigned int i0, Real *beta,
 	-- that is, out <- (I-beta.hh(i0:n).hh(i0:n)^T).in
 	-- may be in-situ */
 #ifndef ANSI_C
-MeVEC	*hhtrvec(hh,beta,i0,in,out)
-MeVEC	*hh,*in,*out;	/* hh = Householder vector */
+VEC	*hhtrvec(hh,beta,i0,in,out)
+VEC	*hh,*in,*out;	/* hh = Householder vector */
 unsigned int	i0;
 double	beta;
 #else
-MeVEC	*hhtrvec(const MeVEC *hh, double beta, unsigned int i0,
-		 const MeVEC *in, MeVEC *out)
+VEC	*hhtrvec(const VEC *hh, double beta, unsigned int i0,
+		 const VEC *in, VEC *out)
 #endif
 {
 	Real	scale;
@@ -110,14 +110,14 @@ MeVEC	*hhtrvec(const MeVEC *hh, double beta, unsigned int i0,
 	starting at row i0 from column j0 -- in-situ
 	-- that is, M(i0:m,j0:n) <- M(i0:m,j0:n)(I-beta.hh(j0:n).hh(j0:n)^T) */
 #ifndef ANSI_C
-MeMAT	*hhtrrows(M,i0,j0,hh,beta)
-MeMAT	*M;
+MAT	*hhtrrows(M,i0,j0,hh,beta)
+MAT	*M;
 unsigned int	i0, j0;
-MeVEC	*hh;
+VEC	*hh;
 double	beta;
 #else
-MeMAT	*hhtrrows(MeMAT *M, unsigned int i0, unsigned int j0,
-		  const MeVEC *hh, double beta)
+MAT	*hhtrrows(MAT *M, unsigned int i0, unsigned int j0,
+		  const VEC *hh, double beta)
 #endif
 {
 	Real	ip, scale;
@@ -166,17 +166,17 @@ MeMAT	*hhtrrows(MeMAT *M, unsigned int i0, unsigned int j0,
 	avoid excessive memory allocation/de-allocation
 */
 #ifndef ANSI_C
-MeMAT	*hhtrcols(M,i0,j0,hh,beta)
-MeMAT	*M;
+MAT	*hhtrcols(M,i0,j0,hh,beta)
+MAT	*M;
 unsigned int	i0, j0;
-MeVEC	*hh;
+VEC	*hh;
 double	beta;
 #else
-MeMAT	*hhtrcols(MeMAT *M, unsigned int i0, unsigned int j0,
-		  const MeVEC *hh, double beta)
+MAT	*hhtrcols(MAT *M, unsigned int i0, unsigned int j0,
+		  const VEC *hh, double beta)
 #endif
 {
-  STATIC MeVEC	*w = VNULL;
+  STATIC VEC	*w = VNULL;
 
   if ( M == MNULL || hh == VNULL || w == VNULL )
     Meerror(E_NULL,"hhtrcols");
@@ -187,7 +187,7 @@ MeMAT	*hhtrcols(MeMAT *M, unsigned int i0, unsigned int j0,
 
   if ( ! w || w->dim < M->n )
     w = v_resize(w,M->n);
-  MEM_STAT_REG(w,TYPE_MeVEC);
+  MEM_STAT_REG(w,TYPE_VEC);
 
   M = _hhtrcols(M,i0,j0,hh,beta,w);
 
@@ -206,20 +206,20 @@ MeMAT	*hhtrcols(MeMAT *M, unsigned int i0, unsigned int j0,
 	-- raises Meerror if w == NULL
 */
 #ifndef ANSI_C
-MeMAT	*_hhtrcols(M,i0,j0,hh,beta,w)
-MeMAT	*M;
+MAT	*_hhtrcols(M,i0,j0,hh,beta,w)
+MAT	*M;
 unsigned int	i0, j0;
-MeVEC	*hh;
+VEC	*hh;
 double	beta;
-MeVEC	*w;
+VEC	*w;
 #else
-MeMAT	*_hhtrcols(MeMAT *M, unsigned int i0, unsigned int j0,
-		   const MeVEC *hh, double beta, MeVEC *w)
+MAT	*_hhtrcols(MAT *M, unsigned int i0, unsigned int j0,
+		   const VEC *hh, double beta, VEC *w)
 #endif
 {
 	/* Real	ip, scale; */
 	int	i /*, k */;
-	/*  STATIC	MeVEC	*w = VNULL; */
+	/*  STATIC	VEC	*w = VNULL; */
 
 	if ( M == MNULL || hh == VNULL || w == VNULL )
 		Meerror(E_NULL,"_hhtrcols");
@@ -232,7 +232,7 @@ MeMAT	*_hhtrcols(MeMAT *M, unsigned int i0, unsigned int j0,
 
 	if ( w->dim < M->n )
 	  w = v_resize(w,M->n);
-	/*  MEM_STAT_REG(w,TYPE_MeVEC); */
+	/*  MEM_STAT_REG(w,TYPE_VEC); */
 	v_zero(w);
 
 	for ( i = i0; i < M->m; i++ )

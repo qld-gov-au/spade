@@ -39,13 +39,13 @@ typedef struct {
 typedef struct {
   int nK;          // number knots
   int B;
-  MeVEC *knots_e;      // knots effort
-  MeVEC *knots_c;      // knots catch
-  MeVEC *splcoef_e;    // knots effort
-  MeVEC *splcoef_c;    // knots catch
+  VEC *knots_e;      // knots effort
+  VEC *knots_c;      // knots catch
+  VEC *splcoef_e;    // knots effort
+  VEC *splcoef_c;    // knots catch
   int Nlf;
-  MeVEC *ln;
-  MeVEC *tl;
+  VEC *ln;
+  VEC *tl;
 } NewData;
 
 typedef struct {
@@ -58,8 +58,8 @@ typedef struct {
 } Da;
 
 typedef struct {
-  MeVEC *eff;
-  MeVEC *cat;
+  VEC *eff;
+  VEC *cat;
   Real **lf; 
   int n; 
   int *t_id; 
@@ -79,21 +79,21 @@ typedef struct {
 
 typedef struct {
   Data *d;
-  MeVEC * eff;
+  VEC * eff;
   Real k;
   int S;
   Parameters *parameters;
 } Grad_Args_No_MESCHACH;
 
 typedef struct {
-  MeMAT *x,*u,*xhh,*xh,*xn,*uh,*un;
-  MeVEC *Ui,*Uh,*Uhh;
-  IMeVEC *idxi;
+  MAT *x,*u,*xhh,*xh,*xn,*uh,*un;
+  VEC *Ui,*Uh,*Uhh;
+  IVEC *idxi;
 } Solve_Core_Args;
 
 typedef struct {
   Data *d;
-  MeVEC * eff;
+  VEC * eff;
   Real k;
   int S;
   Solve_Core_Args *core_args;  
@@ -121,7 +121,7 @@ extern Real A2;
 
 void request_interactive_mode(int a);
 
-void spade_v_output(MeVEC* vec);
+void spade_v_output(VEC* vec);
 
 void data_read_ce(const char * data_file_name, Data * data, int * N, Real k);
 

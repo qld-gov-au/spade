@@ -45,15 +45,15 @@ static char rcsid[] = "$Id: zschur.c,v 1.4 1995/04/07 16:28:58 des Exp $";
 /* zschur -- computes the Schur decomposition of the matrix A in situ
 	-- optionally, gives Q matrix such that Q^*.A.Q is upper triangular
 	-- returns upper triangular Schur matrix */
-ZMeMAT	*zschur(A,Q)
-ZMeMAT	*A, *Q;
+ZMAT	*zschur(A,Q)
+ZMAT	*A, *Q;
 {
     int		i, j, iter, k, k_Memin, k_MeMemax, k_tmp, n, split;
     Real	c;
     complex	det, discrim, lambda, lambda0, lambda1, s, sum, ztmp;
     complex	x, y;	/* for chasing algorithm */
     complex	**A_me;
-    STATIC	ZMeVEC	*diag=ZVNULL;
+    STATIC	ZVEC	*diag=ZVNULL;
     
     if ( ! A )
 	Meerror(E_NULL,"zschur");
@@ -63,7 +63,7 @@ ZMeMAT	*A, *Q;
 	Meerror(E_SIZES,"zschur");
     n = A->n;
     diag = zv_resize(diag,A->n);
-    MEM_STAT_REG(diag,TYPE_ZMeVEC);
+    MEM_STAT_REG(diag,TYPE_ZVEC);
     /* compute Hessenberg form */
     zHfactor(A,diag);
     
@@ -200,8 +200,8 @@ ZMeMAT	*A, *Q;
 	-- X_re is the real part of the matrix of eigenvectors,
 		and X_im is the imaginary part of the matrix.
 	-- X_re is returned */
-MeMAT	*schur_vecs(T,Q,X_re,X_im)
-MeMAT	*T, *Q, *X_re, *X_im;
+MAT	*schur_vecs(T,Q,X_re,X_im)
+MAT	*T, *Q, *X_re, *X_im;
 {
 	int	i, j, limit;
 	Real	t11_re, t11_im, t12, t21, t22_re, t22_im;
@@ -209,7 +209,7 @@ MeMAT	*T, *Q, *X_re, *X_im;
 		val1_re, val1_im, val2_re, val2_im,
 		tmp_val1_re, tmp_val1_im, tmp_val2_re, tmp_val2_im, **T_me;
 	Real	sum, diff, discrim, magdet, norm, scale;
-	STATIC MeVEC	*tmp1_re=VNULL, *tmp1_im=VNULL,
+	STATIC VEC	*tmp1_re=VNULL, *tmp1_im=VNULL,
 			*tmp2_re=VNULL, *tmp2_im=VNULL;
 
 	if ( ! T || ! X_re )
@@ -227,10 +227,10 @@ MeMAT	*T, *Q, *X_re, *X_im;
 	tmp1_im = v_resize(tmp1_im,T->m);
 	tmp2_re = v_resize(tmp2_re,T->m);
 	tmp2_im = v_resize(tmp2_im,T->m);
-	MEM_STAT_REG(tmp1_re,TYPE_MeVEC);
-	MEM_STAT_REG(tmp1_im,TYPE_MeVEC);
-	MEM_STAT_REG(tmp2_re,TYPE_MeVEC);
-	MEM_STAT_REG(tmp2_im,TYPE_MeVEC);
+	MEM_STAT_REG(tmp1_re,TYPE_VEC);
+	MEM_STAT_REG(tmp1_im,TYPE_VEC);
+	MEM_STAT_REG(tmp2_re,TYPE_VEC);
+	MEM_STAT_REG(tmp2_im,TYPE_VEC);
 
 	T_me = T->me;
 	i = 0;

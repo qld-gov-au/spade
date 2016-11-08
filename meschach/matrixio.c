@@ -79,14 +79,14 @@ int	skipjunk(FILE *fp)
 	except that whitespace and comments ("#..\n") are skipped
 	-- returns a, which is created if a == NULL on entry */
 #ifndef ANSI_C
-MeMAT     *m_fme_input(fp,a)
+MAT     *m_fme_input(fp,a)
 FILE    *fp;
-MeMAT     *a;
+MAT     *a;
 #else
-MeMAT	*m_fme_input(FILE *fp, MeMAT *a)
+MAT	*m_fme_input(FILE *fp, MAT *a)
 #endif
 {
-     MeMAT        *im_fme_input(),*bm_fme_input();
+     MAT        *im_fme_input(),*bm_fme_input();
      
      if ( isatty(fileno(fp)) )
 	  return im_fme_input(fp,a);
@@ -96,11 +96,11 @@ MeMAT	*m_fme_input(FILE *fp, MeMAT *a)
 
 /* im_fme_input -- interactive me_input of matrix */
 #ifndef ANSI_C
-MeMAT     *im_fme_input(fp,mat)
+MAT     *im_fme_input(fp,mat)
 FILE    *fp;
-MeMAT     *mat;
+MAT     *mat;
 #else
-MeMAT     *im_fme_input(FILE *fp,MeMAT *mat)
+MAT     *im_fme_input(FILE *fp,MAT *mat)
 #endif
 {
      char       c;
@@ -108,7 +108,7 @@ MeMAT     *im_fme_input(FILE *fp,MeMAT *mat)
      /* dynamic set to TRUE if memory allocated here */
      
      /* get matrix size */
-     if ( mat != (MeMAT *)NULL && mat->m<MAXDIM && mat->n<MAXDIM )
+     if ( mat != (MAT *)NULL && mat->m<MAXDIM && mat->n<MAXDIM )
      {  m = mat->m;     n = mat->n;     dynamic = FALSE;        }
      else
      {
@@ -164,11 +164,11 @@ MeMAT     *im_fme_input(FILE *fp,MeMAT *mat)
 
 /* bm_fme_input -- batch-file me_input of matrix */
 #ifndef ANSI_C
-MeMAT     *bm_fme_input(fp,mat)
+MAT     *bm_fme_input(fp,mat)
 FILE    *fp;
-MeMAT     *mat;
+MAT     *mat;
 #else
-MeMAT     *bm_fme_input(FILE *fp,MeMAT *mat)
+MAT     *bm_fme_input(FILE *fp,MAT *mat)
 #endif
 {
      unsigned int      i,j,m,n,dummy;
@@ -178,10 +178,10 @@ MeMAT     *bm_fme_input(FILE *fp,MeMAT *mat)
      skipjunk(fp);
      if ((io_code=fscanf(fp," Matrix: %u by %u",&m,&n)) < 2 ||
 	 m>MAXDIM || n>MAXDIM )
-	  Meerror(io_code==EOF ? E_EOF : E_FORMeMAT,"bm_fme_input");
+	  Meerror(io_code==EOF ? E_EOF : E_FORMAT,"bm_fme_input");
      
      /* allocate memory if necessary */
-     if ( mat==(MeMAT *)NULL )
+     if ( mat==(MAT *)NULL )
 	  mat = m_resize(mat,m,n);
      
      /* get entries */
@@ -189,7 +189,7 @@ MeMAT     *bm_fme_input(FILE *fp,MeMAT *mat)
      {
 	  skipjunk(fp);
 	  if ( fscanf(fp," row %u:",&dummy) < 1 )
-	       Meerror(E_FORMeMAT,"bm_fme_input");
+	       Meerror(E_FORMAT,"bm_fme_input");
 	  for ( j=0; j<n; j++ )
 #if REAL == DOUBLE
 	       if ((io_code=fscanf(fp,"%lf",&mat->me[i][j])) < 1 )
@@ -336,14 +336,14 @@ PERM    *bpx_fme_input(FILE *fp,PERM *px)
 	except that whitespace and comments ("#..\n") are skipped
 	-- returns x, which is created if x == NULL on entry */
 #ifndef ANSI_C
-MeVEC     *v_fme_input(fp,x)
+VEC     *v_fme_input(fp,x)
 FILE    *fp;
-MeVEC     *x;
+VEC     *x;
 #else
-MeVEC     *v_fme_input(FILE *fp,MeVEC *x)
+VEC     *v_fme_input(FILE *fp,VEC *x)
 #endif
 {
-     MeVEC        *ifin_vec(),*bfin_vec();
+     VEC        *ifin_vec(),*bfin_vec();
      
      if ( isatty(fileno(fp)) )
 	  return ifin_vec(fp,x);
@@ -353,17 +353,17 @@ MeVEC     *v_fme_input(FILE *fp,MeVEC *x)
 
 /* ifin_vec -- interactive me_input of vector */
 #ifndef ANSI_C
-MeVEC     *ifin_vec(fp,vec)
+VEC     *ifin_vec(fp,vec)
 FILE    *fp;
-MeVEC     *vec;
+VEC     *vec;
 #else
-MeVEC     *ifin_vec(FILE *fp,MeVEC *vec)
+VEC     *ifin_vec(FILE *fp,VEC *vec)
 #endif
 {
      unsigned int      i,dim,dynamic;  /* dynamic set if memory allocated here */
      
      /* get vector dimension */
-     if ( vec != (MeVEC *)NULL && vec->dim<MAXDIM )
+     if ( vec != (VEC *)NULL && vec->dim<MAXDIM )
      {  dim = vec->dim; dynamic = FALSE;        }
      else
      {
@@ -404,11 +404,11 @@ MeVEC     *ifin_vec(FILE *fp,MeVEC *vec)
 
 /* bfin_vec -- batch-file me_input of vector */
 #ifndef ANSI_C
-MeVEC     *bfin_vec(fp,vec)
+VEC     *bfin_vec(fp,vec)
 FILE    *fp;
-MeVEC     *vec;
+VEC     *vec;
 #else
-MeVEC     *bfin_vec(FILE *fp,MeVEC *vec)
+VEC     *bfin_vec(FILE *fp,VEC *vec)
 #endif
 {
      unsigned int      i,dim;
@@ -421,7 +421,7 @@ MeVEC     *bfin_vec(FILE *fp,MeVEC *vec)
 	  Meerror(io_code==EOF ? 7 : 6,"bfin_vec");
      
      /* allocate memory if necessary */
-     if ( vec==(MeVEC *)NULL )
+     if ( vec==(VEC *)NULL )
 	  vec = v_resize(vec,dim);
      
      /* get entries */
@@ -465,14 +465,14 @@ const char	*setformat(const char *f_string)
 #ifndef ANSI_C
 void    m_foutput(fp,a)
 FILE    *fp;
-MeMAT     *a;
+MAT     *a;
 #else
-void    m_foutput(FILE *fp, const MeMAT *a)
+void    m_foutput(FILE *fp, const MAT *a)
 #endif
 {
      unsigned int      i, j, tmp;
      
-     if ( a == (MeMAT *)NULL )
+     if ( a == (MAT *)NULL )
      {  fprintf(fp,"Matrix: NULL\n");   return;         }
      fprintf(fp,"Matrix: %d by %d\n",a->m,a->n);
      if ( a->me == (Real **)NULL )
@@ -517,14 +517,14 @@ void	px_foutput(FILE *fp, const PERM *px)
 #ifndef ANSI_C
 void    v_foutput(fp,x)
 FILE    *fp;
-MeVEC     *x;
+VEC     *x;
 #else
-void	v_foutput(FILE *fp, const MeVEC *x)
+void	v_foutput(FILE *fp, const VEC *x)
 #endif
 {
      unsigned int      i, tmp;
      
-     if ( x == (MeVEC *)NULL )
+     if ( x == (VEC *)NULL )
      {  fprintf(fp,"Vector: NULL\n");   return;         }
      fprintf(fp,"Vector: dim: %d\n",x->dim);
      if ( x->ve == (Real *)NULL )
@@ -542,14 +542,14 @@ void	v_foutput(FILE *fp, const MeVEC *x)
 #ifndef ANSI_C
 void    m_dump(fp,a)
 FILE    *fp;
-MeMAT     *a;
+MAT     *a;
 #else
-void	m_dump(FILE *fp, const MeMAT *a)
+void	m_dump(FILE *fp, const MAT *a)
 #endif
 {
 	unsigned int   i, j, tmp;
      
-     if ( a == (MeMAT *)NULL )
+     if ( a == (MAT *)NULL )
      {  fprintf(fp,"Matrix: NULL\n");   return;         }
      fprintf(fp,"Matrix: %d by %d @ 0x%lx\n",a->m,a->n,(long)a);
      fprintf(fp,"\tMeMemax_m = %d, MeMemax_n = %d, MeMemax_size = %d\n",
@@ -599,9 +599,9 @@ void	px_dump(FILE *fp, const PERM *px)
 #ifndef ANSI_C
 void    v_dump(fp,x)
 FILE    *fp;
-MeVEC     *x;
+VEC     *x;
 #else
-void	v_dump(FILE *fp, const MeVEC *x)
+void	v_dump(FILE *fp, const VEC *x)
 #endif
 {
      unsigned int      i, tmp;
@@ -625,9 +625,9 @@ void	v_dump(FILE *fp, const MeVEC *x)
 #ifndef ANSI_C
 void	iv_foutput(fp,iv)
 FILE	*fp;
-IMeVEC	*iv;
+IVEC	*iv;
 #else
-void	iv_foutput(FILE *fp, const IMeVEC *iv)
+void	iv_foutput(FILE *fp, const IVEC *iv)
 #endif
 {
    int	i;
@@ -657,14 +657,14 @@ void	iv_foutput(FILE *fp, const IMeVEC *iv)
 	iv_foutput except that whitespace and comments ("#...\n") 
 	are skipped */
 #ifndef ANSI_C
-IMeVEC	*iv_fme_input(fp,x)
+IVEC	*iv_fme_input(fp,x)
 FILE	*fp;
-IMeVEC	*x;
+IVEC	*x;
 #else
-IMeVEC	*iv_fme_input(FILE *fp, IMeVEC *x)
+IVEC	*iv_fme_input(FILE *fp, IVEC *x)
 #endif
 {
-   IMeVEC	*iiv_fme_input(),*biv_fme_input();
+   IVEC	*iiv_fme_input(),*biv_fme_input();
    
    if ( isatty(fileno(fp)) )
      return iiv_fme_input(fp,x);
@@ -672,19 +672,19 @@ IMeVEC	*iv_fme_input(FILE *fp, IMeVEC *x)
      return biv_fme_input(fp,x);
 }
 
-/* iiv_fme_input -- interactive me_input of IMeVEC iv */
+/* iiv_fme_input -- interactive me_input of IVEC iv */
 #ifndef ANSI_C
-IMeVEC	*iiv_fme_input(fp,iv)
+IVEC	*iiv_fme_input(fp,iv)
 FILE	*fp;
-IMeVEC	*iv;
+IVEC	*iv;
 #else
-IMeVEC	*iiv_fme_input(FILE *fp, IMeVEC *iv)
+IVEC	*iiv_fme_input(FILE *fp, IVEC *iv)
 #endif
 {
    unsigned int	i,dim,dynamic;	/* dynamic set if memory allocated here */
    
    /* get dimension */
-   if ( iv != (IMeVEC *)NULL && iv->dim<MAXDIM )
+   if ( iv != (IVEC *)NULL && iv->dim<MAXDIM )
    {	dim = iv->dim;	dynamic = FALSE;	}
    else
    {
@@ -717,13 +717,13 @@ IMeVEC	*iiv_fme_input(FILE *fp, IMeVEC *iv)
    return (iv);
 }
 
-/* biv_fme_input -- batch-file me_input of IMeVEC iv */
+/* biv_fme_input -- batch-file me_input of IVEC iv */
 #ifndef ANSI_C
-IMeVEC	*biv_fme_input(fp,iv)
+IVEC	*biv_fme_input(fp,iv)
 FILE	*fp;
-IMeVEC	*iv;
+IVEC	*iv;
 #else
-IMeVEC	*biv_fme_input(FILE *fp, IMeVEC *iv)
+IVEC	*biv_fme_input(FILE *fp, IVEC *iv)
 #endif
 {
    unsigned int	i,dim;
@@ -736,7 +736,7 @@ IMeVEC	*biv_fme_input(FILE *fp, IMeVEC *iv)
      Meerror(io_code==EOF ? 7 : 6,"biv_fme_input");
    
    /* allocate memory if necessary */
-   if ( iv==(IMeVEC *)NULL || iv->dim<dim )
+   if ( iv==(IVEC *)NULL || iv->dim<dim )
      iv = iv_resize(iv,dim);
    
    /* get entries */
@@ -748,13 +748,13 @@ IMeVEC	*biv_fme_input(FILE *fp, IMeVEC *iv)
    return (iv);
 }
 
-/* iv_dump -- dumps all the contents of IMeVEC iv onto stream fp */
+/* iv_dump -- dumps all the contents of IVEC iv onto stream fp */
 #ifndef ANSI_C
 void	iv_dump(fp,iv)
 FILE*fp;
-IMeVEC*iv;
+IVEC*iv;
 #else
-void	iv_dump(FILE *fp, const IMeVEC *iv)
+void	iv_dump(FILE *fp, const IVEC *iv)
 #endif
 {
    int		i;

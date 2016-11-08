@@ -1,10 +1,10 @@
 ﻿#include <math.h>
 #include "../meschach/matrix.h"
 
-MeVEC *idxremove(
+VEC *idxremove(
 
-	       MeVEC *zn,
-	       MeVEC *z,
+	       VEC *zn,
+	       VEC *z,
 	       int idx
 
 	       )
@@ -23,7 +23,7 @@ MeVEC *idxremove(
 Real idxselect(
 
 		 Real omega,
-		 MeVEC *xn
+		 VEC *xn
 
 		 )
 {
@@ -45,7 +45,7 @@ Real idxselect(
 
 Real get_bw(
 
-	      MeVEC *dt
+	      VEC *dt
 
 	      )
 { /* Bandwidth. using Silverman's rule of thumb. */

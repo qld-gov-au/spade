@@ -46,19 +46,19 @@
 	-- creates fill-in as needed
 	-- in situ factorisation */
 #ifndef ANSI_C
-SPMeMAT	*spLUfactor(A,px,alpha)
-SPMeMAT	*A;
+SPMAT	*spLUfactor(A,px,alpha)
+SPMAT	*A;
 PERM	*px;
 double	alpha;
 #else
-SPMeMAT	*spLUfactor(SPMeMAT *A, PERM *px, double alpha)
+SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 #endif
 {
 	int	i, best_i, k, idx, len, best_len, m, n;
 	SPROW	*r, *r_piv, tmp_row;
 	STATIC	SPROW	*merge = (SPROW *)NULL;
 	Real	MeMemax_val, tmp;
-	STATIC MeVEC	*col_vals=VNULL;
+	STATIC VEC	*col_vals=VNULL;
 
 	if ( ! A || ! px )
 		Meerror(E_NULL,"spLUfctr");
@@ -68,7 +68,7 @@ SPMeMAT	*spLUfactor(SPMeMAT *A, PERM *px, double alpha)
 		px = px_resize(px,A->m);
 	px_ident(px);
 	col_vals = v_resize(col_vals,A->m);
-	MEM_STAT_REG(col_vals,TYPE_MeVEC);
+	MEM_STAT_REG(col_vals,TYPE_VEC);
 
 	m = A->m;	n = A->n;
 	if ( ! A->flag_col )
@@ -152,7 +152,7 @@ SPMeMAT	*spLUfactor(SPMeMAT *A, PERM *px, double alpha)
 		    idx = -(idx+2);
 		/* see if r needs expanding */
 		if ( r->MeMemaxlen < idx + merge->len )
-		    sprow_xpd(r,idx+merge->len,TYPE_SPMeMAT);
+		    sprow_xpd(r,idx+merge->len,TYPE_SPMAT);
 		r->len = idx+merge->len;
 		MEM_COPY((char *)(merge->elt),(char *)&(r->elt[idx]),
 			merge->len*sizeof(row_elt));
@@ -169,12 +169,12 @@ SPMeMAT	*spLUfactor(SPMeMAT *A, PERM *px, double alpha)
 	-- returns x
 	-- may not be in-situ */
 #ifndef ANSI_C
-MeVEC	*spLUsolve(A,pivot,b,x)
-SPMeMAT	*A;
+VEC	*spLUsolve(A,pivot,b,x)
+SPMAT	*A;
 PERM	*pivot;
-MeVEC	*b, *x;
+VEC	*b, *x;
 #else
-MeVEC	*spLUsolve(const SPMeMAT *A, PERM *pivot, const MeVEC *b, MeVEC *x)
+VEC	*spLUsolve(const SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 #endif
 {
 	int	i, idx, len, lim;
@@ -227,26 +227,26 @@ MeVEC	*spLUsolve(const SPMeMAT *A, PERM *pivot, const MeVEC *b, MeVEC *x)
 	-- returns x
 	-- may not be in-situ */
 #ifndef ANSI_C
-MeVEC	*spLUTsolve(A,pivot,b,x)
-SPMeMAT	*A;
+VEC	*spLUTsolve(A,pivot,b,x)
+SPMAT	*A;
 PERM	*pivot;
-MeVEC	*b, *x;
+VEC	*b, *x;
 #else
-MeVEC	*spLUTsolve(SPMeMAT *A, PERM *pivot, const MeVEC *b, MeVEC *x)
+VEC	*spLUTsolve(SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 #endif
 {
 	int	i, idx, lim, rownum;
 	Real	sum, *tmp_ve;
 	/* SPROW	*r; */
 	row_elt	*elt;
-	STATIC MeVEC	*tmp=VNULL;
+	STATIC VEC	*tmp=VNULL;
 
 	if ( ! A || ! b )
 	    Meerror(E_NULL,"spLUTsolve");
 	if ( (pivot != PNULL && A->m != pivot->size) || A->m != b->dim )
 	    Meerror(E_SIZES,"spLUTsolve");
 	tmp = v_copy(b,tmp);
-	MEM_STAT_REG(tmp,TYPE_MeVEC);
+	MEM_STAT_REG(tmp,TYPE_VEC);
 
 	if ( ! A->flag_col )
 	    sp_col_access(A);
@@ -318,11 +318,11 @@ MeVEC	*spLUTsolve(SPMeMAT *A, PERM *pivot, const MeVEC *b, MeVEC *x)
 	-- no fill-in is generated
 	-- in situ factorisation */
 #ifndef ANSI_C
-SPMeMAT	*spILUfactor(A,alpha)
-SPMeMAT	*A;
+SPMAT	*spILUfactor(A,alpha)
+SPMAT	*A;
 double	alpha;
 #else
-SPMeMAT	*spILUfactor(SPMeMAT *A, double alpha)
+SPMAT	*spILUfactor(SPMAT *A, double alpha)
 #endif
 {
     int		i, k, idx, idx_piv, m, n, old_idx, old_idx_piv;

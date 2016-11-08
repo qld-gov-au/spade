@@ -53,19 +53,19 @@
 #define ASYM  ANON   
 
   
-static MeVEC *ex_sol = VNULL;
+static VEC *ex_sol = VNULL;
 
 /* new iter information */
 void iter_mod_info(ip,nres,res,Bres)
 ITER *ip;
 double nres;
-MeVEC *res, *Bres;
+VEC *res, *Bres;
 {
-   static MeVEC *tmp;
+   static VEC *tmp;
 
    if (ip->b == VNULL) return;
    tmp = v_resize(tmp,ip->b->dim);
-   MEM_STAT_REG(tmp,TYPE_MeVEC);
+   MEM_STAT_REG(tmp,TYPE_VEC);
 
    if (nres >= 0.0) {
       printf(" %d. residual = %g\n",ip->steps,nres);
@@ -80,14 +80,14 @@ MeVEC *res, *Bres;
 
 
 /* out = A^T*A*x */
-MeVEC *norm_equ(A,x,out)
-SPMeMAT *A;
-MeVEC *x, *out;
+VEC *norm_equ(A,x,out)
+SPMAT *A;
+VEC *x, *out;
 {
-   static MeVEC * tmp;
+   static VEC * tmp;
 
    tmp = v_resize(tmp,x->dim);
-   MEM_STAT_REG(tmp,TYPE_MeVEC);
+   MEM_STAT_REG(tmp,TYPE_VEC);
    sp_mv_mlt(A,x,tmp);
    sp_vm_mlt(A,tmp,out);
    return out;
@@ -101,10 +101,10 @@ MeVEC *x, *out;
    incomplete Choleski factorization
 */
 
-SPMeMAT *gen_sym_precond(A)
-SPMeMAT *A;
+SPMAT *gen_sym_precond(A)
+SPMAT *A;
 {
-   SPMeMAT *B;
+   SPMAT *B;
    SPROW *row;
    int i,j,k;
    Real val;
@@ -132,8 +132,8 @@ SPMeMAT *A;
 
 /* Dv_mlt -- diagonal by vector multiply; the diagonal matrix is represented
 		by a vector d */
-MeVEC	*Dv_mlt(d, x, out)
-MeVEC	*d, *x, *out;
+VEC	*Dv_mlt(d, x, out)
+VEC	*d, *x, *out;
 {
     int		i;
 
@@ -156,13 +156,13 @@ void	main(argc, argv)
 int	argc;
 char	*argv[];
 {
-   MeVEC		*x, *y, *z, *u, *v, *xn, *yn;
-   SPMeMAT	*A = NULL, *B = NULL;
-   SPMeMAT	*An = NULL, *Bn = NULL;
+   VEC		*x, *y, *z, *u, *v, *xn, *yn;
+   SPMAT	*A = NULL, *B = NULL;
+   SPMAT	*An = NULL, *Bn = NULL;
    int		i, k, kk, j;
    ITER        *ips, *ips1, *ipns, *ipns1;
-   MeMAT         *Q, *H, *Q1, *H1;
-   MeVEC         vt, vt1;
+   MAT         *Q, *H, *Q1, *H1;
+   VEC         vt, vt1;
    Real        hh;
 
 

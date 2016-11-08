@@ -40,7 +40,7 @@ typedef struct {
 
 int parameters_read(Parameters * parameters, int argc, char * argv[]);
 
-MeVEC * parameters_to_vec(Parameters * parameters);
+VEC * parameters_to_vec(Parameters * parameters);
 
 int parameter_read(Parameter * parameter, int argc, char * argv[]);
 

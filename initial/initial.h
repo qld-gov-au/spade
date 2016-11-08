@@ -4,7 +4,7 @@
 #include "../meschach/matrix.h"
 #include "../common.h"
 
-MeVEC * calc_alpha(
+VEC * calc_alpha(
 
 			Real a,
 			Real k,
@@ -14,11 +14,11 @@ MeVEC * calc_alpha(
 
 			);
 
-MeVEC * VMGMM_eq(
+VEC * VMGMM_eq(
 
-		  MeVEC *x,
+		  VEC *x,
 		  Data *d,
-		  MeVEC *grad,
+		  VEC *grad,
 		  Real *f
 
 		  );

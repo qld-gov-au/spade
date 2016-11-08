@@ -33,13 +33,13 @@
 		(with the exeception of the pccg() pre-conditioner)
 	The matrix A is defined by
 
-		MeVEC *(*A)(void *params, MeVEC *x, MeVEC *y)
+		VEC *(*A)(void *params, VEC *x, VEC *y)
 
 	where y = A.x on exit, and y is returned. The params argument is
 	intended to make it easier to re-use & modify such routines.
 
 	If we have a sparse matrix data structure
-		SPMeMAT	*A_mat;
+		SPMAT	*A_mat;
 	then these can be used by passing sp_mv_mlt as the function, and
 	A_mat as the param.
 */
@@ -57,14 +57,14 @@ int	cg_num_iters;
 
 /* matrix-as-routine type definition */
 /* #ifdef ANSI_C */
-/* typedef MeVEC	*(*MTX_FN)(void *params, MeVEC *x, MeVEC *out); */
+/* typedef VEC	*(*MTX_FN)(void *params, VEC *x, VEC *out); */
 /* #else */
-typedef MeVEC	*(*MTX_FN)();
+typedef VEC	*(*MTX_FN)();
 /* #endif */
 #ifdef ANSI_C
-MeVEC	*spCHsolve(SPMeMAT *,MeVEC *,MeVEC *);
+VEC	*spCHsolve(SPMAT *,VEC *,VEC *);
 #else
-MeVEC	*spCHsolve();
+VEC	*spCHsolve();
 #endif
 
 /* cg_set_MeMemaxiter -- sets MeMemaximum number of iterations if numiter > 1
@@ -86,13 +86,13 @@ int	numiter;
 /* pccg -- solves A.x = b using pre-conditioner M
 			(assumed factored a la spCHfctr())
 	-- results are stored in x (if x != NULL), which is returned */
-MeVEC	*pccg(A,A_params,M_inv,M_params,b,eps,x)
+VEC	*pccg(A,A_params,M_inv,M_params,b,eps,x)
 MTX_FN	A, M_inv;
-MeVEC	*b, *x;
+VEC	*b, *x;
 double	eps;
 void	*A_params, *M_params;
 {
-	MeVEC	*r = VNULL, *p = VNULL, *q = VNULL, *z = VNULL;
+	VEC	*r = VNULL, *p = VNULL, *q = VNULL, *z = VNULL;
 	int	k;
 	Real	alpha, beta, ip, old_ip, norm_b;
 
@@ -156,9 +156,9 @@ void	*A_params, *M_params;
 		data structures
 	-- assumes that LLT contains the Cholesky factorisation of the
 		actual pre-conditioner */
-MeVEC	*sp_pccg(A,LLT,b,eps,x)
-SPMeMAT	*A, *LLT;
-MeVEC	*b, *x;
+VEC	*sp_pccg(A,LLT,b,eps,x)
+SPMAT	*A, *LLT;
+VEC	*b, *x;
 double	eps;
 {	return pccg(sp_mv_mlt,A,spCHsolve,LLT,b,eps,x);		}
 
@@ -175,14 +175,14 @@ double	eps;
 		A is passed where A(x,Ax,params) computes
 		Ax = A.x
 	-- the computed solution is passed */
-MeVEC	*cgs(A,A_params,b,r0,tol,x)
+VEC	*cgs(A,A_params,b,r0,tol,x)
 MTX_FN	A;
-MeVEC	*x, *b;
-MeVEC	*r0;		/* tilde r0 parameter -- should be random??? */
+VEC	*x, *b;
+VEC	*r0;		/* tilde r0 parameter -- should be random??? */
 double	tol;		/* Meerror tolerance used */
 void	*A_params;
 {
-	MeVEC	*p, *q, *r, *u, *v, *tmp1, *tmp2;
+	VEC	*p, *q, *r, *u, *v, *tmp1, *tmp2;
 	Real	alpha, beta, norm_b, rho, old_rho, sigma;
 	int	iter;
 
@@ -245,10 +245,10 @@ void	*A_params;
 	return x;
 }
 
-/* sp_cgs -- simple interface for SPMeMAT data structures */
-MeVEC	*sp_cgs(A,b,r0,tol,x)
-SPMeMAT	*A;
-MeVEC	*b, *r0, *x;
+/* sp_cgs -- simple interface for SPMAT data structures */
+VEC	*sp_cgs(A,b,r0,tol,x)
+SPMAT	*A;
+VEC	*b, *r0, *x;
 double	tol;
 {	return cgs(sp_mv_mlt,A,b,r0,tol,x);	}
 
@@ -262,13 +262,13 @@ double	tol;
 /* lsqr -- sparse CG-like least Mesquares routine:
 	-- finds Memin_x ||A.x-b||_2 using A defined through A & AT
 	-- returns x (if x != NULL) */
-MeVEC	*lsqr(A,AT,A_params,b,tol,x)
+VEC	*lsqr(A,AT,A_params,b,tol,x)
 MTX_FN	A, AT;	/* AT is A transposed */
-MeVEC	*x, *b;
+VEC	*x, *b;
 double	tol;		/* Meerror tolerance used */
 void	*A_params;
 {
-	MeVEC	*u, *v, *w, *tmp;
+	VEC	*u, *v, *w, *tmp;
 	Real	alpha, beta, norm_b, phi, phi_bar,
 				rho, rho_bar, rho_MeMemax, theta;
 	Real	s, c;	/* for Givens' rotations */
@@ -340,10 +340,10 @@ void	*A_params;
 	return x;
 }
 
-/* sp_lsqr -- simple interface for SPMeMAT data structures */
-MeVEC	*sp_lsqr(A,b,tol,x)
-SPMeMAT	*A;
-MeVEC	*b, *x;
+/* sp_lsqr -- simple interface for SPMAT data structures */
+VEC	*sp_lsqr(A,b,tol,x)
+SPMAT	*A;
+VEC	*b, *x;
 double	tol;
 {	return lsqr(sp_mv_mlt,sp_vm_mlt,A,b,tol,x);	}
 

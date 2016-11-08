@@ -5,18 +5,18 @@
 #include "../common.h"
 #include "../parameters.h"
 
-MeVEC *initial(
+VEC *initial(
 
 	     Parameters *parameters,
-	     MeVEC *x,
-	     MeVEC *u
+	     VEC *x,
+	     VEC *u
 
 	     );
 
 void solve(
 
 		 Parameters *parameters,
-		 MeVEC *eff,
+		 VEC *eff,
 		 Real k,		 
 		 int S,
      int Y,

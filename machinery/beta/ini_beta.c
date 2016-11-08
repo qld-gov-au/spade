@@ -3,11 +3,11 @@
 #include "../../common.h"
 #include "../../parameters.h"
 
-MeVEC *ini_beta(
+VEC *ini_beta(
 
 	      Parameters *parameters,
-	      MeVEC *x,
-	      MeVEC *p
+	      VEC *x,
+	      VEC *p
 
 	      )
 {

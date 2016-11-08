@@ -1886,11 +1886,11 @@ public:
   virtual ~function_minimizer();
   virtual void other_calculations(void){;}
   virtual void final_calcs(void){;}
-  virtual void minimize(MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *x,Parameters * parameters);
+  virtual void minimize(VEC * (*model)(VEC *,VEC *,Real *,Parameters *),VEC *x,Parameters * parameters);
   virtual void constraints_minimize(void);
   virtual void between_phases_calculations(void){;}
-  void computations(int argc,char * argv[],MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *x,Parameters * parameters);
-  void computations1(int argc,char * argv[],MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *x,Parameters * parameters);
+  void computations(int argc,char * argv[],VEC * (*model)(VEC *,VEC *,Real *,Parameters *),VEC *x,Parameters * parameters);
+  void computations1(int argc,char * argv[],VEC * (*model)(VEC *,VEC *,Real *,Parameters *),VEC *x,Parameters * parameters);
   void computations_np(int argc,char * argv[]);
   void computations(void);
   void hess_routine(void);
@@ -2069,7 +2069,7 @@ public:
     int ndim, int ihi, double fac);
   friend class equality_constraint_vector;
   friend class inequality_constraint_vector;
-  void quasi_newton_block(int nvar,int crit,independent_variables& x,const dvector& g,const double& f,MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *me_x,Parameters * parameters);
+  void quasi_newton_block(int nvar,int crit,independent_variables& x,const dvector& g,const double& f,VEC * (*model)(VEC *,VEC *,Real *,Parameters *),VEC *me_x,Parameters * parameters);
   void limited_memory_quasi_newton_block(int nvar,int _crit,
     independent_variables& x,const dvector& _g,const double& _f,
     int nsteps);

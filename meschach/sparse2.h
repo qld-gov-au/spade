@@ -37,53 +37,53 @@
 
 
 #ifdef ANSI_C
-SPMeMAT	*spCHfactor(SPMeMAT *A), *spICHfactor(SPMeMAT *A), *spCHsymb(SPMeMAT *A);
-MeVEC	*spCHsolve(SPMeMAT *CH, const MeVEC *b, MeVEC *x);
+SPMAT	*spCHfactor(SPMAT *A), *spICHfactor(SPMAT *A), *spCHsymb(SPMAT *A);
+VEC	*spCHsolve(SPMAT *CH, const VEC *b, VEC *x);
 
-SPMeMAT	*spLUfactor(SPMeMAT *A,PERM *pivot,double threshold);
-SPMeMAT	*spILUfactor(SPMeMAT *A,double theshold);
-MeVEC	*spLUsolve(const SPMeMAT *LU,PERM *pivot, const MeVEC *b,MeVEC *x),
-	*spLUTsolve(SPMeMAT *LU,PERM *pivot, const MeVEC *b,MeVEC *x);
+SPMAT	*spLUfactor(SPMAT *A,PERM *pivot,double threshold);
+SPMAT	*spILUfactor(SPMAT *A,double theshold);
+VEC	*spLUsolve(const SPMAT *LU,PERM *pivot, const VEC *b,VEC *x),
+	*spLUTsolve(SPMAT *LU,PERM *pivot, const VEC *b,VEC *x);
 
-SPMeMAT	*spBKPfactor(SPMeMAT *, PERM *, PERM *, double);
-MeVEC	*spBKPsolve(SPMeMAT *, PERM *, PERM *, const MeVEC *, MeVEC *);
+SPMAT	*spBKPfactor(SPMAT *, PERM *, PERM *, double);
+VEC	*spBKPsolve(SPMAT *, PERM *, PERM *, const VEC *, VEC *);
 
-MeVEC	*pccg(MeVEC *(*A)(),void *A_par,MeVEC *(*M_inv)(),void *M_par,MeVEC *b,
-						double tol,MeVEC *x);
-MeVEC	*sp_pccg(SPMeMAT *,SPMeMAT *,MeVEC *,double,MeVEC *);
-MeVEC	*cgs(MeVEC *(*A)(),void *A_par,MeVEC *b,MeVEC *r0,double tol,MeVEC *x);
-MeVEC	*sp_cgs(SPMeMAT *,MeVEC *,MeVEC *,double,MeVEC *);
-MeVEC	*lsqr(MeVEC *(*A)(),MeVEC *(*AT)(),void *A_par,MeVEC *b,double tol,MeVEC *x);
-MeVEC	*sp_lsqr(SPMeMAT *,MeVEC *,double,MeVEC *);
+VEC	*pccg(VEC *(*A)(),void *A_par,VEC *(*M_inv)(),void *M_par,VEC *b,
+						double tol,VEC *x);
+VEC	*sp_pccg(SPMAT *,SPMAT *,VEC *,double,VEC *);
+VEC	*cgs(VEC *(*A)(),void *A_par,VEC *b,VEC *r0,double tol,VEC *x);
+VEC	*sp_cgs(SPMAT *,VEC *,VEC *,double,VEC *);
+VEC	*lsqr(VEC *(*A)(),VEC *(*AT)(),void *A_par,VEC *b,double tol,VEC *x);
+VEC	*sp_lsqr(SPMAT *,VEC *,double,VEC *);
 int	cg_set_MeMemaxiter(int);
 
-void	lanczos(MeVEC *(*A)(),void *A_par,int m,MeVEC *x0,MeVEC *a,MeVEC *b,
-						Real *beta_m1,MeMAT *Q);
-void	sp_lanczos(SPMeMAT *,int,MeVEC *,MeVEC *,MeVEC *,Real *,MeMAT *);
-MeVEC	*lanczos2(MeVEC *(*A)(),void *A_par,int m,MeVEC *x0,MeVEC *evals,
-						MeVEC *err_est);
-MeVEC	*sp_lanczos2(SPMeMAT *,int,MeVEC *,MeVEC *,MeVEC *);
-extern  void    scan_to(SPMeMAT *,IMeVEC *,IMeVEC *,IMeVEC *,int);
-extern  row_elt  *chase_col(const SPMeMAT *,int,int *,int *,int);
-extern  row_elt  *chase_past(const SPMeMAT *,int,int *,int *,int);
-extern  row_elt  *bump_col(const SPMeMAT *,int,int *,int *);
+void	lanczos(VEC *(*A)(),void *A_par,int m,VEC *x0,VEC *a,VEC *b,
+						Real *beta_m1,MAT *Q);
+void	sp_lanczos(SPMAT *,int,VEC *,VEC *,VEC *,Real *,MAT *);
+VEC	*lanczos2(VEC *(*A)(),void *A_par,int m,VEC *x0,VEC *evals,
+						VEC *err_est);
+VEC	*sp_lanczos2(SPMAT *,int,VEC *,VEC *,VEC *);
+extern  void    scan_to(SPMAT *,IVEC *,IVEC *,IVEC *,int);
+extern  row_elt  *chase_col(const SPMAT *,int,int *,int *,int);
+extern  row_elt  *chase_past(const SPMAT *,int,int *,int *,int);
+extern  row_elt  *bump_col(const SPMAT *,int,int *,int *);
 
 #else
-extern SPMeMAT	*spCHfactor(), *spICHfactor(), *spCHsymb();
-extern MeVEC	*spCHsolve();
+extern SPMAT	*spCHfactor(), *spICHfactor(), *spCHsymb();
+extern VEC	*spCHsolve();
 
-extern SPMeMAT	*spLUfactor();
-extern SPMeMAT	*spILUfactor();
-extern MeVEC	*spLUsolve(), *spLUTsolve();
+extern SPMAT	*spLUfactor();
+extern SPMAT	*spILUfactor();
+extern VEC	*spLUsolve(), *spLUTsolve();
 
-extern SPMeMAT	*spBKPfactor();
-extern MeVEC	*spBKPsolve();
+extern SPMAT	*spBKPfactor();
+extern VEC	*spBKPsolve();
 
-extern MeVEC	*pccg(), *sp_pccg(), *cgs(), *sp_cgs(), *lsqr(), *sp_lsqr();
+extern VEC	*pccg(), *sp_pccg(), *cgs(), *sp_cgs(), *lsqr(), *sp_lsqr();
 extern int	cg_set_MeMemaxiter();
 
 void	lanczos(), sp_lanczos();
-MeVEC	*lanczos2(), *sp_lanczos2();
+VEC	*lanczos2(), *sp_lanczos2();
 extern  void    scan_to();
 extern  row_elt  *chase_col();
 extern  row_elt  *chase_past();

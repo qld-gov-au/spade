@@ -2,31 +2,22 @@
 OUTPUT_NAME := spade
 OBJ_NAME := spade.obj
 CC = cc
-CXX = g++
-LINKER_FLAGS = -lm -pthread
-INC = -I"admb/build/debug/include" -I"admb/build/debug/contrib/include"
-LIB = "admb/build/debug/lib/libadmb-contrib.a"
+LINKER_FLAGS = -lgsl -lgslcblas -lm -lGL -lGLU -lglut
 
 # Spade options
-SPADE_CFLAGS = -O3 -mavx2 -lm -pthread -std=c99 -Wall
-SPADE_SOURCE_DIRS = initial machinery model optim util plotting
-SPADE_SOURCES = \
-	common.c \
-	parameters.c \
-	arg.c \
-	$(wildcard $(SPADE_SOURCE_DIRS:=/*.c)) \
-	$(wildcard $(SPADE_SOURCE_DIRS:=/**/*.c)) \
-	$(wildcard $(SPADE_SOURCE_DIRS:=/**/**/*.c))
-SPADE_OBJECTS := $(patsubst %.c,%_SPADE.o,$(SPADE_SOURCES))
+SPADE_CFLAGS = -g -std=c99 -Wall -Wextra -pedantic
+SPADE_SOURCES = trackball.c 
+
+SPADE_OBJECTS := $(patsubst %.c,%_SPADE.o,$(SPADE_SOURCES)) 
 
 # Meschach options
-MESCHACH_CFLAGS = -O3
+MESCHACH_CFLAGS = -g
 MESCHACH_SOURCES := \
-	copy.c err.c matrixio.c memory.c vecop.c matop.c pxop.c submat.c \
-	init.c otherio.c machine.c matlab.c ivecop.c version.c meminfo.c \
-	memstat.c lufactor.c bkpfacto.c chfactor.c qrfactor.c solve.c \
-	hsehldr.c givens.c update.c norm.c hessen.c symmeig.c schur.c \
-	svd.c fft.c mfunc.c bdfactor.c
+        copy.c err.c matrixio.c memory.c vecop.c matop.c pxop.c submat.c \
+        init.c otherio.c machine.c matlab.c ivecop.c version.c meminfo.c \
+        memstat.c lufactor.c bkpfacto.c chfactor.c qrfactor.c solve.c \
+        hsehldr.c givens.c update.c norm.c hessen.c symmeig.c schur.c \
+        svd.c fft.c mfunc.c bdfactor.c
 MESCHACH_SOURCES := $(addprefix meschach/, $(MESCHACH_SOURCES))
 MESCHACH_OBJECTS := $(patsubst %.c,%_MESCHACH.o,$(MESCHACH_SOURCES)) 
 
@@ -37,14 +28,10 @@ OBJECTS := $(SPADE_OBJECTS) $(MESCHACH_OBJECTS)
 all: build
 
 # Generate executable
-# $(MAKE) -C ./admb/
-# $(INC)
-# $(LIB)
 build: clean $(OBJECTS)
-	$(CC) -c -O3 -mavx2 -o $(OBJ_NAME) spade.c
-	$(CC) -O3 -mavx2 $(OBJ_NAME) $(OBJECTS) $(LINKER_FLAGS) -o $(OUTPUT_NAME)
+	$(CC) -c -g -o $(OBJ_NAME) spade.c
+	$(CC) -g $(OBJ_NAME) $(OBJECTS) $(LINKER_FLAGS) -o $(OUTPUT_NAME)
 	@echo "Build successful"
-
 
 # Generate object files
 $(SPADE_OBJECTS): %_SPADE.o: %.c
@@ -56,11 +43,7 @@ $(MESCHACH_OBJECTS): %_MESCHACH.o: %.c
 # Regenerate executable
 rebuild: clean build
 
-# Run a sample project
-test: rebuild
-	./spade -fn karumba -alpha .09 -beta .09 -gamma 1.3 -iota-disabled .07 -kappa .1 -omega-disabled 160
-
 # Remove build artifacts
 clean:
-	rm -f $(OUTPUT_NAME) $(OBJECTS)
+	rm -f $(OUTPUT_NAME) $(SPADE_OBJECTS)
 

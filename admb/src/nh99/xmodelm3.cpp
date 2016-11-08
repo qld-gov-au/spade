@@ -45,7 +45,7 @@ void tracing_message(int traceflag,const char *s);
 
   int function_minimizer::bad_step_flag=0;
 
-  void function_minimizer::minimize(MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *me_x,Parameters * parameters)
+  void function_minimizer::minimize(VEC * (*model)(VEC *,VEC *,Real *,Parameters *),VEC *me_x,Parameters * parameters)
   {
     int nopt=0;
     int on=0;

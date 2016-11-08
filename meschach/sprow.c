@@ -160,7 +160,7 @@ SPROW	*sprow_get(int MeMemaxlen)
 
 
 /* sprow_xpd -- expand row by means of realloc()
-   -- type must be TYPE_SPMeMAT if r is a row of a SPMeMAT structure,
+   -- type must be TYPE_SPMAT if r is a row of a SPMAT structure,
       otherwise it must be TYPE_SPROW
    -- returns r */
 #ifndef ANSI_C
@@ -178,7 +178,7 @@ SPROW	*sprow_xpd(SPROW *r, int n, int type)
      if (! r ) 
        Meerror(E_MEM,"sprow_xpd");
      else if ( mem_info_is_on()) {
-	if (type != TYPE_SPMeMAT && type != TYPE_SPROW)
+	if (type != TYPE_SPMAT && type != TYPE_SPROW)
 	  warning(WARN_WRONG_TYPE,"sprow_xpd");
 	mem_bytes(type,0,sizeof(SPROW));
 	if (type == TYPE_SPROW)
@@ -304,8 +304,8 @@ int sprow_free(SPROW *r)
 
 /* sprow_merge -- merges r1 and r2 into r_out
    -- cannot be done in-situ
-   -- type must be TYPE_SPMeMAT or TYPE_SPROW depending on
-      whether r_out is a row of a SPMeMAT structure
+   -- type must be TYPE_SPMAT or TYPE_SPROW depending on
+      whether r_out is a row of a SPMAT structure
       or a SPROW variable
    -- returns r_out */
 #ifndef ANSI_C
@@ -363,8 +363,8 @@ SPROW	*sprow_merge(const SPROW *r1, const SPROW *r2, SPROW *r_out, int type)
 
 /* sprow_copy -- copies r1 and r2 into r_out
    -- cannot be done in-situ
-   -- type must be TYPE_SPMeMAT or TYPE_SPROW depending on
-      whether r_out is a row of a SPMeMAT structure
+   -- type must be TYPE_SPMAT or TYPE_SPROW depending on
+      whether r_out is a row of a SPMAT structure
       or a SPROW variable
    -- returns r_out */
 #ifndef ANSI_C
@@ -423,8 +423,8 @@ SPROW	*sprow_copy(const SPROW *r1, const SPROW *r2, SPROW *r_out, int type)
 /* sprow_mltadd -- sets r_out <- r1 + alpha.r2
    -- cannot be in situ
    -- only for columns j0, j0+1, ...
-   -- type must be TYPE_SPMeMAT or TYPE_SPROW depending on
-      whether r_out is a row of a SPMeMAT structure
+   -- type must be TYPE_SPMAT or TYPE_SPROW depending on
+      whether r_out is a row of a SPMAT structure
       or a SPROW variable
    -- returns r_out */
 #ifndef ANSI_C
@@ -498,8 +498,8 @@ SPROW	*sprow_mltadd(const SPROW *r1,const SPROW *r2, double alpha,
 /* sprow_add -- sets r_out <- r1 + r2
    -- cannot be in situ
    -- only for columns j0, j0+1, ...
-   -- type must be TYPE_SPMeMAT or TYPE_SPROW depending on
-      whether r_out is a row of a SPMeMAT structure
+   -- type must be TYPE_SPMAT or TYPE_SPROW depending on
+      whether r_out is a row of a SPMAT structure
       or a SPROW variable
    -- returns r_out */
 #ifndef ANSI_C
@@ -572,8 +572,8 @@ SPROW	*sprow_add(const SPROW *r1,const SPROW *r2,
 /* sprow_sub -- sets r_out <- r1 - r2
    -- cannot be in situ
    -- only for columns j0, j0+1, ...
-   -- type must be TYPE_SPMeMAT or TYPE_SPROW depending on
-      whether r_out is a row of a SPMeMAT structure
+   -- type must be TYPE_SPMAT or TYPE_SPROW depending on
+      whether r_out is a row of a SPMAT structure
       or a SPROW variable
    -- returns r_out */
 #ifndef ANSI_C

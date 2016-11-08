@@ -48,10 +48,10 @@ static char rcsid[] = "$Id: svd.c,v 1.7 1995/09/08 14:45:43 des Exp $";
 	-- no argument checking */
 #ifndef ANSI_C
 static void	fixsvd(d,U,V)
-MeVEC	*d;
-MeMAT	*U, *V;
+VEC	*d;
+MAT	*U, *V;
 #else
-static void	fixsvd(MeVEC *d, MeMAT *U, MeMAT *V)
+static void	fixsvd(VEC *d, MAT *U, MAT *V)
 #endif
 {
     int		i, j, k, l, r, stack[MAX_STACK], sp;
@@ -142,11 +142,11 @@ static void	fixsvd(MeVEC *d, MeMAT *U, MeMAT *V)
 		where A is initial matrix
 	-- returns d on exit */
 #ifndef ANSI_C
-MeVEC	*bisvd(d,f,U,V)
-MeVEC	*d, *f;
-MeMAT	*U, *V;
+VEC	*bisvd(d,f,U,V)
+VEC	*d, *f;
+MAT	*U, *V;
 #else
-MeVEC	*bisvd(MeVEC *d, MeVEC *f, MeMAT *U, MeMAT *V)
+VEC	*bisvd(VEC *d, VEC *f, MAT *U, MAT *V)
 #endif
 {
 	int	i, j, n;
@@ -306,14 +306,14 @@ MeVEC	*bisvd(MeVEC *d, MeVEC *f, MeMAT *U, MeMAT *V)
 /* bifactor -- perform preliMeminary factorisation for bisvd
 	-- updates U and/or V, which ever is not NULL */
 #ifndef ANSI_C
-MeMAT	*bifactor(A,U,V)
-MeMAT	*A, *U, *V;
+MAT	*bifactor(A,U,V)
+MAT	*A, *U, *V;
 #else
-MeMAT	*bifactor(MeMAT *A, MeMAT *U, MeMAT *V)
+MAT	*bifactor(MAT *A, MAT *U, MAT *V)
 #endif
 {
 	int	k;
-	STATIC MeVEC	*tmp1=VNULL, *tmp2=VNULL, *w=VNULL;
+	STATIC VEC	*tmp1=VNULL, *tmp2=VNULL, *w=VNULL;
 	Real	beta;
 
 	if ( ! A )
@@ -325,9 +325,9 @@ MeMAT	*bifactor(MeMAT *A, MeMAT *U, MeMAT *V)
 	tmp1 = v_resize(tmp1,A->m);
 	tmp2 = v_resize(tmp2,A->n);
 	w    = v_resize(w,   MeMemax(A->m,A->n));
-	MEM_STAT_REG(tmp1,TYPE_MeVEC);
-	MEM_STAT_REG(tmp2,TYPE_MeVEC);
-	MEM_STAT_REG(w,   TYPE_MeVEC);
+	MEM_STAT_REG(tmp1,TYPE_VEC);
+	MEM_STAT_REG(tmp2,TYPE_VEC);
+	MEM_STAT_REG(w,   TYPE_VEC);
 
 	if ( A->m >= A->n )
 	    for ( k = 0; k < A->n; k++ )
@@ -373,16 +373,16 @@ MeMAT	*bifactor(MeMAT *A, MeMAT *U, MeMAT *V)
 	-- also updates U and/or V, if one or the other is non-NULL
 	-- destroys A */
 #ifndef ANSI_C
-MeVEC	*svd(A,U,V,d)
-MeMAT	*A, *U, *V;
-MeVEC	*d;
+VEC	*svd(A,U,V,d)
+MAT	*A, *U, *V;
+VEC	*d;
 #else
-MeVEC	*svd(MeMAT *A, MeMAT *U, MeMAT *V, MeVEC *d)
+VEC	*svd(MAT *A, MAT *U, MAT *V, VEC *d)
 #endif
 {
-	STATIC MeVEC	*f=VNULL;
+	STATIC VEC	*f=VNULL;
 	int	i, limit;
-	MeMAT	*A_tmp;
+	MAT	*A_tmp;
 
 	if ( ! A )
 		Meerror(E_NULL,"svd");
@@ -399,7 +399,7 @@ MeVEC	*svd(MeMAT *A, MeMAT *U, MeMAT *V, MeVEC *d)
 	limit = Memin(A_tmp->m,A_tmp->n);
 	d = v_resize(d,limit);
 	f = v_resize(f,limit-1);
-	MEM_STAT_REG(f,TYPE_MeVEC);
+	MEM_STAT_REG(f,TYPE_VEC);
 
 	bifactor(A_tmp,U,V);
 	if ( A_tmp->m >= A_tmp->n )

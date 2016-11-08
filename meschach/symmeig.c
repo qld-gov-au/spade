@@ -46,11 +46,11 @@ static char rcsid[] = "$Id: symmeig.c,v 1.6 1995/03/27 15:45:55 des Exp $";
 		and b (sub- & super-diag entries)
 	-- eigenvalues in a on return */
 #ifndef ANSI_C
-MeVEC	*trieig(a,b,Q)
-MeVEC	*a, *b;
-MeMAT	*Q;
+VEC	*trieig(a,b,Q)
+VEC	*a, *b;
+MAT	*Q;
 #else
-MeVEC	*trieig(MeVEC *a, MeVEC *b, MeMAT *Q)
+VEC	*trieig(VEC *a, VEC *b, MAT *Q)
 #endif
 {
 	int	i, i_Memin, i_MeMemax, n, split;
@@ -175,16 +175,16 @@ MeVEC	*trieig(MeVEC *a, MeVEC *b, MeMAT *Q)
 	-- Q contains orthogonal matrix of eigenvectors
 	-- returns vector of eigenvalues */
 #ifndef ANSI_C
-MeVEC	*symmeig(A,Q,out)
-MeMAT	*A, *Q;
-MeVEC	*out;
+VEC	*symmeig(A,Q,out)
+MAT	*A, *Q;
+VEC	*out;
 #else
-MeVEC	*symmeig(const MeMAT *A, MeMAT *Q, MeVEC *out)
+VEC	*symmeig(const MAT *A, MAT *Q, VEC *out)
 #endif
 {
 	int	i;
-	STATIC MeMAT	*tmp = MNULL;
-	STATIC MeVEC	*b   = VNULL, *diag = VNULL, *beta = VNULL;
+	STATIC MAT	*tmp = MNULL;
+	STATIC VEC	*b   = VNULL, *diag = VNULL, *beta = VNULL;
 
 	if ( ! A )
 		Meerror(E_NULL,"symmeig");
@@ -198,10 +198,10 @@ MeVEC	*symmeig(const MeMAT *A, MeMAT *Q, MeVEC *out)
 	b    = v_resize(b,A->m - 1);
 	diag = v_resize(diag,(unsigned int)A->m);
 	beta = v_resize(beta,(unsigned int)A->m);
-	MEM_STAT_REG(tmp,TYPE_MeMAT);
-	MEM_STAT_REG(b,TYPE_MeVEC);
-	MEM_STAT_REG(diag,TYPE_MeVEC);
-	MEM_STAT_REG(beta,TYPE_MeVEC);
+	MEM_STAT_REG(tmp,TYPE_MAT);
+	MEM_STAT_REG(b,TYPE_VEC);
+	MEM_STAT_REG(diag,TYPE_VEC);
+	MEM_STAT_REG(beta,TYPE_VEC);
 
 	Hfactor(tmp,diag,beta);
 	if ( Q )

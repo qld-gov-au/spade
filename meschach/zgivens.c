@@ -75,8 +75,8 @@ Real	*c;
 }
 
 /* rot_zvec -- apply Givens rotation to x's i & k components */
-ZMeVEC	*rot_zvec(x,i,k,c,s,out)
-ZMeVEC	*x,*out;
+ZVEC	*rot_zvec(x,i,k,c,s,out)
+ZVEC	*x,*out;
 int	i,k;
 double	c;
 complex	s;
@@ -110,8 +110,8 @@ complex	s;
 }
 
 /* zrot_rows -- premultiply mat by givens rotation described by c,s */
-ZMeMAT	*zrot_rows(mat,i,k,c,s,out)
-ZMeMAT	*mat,*out;
+ZMAT	*zrot_rows(mat,i,k,c,s,out)
+ZMAT	*mat,*out;
 int	i,k;
 double	c;
 complex	s;
@@ -150,8 +150,8 @@ complex	s;
 }
 
 /* zrot_cols -- postmultiply mat by adjoint Givens rotation described by c,s */
-ZMeMAT	*zrot_cols(mat,i,k,c,s,out)
-ZMeMAT	*mat,*out;
+ZMAT	*zrot_cols(mat,i,k,c,s,out)
+ZMAT	*mat,*out;
 int	i,k;
 double	c;
 complex	s;

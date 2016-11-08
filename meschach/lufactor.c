@@ -43,26 +43,26 @@ static	char	rcsid[] = "$Id: lufactor.c,v 1.10 1995/05/16 17:26:44 des Exp $";
 /* LUfactor -- gaussian eliMemination with scaled partial pivoting
 		-- Note: returns LU matrix which is A */
 #ifndef ANSI_C
-MeMAT	*LUfactor(A,pivot)
-MeMAT	*A;
+MAT	*LUfactor(A,pivot)
+MAT	*A;
 PERM	*pivot;
 #else
-MeMAT	*LUfactor(MeMAT *A, PERM *pivot)
+MAT	*LUfactor(MAT *A, PERM *pivot)
 #endif
 {
 	unsigned int	i, j, m, n;
 	int	i_MeMemax, k, k_MeMemax;
 	Real	**A_v, *A_piv, *A_row;
 	Real	MeMemax1, temp, tiny;
-	STATIC	MeVEC	*scale = VNULL;
+	STATIC	VEC	*scale = VNULL;
 
-	if ( A==(MeMAT *)NULL || pivot==(PERM *)NULL )
+	if ( A==(MAT *)NULL || pivot==(PERM *)NULL )
 		Meerror(E_NULL,"LUfactor");
 	if ( pivot->size != A->m )
 		Meerror(E_SIZES,"LUfactor");
 	m = A->m;	n = A->n;
 	scale = v_resize(scale,A->m);
-	MEM_STAT_REG(scale,TYPE_MeVEC);
+	MEM_STAT_REG(scale,TYPE_VEC);
 	A_v = A->me;
 
 	tiny = 10.0/HUGE_VAL;
@@ -145,12 +145,12 @@ MeMAT	*LUfactor(MeMAT *A, PERM *pivot)
 
 /* LUsolve -- given an LU factorisation in A, solve Ax=b */
 #ifndef ANSI_C
-MeVEC	*LUsolve(LU,pivot,b,x)
-MeMAT	*LU;
+VEC	*LUsolve(LU,pivot,b,x)
+MAT	*LU;
 PERM	*pivot;
-MeVEC	*b,*x;
+VEC	*b,*x;
 #else
-MeVEC	*LUsolve(const MeMAT *LU, PERM *pivot, const MeVEC *b, MeVEC *x)
+VEC	*LUsolve(const MAT *LU, PERM *pivot, const VEC *b, VEC *x)
 #endif
 {
 	if ( ! LU || ! b || ! pivot )
@@ -168,12 +168,12 @@ MeVEC	*LUsolve(const MeMAT *LU, PERM *pivot, const MeVEC *b, MeVEC *x)
 
 /* LUTsolve -- given an LU factorisation in A, solve A^T.x=b */
 #ifndef ANSI_C
-MeVEC	*LUTsolve(LU,pivot,b,x)
-MeMAT	*LU;
+VEC	*LUTsolve(LU,pivot,b,x)
+MAT	*LU;
 PERM	*pivot;
-MeVEC	*b,*x;
+VEC	*b,*x;
 #else
-MeVEC	*LUTsolve(const MeMAT *LU, PERM *pivot, const MeVEC *b, MeVEC *x)
+VEC	*LUTsolve(const MAT *LU, PERM *pivot, const VEC *b, VEC *x)
 #endif
 {
 	if ( ! LU || ! b || ! pivot )
@@ -192,15 +192,15 @@ MeVEC	*LUTsolve(const MeMAT *LU, PERM *pivot, const MeVEC *b, MeVEC *x)
 /* m_inverse -- returns inverse of A, provided A is not too rank deficient
 	-- uses LU factorisation */
 #ifndef ANSI_C
-MeMAT	*m_inverse(A,out)
-MeMAT	*A, *out;
+MAT	*m_inverse(A,out)
+MAT	*A, *out;
 #else
-MeMAT	*m_inverse(const MeMAT *A, MeMAT *out)
+MAT	*m_inverse(const MAT *A, MAT *out)
 #endif
 {
 	int	i;
-	STATIC MeVEC	*tmp = VNULL, *tmp2 = VNULL;
-	STATIC MeMAT	*A_cp = MNULL;
+	STATIC VEC	*tmp = VNULL, *tmp2 = VNULL;
+	STATIC MAT	*A_cp = MNULL;
 	STATIC PERM	*pivot = PNULL;
 
 	if ( ! A )
@@ -215,9 +215,9 @@ MeMAT	*m_inverse(const MeMAT *A, MeMAT *out)
 	tmp = v_resize(tmp,A->m);
 	tmp2 = v_resize(tmp2,A->m);
 	pivot = px_resize(pivot,A->m);
-	MEM_STAT_REG(A_cp,TYPE_MeMAT);
-	MEM_STAT_REG(tmp, TYPE_MeVEC);
-	MEM_STAT_REG(tmp2,TYPE_MeVEC);
+	MEM_STAT_REG(A_cp,TYPE_MAT);
+	MEM_STAT_REG(tmp, TYPE_VEC);
+	MEM_STAT_REG(tmp2,TYPE_VEC);
 	MEM_STAT_REG(pivot,TYPE_PERM);
 	tracecatch(LUfactor(A_cp,pivot),"m_inverse");
 	for ( i = 0; i < A->n; i++ )
@@ -240,13 +240,13 @@ MeMAT	*m_inverse(const MeMAT *A, MeMAT *out)
 	LU factorisation in compact form */
 #ifndef ANSI_C
 double	LUcondest(LU,pivot)
-MeMAT	*LU;
+MAT	*LU;
 PERM	*pivot;
 #else
-double	LUcondest(const MeMAT *LU, PERM *pivot)
+double	LUcondest(const MAT *LU, PERM *pivot)
 #endif
 {
-    STATIC	MeVEC	*y = VNULL, *z = VNULL;
+    STATIC	VEC	*y = VNULL, *z = VNULL;
     Real	cond_est, L_norm, U_norm, sum, tiny;
     int		i, j, n;
 
@@ -262,8 +262,8 @@ double	LUcondest(const MeMAT *LU, PERM *pivot)
     n = LU->n;
     y = v_resize(y,n);
     z = v_resize(z,n);
-    MEM_STAT_REG(y,TYPE_MeVEC);
-    MEM_STAT_REG(z,TYPE_MeVEC);
+    MEM_STAT_REG(y,TYPE_VEC);
+    MEM_STAT_REG(z,TYPE_VEC);
 
     for ( i = 0; i < n; i++ )
     {

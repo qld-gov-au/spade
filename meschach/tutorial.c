@@ -35,10 +35,10 @@ static char rcsid[] = "$Id: tutorial.c,v 1.3 1994/01/16 22:53:09 des Exp $";
 /* rk4 -- 4th order Runge--Kutta method */
 double rk4(f,t,x,h)
 double t, h;
-MeVEC    *(*f)(), *x;
+VEC    *(*f)(), *x;
 {
-   static MeVEC *v1=VNULL, *v2=VNULL, *v3=VNULL, *v4=VNULL;
-   static MeVEC *temp=VNULL;
+   static VEC *v1=VNULL, *v2=VNULL, *v3=VNULL, *v4=VNULL;
+   static VEC *temp=VNULL;
    
    /* do not work with NULL initial vector */
    if ( x == VNULL )
@@ -52,11 +52,11 @@ MeVEC    *(*f)(), *x;
    temp = v_resize(temp,x->dim);
 
    /* register workspace variables */
-   MEM_STAT_REG(v1,TYPE_MeVEC);
-   MEM_STAT_REG(v2,TYPE_MeVEC);
-   MEM_STAT_REG(v3,TYPE_MeVEC);
-   MEM_STAT_REG(v4,TYPE_MeVEC);
-   MEM_STAT_REG(temp,TYPE_MeVEC);
+   MEM_STAT_REG(v1,TYPE_VEC);
+   MEM_STAT_REG(v2,TYPE_VEC);
+   MEM_STAT_REG(v3,TYPE_VEC);
+   MEM_STAT_REG(v4,TYPE_VEC);
+   MEM_STAT_REG(temp,TYPE_VEC);
    /* end of memory allocation */
 
    (*f)(t,x,v1); /* most compilers allow: "f(t,x,v1);" */
@@ -85,9 +85,9 @@ MeVEC    *(*f)(), *x;
 /* another variant */
 double rk4_var(f,t,x,h)
 double t, h;
-MeVEC    *(*f)(), *x;
+VEC    *(*f)(), *x;
 {
-   static MeVEC *v1, *v2, *v3, *v4, *temp;
+   static VEC *v1, *v2, *v3, *v4, *temp;
    
    /* do not work with NULL initial vector */
    if ( x == VNULL )        Meerror(E_NULL,"rk4");
@@ -96,7 +96,7 @@ MeVEC    *(*f)(), *x;
    v_resize_vars(x->dim, &v1, &v2, &v3, &v4, &temp, NULL);
 
    /* register workspace variables */
-   mem_stat_reg_vars(0, TYPE_MeVEC, __FILE__, __LINE__,
+   mem_stat_reg_vars(0, TYPE_VEC, __FILE__, __LINE__,
 		     &v1, &v2, &v3, &v4, &temp, NULL);
    /* end of memory allocation */
 
@@ -115,8 +115,8 @@ MeVEC    *(*f)(), *x;
 
 
 /* f -- right-hand side of ODE solver */
-MeVEC	*f(t,x,out)
-MeVEC	*x, *out;
+VEC	*f(t,x,out)
+VEC	*x, *out;
 double	t;
 {
    if ( x == VNULL || out == VNULL )
@@ -133,8 +133,8 @@ double	t;
 
 void tutor_rk4()
 {
-   MeVEC        *x;
-   MeVEC        *f();
+   VEC        *x;
+   VEC        *f();
    double     h, t, t_fin;
    double     rk4();
    
@@ -162,8 +162,8 @@ void tutor_rk4()
 
 void tutor_ls()
 {
-   MeMAT *A, *QR;
-   MeVEC *b, *x, *diag;
+   MAT *A, *QR;
+   VEC *b, *x, *diag;
    
    /* read in A matrix */
    printf("Input A matrix:\n");
@@ -200,7 +200,7 @@ void tutor_ls()
 
 
 #define N 50
-#define MeVEC2MeMAT(v,m)  vm_move((v),0,(m),0,0,N,N);
+#define VEC2MAT(v,m)  vm_move((v),0,(m),0,0,N,N);
 
 #define PI 3.141592653589793116
 #define index(i,j) (N*((i)-1)+(j)-1)
@@ -214,8 +214,8 @@ double x,y;
 }
 
 /* discrete laplacian */
-SPMeMAT *laplacian(A)
-SPMeMAT *A;
+SPMAT *laplacian(A)
+SPMAT *A;
 {
    Real h;
    int i,j;
@@ -240,8 +240,8 @@ SPMeMAT *A;
 }
 
 /* generating right hand side */
-MeVEC *rhs_lap(b)
-MeVEC *b;
+VEC *rhs_lap(b)
+VEC *b;
 {
    Real h,h2,x,y;
    int i,j;
@@ -265,9 +265,9 @@ MeVEC *b;
    
 void tut_lap()
 {
-   SPMeMAT *A, *LLT;
-   MeVEC *b, *out, *x;
-   MeMAT *B;
+   SPMAT *A, *LLT;
+   VEC *b, *out, *x;
+   MAT *B;
    int num_steps;
    FILE *fp;
 
@@ -285,7 +285,7 @@ void tut_lap()
    iter_spcg(A,LLT,b,1e-6,out,1000,&num_steps);
    printf("Number of iterations = %d\n",num_steps);
 
-   /* save b as a MeMATLAB matrix */
+   /* save b as a MATLAB matrix */
 
    fp = fopen("laplace.mat","w");  /* b will be saved in laplace.mat */
    if (fp == NULL) {
@@ -296,8 +296,8 @@ void tut_lap()
    /* b must be transformed to a matrix */
    
    B = m_get(N,N);
-   MeVEC2MeMAT(out,B);
-   m_save(fp,B,"sol");  /* sol is an internal name in MeMATLAB */
+   VEC2MAT(out,B);
+   m_save(fp,B,"sol");  /* sol is an internal name in MATLAB */
 
 }
 

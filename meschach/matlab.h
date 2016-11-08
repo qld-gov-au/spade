@@ -27,11 +27,11 @@
 /* matlab.h -- Header file for matlab.c, spmatlab.c and zmatlab.c
    for save/load formats */
 
-#ifndef MeMATLAB_DEF
+#ifndef MATLAB_DEF
 
-#define	MeMATLAB_DEF
+#define	MATLAB_DEF
 
-/* structure required by MeMATLAB */
+/* structure required by MATLAB */
 typedef struct {
 	long    type;   /* matrix type */
 	long    m;      /* # rows */
@@ -80,15 +80,15 @@ typedef struct {
 
 #ifdef ANSI_C
 
-MeMAT *m_save(FILE *,MeMAT *,const char *);
-MeMAT *m_load(FILE *,char **);
-MeVEC *v_save(FILE *,MeVEC *,const char *);
+MAT *m_save(FILE *,MAT *,const char *);
+MAT *m_load(FILE *,char **);
+VEC *v_save(FILE *,VEC *,const char *);
 double d_save(FILE *,double,const char *);
 
 #else
 
-extern	MeMAT *m_save(), *m_load();
-extern	MeVEC *v_save();
+extern	MAT *m_save(), *m_load();
+extern	VEC *v_save();
 extern	double d_save();
 #endif
 
@@ -97,17 +97,17 @@ extern	double d_save();
 #include "zmatrix.h"
 
 #ifdef ANSI_C
-extern ZMeMAT	*zm_save(FILE *fp,ZMeMAT *A,char *name);
-extern ZMeVEC	*zv_save(FILE *fp,ZMeVEC *x,char *name);
+extern ZMAT	*zm_save(FILE *fp,ZMAT *A,char *name);
+extern ZVEC	*zv_save(FILE *fp,ZVEC *x,char *name);
 extern complex	z_save(FILE *fp,complex z,char *name);
-extern ZMeMAT	*zm_load(FILE *fp,char **name);
+extern ZMAT	*zm_load(FILE *fp,char **name);
 
 #else
 
-extern ZMeMAT	*zm_save();
-extern ZMeVEC	*zv_save();
+extern ZMAT	*zm_save();
+extern ZVEC	*zv_save();
 extern complex	z_save();
-extern ZMeMAT	*zm_load();
+extern ZMAT	*zm_load();
 
 #endif
 

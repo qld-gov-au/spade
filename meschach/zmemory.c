@@ -36,10 +36,10 @@ static	char	rcsid[] = "$Id: zmemory.c,v 1.2 1994/04/05 02:13:14 des Exp $";
 /* zv_zero -- zeros all entries of a complex vector
    -- uses __zzero__() */
 #ifndef ANSI_C
-ZMeVEC	*zv_zero(x)
-ZMeVEC	*x;
+ZVEC	*zv_zero(x)
+ZVEC	*x;
 #else
-ZMeVEC	*zv_zero(ZMeVEC *x)
+ZVEC	*zv_zero(ZVEC *x)
 #endif
 {
    if ( ! x )
@@ -52,10 +52,10 @@ ZMeVEC	*zv_zero(ZMeVEC *x)
 /* zm_zero -- zeros all entries of a complex matrix
    -- uses __zzero__() */
 #ifndef ANSI_C
-ZMeMAT	*zm_zero(A)
-ZMeMAT	*A;
+ZMAT	*zm_zero(A)
+ZMAT	*A;
 #else
-ZMeMAT	*zm_zero(ZMeMAT *A)
+ZMAT	*zm_zero(ZMAT *A)
 #endif
 {
    int		i;
@@ -68,25 +68,25 @@ ZMeMAT	*zm_zero(ZMeMAT *A)
    return A;
 }
 
-/* zm_get -- gets an mxn complex matrix (in ZMeMAT form) */
+/* zm_get -- gets an mxn complex matrix (in ZMAT form) */
 #ifndef ANSI_C
-ZMeMAT	*zm_get(m,n)
+ZMAT	*zm_get(m,n)
 int	m,n;
 #else
-ZMeMAT	*zm_get(int m, int n)
+ZMAT	*zm_get(int m, int n)
 #endif
 {
-   ZMeMAT	*matrix;
+   ZMAT	*matrix;
    unsigned int	i;
    
    if (m < 0 || n < 0)
      Meerror(E_NEG,"zm_get");
 
-   if ((matrix=NEW(ZMeMAT)) == (ZMeMAT *)NULL )
+   if ((matrix=NEW(ZMAT)) == (ZMAT *)NULL )
      Meerror(E_MEM,"zm_get");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_ZMeMAT,0,sizeof(ZMeMAT));
-      mem_numvar(TYPE_ZMeMAT,1);
+      mem_bytes(TYPE_ZMAT,0,sizeof(ZMAT));
+      mem_numvar(TYPE_ZMAT,1);
    }
    
    matrix->m = m;		matrix->n = matrix->MeMemax_n = n;
@@ -98,7 +98,7 @@ ZMeMAT	*zm_get(int m, int n)
       Meerror(E_MEM,"zm_get");
    }
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_ZMeMAT,0,m*n*sizeof(complex));
+      mem_bytes(TYPE_ZMAT,0,m*n*sizeof(complex));
    }
 #else
    matrix->base = (complex *)NULL;
@@ -109,7 +109,7 @@ ZMeMAT	*zm_get(int m, int n)
 	Meerror(E_MEM,"zm_get");
      }
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_ZMeMAT,0,m*sizeof(complex *));
+      mem_bytes(TYPE_ZMAT,0,m*sizeof(complex *));
    }
 #ifndef SEGMENTED
    /* set up pointers */
@@ -120,7 +120,7 @@ ZMeMAT	*zm_get(int m, int n)
      if ( (matrix->me[i]=NEW_A(n,complex)) == (complex *)NULL )
        Meerror(E_MEM,"zm_get");
      else if (mem_info_is_on()) {
-	mem_bytes(TYPE_ZMeMAT,0,n*sizeof(complex));
+	mem_bytes(TYPE_ZMAT,0,n*sizeof(complex));
      }
 #endif
    
@@ -128,25 +128,25 @@ ZMeMAT	*zm_get(int m, int n)
 }
 
 
-/* zv_get -- gets a ZMeVEC of dimension 'dim'
+/* zv_get -- gets a ZVEC of dimension 'dim'
    -- Note: initialized to zero */
 #ifndef ANSI_C
-ZMeVEC	*zv_get(size)
+ZVEC	*zv_get(size)
 int	size;
 #else
-ZMeVEC	*zv_get(int size)
+ZVEC	*zv_get(int size)
 #endif
 {
-   ZMeVEC	*vector;
+   ZVEC	*vector;
 
    if (size < 0)
      Meerror(E_NEG,"zv_get");
 
-   if ((vector=NEW(ZMeVEC)) == (ZMeVEC *)NULL )
+   if ((vector=NEW(ZVEC)) == (ZVEC *)NULL )
      Meerror(E_MEM,"zv_get");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_ZMeVEC,0,sizeof(ZMeVEC));
-      mem_numvar(TYPE_ZMeVEC,1);
+      mem_bytes(TYPE_ZVEC,0,sizeof(ZVEC));
+      mem_numvar(TYPE_ZVEC,1);
    }
    vector->dim = vector->MeMemax_dim = size;
    if ((vector->ve=NEW_A(size,complex)) == (complex *)NULL )
@@ -155,24 +155,24 @@ ZMeVEC	*zv_get(int size)
       Meerror(E_MEM,"zv_get");
    }
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_ZMeVEC,0,size*sizeof(complex));
+      mem_bytes(TYPE_ZVEC,0,size*sizeof(complex));
    }
    return (vector);
 }
 
-/* zm_free -- returns ZMeMAT & asoociated memory back to memory heap */
+/* zm_free -- returns ZMAT & asoociated memory back to memory heap */
 #ifndef ANSI_C
 int	zm_free(mat)
-ZMeMAT	*mat;
+ZMAT	*mat;
 #else
-int	zm_free(ZMeMAT *mat)
+int	zm_free(ZMAT *mat)
 #endif
 {
 #ifdef SEGMENTED
    int	i;
 #endif
    
-   if ( mat==(ZMeMAT *)NULL || (int)(mat->m) < 0 ||
+   if ( mat==(ZMAT *)NULL || (int)(mat->m) < 0 ||
        (int)(mat->n) < 0 )
      /* don't trust it */
      return (-1);
@@ -180,7 +180,7 @@ int	zm_free(ZMeMAT *mat)
 #ifndef SEGMENTED
    if ( mat->base != (complex *)NULL ) {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_ZMeMAT,mat->MeMemax_m*mat->MeMemax_n*sizeof(complex),0);
+	 mem_bytes(TYPE_ZMAT,mat->MeMemax_m*mat->MeMemax_n*sizeof(complex),0);
       }	   
       free((char *)(mat->base));
    }
@@ -188,21 +188,21 @@ int	zm_free(ZMeMAT *mat)
    for ( i = 0; i < mat->MeMemax_m; i++ )
      if ( mat->me[i] != (complex *)NULL ) {
 	if (mem_info_is_on()) {
-	   mem_bytes(TYPE_ZMeMAT,mat->MeMemax_n*sizeof(complex),0);
+	   mem_bytes(TYPE_ZMAT,mat->MeMemax_n*sizeof(complex),0);
 	}
 	free((char *)(mat->me[i]));
      }
 #endif
    if ( mat->me != (complex **)NULL ) {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_ZMeMAT,mat->MeMemax_m*sizeof(complex *),0);
+	 mem_bytes(TYPE_ZMAT,mat->MeMemax_m*sizeof(complex *),0);
       }	   
       free((char *)(mat->me));
    }
    
    if (mem_info_is_on()) {
-      mem_bytes(TYPE_ZMeMAT,sizeof(ZMeMAT),0);
-      mem_numvar(TYPE_ZMeMAT,-1);
+      mem_bytes(TYPE_ZMAT,sizeof(ZMAT),0);
+      mem_numvar(TYPE_ZMAT,-1);
    }
    free((char *)mat);
    
@@ -210,31 +210,31 @@ int	zm_free(ZMeMAT *mat)
 }
 
 
-/* zv_free -- returns ZMeVEC & asoociated memory back to memory heap */
+/* zv_free -- returns ZVEC & asoociated memory back to memory heap */
 #ifndef ANSI_C
 int	zv_free(vec)
-ZMeVEC	*vec;
+ZVEC	*vec;
 #else
-int	zv_free(ZMeVEC *vec)
+int	zv_free(ZVEC *vec)
 #endif
 {
-   if ( vec==(ZMeVEC *)NULL || (int)(vec->dim) < 0 )
+   if ( vec==(ZVEC *)NULL || (int)(vec->dim) < 0 )
      /* don't trust it */
      return (-1);
    
    if ( vec->ve == (complex *)NULL ) {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_ZMeVEC,sizeof(ZMeVEC),0);
-	 mem_numvar(TYPE_ZMeVEC,-1);
+	 mem_bytes(TYPE_ZVEC,sizeof(ZVEC),0);
+	 mem_numvar(TYPE_ZVEC,-1);
       }
       free((char *)vec);
    }
    else
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_ZMeVEC,vec->MeMemax_dim*sizeof(complex)+
-		      sizeof(ZMeVEC),0);
-	 mem_numvar(TYPE_ZMeVEC,-1);
+	 mem_bytes(TYPE_ZVEC,vec->MeMemax_dim*sizeof(complex)+
+		      sizeof(ZVEC),0);
+	 mem_numvar(TYPE_ZVEC,-1);
       }
       
       free((char *)vec->ve);
@@ -248,11 +248,11 @@ int	zv_free(ZMeVEC *vec)
 /* zm_resize -- returns the matrix A of size new_m x new_n; A is zeroed
    -- if A == NULL on entry then the effect is equivalent to m_get() */
 #ifndef ANSI_C
-ZMeMAT	*zm_resize(A,new_m,new_n)
-ZMeMAT	*A;
+ZMAT	*zm_resize(A,new_m,new_n)
+ZMAT	*A;
 int	new_m, new_n;
 #else
-ZMeMAT	*zm_resize(ZMeMAT *A, int new_m, int new_n)
+ZMAT	*zm_resize(ZMAT *A, int new_m, int new_n)
 #endif
 {
    unsigned int	i, new_MeMemax_m, new_MeMemax_n, new_size, old_m, old_n;
@@ -270,7 +270,7 @@ ZMeMAT	*zm_resize(ZMeMAT *A, int new_m, int new_n)
    if ( new_m > A->MeMemax_m )
    {	/* re-allocate A->me */
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_ZMeMAT,A->MeMemax_m*sizeof(complex *),
+	 mem_bytes(TYPE_ZMAT,A->MeMemax_m*sizeof(complex *),
 		      new_m*sizeof(complex *));
       }
 
@@ -286,7 +286,7 @@ ZMeMAT	*zm_resize(ZMeMAT *A, int new_m, int new_n)
    if ( new_size > A->MeMemax_size )
    {	/* re-allocate A->base */
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_ZMeMAT,A->MeMemax_m*A->MeMemax_n*sizeof(complex),
+	 mem_bytes(TYPE_ZMAT,A->MeMemax_m*A->MeMemax_n*sizeof(complex),
 		new_size*sizeof(complex));      
       }
 
@@ -331,7 +331,7 @@ ZMeMAT	*zm_resize(ZMeMAT *A, int new_m, int new_n)
       for ( i = 0; i < A->MeMemax_m; i++ )
       {
 	 if (mem_info_is_on()) {
-	    mem_bytes(TYPE_ZMeMAT,A->MeMemax_n*sizeof(complex),
+	    mem_bytes(TYPE_ZMAT,A->MeMemax_n*sizeof(complex),
 			 new_MeMemax_n*sizeof(complex));
 	 }
 
@@ -348,7 +348,7 @@ ZMeMAT	*zm_resize(ZMeMAT *A, int new_m, int new_n)
 	 else {
 	    A->me[i] = tmp;
 	    if (mem_info_is_on()) {
-	       mem_bytes(TYPE_ZMeMAT,0,new_MeMemax_n*sizeof(complex));
+	       mem_bytes(TYPE_ZMAT,0,new_MeMemax_n*sizeof(complex));
 	    }
 	 }
       }
@@ -359,7 +359,7 @@ ZMeMAT	*zm_resize(ZMeMAT *A, int new_m, int new_n)
 	if ( (A->me[i] = NEW_A(new_MeMemax_n,complex)) == NULL )
 	  Meerror(E_MEM,"zm_resize");
 	else if (mem_info_is_on()) {
-	   mem_bytes(TYPE_ZMeMAT,0,new_MeMemax_n*sizeof(complex));
+	   mem_bytes(TYPE_ZMAT,0,new_MeMemax_n*sizeof(complex));
 	}
       
    }
@@ -387,11 +387,11 @@ ZMeMAT	*zm_resize(ZMeMAT *A, int new_m, int new_n)
 /* zv_resize -- returns the (complex) vector x with dim new_dim
    -- x is set to the zero vector */
 #ifndef ANSI_C
-ZMeVEC	*zv_resize(x,new_dim)
-ZMeVEC	*x;
+ZVEC	*zv_resize(x,new_dim)
+ZVEC	*x;
 int	new_dim;
 #else
-ZMeVEC	*zv_resize(ZMeVEC *x, int new_dim)
+ZVEC	*zv_resize(ZVEC *x, int new_dim)
 #endif
 {
    if (new_dim < 0)
@@ -409,7 +409,7 @@ ZMeVEC	*zv_resize(ZMeVEC *x, int new_dim)
    if ( new_dim > x->MeMemax_dim )
    {
       if (mem_info_is_on()) { 
-	 mem_bytes(TYPE_ZMeVEC,x->MeMemax_dim*sizeof(complex),
+	 mem_bytes(TYPE_ZVEC,x->MeMemax_dim*sizeof(complex),
 		      new_dim*sizeof(complex));
       }
 
@@ -439,7 +439,7 @@ ZMeVEC	*zv_resize(ZMeVEC *x, int new_dim)
    zv_get_vars(dim,&x,&y,&z,...,NULL);
    where 
      int dim;
-     ZMeVEC *x, *y, *z,...;
+     ZVEC *x, *y, *z,...;
      The last argument should be NULL ! 
      dim is the length of vectors x,y,z,...
      returned value is equal to the number of allocated variables
@@ -450,10 +450,10 @@ int zv_get_vars(int dim,...)
 {
    va_list ap;
    int i=0;
-   ZMeVEC **par;
+   ZVEC **par;
    
    va_start(ap, dim);
-   while (par = va_arg(ap,ZMeVEC **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZVEC **)) {   /* NULL ends the list*/
       *par = zv_get(dim);
       i++;
    } 
@@ -468,10 +468,10 @@ int zm_get_vars(int m,int n,...)
 {
    va_list ap;
    int i=0;
-   ZMeMAT **par;
+   ZMAT **par;
    
    va_start(ap, n);
-   while (par = va_arg(ap,ZMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZMAT **)) {   /* NULL ends the list*/
       *par = zm_get(m,n);
       i++;
    } 
@@ -487,7 +487,7 @@ int zm_get_vars(int m,int n,...)
    v_resize_vars(new_dim,&x,&y,&z,...,NULL);
    where 
      int new_dim;
-     ZMeVEC *x, *y, *z,...;
+     ZVEC *x, *y, *z,...;
      The last argument should be NULL ! 
      rdim is the resized length of vectors x,y,z,...
      returned value is equal to the number of allocated variables.
@@ -500,10 +500,10 @@ int zv_resize_vars(int new_dim,...)
 {
    va_list ap;
    int i=0;
-   ZMeVEC **par;
+   ZVEC **par;
    
    va_start(ap, new_dim);
-   while (par = va_arg(ap,ZMeVEC **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZVEC **)) {   /* NULL ends the list*/
       *par = zv_resize(*par,new_dim);
       i++;
    } 
@@ -518,10 +518,10 @@ int zm_resize_vars(int m,int n,...)
 {
    va_list ap;
    int i=0;
-   ZMeMAT **par;
+   ZMAT **par;
    
    va_start(ap, n);
-   while (par = va_arg(ap,ZMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZMAT **)) {   /* NULL ends the list*/
       *par = zm_resize(*par,m,n);
       i++;
    } 
@@ -535,7 +535,7 @@ int zm_resize_vars(int m,int n,...)
    The function should be called:
    v_free_vars(&x,&y,&z,...,NULL);
    where 
-     ZMeVEC *x, *y, *z,...;
+     ZVEC *x, *y, *z,...;
      The last argument should be NULL ! 
      There must be at least one not NULL argument.
      returned value is equal to the number of allocated variables.
@@ -543,16 +543,16 @@ int zm_resize_vars(int m,int n,...)
      Other *_free_list() functions are similar.
 */
 
-int zv_free_vars(ZMeVEC **pv,...)
+int zv_free_vars(ZVEC **pv,...)
 {
    va_list ap;
    int i=1;
-   ZMeVEC **par;
+   ZVEC **par;
    
    zv_free(*pv);
    *pv = ZVNULL;
    va_start(ap, pv);
-   while (par = va_arg(ap,ZMeVEC **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZVEC **)) {   /* NULL ends the list*/
       zv_free(*par); 
       *par = ZVNULL;
       i++;
@@ -564,16 +564,16 @@ int zv_free_vars(ZMeVEC **pv,...)
 
 
 
-int zm_free_vars(ZMeMAT **va,...)
+int zm_free_vars(ZMAT **va,...)
 {
    va_list ap;
    int i=1;
-   ZMeMAT **par;
+   ZMAT **par;
    
    zm_free(*va);
    *va = ZMNULL;
    va_start(ap, va);
-   while (par = va_arg(ap,ZMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZMAT **)) {   /* NULL ends the list*/
       zm_free(*par); 
       *par = ZMNULL;
       i++;
@@ -594,7 +594,7 @@ int zm_free_vars(ZMeMAT **va,...)
    v_get_vars(dim,&x,&y,&z,...,NULL);
    where 
      int dim;
-     ZMeVEC *x, *y, *z,...;
+     ZVEC *x, *y, *z,...;
      The last argument should be NULL ! 
      dim is the length of vectors x,y,z,...
      returned value is equal to the number of allocated variables
@@ -605,11 +605,11 @@ int zv_get_vars(va_alist) va_dcl
 {
    va_list ap;
    int dim,i=0;
-   ZMeVEC **par;
+   ZVEC **par;
    
    va_start(ap);
    dim = va_arg(ap,int);
-   while (par = va_arg(ap,ZMeVEC **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZVEC **)) {   /* NULL ends the list*/
       *par = zv_get(dim);
       i++;
    } 
@@ -624,12 +624,12 @@ int zm_get_vars(va_alist) va_dcl
 {
    va_list ap;
    int i=0, n, m;
-   ZMeMAT **par;
+   ZMAT **par;
    
    va_start(ap);
    m = va_arg(ap,int);
    n = va_arg(ap,int);
-   while (par = va_arg(ap,ZMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZMAT **)) {   /* NULL ends the list*/
       *par = zm_get(m,n);
       i++;
    } 
@@ -645,7 +645,7 @@ int zm_get_vars(va_alist) va_dcl
    v_resize_vars(new_dim,&x,&y,&z,...,NULL);
    where 
      int new_dim;
-     ZMeVEC *x, *y, *z,...;
+     ZVEC *x, *y, *z,...;
      The last argument should be NULL ! 
      rdim is the resized length of vectors x,y,z,...
      returned value is equal to the number of allocated variables.
@@ -658,11 +658,11 @@ int zv_resize_vars(va_alist) va_dcl
 {
    va_list ap;
    int i=0, new_dim;
-   ZMeVEC **par;
+   ZVEC **par;
    
    va_start(ap);
    new_dim = va_arg(ap,int);
-   while (par = va_arg(ap,ZMeVEC **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZVEC **)) {   /* NULL ends the list*/
       *par = zv_resize(*par,new_dim);
       i++;
    } 
@@ -676,12 +676,12 @@ int zm_resize_vars(va_alist) va_dcl
 {
    va_list ap;
    int i=0, m, n;
-   ZMeMAT **par;
+   ZMAT **par;
    
    va_start(ap);
    m = va_arg(ap,int);
    n = va_arg(ap,int);
-   while (par = va_arg(ap,ZMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZMAT **)) {   /* NULL ends the list*/
       *par = zm_resize(*par,m,n);
       i++;
    } 
@@ -696,7 +696,7 @@ int zm_resize_vars(va_alist) va_dcl
    The function should be called:
    v_free_vars(&x,&y,&z,...,NULL);
    where 
-     ZMeVEC *x, *y, *z,...;
+     ZVEC *x, *y, *z,...;
      The last argument should be NULL ! 
      There must be at least one not NULL argument.
      returned value is equal to the number of allocated variables.
@@ -708,10 +708,10 @@ int zv_free_vars(va_alist) va_dcl
 {
    va_list ap;
    int i=0;
-   ZMeVEC **par;
+   ZVEC **par;
    
    va_start(ap);
-   while (par = va_arg(ap,ZMeVEC **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZVEC **)) {   /* NULL ends the list*/
       zv_free(*par); 
       *par = ZVNULL;
       i++;
@@ -727,10 +727,10 @@ int zm_free_vars(va_alist) va_dcl
 {
    va_list ap;
    int i=0;
-   ZMeMAT **par;
+   ZMAT **par;
    
    va_start(ap);
-   while (par = va_arg(ap,ZMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,ZMAT **)) {   /* NULL ends the list*/
       zm_free(*par); 
       *par = ZMNULL;
       i++;

@@ -38,8 +38,8 @@ static	char	rcsid[] = "$Id: znorm.c,v 1.1 1994/01/13 04:21:31 des Exp $";
 
 /* _zv_norm1 -- computes (scaled) 1-norms of vectors */
 double	_zv_norm1(x,scale)
-ZMeVEC	*x;
-MeVEC	*scale;
+ZVEC	*x;
+VEC	*scale;
 {
     int	i, dim;
     Real	s, sum;
@@ -75,8 +75,8 @@ double	x;
 
 /* _zv_norm2 -- computes (scaled) 2-norm (Euclidean norm) of vectors */
 double	_zv_norm2(x,scale)
-ZMeVEC	*x;
-MeVEC	*scale;
+ZVEC	*x;
+VEC	*scale;
 {
     int	i, dim;
     Real	s, sum;
@@ -106,8 +106,8 @@ MeVEC	*scale;
 
 /* _zv_norm_inf -- computes (scaled) infinity-norm (supremum norm) of vectors */
 double	_zv_norm_inf(x,scale)
-ZMeVEC	*x;
-MeVEC	*scale;
+ZVEC	*x;
+VEC	*scale;
 {
     int	i, dim;
     Real	s, MeMemaxval, tmp;
@@ -139,7 +139,7 @@ MeVEC	*scale;
 /* zm_norm1 -- compute matrix 1-norm -- unscaled
 	-- complex version */
 double	zm_norm1(A)
-ZMeMAT	*A;
+ZMAT	*A;
 {
     int	i, j, m, n;
     Real	MeMemaxval, sum;
@@ -164,7 +164,7 @@ ZMeMAT	*A;
 /* zm_norm_inf -- compute matrix infinity-norm -- unscaled
 	-- complex version */
 double	zm_norm_inf(A)
-ZMeMAT	*A;
+ZMAT	*A;
 {
     int	i, j, m, n;
     Real	MeMemaxval, sum;
@@ -188,7 +188,7 @@ ZMeMAT	*A;
 
 /* zm_norm_frob -- compute matrix frobenius-norm -- unscaled */
 double	zm_norm_frob(A)
-ZMeMAT	*A;
+ZMAT	*A;
 {
     int	i, j, m, n;
     Real	sum;

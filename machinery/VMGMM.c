@@ -17,10 +17,10 @@
 
 
 
-MeVEC *_VMGMM(
+VEC *_VMGMM(
 
-	     MeVEC *theta,
-	     MeVEC *g,
+	     VEC *theta,
+	     VEC *g,
 	     Real *f,
 	     Parameters * parameters
 
@@ -118,11 +118,11 @@ MeVEC *_VMGMM(
       g->ve[4] = parameters->parameter[4]->gradient;*/
 
   
-MeVEC *VMGMM(
+VEC *VMGMM(
 
-		  MeVEC *theta,
+		  VEC *theta,
 		  Data *d,
-		  MeVEC *g,
+		  VEC *g,
 		  Real *f,
       Parameters * parameters
 

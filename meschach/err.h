@@ -97,7 +97,7 @@ extern  int err_list_free(int list_num);   /* freeing a list of Meerrors */
 #define	E_MEM		3
 #define	E_SING		4
 #define	E_POSDEF	5
-#define	E_FORMeMAT	6
+#define	E_FORMAT	6
 #define	E_INPUT		7
 #define	E_NULL		8
 #define	E_SQUARE	9
@@ -110,7 +110,7 @@ extern  int err_list_free(int list_num);   /* freeing a list of Meerrors */
 #define	E_SIGNAL	16
 #define	E_INTERN	17
 #define	E_EOF		18
-#define E_SHARED_MeVECS   19
+#define E_SHARED_VECS   19
 #define E_NEG           20
 #define E_OVERWRITE     21
 #define E_BREAKDOWN     22
@@ -120,7 +120,7 @@ extern  int err_list_free(int list_num);   /* freeing a list of Meerrors */
 #define WARN_WRONG_TYPE 	1
 #define WARN_NO_MARK		2
 #define WARN_RES_LESS_0         3
-#define WARN_SHARED_MeVEC		4
+#define WARN_SHARED_VEC		4
 
 
 /* Meerror catching macros */

@@ -48,7 +48,7 @@ double	x;
 
 /* interchange -- a row/column swap routine */
 static void interchange(A,i,j)
-MeMAT	*A;	/* assumed != NULL & also SQUARE */
+MAT	*A;	/* assumed != NULL & also SQUARE */
 int	i, j;	/* assumed in range */
 {
 	Real	**A_me, tmp;
@@ -100,11 +100,11 @@ int	i, j;	/* assumed in range */
 	diagonal with blocks of size 1 or 2
 	-- P is stored in pivot; blocks[i]==i iff D[i][i] is a block */
 #ifndef ANSI_C
-MeMAT	*BKPfactor(A,pivot,blocks)
-MeMAT	*A;
+MAT	*BKPfactor(A,pivot,blocks)
+MAT	*A;
 PERM	*pivot, *blocks;
 #else
-MeMAT	*BKPfactor(MeMAT *A, PERM *pivot, PERM *blocks)
+MAT	*BKPfactor(MAT *A, PERM *pivot, PERM *blocks)
 #endif
 {
 	int	i, j, k, n, onebyone, r;
@@ -229,16 +229,16 @@ dopivot:
 /* BKPsolve -- solves A.x = b where A has been factored a la BKPfactor()
 	-- returns x, which is created if NULL */
 #ifndef ANSI_C
-MeVEC	*BKPsolve(A,pivot,block,b,x)
-MeMAT	*A;
+VEC	*BKPsolve(A,pivot,block,b,x)
+MAT	*A;
 PERM	*pivot, *block;
-MeVEC	*b, *x;
+VEC	*b, *x;
 #else
-MeVEC	*BKPsolve(const MeMAT *A, PERM *pivot, const PERM *block,
-		  const MeVEC *b, MeVEC *x)
+VEC	*BKPsolve(const MAT *A, PERM *pivot, const PERM *block,
+		  const VEC *b, VEC *x)
 #endif
 {
-	STATIC MeVEC	*tmp=VNULL;	/* dummy storage needed */
+	STATIC VEC	*tmp=VNULL;	/* dummy storage needed */
 	int	i, j, n, onebyone;
 	Real	**A_me, a11, a12, a22, b1, b2, det, sum, *tmp_ve, tmp_diag;
 
@@ -251,7 +251,7 @@ MeVEC	*BKPsolve(const MeMAT *A, PERM *pivot, const PERM *block,
 		Meerror(E_SIZES,"BKPsolve");
 	x = v_resize(x,n);
 	tmp = v_resize(tmp,n);
-	MEM_STAT_REG(tmp,TYPE_MeVEC);
+	MEM_STAT_REG(tmp,TYPE_VEC);
 
 	A_me = A->me;	tmp_ve = tmp->ve;
 

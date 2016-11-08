@@ -10,7 +10,7 @@
 void solve_clean(
 
 		 Parameters * parameters,
-		 MeVEC *eff,
+		 VEC *eff,
 		 Real k,		 
 		 int S,
 		 int Y,
@@ -19,8 +19,8 @@ void solve_clean(
 		 )
 {
 
-  MeMAT *core_x = core_args->x;
-  MeMAT *core_u = core_args->u; 
+  MAT *core_x = core_args->x;
+  MAT *core_u = core_args->u; 
   
   Real aa = parameters->alpha1.value;
   Real bb = parameters->beta.value;

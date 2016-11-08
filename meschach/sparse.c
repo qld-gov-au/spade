@@ -43,10 +43,10 @@ static char	rcsid[] = "$Id: sparse.c,v 1.10 1994/03/08 05:46:07 des Exp $";
 /* sp_get_val -- returns the (i,j) entry of the sparse matrix A */
 #ifndef ANSI_C
 double	sp_get_val(A,i,j)
-SPMeMAT	*A;
+SPMAT	*A;
 int	i, j;
 #else
-double	sp_get_val(const SPMeMAT *A, int i, int j)
+double	sp_get_val(const SPMAT *A, int i, int j)
 #endif
 {
    SPROW	*r;
@@ -68,11 +68,11 @@ double	sp_get_val(const SPMeMAT *A, int i, int j)
 /* sp_set_val -- sets the (i,j) entry of the sparse matrix A */
 #ifndef ANSI_C
 double	sp_set_val(A,i,j,val)
-SPMeMAT	*A;
+SPMAT	*A;
 int	i, j;
 double	val;
 #else
-double	sp_set_val(SPMeMAT *A, int i, int j, double val)
+double	sp_set_val(SPMAT *A, int i, int j, double val)
 #endif
 {
    SPROW	*r;
@@ -99,7 +99,7 @@ double	sp_set_val(SPMeMAT *A, int i, int j, double val)
 	 r->len = r->MeMemaxlen;
 	 new_len = MeMemax(2*r->MeMemaxlen+1,5);
 	 if (mem_info_is_on()) {
-	    mem_bytes(TYPE_SPMeMAT,A->row[i].MeMemaxlen*sizeof(row_elt),
+	    mem_bytes(TYPE_SPMAT,A->row[i].MeMemaxlen*sizeof(row_elt),
 			    new_len*sizeof(row_elt));
 	 }
 
@@ -128,11 +128,11 @@ double	sp_set_val(SPMeMAT *A, int i, int j, double val)
    -- result is in out, which is returned unless out==NULL on entry
    --  if out==NULL on entry then the result vector is created */
 #ifndef ANSI_C
-MeVEC	*sp_mv_mlt(A,x,out)
-SPMeMAT	*A;
-MeVEC	*x, *out;
+VEC	*sp_mv_mlt(A,x,out)
+SPMAT	*A;
+VEC	*x, *out;
 #else
-MeVEC	*sp_mv_mlt(const SPMeMAT *A, const MeVEC *x, MeVEC *out)
+VEC	*sp_mv_mlt(const SPMAT *A, const VEC *x, VEC *out)
 #endif
 {
    int	i, j_idx, m, n, MeMemax_idx;
@@ -168,11 +168,11 @@ MeVEC	*sp_mv_mlt(const SPMeMAT *A, const MeVEC *x, MeVEC *out)
    -- result is in out, which is returned unless out==NULL on entry
    -- if out==NULL on entry then result vector is created & returned */
 #ifndef ANSI_C
-MeVEC	*sp_vm_mlt(A,x,out)
-SPMeMAT	*A;
-MeVEC	*x, *out;
+VEC	*sp_vm_mlt(A,x,out)
+SPMAT	*A;
+VEC	*x, *out;
 #else
-MeVEC	*sp_vm_mlt(const SPMeMAT *A, const MeVEC *x, MeVEC *out)
+VEC	*sp_vm_mlt(const SPMAT *A, const VEC *x, VEC *out)
 #endif
 {
    int	i, j_idx, m, n, MeMemax_idx;
@@ -211,13 +211,13 @@ MeVEC	*sp_vm_mlt(const SPMeMAT *A, const MeVEC *x, MeVEC *out)
    -- len is number of elements available for each row without
    allocating further memory */
 #ifndef ANSI_C
-SPMeMAT	*sp_get(m,n,MeMemaxlen)
+SPMAT	*sp_get(m,n,MeMemaxlen)
 int	m, n, MeMemaxlen;
 #else
-SPMeMAT	*sp_get(int m, int n, int MeMemaxlen)
+SPMAT	*sp_get(int m, int n, int MeMemaxlen)
 #endif
 {
-   SPMeMAT	*A;
+   SPMAT	*A;
    SPROW	*rows;
    int	i;
    
@@ -226,20 +226,20 @@ SPMeMAT	*sp_get(int m, int n, int MeMemaxlen)
 
    MeMemaxlen = MeMemax(MeMemaxlen,1);
    
-   A = NEW(SPMeMAT);
+   A = NEW(SPMAT);
    if ( ! A )		/* can't allocate */
      Meerror(E_MEM,"sp_get");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_SPMeMAT,0,sizeof(SPMeMAT));
-      mem_numvar(TYPE_SPMeMAT,1);
+      mem_bytes(TYPE_SPMAT,0,sizeof(SPMAT));
+      mem_numvar(TYPE_SPMAT,1);
    }
-   /* fprintf(stderr,"Have SPMeMAT structure\n"); */
+   /* fprintf(stderr,"Have SPMAT structure\n"); */
    
    A->row = rows = NEW_A(m,SPROW);
    if ( ! A->row )		/* can't allocate */
      Meerror(E_MEM,"sp_get");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_SPMeMAT,0,m*sizeof(SPROW));
+      mem_bytes(TYPE_SPMAT,0,m*sizeof(SPROW));
    }
    /* fprintf(stderr,"Have row structure array\n"); */
    
@@ -248,7 +248,7 @@ SPMeMAT	*sp_get(int m, int n, int MeMemaxlen)
    if ( ! A->start_row || ! A->start_idx )	/* can't allocate */
      Meerror(E_MEM,"sp_get");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_SPMeMAT,0,2*n*sizeof(int));
+      mem_bytes(TYPE_SPMAT,0,2*n*sizeof(int));
    }
    for ( i = 0; i < n; i++ )
      A->start_row[i] = A->start_idx[i] = -1;
@@ -263,7 +263,7 @@ SPMeMAT	*sp_get(int m, int n, int MeMemaxlen)
       if ( ! rows->elt )
 	Meerror(E_MEM,"sp_get");
       else if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,0,MeMemaxlen*sizeof(row_elt));
+	 mem_bytes(TYPE_SPMAT,0,MeMemaxlen*sizeof(row_elt));
       }
       /* fprintf(stderr,"Have row %d element array\n",i); */
       rows->len = 0;
@@ -278,9 +278,9 @@ SPMeMAT	*sp_get(int m, int n, int MeMemaxlen)
 /* sp_free -- frees up the memory for a sparse matrix */
 #ifndef ANSI_C
 int	sp_free(A)
-SPMeMAT	*A;
+SPMAT	*A;
 #else
-int	sp_free(SPMeMAT *A)
+int	sp_free(SPMAT *A)
 #endif
 {
    SPROW	*r;
@@ -290,13 +290,13 @@ int	sp_free(SPMeMAT *A)
      return -1;
    if ( A->start_row != (int *)NULL ) {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,A->MeMemax_n*sizeof(int),0);
+	 mem_bytes(TYPE_SPMAT,A->MeMemax_n*sizeof(int),0);
       }
       free((char *)(A->start_row));
    }
    if ( A->start_idx != (int *)NULL ) {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,A->MeMemax_n*sizeof(int),0);
+	 mem_bytes(TYPE_SPMAT,A->MeMemax_n*sizeof(int),0);
       }
       
       free((char *)(A->start_idx));
@@ -304,8 +304,8 @@ int	sp_free(SPMeMAT *A)
    if ( ! A->row )
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,sizeof(SPMeMAT),0);
-	 mem_numvar(TYPE_SPMeMAT,-1);
+	 mem_bytes(TYPE_SPMAT,sizeof(SPMAT),0);
+	 mem_numvar(TYPE_SPMAT,-1);
       }
       
       free((char *)A);
@@ -316,7 +316,7 @@ int	sp_free(SPMeMAT *A)
       r = &(A->row[i]);
       if ( r->elt != (row_elt *)NULL ) {
 	 if (mem_info_is_on()) {
-	    mem_bytes(TYPE_SPMeMAT,A->row[i].MeMemaxlen*sizeof(row_elt),0);
+	    mem_bytes(TYPE_SPMAT,A->row[i].MeMemaxlen*sizeof(row_elt),0);
 	 }
 	 free((char *)(r->elt));
       }
@@ -324,9 +324,9 @@ int	sp_free(SPMeMAT *A)
    
    if (mem_info_is_on()) {
       if (A->row) 
-	mem_bytes(TYPE_SPMeMAT,A->MeMemax_m*sizeof(SPROW),0);
-      mem_bytes(TYPE_SPMeMAT,sizeof(SPMeMAT),0);
-      mem_numvar(TYPE_SPMeMAT,-1);
+	mem_bytes(TYPE_SPMAT,A->MeMemax_m*sizeof(SPROW),0);
+      mem_bytes(TYPE_SPMAT,sizeof(SPMAT),0);
+      mem_numvar(TYPE_SPMAT,-1);
    }
    
    free((char *)(A->row));
@@ -341,23 +341,23 @@ int	sp_free(SPMeMAT *A)
    than necessary
    -- result is returned */
 #ifndef ANSI_C
-SPMeMAT	*sp_copy(A)
-SPMeMAT	*A;
+SPMAT	*sp_copy(A)
+SPMAT	*A;
 #else
-SPMeMAT	*sp_copy(const SPMeMAT *A)
+SPMAT	*sp_copy(const SPMAT *A)
 #endif
 {
-   SPMeMAT	*out;
+   SPMAT	*out;
    SPROW	*row1, *row2;
    int	i;
    
    if ( A == SMNULL )
      Meerror(E_NULL,"sp_copy");
-   if ( ! (out=NEW(SPMeMAT)) )
+   if ( ! (out=NEW(SPMAT)) )
      Meerror(E_MEM,"sp_copy");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_SPMeMAT,0,sizeof(SPMeMAT));
-      mem_numvar(TYPE_SPMeMAT,1);
+      mem_bytes(TYPE_SPMAT,0,sizeof(SPMAT));
+      mem_numvar(TYPE_SPMAT,1);
    }
    out->m = out->MeMemax_m = A->m;	out->n = out->MeMemax_n = A->n;
    
@@ -365,7 +365,7 @@ SPMeMAT	*sp_copy(const SPMeMAT *A)
    if ( ! (out->row=NEW_A(A->m,SPROW)) )
      Meerror(E_MEM,"sp_copy");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_SPMeMAT,0,A->m*sizeof(SPROW));
+      mem_bytes(TYPE_SPMAT,0,A->m*sizeof(SPROW));
    }
    for ( i = 0; i < A->m; i++ )
    {
@@ -374,7 +374,7 @@ SPMeMAT	*sp_copy(const SPMeMAT *A)
       if ( ! (row2->elt=NEW_A(MeMemax(row1->len,3),row_elt)) )
 	Meerror(E_MEM,"sp_copy");
       else if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,0,MeMemax(row1->len,3)*sizeof(row_elt));
+	 mem_bytes(TYPE_SPMAT,0,MeMemax(row1->len,3)*sizeof(row_elt));
       }
       row2->len = row1->len;
       row2->MeMemaxlen = MeMemax(row1->len,3);
@@ -388,7 +388,7 @@ SPMeMAT	*sp_copy(const SPMeMAT *A)
        ! (out->start_row=NEW_A(A->n,int)) )
      Meerror(E_MEM,"sp_copy");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_SPMeMAT,0,2*A->n*sizeof(int));
+      mem_bytes(TYPE_SPMAT,0,2*A->n*sizeof(int));
    }
    MEM_COPY((char *)(A->start_idx),(char *)(out->start_idx),
 	    A->n*sizeof(int));
@@ -401,10 +401,10 @@ SPMeMAT	*sp_copy(const SPMeMAT *A)
 /* sp_col_access -- set column access path; i.e. nxt_row, nxt_idx fields
    -- returns A */
 #ifndef ANSI_C
-SPMeMAT	*sp_col_access(A)
-SPMeMAT	*A;
+SPMAT	*sp_col_access(A)
+SPMAT	*A;
 #else
-SPMeMAT	*sp_col_access(SPMeMAT *A)
+SPMAT	*sp_col_access(SPMAT *A)
 #endif
 {
    int	i, j, j_idx, len, m, n;
@@ -446,10 +446,10 @@ SPMeMAT	*sp_col_access(SPMeMAT *A)
 
 /* sp_diag_access -- set diagonal access path(s) */
 #ifndef ANSI_C
-SPMeMAT	*sp_diag_access(A)
-SPMeMAT	*A;
+SPMAT	*sp_diag_access(A)
+SPMAT	*A;
 #else
-SPMeMAT	*sp_diag_access(SPMeMAT *A)
+SPMAT	*sp_diag_access(SPMAT *A)
 #endif
 {
    int	i, m;
@@ -471,11 +471,11 @@ SPMeMAT	*sp_diag_access(SPMeMAT *A)
 
 /* sp_m2dense -- convert a sparse matrix to a dense one */
 #ifndef ANSI_C
-MeMAT	*sp_m2dense(A,out)
-SPMeMAT	*A;
-MeMAT	*out;
+MAT	*sp_m2dense(A,out)
+SPMAT	*A;
+MAT	*out;
 #else
-MeMAT	*sp_m2dense(const SPMeMAT *A, MeMAT *out)
+MAT	*sp_m2dense(const SPMAT *A, MAT *out)
 #endif
 {
    int	i, j_idx;
@@ -502,10 +502,10 @@ MeMAT	*sp_m2dense(const SPMeMAT *A, MeMAT *out)
 
 /*  C = A+B, can be in situ */
 #ifndef ANSI_C
-SPMeMAT *sp_add(A,B,C)
-SPMeMAT *A, *B, *C;
+SPMAT *sp_add(A,B,C)
+SPMAT *A, *B, *C;
 #else
-SPMeMAT *sp_add(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *C)
+SPMAT *sp_add(const SPMAT *A, const SPMAT *B, SPMAT *C)
 #endif
 {
    int i, in_situ;
@@ -537,13 +537,13 @@ SPMeMAT *sp_add(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *C)
      for (i=0; i < A->m; i++) {
 	rc = &(C->row[i]);
 	sprow_add(&(A->row[i]),&(B->row[i]),0,tmp,TYPE_SPROW);
-	sprow_resize(rc,tmp->len,TYPE_SPMeMAT);
+	sprow_resize(rc,tmp->len,TYPE_SPMAT);
 	MEM_COPY(tmp->elt,rc->elt,tmp->len*sizeof(row_elt));
 	rc->len = tmp->len;
      }
    else
      for (i=0; i < A->m; i++) {
-	sprow_add(&(A->row[i]),&(B->row[i]),0,&(C->row[i]),TYPE_SPMeMAT);
+	sprow_add(&(A->row[i]),&(B->row[i]),0,&(C->row[i]),TYPE_SPMAT);
      }
 
    C->flag_col = C->flag_diag = FALSE;
@@ -557,10 +557,10 @@ SPMeMAT *sp_add(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *C)
 
 /*  C = A-B, cannot be in situ */
 #ifndef ANSI_C
-SPMeMAT *sp_sub(A,B,C)
-SPMeMAT *A, *B, *C;
+SPMAT *sp_sub(A,B,C)
+SPMAT *A, *B, *C;
 #else
-SPMeMAT *sp_sub(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *C)
+SPMAT *sp_sub(const SPMAT *A, const SPMAT *B, SPMAT *C)
 #endif
 {
    int i, in_situ;
@@ -592,13 +592,13 @@ SPMeMAT *sp_sub(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *C)
      for (i=0; i < A->m; i++) {
 	rc = &(C->row[i]);
 	sprow_sub(&(A->row[i]),&(B->row[i]),0,tmp,TYPE_SPROW);
-	sprow_resize(rc,tmp->len,TYPE_SPMeMAT);
+	sprow_resize(rc,tmp->len,TYPE_SPMAT);
 	MEM_COPY(tmp->elt,rc->elt,tmp->len*sizeof(row_elt));
 	rc->len = tmp->len;
      }
    else
      for (i=0; i < A->m; i++) {
-	sprow_sub(&(A->row[i]),&(B->row[i]),0,&(C->row[i]),TYPE_SPMeMAT);
+	sprow_sub(&(A->row[i]),&(B->row[i]),0,&(C->row[i]),TYPE_SPMAT);
      }
 
    C->flag_col = C->flag_diag = FALSE;
@@ -612,11 +612,11 @@ SPMeMAT *sp_sub(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *C)
 
 /*  C = A+alpha*B, cannot be in situ */
 #ifndef ANSI_C
-SPMeMAT *sp_mltadd(A,B,alpha,C)
-SPMeMAT *A, *B, *C;
+SPMAT *sp_mltadd(A,B,alpha,C)
+SPMAT *A, *B, *C;
 double alpha;
 #else
-SPMeMAT *sp_mltadd(const SPMeMAT *A, const SPMeMAT *B, double alpha, SPMeMAT *C)
+SPMAT *sp_mltadd(const SPMAT *A, const SPMAT *B, double alpha, SPMAT *C)
 #endif
 {
    int i, in_situ;
@@ -648,14 +648,14 @@ SPMeMAT *sp_mltadd(const SPMeMAT *A, const SPMeMAT *B, double alpha, SPMeMAT *C)
      for (i=0; i < A->m; i++) {
 	rc = &(C->row[i]);
 	sprow_mltadd(&(A->row[i]),&(B->row[i]),alpha,0,tmp,TYPE_SPROW);
-	sprow_resize(rc,tmp->len,TYPE_SPMeMAT);
+	sprow_resize(rc,tmp->len,TYPE_SPMAT);
 	MEM_COPY(tmp->elt,rc->elt,tmp->len*sizeof(row_elt));
 	rc->len = tmp->len;
      }
    else
      for (i=0; i < A->m; i++) {
 	sprow_mltadd(&(A->row[i]),&(B->row[i]),alpha,0,
-		     &(C->row[i]),TYPE_SPMeMAT);
+		     &(C->row[i]),TYPE_SPMAT);
      }
    
    C->flag_col = C->flag_diag = FALSE;
@@ -671,11 +671,11 @@ SPMeMAT *sp_mltadd(const SPMeMAT *A, const SPMeMAT *B, double alpha, SPMeMAT *C)
 
 /*  B = alpha*A, can be in situ */
 #ifndef ANSI_C
-SPMeMAT *sp_smlt(A,alpha,B)
-SPMeMAT *A, *B;
+SPMAT *sp_smlt(A,alpha,B)
+SPMAT *A, *B;
 double alpha;
 #else
-SPMeMAT *sp_smlt(const SPMeMAT *A, double alpha, SPMeMAT *B)
+SPMAT *sp_smlt(const SPMAT *A, double alpha, SPMAT *B)
 #endif
 {
    int i;
@@ -689,7 +689,7 @@ SPMeMAT *sp_smlt(const SPMeMAT *A, double alpha, SPMeMAT *B)
        Meerror(E_SIZES,"sp_smlt");
 
    for (i=0; i < A->m; i++) {
-      sprow_smlt(&(A->row[i]),alpha,0,&(B->row[i]),TYPE_SPMeMAT);
+      sprow_smlt(&(A->row[i]),alpha,0,&(B->row[i]),TYPE_SPMAT);
    }
    return B;
 }
@@ -698,10 +698,10 @@ SPMeMAT *sp_smlt(const SPMeMAT *A, double alpha, SPMeMAT *B)
 
 /* sp_zero -- zero all the (represented) elements of a sparse matrix */
 #ifndef ANSI_C
-SPMeMAT	*sp_zero(A)
-SPMeMAT	*A;
+SPMAT	*sp_zero(A)
+SPMAT	*A;
 #else
-SPMeMAT	*sp_zero(SPMeMAT *A)
+SPMAT	*sp_zero(SPMAT *A)
 #endif
 {
    int	i, idx, len;
@@ -724,10 +724,10 @@ SPMeMAT	*sp_zero(SPMeMAT *A)
 /* sp_copy2 -- copy sparse matrix (type 2) 
    -- keeps structure of the OUT matrix */
 #ifndef ANSI_C
-SPMeMAT	*sp_copy2(A,OUT)
-SPMeMAT	*A, *OUT;
+SPMAT	*sp_copy2(A,OUT)
+SPMAT	*A, *OUT;
 #else
-SPMeMAT	*sp_copy2(const SPMeMAT *A, SPMeMAT *OUT)
+SPMAT	*sp_copy2(const SPMAT *A, SPMAT *OUT)
 #endif
 {
    int	i /* , idx, len1, len2 */;
@@ -747,7 +747,7 @@ SPMeMAT	*sp_copy2(const SPMeMAT *A, SPMeMAT *OUT)
    if ( OUT->m < A->m )
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,A->MeMemax_m*sizeof(SPROW),
+	 mem_bytes(TYPE_SPMAT,A->MeMemax_m*sizeof(SPROW),
 		      A->m*sizeof(SPROW));
       }
 
@@ -761,7 +761,7 @@ SPMeMAT	*sp_copy2(const SPMeMAT *A, SPMeMAT *OUT)
 	 if ( ! OUT->row[i].elt )
 	   Meerror(E_MEM,"sp_copy2");
 	 else if (mem_info_is_on()) {
-	    mem_bytes(TYPE_SPMeMAT,0,MINROWLEN*sizeof(row_elt));
+	    mem_bytes(TYPE_SPMAT,0,MINROWLEN*sizeof(row_elt));
 	 }
 	 
 	 OUT->row[i].MeMemaxlen = MINROWLEN;
@@ -778,7 +778,7 @@ SPMeMAT	*sp_copy2(const SPMeMAT *A, SPMeMAT *OUT)
       r1 = &(A->row[i]);	r2 = &(OUT->row[i]);
       sprow_copy(r1,r2,scratch,TYPE_SPROW);
       if ( r2->MeMemaxlen < scratch->len )
-	sprow_xpd(r2,scratch->len,TYPE_SPMeMAT);
+	sprow_xpd(r2,scratch->len,TYPE_SPMAT);
       MEM_COPY((char *)(scratch->elt),(char *)(r2->elt),
 	       scratch->len*sizeof(row_elt));
       r2->len = scratch->len;
@@ -805,11 +805,11 @@ SPMeMAT	*sp_copy2(const SPMeMAT *A, SPMeMAT *OUT)
    -- don't destroying any contents if possible
    -- returns resized matrix */
 #ifndef ANSI_C
-SPMeMAT	*sp_resize(A,m,n)
-SPMeMAT	*A;
+SPMAT	*sp_resize(A,m,n)
+SPMAT	*A;
 int	m, n;
 #else
-SPMeMAT	*sp_resize(SPMeMAT *A, int m, int n)
+SPMAT	*sp_resize(SPMAT *A, int m, int n)
 #endif
 {
    int	i, len;
@@ -833,7 +833,7 @@ SPMeMAT	*sp_resize(SPMeMAT *A, int m, int n)
    else
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPMeMAT,A->MeMemax_m*sizeof(SPROW),
+	 mem_bytes(TYPE_SPMAT,A->MeMemax_m*sizeof(SPROW),
 			 m*sizeof(SPROW));
       }
 
@@ -845,7 +845,7 @@ SPMeMAT	*sp_resize(SPMeMAT *A, int m, int n)
 	 if ( ! (A->row[i].elt = NEW_A(MINROWLEN,row_elt)) )
 	   Meerror(E_MEM,"sp_resize");
 	 else if (mem_info_is_on()) {
-	    mem_bytes(TYPE_SPMeMAT,0,MINROWLEN*sizeof(row_elt));
+	    mem_bytes(TYPE_SPMAT,0,MINROWLEN*sizeof(row_elt));
 	 }
 	 A->row[i].len = 0;	A->row[i].MeMemaxlen = MINROWLEN;
       }
@@ -860,7 +860,7 @@ SPMeMAT	*sp_resize(SPMeMAT *A, int m, int n)
    {	/* only have to update the start_idx & start_row arrays */
       if (mem_info_is_on())
       {
-	  mem_bytes(TYPE_SPMeMAT,2*A->MeMemax_n*sizeof(int),
+	  mem_bytes(TYPE_SPMAT,2*A->MeMemax_n*sizeof(int),
 		    2*n*sizeof(int));
       }
 
@@ -892,11 +892,11 @@ SPMeMAT	*sp_resize(SPMeMAT *A, int m, int n)
 
 /* sp_compact -- removes zeros and near-zeros from a sparse matrix */
 #ifndef ANSI_C
-SPMeMAT	*sp_compact(A,tol)
-SPMeMAT	*A;
+SPMAT	*sp_compact(A,tol)
+SPMAT	*A;
 double	tol;
 #else
-SPMeMAT	*sp_compact(SPMeMAT *A, double tol)
+SPMAT	*sp_compact(SPMAT *A, double tol)
 #endif
 {
    int	i, idx1, idx2;
@@ -933,7 +933,7 @@ SPMeMAT	*sp_compact(SPMeMAT *A, double tol)
 
 /* sp_mlt (C) Copyright David Stewart and Fabrizio Novalis <novalis@mars.elet.polimi.it> */
 /* sp_mlt -- computes out = A*B and returns out */
-SPMeMAT   *sp_mlt(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *out)
+SPMAT   *sp_mlt(const SPMAT *A, const SPMAT *B, SPMAT *out)
 {
   int     i, j, k, idx, cp;
   SPROW   *rA, *rB, *rout, *rtemp;
@@ -957,7 +957,7 @@ SPMeMAT   *sp_mlt(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *out)
 	  j = rA->elt[idx].col;
 	  valA = rA->elt[idx].val;
 	  rB = &(B->row[j]);
-	  sprow_mltadd(rtemp,rB,valA,0,rout,TYPE_SPMeMAT);
+	  sprow_mltadd(rtemp,rB,valA,0,rout,TYPE_SPMAT);
 
 	  for ( cp = 0; cp < rout->len; cp++ )
 	    {
@@ -979,7 +979,7 @@ SPMeMAT   *sp_mlt(const SPMeMAT *A, const SPMeMAT *B, SPMeMAT *out)
    sp_get_vars(m,n,deg,&x,&y,&z,...,NULL);
    where 
      int m,n,deg;
-     SPMeMAT *x, *y, *z,...;
+     SPMAT *x, *y, *z,...;
      The last argument should be NULL ! 
      m x n is the dimension of matrices x,y,z,...
      returned value is equal to the number of allocated variables
@@ -989,10 +989,10 @@ int sp_get_vars(int m,int n,int deg,...)
 {
    va_list ap;
    int i=0;
-   SPMeMAT **par;
+   SPMAT **par;
    
    va_start(ap, deg);
-   while (par = va_arg(ap,SPMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,SPMAT **)) {   /* NULL ends the list*/
       *par = sp_get(m,n,deg);
       i++;
    } 
@@ -1007,7 +1007,7 @@ int sp_get_vars(int m,int n,int deg,...)
    sp_resize_vars(m,n,&x,&y,&z,...,NULL);
    where 
      int m,n;
-     SPMeMAT *x, *y, *z,...;
+     SPMAT *x, *y, *z,...;
      The last argument should be NULL ! 
      m X n is the resized dimension of matrices x,y,z,...
      returned value is equal to the number of allocated variables.
@@ -1019,10 +1019,10 @@ int sp_resize_vars(int m,int n,...)
 {
    va_list ap;
    int i=0;
-   SPMeMAT **par;
+   SPMAT **par;
    
    va_start(ap, n);
-   while (par = va_arg(ap,SPMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,SPMAT **)) {   /* NULL ends the list*/
       *par = sp_resize(*par,m,n);
       i++;
    } 
@@ -1035,25 +1035,25 @@ int sp_resize_vars(int m,int n,...)
    The function should be called:
    sp_free_vars(&x,&y,&z,...,NULL);
    where 
-     SPMeMAT *x, *y, *z,...;
+     SPMAT *x, *y, *z,...;
      The last argument should be NULL ! 
      There must be at least one not NULL argument.
      returned value is equal to the number of allocated variables.
      Returned value of x,y,z,.. is VNULL.
 */
 
-int sp_free_vars(SPMeMAT **va,...)
+int sp_free_vars(SPMAT **va,...)
 {
    va_list ap;
    int i=1;
-   SPMeMAT **par;
+   SPMAT **par;
    
    sp_free(*va);
-   *va = (SPMeMAT *) NULL;
+   *va = (SPMAT *) NULL;
    va_start(ap, va);
-   while (par = va_arg(ap,SPMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,SPMAT **)) {   /* NULL ends the list*/
       sp_free(*par); 
-      *par = (SPMeMAT *)NULL;
+      *par = (SPMAT *)NULL;
       i++;
    } 
 
@@ -1069,7 +1069,7 @@ int sp_free_vars(SPMeMAT **va,...)
    sp_get_vars(m,n,deg,&x,&y,&z,...,NULL);
    where 
      int m,n,deg;
-     SPMeMAT *x, *y, *z,...;
+     SPMAT *x, *y, *z,...;
      The last argument should be NULL ! 
      m x n is the dimension of matrices x,y,z,...
      returned value is equal to the number of allocated variables
@@ -1079,13 +1079,13 @@ int sp_get_vars(va_alist) va_dcl
 {
    va_list ap;
    int i=0, m, n, deg;
-   SPMeMAT **par;
+   SPMAT **par;
    
    va_start(ap);
    m = va_arg(ap,int);
    n = va_arg(ap,int);
    deg = va_arg(ap,int);
-   while (par = va_arg(ap,SPMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,SPMAT **)) {   /* NULL ends the list*/
       *par = sp_get(m,n,deg);
       i++;
    } 
@@ -1100,7 +1100,7 @@ int sp_get_vars(va_alist) va_dcl
    sp_resize_vars(m,n,&x,&y,&z,...,NULL);
    where 
      int m,n;
-     SPMeMAT *x, *y, *z,...;
+     SPMAT *x, *y, *z,...;
      The last argument should be NULL ! 
      m X n is the resized dimension of matrices x,y,z,...
      returned value is equal to the number of allocated variables.
@@ -1112,12 +1112,12 @@ int sp_resize_vars(va_alist) va_dcl
 {
    va_list ap;
    int i=0, m, n;
-   SPMeMAT **par;
+   SPMAT **par;
    
    va_start(ap);
    m = va_arg(ap,int);
    n = va_arg(ap,int);
-   while (par = va_arg(ap,SPMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,SPMAT **)) {   /* NULL ends the list*/
       *par = sp_resize(*par,m,n);
       i++;
    } 
@@ -1132,7 +1132,7 @@ int sp_resize_vars(va_alist) va_dcl
    The function should be called:
    sp_free_vars(&x,&y,&z,...,NULL);
    where 
-     SPMeMAT *x, *y, *z,...;
+     SPMAT *x, *y, *z,...;
      The last argument should be NULL ! 
      There must be at least one not NULL argument.
      returned value is equal to the number of allocated variables.
@@ -1143,12 +1143,12 @@ int sp_free_vars(va_alist) va_dcl
 {
    va_list ap;
    int i=0;
-   SPMeMAT **par;
+   SPMAT **par;
    
    va_start(ap);
-   while (par = va_arg(ap,SPMeMAT **)) {   /* NULL ends the list*/
+   while (par = va_arg(ap,SPMAT **)) {   /* NULL ends the list*/
       sp_free(*par); 
-      *par = (SPMeMAT *)NULL;
+      *par = (SPMAT *)NULL;
       i++;
    } 
 

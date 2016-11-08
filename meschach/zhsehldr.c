@@ -45,8 +45,8 @@ static	char	rcsid[] = "$Id: zhsehldr.c,v 1.2 1994/04/07 01:43:47 des Exp $";
 
 /* zhhvec -- calulates Householder vector to eliMeminate all entries after the
 	i0 entry of the vector vec. It is returned as out. May be in-situ */
-ZMeVEC	*zhhvec(vec,i0,beta,out,newval)
-ZMeVEC	*vec,*out;
+ZVEC	*zhhvec(vec,i0,beta,out,newval)
+ZVEC	*vec,*out;
 int	i0;
 Real	*beta;
 complex	*newval;
@@ -85,8 +85,8 @@ complex	*newval;
 }
 
 /* zhhtrvec -- apply Householder transformation to vector -- may be in-situ */
-ZMeVEC	*zhhtrvec(hh,beta,i0,in,out)
-ZMeVEC	*hh,*in,*out;	/* hh = Householder vector */
+ZVEC	*zhhtrvec(hh,beta,i0,in,out)
+ZVEC	*hh,*in,*out;	/* hh = Householder vector */
 int	i0;
 double	beta;
 {
@@ -118,10 +118,10 @@ double	beta;
 	starting at row i0 from column j0 
 	-- in-situ
 	-- that is, M(i0:m,j0:n) <- M(i0:m,j0:n)(I-beta.hh(j0:n).hh(j0:n)^T) */
-ZMeMAT	*zhhtrrows(M,i0,j0,hh,beta)
-ZMeMAT	*M;
+ZMAT	*zhhtrrows(M,i0,j0,hh,beta)
+ZMAT	*M;
 int	i0, j0;
-ZMeVEC	*hh;
+ZVEC	*hh;
 double	beta;
 {
 	complex	ip, scale;
@@ -172,16 +172,16 @@ double	beta;
 	-- Meschach internal routines should call _zhhtrcols() to
 	avoid excessive memory allocation/de-allocation
 */
-ZMeMAT	*zhhtrcols(M,i0,j0,hh,beta)
-ZMeMAT	*M;
+ZMAT	*zhhtrcols(M,i0,j0,hh,beta)
+ZMAT	*M;
 int	i0, j0;
-ZMeVEC	*hh;
+ZVEC	*hh;
 double	beta;
 {
 	/* Real	ip, scale; */
 	complex	scale;
 	int	i /*, k */;
-	STATIC	ZMeVEC	*w = ZVNULL;
+	STATIC	ZVEC	*w = ZVNULL;
 
 	if ( M==ZMNULL || hh==ZVNULL )
 		Meerror(E_NULL,"zhhtrcols");
@@ -194,7 +194,7 @@ double	beta;
 
 	if ( ! w || w->dim < M->n )
 	  w = zv_resize(w,M->n);
-	MEM_STAT_REG(w,TYPE_ZMeVEC);
+	MEM_STAT_REG(w,TYPE_ZVEC);
 
 	M = _zhhtrcols(M,i0,j0,hh,beta,w);
 
@@ -211,12 +211,12 @@ double	beta;
 	-- in-situ
 	-- scratch vector w passed as argument
 	-- raises Meerror if w == NULL */
-ZMeMAT	*_zhhtrcols(M,i0,j0,hh,beta,w)
-ZMeMAT	*M;
+ZMAT	*_zhhtrcols(M,i0,j0,hh,beta,w)
+ZMAT	*M;
 int	i0, j0;
-ZMeVEC	*hh;
+ZVEC	*hh;
 double	beta;
-ZMeVEC	*w;
+ZVEC	*w;
 {
 	/* Real	ip, scale; */
 	complex	scale;

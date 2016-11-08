@@ -3,11 +3,11 @@
 #include "../../common.h"
 #include "../../parameters.h"
 
-MeVEC *ini_kappa(
+VEC *ini_kappa(
 
 	       Parameters *parameters,
-	       MeVEC *x,
-	       MeVEC *p
+	       VEC *x,
+	       VEC *p
 
 	       )
 {

@@ -42,15 +42,15 @@ static	char	rcsid[] = "$Id: zlufctr.c,v 1.3 1996/08/20 20:07:09 stewart Exp $";
 
 /* zLUfactor -- Gaussian eliMemination with scaled partial pivoting
 		-- Note: returns LU matrix which is A */
-ZMeMAT	*zLUfactor(A,pivot)
-ZMeMAT	*A;
+ZMAT	*zLUfactor(A,pivot)
+ZMAT	*A;
 PERM	*pivot;
 {
 	unsigned int	i, j, m, n;
 	int	i_MeMemax, k, k_MeMemax;
 	Real	dtemp, MeMemax1;
 	complex	**A_v, *A_piv, *A_row, temp;
-	STATIC	MeVEC	*scale = VNULL;
+	STATIC	VEC	*scale = VNULL;
 
 	if ( A==ZMNULL || pivot==PNULL )
 		Meerror(E_NULL,"zLUfactor");
@@ -58,7 +58,7 @@ PERM	*pivot;
 		Meerror(E_SIZES,"zLUfactor");
 	m = A->m;	n = A->n;
 	scale = v_resize(scale,A->m);
-	MEM_STAT_REG(scale,TYPE_MeVEC);
+	MEM_STAT_REG(scale,TYPE_VEC);
 	A_v = A->me;
 
 	/* initialise pivot with identity permutation */
@@ -134,10 +134,10 @@ PERM	*pivot;
 
 
 /* zLUsolve -- given an LU factorisation in A, solve Ax=b */
-ZMeVEC	*zLUsolve(A,pivot,b,x)
-ZMeMAT	*A;
+ZVEC	*zLUsolve(A,pivot,b,x)
+ZMAT	*A;
 PERM	*pivot;
-ZMeVEC	*b,*x;
+ZVEC	*b,*x;
 {
 	if ( A==ZMNULL || b==ZVNULL || pivot==PNULL )
 		Meerror(E_NULL,"zLUsolve");
@@ -152,10 +152,10 @@ ZMeVEC	*b,*x;
 }
 
 /* zLUAsolve -- given an LU factorisation in A, solve A^*.x=b */
-ZMeVEC	*zLUAsolve(LU,pivot,b,x)
-ZMeMAT	*LU;
+ZVEC	*zLUAsolve(LU,pivot,b,x)
+ZMAT	*LU;
 PERM	*pivot;
-ZMeVEC	*b,*x;
+ZVEC	*b,*x;
 {
 	if ( ! LU || ! b || ! pivot )
 		Meerror(E_NULL,"zLUAsolve");
@@ -172,12 +172,12 @@ ZMeVEC	*b,*x;
 
 /* zm_inverse -- returns inverse of A, provided A is not too rank deficient
 	-- uses LU factorisation */
-ZMeMAT	*zm_inverse(A,out)
-ZMeMAT	*A, *out;
+ZMAT	*zm_inverse(A,out)
+ZMAT	*A, *out;
 {
 	int	i;
-	STATIC ZMeVEC	*tmp=ZVNULL, *tmp2=ZVNULL;
-	STATIC ZMeMAT	*A_cp=ZMNULL;
+	STATIC ZVEC	*tmp=ZVNULL, *tmp2=ZVNULL;
+	STATIC ZMAT	*A_cp=ZMNULL;
 	STATIC PERM	*pivot=PNULL;
 
 	if ( ! A )
@@ -192,9 +192,9 @@ ZMeMAT	*A, *out;
 	tmp = zv_resize(tmp,A->m);
 	tmp2 = zv_resize(tmp2,A->m);
 	pivot = px_resize(pivot,A->m);
-	MEM_STAT_REG(A_cp,TYPE_ZMeMAT);
-	MEM_STAT_REG(tmp, TYPE_ZMeVEC);
-	MEM_STAT_REG(tmp2,TYPE_ZMeVEC);
+	MEM_STAT_REG(A_cp,TYPE_ZMAT);
+	MEM_STAT_REG(tmp, TYPE_ZVEC);
+	MEM_STAT_REG(tmp2,TYPE_ZVEC);
 	MEM_STAT_REG(pivot,TYPE_PERM);
 	tracecatch(zLUfactor(A_cp,pivot),"zm_inverse");
 	for ( i = 0; i < A->n; i++ )
@@ -217,10 +217,10 @@ ZMeMAT	*A, *out;
 /* zLUcondest -- returns an estimate of the condition number of LU given the
 	LU factorisation in compact form */
 double	zLUcondest(LU,pivot)
-ZMeMAT	*LU;
+ZMAT	*LU;
 PERM	*pivot;
 {
-    STATIC	ZMeVEC	*y = ZVNULL, *z = ZVNULL;
+    STATIC	ZVEC	*y = ZVNULL, *z = ZVNULL;
     Real	cond_est, L_norm, U_norm, norm, sn_inv;
     complex	sum;
     int		i, j, n;
@@ -235,8 +235,8 @@ PERM	*pivot;
     n = LU->n;
     y = zv_resize(y,n);
     z = zv_resize(z,n);
-    MEM_STAT_REG(y,TYPE_ZMeVEC);
-    MEM_STAT_REG(z,TYPE_ZMeVEC);
+    MEM_STAT_REG(y,TYPE_ZVEC);
+    MEM_STAT_REG(z,TYPE_ZVEC);
 
     cond_est = 0.0;		/* should never be returned */
 

@@ -3,7 +3,7 @@
 
 Real e(
 
-	  MeVEC * ef,
+	  VEC * ef,
 	  Real r,
 	  Real t,
     int Y

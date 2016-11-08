@@ -84,17 +84,17 @@ PERM	*pi;
 }
 
 #define	SAVE_FILE	"asx5213a.mat"
-#define	MeMATLAB_NAME	"alpha"
-char	name[81] = MeMATLAB_NAME;
+#define	MATLAB_NAME	"alpha"
+char	name[81] = MATLAB_NAME;
 
 void	main(argc, argv)
 int	argc;
 char	*argv[];
 {
-    ZMeVEC 	*x = ZVNULL, *y = ZVNULL, *z = ZVNULL, *u = ZVNULL;
-    ZMeVEC	*diag = ZVNULL;
+    ZVEC 	*x = ZVNULL, *y = ZVNULL, *z = ZVNULL, *u = ZVNULL;
+    ZVEC	*diag = ZVNULL;
     PERM	*pi1 = PNULL, *pi2 = PNULL, *pivot = PNULL;
-    ZMeMAT	*A = ZMNULL, *B = ZMNULL, *C = ZMNULL, *D = ZMNULL,
+    ZMAT	*A = ZMNULL, *B = ZMNULL, *C = ZMNULL, *D = ZMNULL,
 	*Q = ZMNULL;
     complex	ONE;
     complex	z1, z2, z3;
@@ -171,7 +171,7 @@ char	*argv[];
 
     printf("# Check: MACHEPS = %g\n",MACHEPS);
     /* allocate, initialise, copy and resize operations */
-    /* ZMeVEC */
+    /* ZVEC */
     notice("vector initialise, copy & resize");
     x = zv_get(12);
     y = zv_get(15);
@@ -180,18 +180,18 @@ char	*argv[];
     zv_rand(y);
     z = zv_copy(x,z);
     if ( zv_norm2(zv_sub(x,z,z)) >= MACHEPS )
-	errmesg("ZMeVEC copy");
+	errmesg("ZVEC copy");
     zv_copy(x,y);
     x = zv_resize(x,10);
     y = zv_resize(y,10);
     if ( zv_norm2(zv_sub(x,y,z)) >= MACHEPS )
-	errmesg("ZMeVEC copy/resize");
+	errmesg("ZVEC copy/resize");
     x = zv_resize(x,15);
     y = zv_resize(y,15);
     if ( zv_norm2(zv_sub(x,y,z)) >= MACHEPS )
 	errmesg("VZEC resize");
 
-    /* ZMeMAT */
+    /* ZMAT */
     notice("matrix initialise, copy & resize");
     A = zm_get(8,5);
     B = zm_get(3,9);
@@ -200,16 +200,16 @@ char	*argv[];
     zm_rand(B);
     C = zm_copy(A,C);
     if ( zm_norm_inf(zm_sub(A,C,C)) >= MACHEPS )
-	errmesg("ZMeMAT copy");
+	errmesg("ZMAT copy");
     zm_copy(A,B);
     A = zm_resize(A,3,5);
     B = zm_resize(B,3,5);
     if ( zm_norm_inf(zm_sub(A,B,C)) >= MACHEPS )
-	errmesg("ZMeMAT copy/resize");
+	errmesg("ZMAT copy/resize");
     A = zm_resize(A,10,10);
     B = zm_resize(B,10,10);
     if ( zm_norm_inf(zm_sub(A,B,C)) >= MACHEPS )
-	errmesg("ZMeMAT resize");
+	errmesg("ZMAT resize");
 
     MEMCHK();
 
@@ -416,11 +416,11 @@ char	*argv[];
 
     MEMCHK();
 
-    /* MeMATLAB save/load */
-    notice("MeMATLAB save/load");
+    /* MATLAB save/load */
+    notice("MATLAB save/load");
     A = zm_resize(A,12,11);
     if ( (fp=fopen(SAVE_FILE,"w")) == (FILE *)NULL )
-	printf("Cannot perform MeMATLAB save/load test\n");
+	printf("Cannot perform MATLAB save/load test\n");
     else
     {
 	zm_rand(A);

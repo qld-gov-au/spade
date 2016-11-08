@@ -42,9 +42,9 @@ static char rcsid[] = "$Id: mfuntort.c,v 1.2 1994/01/14 01:08:06 des Exp $";
 void main()
 {
 
-   MeMAT *A, *B, *C, *OUTA, *OUTB, *TMP;
-   MeMAT *exp_A_expected, *exp_A;
-   MeVEC *x, *b;
+   MAT *A, *B, *C, *OUTA, *OUTB, *TMP;
+   MAT *exp_A_expected, *exp_A;
+   VEC *x, *b;
    double c, eps = 1e-10;
    int i, j, q_out, j_out;
 

@@ -15,7 +15,7 @@ void request_interactive_mode(int s) {
   }
 }
 
-void spade_v_output(MeVEC* vec) {
+void spade_v_output(VEC* vec) {
   printf("\n\n");
   for(int i = 0; i < vec->dim; i++) {
     printf("%d:\t%Lf\n", i, vec->ve[i]);
@@ -45,7 +45,7 @@ void data_read_ce(const char * data_file_name, Data * data, int * N, Real k) {
   #endif
   }
 
-  MeVEC *vti = v_get(Nce);
+  VEC *vti = v_get(Nce);
   for (int i=0;i<Nce;i++) {
     vti->ve[i] = ti[i];
   }
@@ -391,9 +391,9 @@ void data_read_lf(const char * data_file_name, Data * data, int N, Real k, int m
 
   fclose(fp);
 
-  MeVEC *lfv = v_get(Nlf);
-  MeVEC *ilv = v_get(Nlf);
-  MeVEC *cnt = v_get((int)2*N);
+  VEC *lfv = v_get(Nlf);
+  VEC *ilv = v_get(Nlf);
+  VEC *cnt = v_get((int)2*N);
 
   for (int i=0;i<Nlf;i++) {
     lfv->ve[i] = (Real)ln[i];

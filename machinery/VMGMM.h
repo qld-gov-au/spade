@@ -6,21 +6,21 @@
 #include "../common.h"
 
 
-MeVEC *_VMGMM(
+VEC *_VMGMM(
 
-		  MeVEC *,
-		  MeVEC *,
+		  VEC *,
+		  VEC *,
 		  Real *,
 		  Parameters * parameters
 
 		  );
 
 
-MeVEC *VMGMM(
+VEC *VMGMM(
 
-		  MeVEC *,
+		  VEC *,
 		  Data *,
-		  MeVEC *,
+		  VEC *,
 		  Real *,
       Parameters * parameters
 

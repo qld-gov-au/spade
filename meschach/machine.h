@@ -50,7 +50,7 @@
 #endif /* __cplusplus */
 
 
-/* example usage: MeVEC *PROTO(v_get,(int dim)); */
+/* example usage: VEC *PROTO(v_get,(int dim)); */
 #ifdef HAVE_PROTOTYPES
 #define	PROTO(name,args)	name args
 #else

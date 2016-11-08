@@ -3,10 +3,10 @@
 
 #include "../parameters.h"
 
-MeVEC * bfgs(
+VEC * bfgs(
 
-	   MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),
-	   MeVEC *x,
+	   VEC * (*model)(VEC *,VEC *,Real *,Parameters *),
+	   VEC *x,
      Parameters * parameters,
      OptimControl optim
 
@@ -29,5 +29,5 @@ int cstep(
 
 	  );
 
-int cvsrch(MeVEC *(*f)(MeVEC *,MeVEC *,Real *,Parameters *),MeVEC *,Real,MeVEC *,MeVEC *,Real,Real,Real,Real,Real,Real,int,Parameters *,Real *fv); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
+int cvsrch(VEC *(*f)(VEC *,VEC *,Real *,Parameters *),VEC *,Real,VEC *,VEC *,Real,Real,Real,Real,Real,Real,int,Parameters *,Real *fv); // More-Thuente line search taken from code by Nocedal and Dianne O'Leary
 #endif

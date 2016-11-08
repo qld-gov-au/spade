@@ -51,13 +51,13 @@ typedef struct SPROW {
 	row_elt	*elt;		/* elt[MeMemaxlen] */
 		} SPROW;
 
-typedef struct SPMeMAT {
+typedef struct SPMAT {
 	int	m, n, MeMemax_m, MeMemax_n;
 	char	flag_col, flag_diag;
 	SPROW	*row;		/* row[MeMemax_m] */
 	int	*start_row;	/* start_row[MeMemax_n] */
 	int	*start_idx;	/* start_idx[MeMemax_n] */
-	      } SPMeMAT;
+	      } SPMAT;
 
 /* Note that the first allocated entry in column j is start_row[j];
 	This starts the chain down the columns using the nxt_row and nxt_idx
@@ -65,13 +65,13 @@ typedef struct SPMeMAT {
 
 typedef struct pair { int pos;	Real val; } pair;
 
-typedef struct SPMeVEC {
+typedef struct SPVEC {
 	int	dim, MeMemax_dim;
 	pair	*elt;		/* elt[MeMemax_dim] */
-	       } SPMeVEC;
+	       } SPVEC;
 
-#define	SMNULL	((SPMeMAT*)NULL)
-#define	SVNULL	((SPMeVEC*)NULL)
+#define	SMNULL	((SPMAT*)NULL)
+#define	SVNULL	((SPVEC*)NULL)
 
 /* Macro for speedup */
 #define	sprow_idx2(r,c,hint)	\
@@ -85,7 +85,7 @@ typedef struct SPMeVEC {
 #ifdef ANSI_C
 int sp_get_vars(int m,int n,int deg,...);
 int sp_resize_vars(int m,int n,...);
-int sp_free_vars(SPMeMAT **,...);
+int sp_free_vars(SPMAT **,...);
 #elif VARARGS
 int sp_get_vars();
 int sp_resize_vars();
@@ -95,23 +95,23 @@ int sp_free_vars();
 
 /* Sparse Matrix Operations and Utilities */
 #ifndef ANSI_C
-extern	SPMeMAT	*sp_get(), *sp_copy(), *sp_copy2(),
+extern	SPMAT	*sp_get(), *sp_copy(), *sp_copy2(),
 			*sp_zero(), *sp_resize(), *sp_compact();
 extern	double	sp_get_val(), sp_set_val();
-extern	MeVEC	*sp_mv_mlt(), *sp_vm_mlt();
+extern	VEC	*sp_mv_mlt(), *sp_vm_mlt();
 extern	int	sp_free();
 
 /* Access path operations */
-extern	SPMeMAT	*sp_col_access();
-extern	SPMeMAT	*sp_diag_access();
+extern	SPMAT	*sp_col_access();
+extern	SPMAT	*sp_diag_access();
 extern  int     chk_col_access();
 
 /* Input/output operations */
-extern	SPMeMAT	*sp_fme_input();
+extern	SPMAT	*sp_fme_input();
 extern	void sp_foutput(), sp_foutput2();
 
 /* algebraic operations */
-extern SPMeMAT *sp_smlt(), *sp_add(), *sp_sub(), *sp_mltadd();
+extern SPMAT *sp_smlt(), *sp_add(), *sp_sub(), *sp_mltadd();
 
 
 /* sparse row operations */
@@ -124,32 +124,32 @@ extern	int	sprow_idx(), sprow_free();
 
 /* dump */
 extern  void   sp_dump(), sprow_dump();
-extern  MeMAT  *sp_m2dense();
+extern  MAT  *sp_m2dense();
 
 #else
-SPMeMAT	*sp_get(int,int,int), *sp_copy(const SPMeMAT *),
-	*sp_copy2(const SPMeMAT *,SPMeMAT *),
-	*sp_zero(SPMeMAT *), *sp_resize(SPMeMAT *,int,int),
-	*sp_compact(SPMeMAT *,double);
-double	sp_get_val(const SPMeMAT *,int,int), sp_set_val(SPMeMAT *,int,int,double);
-MeVEC	*sp_mv_mlt(const SPMeMAT *, const MeVEC *, MeVEC *), 
-        *sp_vm_mlt(const SPMeMAT *, const MeVEC *, MeVEC *);
-int	sp_free(SPMeMAT *);
+SPMAT	*sp_get(int,int,int), *sp_copy(const SPMAT *),
+	*sp_copy2(const SPMAT *,SPMAT *),
+	*sp_zero(SPMAT *), *sp_resize(SPMAT *,int,int),
+	*sp_compact(SPMAT *,double);
+double	sp_get_val(const SPMAT *,int,int), sp_set_val(SPMAT *,int,int,double);
+VEC	*sp_mv_mlt(const SPMAT *, const VEC *, VEC *), 
+        *sp_vm_mlt(const SPMAT *, const VEC *, VEC *);
+int	sp_free(SPMAT *);
 
 /* Access path operations */
-SPMeMAT	*sp_col_access(SPMeMAT *);
-SPMeMAT	*sp_diag_access(SPMeMAT *);
-int     chk_col_access(const SPMeMAT *);
+SPMAT	*sp_col_access(SPMAT *);
+SPMAT	*sp_diag_access(SPMAT *);
+int     chk_col_access(const SPMAT *);
 
 /* Input/output operations */
-SPMeMAT	*sp_fme_input(FILE *);
-void	sp_foutput(FILE *, const SPMeMAT *);
+SPMAT	*sp_fme_input(FILE *);
+void	sp_foutput(FILE *, const SPMAT *);
 
 /* algebraic operations */
-SPMeMAT *sp_smlt(const SPMeMAT *A,double alpha,SPMeMAT *B),
-      *sp_add(const SPMeMAT *A,const SPMeMAT *B,SPMeMAT *C),
-      *sp_sub(const SPMeMAT *A,const SPMeMAT *B,SPMeMAT *C),
-      *sp_mltadd(const SPMeMAT *A,const SPMeMAT *B,double alpha,SPMeMAT *C);
+SPMAT *sp_smlt(const SPMAT *A,double alpha,SPMAT *B),
+      *sp_add(const SPMAT *A,const SPMAT *B,SPMAT *C),
+      *sp_sub(const SPMAT *A,const SPMAT *B,SPMAT *C),
+      *sp_mltadd(const SPMAT *A,const SPMAT *B,double alpha,SPMAT *C);
 
 /* sparse row operations */
 SPROW	*sprow_get(int), *sprow_xpd(SPROW *r,int n,int type),
@@ -167,9 +167,9 @@ int	sprow_idx(const SPROW *,int);
 void	sprow_foutput(FILE *,const SPROW *);
 
 /* dump */
-void    sp_dump(FILE *fp, const SPMeMAT *A);
+void    sp_dump(FILE *fp, const SPMAT *A);
 void    sprow_dump(FILE *fp, const SPROW *r);
-MeMAT	*sp_m2dense(const SPMeMAT *A,MeMAT *out);
+MAT	*sp_m2dense(const SPMAT *A,MAT *out);
 
 #endif /* ANSI_C */
 
@@ -181,7 +181,7 @@ MeMAT	*sp_m2dense(const SPMeMAT *A,MeMAT *out);
 #define	row_mltadd(r1,r2,alpha,out)	sprow_mltadd(r1,r2,alpha,0,out)
 #define	out_row(r)	sprow_foutput(stdout,(r))
 
-#define SP_FREE(A)    ( sp_free((A)),  (A)=(SPMeMAT *)NULL) 
+#define SP_FREE(A)    ( sp_free((A)),  (A)=(SPMAT *)NULL) 
 
 /* utility for index computations -- ensures index returned >= 0 */
 #define	fixindex(idx)	((idx) == -1 ? (Meerror(E_BOUNDS,"fixindex"),0) : \

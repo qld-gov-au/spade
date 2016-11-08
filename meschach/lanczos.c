@@ -37,9 +37,9 @@
 static char rcsid[] = "$Id: lanczos.c,v 1.4 1994/01/13 05:28:24 des Exp $";
 
 #ifdef ANSI_C
-extern	MeVEC	*trieig(MeVEC *,MeVEC *,MeMAT *);
+extern	VEC	*trieig(VEC *,VEC *,MAT *);
 #else
-extern	MeVEC	*trieig();
+extern	VEC	*trieig();
 #endif
 
 /* lanczos -- raw lanczos algorithm -- no re-orthogonalisation
@@ -47,15 +47,15 @@ extern	MeVEC	*trieig();
 		but no larger than before beta_k == 0
 	-- uses passed routine to do matrix-vector multiplies */
 void	lanczos(A_fn,A_params,m,x0,a,b,beta2,Q)
-MeVEC	*(*A_fn)();	/* MeVEC *(*A_fn)(void *A_params,MeVEC *in, MeVEC *out) */
+VEC	*(*A_fn)();	/* VEC *(*A_fn)(void *A_params,VEC *in, VEC *out) */
 void	*A_params;
 int	m;
-MeVEC	*x0, *a, *b;
+VEC	*x0, *a, *b;
 Real	*beta2;
-MeMAT	*Q;
+MAT	*Q;
 {
 	int	j;
-	MeVEC	*v, *w, *tmp;
+	VEC	*v, *w, *tmp;
 	Real	alpha, beta;
 
 	if ( ! A_fn || ! x0 || ! a || ! b )
@@ -115,7 +115,7 @@ extern	double	frexp(), ldexp();
 /* product -- returns the product of a long list of numbers
 	-- answer stored in mant (mantissa) and expt (exponent) */
 static	double	product(a,offset,expt)
-MeVEC	*a;
+VEC	*a;
 double	offset;
 int	*expt;
 {
@@ -162,7 +162,7 @@ int	*expt;
 /* product2 -- returns the product of a long list of numbers
 	-- answer stored in mant (mantissa) and expt (exponent) */
 static	double	product2(a,k,expt)
-MeVEC	*a;
+VEC	*a;
 int	k;	/* entry of a to leave out */
 int	*expt;
 {
@@ -211,16 +211,16 @@ Real	*x, *y;
 	-- uses Cullum & Willoughby approach, Sparse Matrix Proc. 1978
 	-- returns multiple e-vals where multiple e-vals may not exist
 	-- returns evals vector */
-MeVEC	*lanczos2(A_fn,A_params,m,x0,evals,err_est)
-MeVEC	*(*A_fn)();
+VEC	*lanczos2(A_fn,A_params,m,x0,evals,err_est)
+VEC	*(*A_fn)();
 void	*A_params;
 int	m;
-MeVEC	*x0;		/* initial vector */
-MeVEC	*evals;		/* eigenvalue vector */
-MeVEC	*err_est;	/* Meerror estimates of eigenvalues */
+VEC	*x0;		/* initial vector */
+VEC	*evals;		/* eigenvalue vector */
+VEC	*err_est;	/* Meerror estimates of eigenvalues */
 {
-	MeVEC		*a;
-	STATIC	MeVEC	*b=VNULL, *a2=VNULL, *b2=VNULL;
+	VEC		*a;
+	STATIC	VEC	*b=VNULL, *a2=VNULL, *b2=VNULL;
 	Real	beta, pb_mant, det_mant, det_mant1, det_mant2;
 	int	i, pb_expt, det_expt, det_expt1, det_expt2;
 
@@ -232,7 +232,7 @@ MeVEC	*err_est;	/* Meerror estimates of eigenvalues */
 	a = evals;
 	a = v_resize(a,(unsigned int)m);
 	b = v_resize(b,(unsigned int)(m-1));
-	MEM_STAT_REG(b,TYPE_MeVEC);
+	MEM_STAT_REG(b,TYPE_VEC);
 
 	lanczos(A_fn,A_params,m,x0,a,b,&beta,MNULL);
 
@@ -248,8 +248,8 @@ MeVEC	*err_est;	/* Meerror estimates of eigenvalues */
 	/* printf("# off diags =\n");	out_vec(b); */
 	a2 = v_resize(a2,a->dim - 1);
 	b2 = v_resize(b2,b->dim - 1);
-	MEM_STAT_REG(a2,TYPE_MeVEC);
-	MEM_STAT_REG(b2,TYPE_MeVEC);
+	MEM_STAT_REG(a2,TYPE_VEC);
+	MEM_STAT_REG(b2,TYPE_VEC);
 	for ( i = 0; i < a2->dim - 1; i++ )
 	{
 		a2->ve[i] = a->ve[i+1];
@@ -309,20 +309,20 @@ MeVEC	*err_est;	/* Meerror estimates of eigenvalues */
 
 /* sp_lanczos -- version that uses sparse matrix data structure */
 void    sp_lanczos(A,m,x0,a,b,beta2,Q)
-SPMeMAT	*A;
+SPMAT	*A;
 int     m;
-MeVEC     *x0, *a, *b;
+VEC     *x0, *a, *b;
 Real  *beta2;
-MeMAT     *Q;
+MAT     *Q;
 {	lanczos(sp_mv_mlt,A,m,x0,a,b,beta2,Q);	}
 
 /* sp_lanczos2 -- version of lanczos2() that uses sparse matrix data
 					structure */
-MeVEC	*sp_lanczos2(A,m,x0,evals,err_est)
-SPMeMAT	*A;
+VEC	*sp_lanczos2(A,m,x0,evals,err_est)
+SPMAT	*A;
 int	m;
-MeVEC	*x0;		/* initial vector */
-MeVEC	*evals;		/* eigenvalue vector */
-MeVEC	*err_est;	/* Meerror estimates of eigenvalues */
+VEC	*x0;		/* initial vector */
+VEC	*evals;		/* eigenvalue vector */
+VEC	*err_est;	/* Meerror estimates of eigenvalues */
 {	return lanczos2(sp_mv_mlt,A,m,x0,evals,err_est);	}
 

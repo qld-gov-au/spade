@@ -32,89 +32,89 @@
 */
 
 
-#ifndef ZMeMATRIX2H
-#define ZMeMATRIX2H
+#ifndef ZMATRIX2H
+#define ZMATRIX2H
 
 #include "zmatrix.h"
 
 #ifdef ANSI_C
-extern ZMeVEC	*zUsolve(ZMeMAT *matrix, ZMeVEC *b, ZMeVEC *out, double diag);
-extern ZMeVEC	*zLsolve(ZMeMAT *matrix, ZMeVEC *b, ZMeVEC *out, double diag);
-extern ZMeVEC	*zUAsolve(ZMeMAT *U, ZMeVEC *b, ZMeVEC *out, double diag);
-extern ZMeVEC	*zDsolve(ZMeMAT *A, ZMeVEC *b, ZMeVEC *x);
-extern ZMeVEC	*zLAsolve(ZMeMAT *L, ZMeVEC *b, ZMeVEC *out, double diag);
+extern ZVEC	*zUsolve(ZMAT *matrix, ZVEC *b, ZVEC *out, double diag);
+extern ZVEC	*zLsolve(ZMAT *matrix, ZVEC *b, ZVEC *out, double diag);
+extern ZVEC	*zUAsolve(ZMAT *U, ZVEC *b, ZVEC *out, double diag);
+extern ZVEC	*zDsolve(ZMAT *A, ZVEC *b, ZVEC *x);
+extern ZVEC	*zLAsolve(ZMAT *L, ZVEC *b, ZVEC *out, double diag);
 
-extern ZMeVEC	*zhhvec(ZMeVEC *,int,Real *,ZMeVEC *,complex *);
-extern ZMeVEC	*zhhtrvec(ZMeVEC *,double,int,ZMeVEC *,ZMeVEC *);
-extern ZMeMAT	*zhhtrrows(ZMeMAT *,int,int,ZMeVEC *,double);
-extern ZMeMAT	*zhhtrcols(ZMeMAT *,int,int,ZMeVEC *,double);
-extern ZMeMAT	*_zhhtrcols(ZMeMAT *,int,int,ZMeVEC *,double,ZMeVEC *);
-extern ZMeMAT     *zHfactor(ZMeMAT *,ZMeVEC *);
-extern ZMeMAT     *zHQunpack(ZMeMAT *,ZMeVEC *,ZMeMAT *,ZMeMAT *);
+extern ZVEC	*zhhvec(ZVEC *,int,Real *,ZVEC *,complex *);
+extern ZVEC	*zhhtrvec(ZVEC *,double,int,ZVEC *,ZVEC *);
+extern ZMAT	*zhhtrrows(ZMAT *,int,int,ZVEC *,double);
+extern ZMAT	*zhhtrcols(ZMAT *,int,int,ZVEC *,double);
+extern ZMAT	*_zhhtrcols(ZMAT *,int,int,ZVEC *,double,ZVEC *);
+extern ZMAT     *zHfactor(ZMAT *,ZVEC *);
+extern ZMAT     *zHQunpack(ZMAT *,ZVEC *,ZMAT *,ZMAT *);
 
-extern ZMeMAT	*zQRfactor(ZMeMAT *A, ZMeVEC *diag);
-extern ZMeMAT	*zQRCPfactor(ZMeMAT *A, ZMeVEC *diag, PERM *px);
-extern ZMeVEC	*_zQsolve(ZMeMAT *QR, ZMeVEC *diag, ZMeVEC *b, ZMeVEC *x, ZMeVEC *tmp);
-extern ZMeMAT	*zmakeQ(ZMeMAT *QR, ZMeVEC *diag, ZMeMAT *Qout);
-extern ZMeMAT	*zmakeR(ZMeMAT *QR, ZMeMAT *Rout);
-extern ZMeVEC	*zQRsolve(ZMeMAT *QR, ZMeVEC *diag, ZMeVEC *b, ZMeVEC *x);
-extern ZMeVEC	*zQRAsolve(ZMeMAT *QR, ZMeVEC *diag, ZMeVEC *b, ZMeVEC *x);
-extern ZMeVEC	*zQRCPsolve(ZMeMAT *QR,ZMeVEC *diag,PERM *pivot,ZMeVEC *b,ZMeVEC *x);
-extern ZMeVEC	*zUmlt(ZMeMAT *U, ZMeVEC *x, ZMeVEC *out);
-extern ZMeVEC	*zUAmlt(ZMeMAT *U, ZMeVEC *x, ZMeVEC *out);
-extern double	zQRcondest(ZMeMAT *QR);
+extern ZMAT	*zQRfactor(ZMAT *A, ZVEC *diag);
+extern ZMAT	*zQRCPfactor(ZMAT *A, ZVEC *diag, PERM *px);
+extern ZVEC	*_zQsolve(ZMAT *QR, ZVEC *diag, ZVEC *b, ZVEC *x, ZVEC *tmp);
+extern ZMAT	*zmakeQ(ZMAT *QR, ZVEC *diag, ZMAT *Qout);
+extern ZMAT	*zmakeR(ZMAT *QR, ZMAT *Rout);
+extern ZVEC	*zQRsolve(ZMAT *QR, ZVEC *diag, ZVEC *b, ZVEC *x);
+extern ZVEC	*zQRAsolve(ZMAT *QR, ZVEC *diag, ZVEC *b, ZVEC *x);
+extern ZVEC	*zQRCPsolve(ZMAT *QR,ZVEC *diag,PERM *pivot,ZVEC *b,ZVEC *x);
+extern ZVEC	*zUmlt(ZMAT *U, ZVEC *x, ZVEC *out);
+extern ZVEC	*zUAmlt(ZMAT *U, ZVEC *x, ZVEC *out);
+extern double	zQRcondest(ZMAT *QR);
 
-extern ZMeVEC	*zLsolve(ZMeMAT *, ZMeVEC *, ZMeVEC *, double);
-extern ZMeMAT	*zset_col(ZMeMAT *, int, ZMeVEC *);
+extern ZVEC	*zLsolve(ZMAT *, ZVEC *, ZVEC *, double);
+extern ZMAT	*zset_col(ZMAT *, int, ZVEC *);
 
-extern ZMeMAT	*zLUfactor(ZMeMAT *A, PERM *pivot);
-extern ZMeVEC	*zLUsolve(ZMeMAT *A, PERM *pivot, ZMeVEC *b, ZMeVEC *x);
-extern ZMeVEC	*zLUAsolve(ZMeMAT *LU, PERM *pivot, ZMeVEC *b, ZMeVEC *x);
-extern ZMeMAT	*zm_inverse(ZMeMAT *A, ZMeMAT *out);
-extern double	zLUcondest(ZMeMAT *LU, PERM *pivot);
+extern ZMAT	*zLUfactor(ZMAT *A, PERM *pivot);
+extern ZVEC	*zLUsolve(ZMAT *A, PERM *pivot, ZVEC *b, ZVEC *x);
+extern ZVEC	*zLUAsolve(ZMAT *LU, PERM *pivot, ZVEC *b, ZVEC *x);
+extern ZMAT	*zm_inverse(ZMAT *A, ZMAT *out);
+extern double	zLUcondest(ZMAT *LU, PERM *pivot);
 
 extern void	zgivens(complex, complex, Real *, complex *);
-extern ZMeMAT	*zrot_rows(ZMeMAT *A, int i, int k, double c, complex s,
-			   ZMeMAT *out);
-extern ZMeMAT	*zrot_cols(ZMeMAT *A, int i, int k, double c, complex s,
-			   ZMeMAT *out);
-extern ZMeVEC	*rot_zvec(ZMeVEC *x, int i, int k, double c, complex s,
-			  ZMeVEC *out);
-extern ZMeMAT	*zschur(ZMeMAT *A,ZMeMAT *Q);
-/* extern ZMeMAT	*schur_vecs(ZMeMAT *T,ZMeMAT *Q,X_re,X_im) */
+extern ZMAT	*zrot_rows(ZMAT *A, int i, int k, double c, complex s,
+			   ZMAT *out);
+extern ZMAT	*zrot_cols(ZMAT *A, int i, int k, double c, complex s,
+			   ZMAT *out);
+extern ZVEC	*rot_zvec(ZVEC *x, int i, int k, double c, complex s,
+			  ZVEC *out);
+extern ZMAT	*zschur(ZMAT *A,ZMAT *Q);
+/* extern ZMAT	*schur_vecs(ZMAT *T,ZMAT *Q,X_re,X_im) */
 #else
-extern ZMeVEC	*zUsolve(), *zLsolve(), *zUAsolve(), *zDsolve(), *zLAsolve();
+extern ZVEC	*zUsolve(), *zLsolve(), *zUAsolve(), *zDsolve(), *zLAsolve();
 
-extern ZMeVEC	*zhhvec();
-extern ZMeVEC	*zhhtrvec();
-extern ZMeMAT	*zhhtrrows();
-extern ZMeMAT     *zhhtrcols();
-extern ZMeMAT     *_zhhtrcols();
-extern ZMeMAT     *zHfactor();
-extern ZMeMAT     *zHQunpack();
+extern ZVEC	*zhhvec();
+extern ZVEC	*zhhtrvec();
+extern ZMAT	*zhhtrrows();
+extern ZMAT     *zhhtrcols();
+extern ZMAT     *_zhhtrcols();
+extern ZMAT     *zHfactor();
+extern ZMAT     *zHQunpack();
 
 
-extern ZMeMAT	*zQRfactor(), *zQRCPfactor();
-extern ZMeVEC	*_zQsolve();
-extern ZMeMAT	*zmakeQ(), *zmakeR();
-extern ZMeVEC	*zQRsolve(), *zQRAsolve(), *zQRCPsolve();
-extern ZMeVEC	*zUmlt(), *zUAmlt();
+extern ZMAT	*zQRfactor(), *zQRCPfactor();
+extern ZVEC	*_zQsolve();
+extern ZMAT	*zmakeQ(), *zmakeR();
+extern ZVEC	*zQRsolve(), *zQRAsolve(), *zQRCPsolve();
+extern ZVEC	*zUmlt(), *zUAmlt();
 extern double	zQRcondest();
 
-extern ZMeVEC	*zLsolve();
-extern ZMeMAT	*zset_col();
+extern ZVEC	*zLsolve();
+extern ZMAT	*zset_col();
 
-extern ZMeMAT	*zLUfactor();
-extern ZMeVEC	*zLUsolve(), *zLUAsolve();
-extern ZMeMAT	*zm_inverse();
+extern ZMAT	*zLUfactor();
+extern ZVEC	*zLUsolve(), *zLUAsolve();
+extern ZMAT	*zm_inverse();
 extern double	zLUcondest();
 
 extern void	zgivens();
-extern ZMeMAT	*zrot_rows(), *zrot_cols();
-extern ZMeVEC	*rot_zvec();
-extern ZMeMAT	*zschur();
-/* extern ZMeMAT	*schur_vecs(); */
+extern ZMAT	*zrot_rows(), *zrot_cols();
+extern ZVEC	*rot_zvec();
+extern ZMAT	*zschur();
+/* extern ZMAT	*schur_vecs(); */
 #endif /* ANSI_C */
 
-#endif /* ZMeMATRIX2H */
+#endif /* ZMATRIX2H */
 

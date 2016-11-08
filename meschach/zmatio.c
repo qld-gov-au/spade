@@ -71,20 +71,20 @@ complex	z_fme_input(FILE *fp)
 #elif REAL == FLOAT
       if ( (io_code=fscanf(fp," (%f,%f)",&z.re,&z.im)) < 2 )
 #endif
-	    Meerror((io_code == EOF) ? E_EOF : E_FORMeMAT,"z_fme_input");
+	    Meerror((io_code == EOF) ? E_EOF : E_FORMAT,"z_fme_input");
 
     return z;
 }
 
 #ifndef ANSI_C
-ZMeMAT	*zm_fme_input(fp,a)
+ZMAT	*zm_fme_input(fp,a)
 FILE    *fp;
-ZMeMAT	*a;
+ZMAT	*a;
 #else
-ZMeMAT	*zm_fme_input(FILE *fp,ZMeMAT *a)
+ZMAT	*zm_fme_input(FILE *fp,ZMAT *a)
 #endif
 {
-     ZMeMAT        *izm_fme_input(),*bzm_fme_input();
+     ZMAT        *izm_fme_input(),*bzm_fme_input();
      
      if ( isatty(fileno(fp)) )
 	  return izm_fme_input(fp,a);
@@ -94,11 +94,11 @@ ZMeMAT	*zm_fme_input(FILE *fp,ZMeMAT *a)
 
 /* izm_fme_input -- interactive me_input of matrix */
 #ifndef ANSI_C
-ZMeMAT     *izm_fme_input(fp,mat)
+ZMAT     *izm_fme_input(fp,mat)
 FILE    *fp;
-ZMeMAT     *mat;
+ZMAT     *mat;
 #else
-ZMeMAT     *izm_fme_input(FILE *fp, ZMeMAT *mat)
+ZMAT     *izm_fme_input(FILE *fp, ZMAT *mat)
 #endif
 {
      char       c;
@@ -162,11 +162,11 @@ ZMeMAT     *izm_fme_input(FILE *fp, ZMeMAT *mat)
 
 /* bzm_fme_input -- batch-file me_input of matrix */
 #ifndef ANSI_C
-ZMeMAT     *bzm_fme_input(fp,mat)
+ZMAT     *bzm_fme_input(fp,mat)
 FILE    *fp;
-ZMeMAT     *mat;
+ZMAT     *mat;
 #else
-ZMeMAT     *bzm_fme_input(FILE *fp,ZMeMAT *mat)
+ZMAT     *bzm_fme_input(FILE *fp,ZMAT *mat)
 #endif
 {
      unsigned int      i,j,m,n,dummy;
@@ -176,7 +176,7 @@ ZMeMAT     *bzm_fme_input(FILE *fp,ZMeMAT *mat)
      skipjunk(fp);
      if ((io_code=fscanf(fp," ComplexMatrix: %u by %u",&m,&n)) < 2 ||
 	 m>MAXDIM || n>MAXDIM )
-	  Meerror(io_code==EOF ? E_EOF : E_FORMeMAT,"bzm_fme_input");
+	  Meerror(io_code==EOF ? E_EOF : E_FORMAT,"bzm_fme_input");
      
      /* allocate memory if necessary */
      if ( mat==ZMNULL || mat->m<m || mat->n<n )
@@ -187,7 +187,7 @@ ZMeMAT     *bzm_fme_input(FILE *fp,ZMeMAT *mat)
      {
 	  skipjunk(fp);
 	  if ( fscanf(fp," row %u:",&dummy) < 1 )
-	       Meerror(E_FORMeMAT,"bzm_fme_input");
+	       Meerror(E_FORMAT,"bzm_fme_input");
 	  for ( j=0; j<n; j++ )
 	  {
 	      /* printf("bzm_fme_input: j = %d\n", j); */
@@ -197,7 +197,7 @@ ZMeMAT     *bzm_fme_input(FILE *fp,ZMeMAT *mat)
 	      if ((io_code=fscanf(fp," ( %f , %f )",
 #endif
 				  &mat->me[i][j].re,&mat->me[i][j].im)) < 2 )
-		  Meerror(io_code==EOF ? E_EOF : E_FORMeMAT,"bzm_fme_input");
+		  Meerror(io_code==EOF ? E_EOF : E_FORMAT,"bzm_fme_input");
 	  }
      }
      
@@ -205,14 +205,14 @@ ZMeMAT     *bzm_fme_input(FILE *fp,ZMeMAT *mat)
 }
 
 #ifndef ANSI_C
-ZMeVEC     *zv_fme_input(fp,x)
+ZVEC     *zv_fme_input(fp,x)
 FILE    *fp;
-ZMeVEC     *x;
+ZVEC     *x;
 #else
-ZMeVEC     *zv_fme_input(FILE *fp,ZMeVEC *x)
+ZVEC     *zv_fme_input(FILE *fp,ZVEC *x)
 #endif
 {
-     ZMeVEC        *izv_fme_input(),*bzv_fme_input();
+     ZVEC        *izv_fme_input(),*bzv_fme_input();
      
      if ( isatty(fileno(fp)) )
 	  return izv_fme_input(fp,x);
@@ -222,11 +222,11 @@ ZMeVEC     *zv_fme_input(FILE *fp,ZMeVEC *x)
 
 /* izv_fme_input -- interactive me_input of vector */
 #ifndef ANSI_C
-ZMeVEC     *izv_fme_input(fp,vec)
+ZVEC     *izv_fme_input(fp,vec)
 FILE    *fp;
-ZMeVEC     *vec;
+ZVEC     *vec;
 #else
-ZMeVEC     *izv_fme_input(FILE *fp,ZMeVEC *vec)
+ZVEC     *izv_fme_input(FILE *fp,ZVEC *vec)
 #endif
 {
      unsigned int      i,dim,dynamic;  /* dynamic set if memory allocated here */
@@ -274,11 +274,11 @@ ZMeVEC     *izv_fme_input(FILE *fp,ZMeVEC *vec)
 
 /* bzv_fme_input -- batch-file me_input of vector */
 #ifndef ANSI_C
-ZMeVEC     *bzv_fme_input(fp,vec)
+ZVEC     *bzv_fme_input(fp,vec)
 FILE    *fp;
-ZMeVEC    *vec;
+ZVEC    *vec;
 #else
-ZMeVEC     *bzv_fme_input(FILE *fp, ZMeVEC *vec)
+ZVEC     *bzv_fme_input(FILE *fp, ZVEC *vec)
 #endif
 {
      unsigned int      i,dim;
@@ -344,9 +344,9 @@ void	z_foutput(FILE *fp,complex z)
 #ifndef ANSI_C
 void    zm_foutput(fp,a)
 FILE    *fp;
-ZMeMAT     *a;
+ZMAT     *a;
 #else
-void    zm_foutput(FILE *fp,ZMeMAT *a)
+void    zm_foutput(FILE *fp,ZMAT *a)
 #endif
 {
      unsigned int      i, j, tmp;
@@ -371,9 +371,9 @@ void    zm_foutput(FILE *fp,ZMeMAT *a)
 #ifndef ANSI_C
 void    zv_foutput(fp,x)
 FILE    *fp;
-ZMeVEC     *x;
+ZVEC     *x;
 #else
-void    zv_foutput(FILE *fp,ZMeVEC *x)
+void    zv_foutput(FILE *fp,ZVEC *x)
 #endif
 {
      unsigned int      i, tmp;
@@ -394,9 +394,9 @@ void    zv_foutput(FILE *fp,ZMeVEC *x)
 #ifndef ANSI_C
 void    zm_dump(fp,a)
 FILE    *fp;
-ZMeMAT     *a;
+ZMAT     *a;
 #else
-void    zm_dump(FILE *fp, ZMeMAT *a)
+void    zm_dump(FILE *fp, ZMAT *a)
 #endif
 {
 	unsigned int   i, j, tmp;
@@ -426,9 +426,9 @@ void    zm_dump(FILE *fp, ZMeMAT *a)
 #ifndef ANSI_C
 void    zv_dump(fp,x)
 FILE    *fp;
-ZMeVEC     *x;
+ZVEC     *x;
 #else
-void    zv_dump(FILE *fp,ZMeVEC *x)
+void    zv_dump(FILE *fp,ZVEC *x)
 #endif
 {
      unsigned int      i, tmp;

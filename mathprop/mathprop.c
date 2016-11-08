@@ -15,16 +15,16 @@ Real sple(
 
 	  const int nk,
 	  const Real xval,
-	  const MeVEC *knots,
-	  const MeVEC *coef
+	  const VEC *knots,
+	  const VEC *coef
 
 	  )
 {
  
   int j,q,r,l,offset;
-  MeVEC *val = v_get(4);
-  MeVEC *rdel = v_get(3);
-  MeVEC *ldel = v_get(3); 
+  VEC *val = v_get(4);
+  VEC *rdel = v_get(3);
+  VEC *ldel = v_get(3); 
 
   for (j=1;j<=nk;j++)
     if (knots->ve[j-1] >= xval)
@@ -53,7 +53,7 @@ Real sple(
 
   int ncoef = nk - 4;
 
-  MeVEC *design = v_get(ncoef);
+  VEC *design = v_get(ncoef);
   design->ve[offset+1-1] = val->ve[1-1];
   design->ve[offset+2-1] = val->ve[2-1];
   design->ve[offset+3-1] = val->ve[3-1];
@@ -70,11 +70,11 @@ Real sple(
 
 }
 
-MeVEC *numgrad(
+VEC *numgrad(
 
-	     Real (*model)(MeVEC *,void *),
+	     Real (*model)(VEC *,void *),
 	     void *stuff,
-	     MeVEC *par,
+	     VEC *par,
 	     Real epsilon
 
 	     )
@@ -82,9 +82,9 @@ MeVEC *numgrad(
 
   Real f0 = (*model)(par,stuff);
 
-  MeVEC *ei = v_get(par->dim);
-  MeVEC *d = v_get(par->dim);
-  MeVEC *fg = v_get(par->dim);
+  VEC *ei = v_get(par->dim);
+  VEC *d = v_get(par->dim);
+  VEC *fg = v_get(par->dim);
 
   for (int i=0;i<par->dim;i++)
     {
@@ -148,8 +148,8 @@ Real ConditionNumber(
   }
   int n = activeParameterCount;
   
-  MeMAT *tmp1 = m_get(n,n);
-  MeMAT *tmp2 = m_get(n,n);
+  MAT *tmp1 = m_get(n,n);
+  MAT *tmp2 = m_get(n,n);
 
   int iTheta=0;
   
@@ -190,14 +190,14 @@ Real ConditionNumber(
     }
   }
 
-  MeMAT *hessin = m_get(n,n);
+  MAT *hessin = m_get(n,n);
   
   for (int i=0;i<n;i++)
     for (int j=0;j<n;j++)
       hessin->me[i][j] = (tmp1->me[i][j] - tmp2->me[i][j])/(4*epsilon) + (tmp1->me[j][i] - tmp2->me[j][i])/(4*epsilon);
 
-  MeVEC * evals = v_get(n);
-  MeMAT *Q = m_get(n,n);
+  VEC * evals = v_get(n);
+  MAT *Q = m_get(n,n);
 
   evals = symmeig(hessin,Q,evals);
 
@@ -225,7 +225,7 @@ Real ConditionNumber(
 /*
 void output_plots(
 
-		  MeVEC *p,
+		  VEC *p,
 		  Data *d,
 		  char *label
 
@@ -234,22 +234,22 @@ void output_plots(
 
   int I = d->I+1;
   int J = d->J+1;
-  MeMAT *x = m_get(I,J);
-  MeMAT *u = m_get(I,J);
-  MeMAT *xh = m_get(I,J+1);
-  MeMAT *uh = m_get(I,J+1);
-  MeMAT *xn = m_get(I,J+1);
-  MeMAT *xhh = m_get(I,J+1);
-  MeMAT *un = m_get(I,J+1);
-  MeVEC *Ui = v_get(I);
-  MeVEC *Uh = v_get(I);
-  MeVEC *Uhh = v_get(I);
-  IMeVEC *idxi = iv_get(I-1);
+  MAT *x = m_get(I,J);
+  MAT *u = m_get(I,J);
+  MAT *xh = m_get(I,J+1);
+  MAT *uh = m_get(I,J+1);
+  MAT *xn = m_get(I,J+1);
+  MAT *xhh = m_get(I,J+1);
+  MAT *un = m_get(I,J+1);
+  VEC *Ui = v_get(I);
+  VEC *Uh = v_get(I);
+  VEC *Uhh = v_get(I);
+  IVEC *idxi = iv_get(I-1);
 
   solve(theta,x,u,xhh,xh,xn,uh,un,Ui,Uh,Uhh,idxi,d->eff,d->k,d->S);
 
-  //  MeVEC *ctt = v_get(x->n);
-  //  MeVEC *xt = v_get(x->n);
+  //  VEC *ctt = v_get(x->n);
+  //  VEC *xt = v_get(x->n);
 
   /*
   FILE *p1 = fopen("plot1.txt","w");

@@ -26,11 +26,11 @@
 
 /*
 	This file contains routines for import/exporting complex data
-	to/from MeMATLAB. The main routines are:
-			ZMeMAT *zm_save(FILE *fp,ZMeMAT *A,char *name)
-			ZMeVEC *zv_save(FILE *fp,ZMeVEC *x,char *name)
+	to/from MATLAB. The main routines are:
+			ZMAT *zm_save(FILE *fp,ZMAT *A,char *name)
+			ZVEC *zv_save(FILE *fp,ZVEC *x,char *name)
 			complex z_save(FILE *fp,complex z,char *name)
-			ZMeMAT *zm_load(FILE *fp,char **name)
+			ZMAT *zm_load(FILE *fp,char **name)
 */
 
 #include        <stdio.h>
@@ -39,11 +39,11 @@
 
 static char rcsid[] = "$Id: zmatlab.c,v 1.2 1995/02/14 20:13:27 des Exp $";
 
-/* zm_save -- save matrix in ".mat" file for MeMATLAB
+/* zm_save -- save matrix in ".mat" file for MATLAB
    -- returns matrix to be saved */
-ZMeMAT    *zm_save(fp,A,name)
+ZMAT    *zm_save(fp,A,name)
 FILE    *fp;
-ZMeMAT    *A;
+ZMAT    *A;
 char    *name;
 {
     int     i, j;
@@ -86,12 +86,12 @@ char    *name;
 }
 
 
-/* zv_save -- save vector in ".mat" file for MeMATLAB
+/* zv_save -- save vector in ".mat" file for MATLAB
    -- saves it as a row vector
    -- returns vector to be saved */
-ZMeVEC    *zv_save(fp,x,name)
+ZVEC    *zv_save(fp,x,name)
 FILE    *fp;
-ZMeVEC    *x;
+ZVEC    *x;
 char    *name;
 {
     int	i, j;
@@ -122,7 +122,7 @@ char    *name;
     return x;
 }
 
-/* z_save -- saves complex number in ".mat" file for MeMATLAB
+/* z_save -- saves complex number in ".mat" file for MATLAB
 	-- returns complex number to be saved */
 complex	z_save(fp,z,name)
 FILE	*fp;
@@ -152,13 +152,13 @@ char	*name;
 
 
 
-/* zm_load -- loads in a ".mat" file variable as produced by MeMATLAB
+/* zm_load -- loads in a ".mat" file variable as produced by MATLAB
    -- matrix returned; imaginary parts ignored */
-ZMeMAT    *zm_load(fp,name)
+ZMAT    *zm_load(fp,name)
 FILE    *fp;
 char    **name;
 {
-    ZMeMAT     *A;
+    ZMAT     *A;
     int     i;
     int     m_flag, o_flag, p_flag, t_flag;
     float   f_temp;
@@ -166,22 +166,22 @@ char    **name;
     matlab  mat;
     
     if ( fread(&mat,sizeof(matlab),1,fp) != 1 )
-	Meerror(E_FORMeMAT,"zm_load");
+	Meerror(E_FORMAT,"zm_load");
     if ( mat.type >= 10000 )	/* don't load a sparse matrix! */
-	Meerror(E_FORMeMAT,"zm_load");
+	Meerror(E_FORMAT,"zm_load");
     m_flag = (mat.type/1000) % 10;
     o_flag = (mat.type/100) % 10;
     p_flag = (mat.type/10) % 10;
     t_flag = (mat.type) % 10;
     if ( m_flag != MACH_ID )
-	Meerror(E_FORMeMAT,"zm_load");
+	Meerror(E_FORMAT,"zm_load");
     if ( t_flag != 0 )
-	Meerror(E_FORMeMAT,"zm_load");
+	Meerror(E_FORMAT,"zm_load");
     if ( p_flag != DOUBLE_PREC && p_flag != SINGLE_PREC )
-	Meerror(E_FORMeMAT,"zm_load");
+	Meerror(E_FORMAT,"zm_load");
     *name = (char *)malloc((unsigned)(mat.namlen)+1);
     if ( fread(*name,sizeof(char),(unsigned)(mat.namlen),fp) == 0 )
-	Meerror(E_FORMeMAT,"zm_load");
+	Meerror(E_FORMAT,"zm_load");
     A = zm_get((unsigned)(mat.m),(unsigned)(mat.n));
     for ( i = 0; i < A->m*A->n; i++ )
     {
@@ -197,7 +197,7 @@ char    **name;
 	else if ( o_flag == COL_ORDER )
 	    A->me[i % A->m][i / A->m].re = d_temp;
 	else
-	    Meerror(E_FORMeMAT,"zm_load");
+	    Meerror(E_FORMAT,"zm_load");
     }
     
     if ( mat.imag )         /* skip imaginary part */
@@ -215,7 +215,7 @@ char    **name;
 	    else if ( o_flag == COL_ORDER )
 		A->me[i % A->m][i / A->m].im = d_temp;
 	    else
-		Meerror(E_FORMeMAT,"zm_load");
+		Meerror(E_FORMAT,"zm_load");
 	}
     
     return A;

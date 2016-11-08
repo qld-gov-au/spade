@@ -43,9 +43,9 @@ static char line[MAXLINE];
 #ifndef ANSI_C
 void    sp_foutput(fp,A)
 FILE    *fp;
-SPMeMAT  *A;
+SPMAT  *A;
 #else
-void    sp_foutput(FILE *fp, const SPMeMAT *A)
+void    sp_foutput(FILE *fp, const SPMAT *A)
 #endif
 {
 	int     i, j_idx, m /* , n */;
@@ -91,7 +91,7 @@ void    sp_foutput(FILE *fp, const SPMeMAT *A)
 /******************************************************************
 void    sp_foutput2(fp,A)
 FILE    *fp;
-SPMeMAT  *A;
+SPMAT  *A;
 {
 	int     cnt, i, j, j_idx;
 	SPROW  *r;
@@ -130,9 +130,9 @@ SPMeMAT  *A;
 #ifndef ANSI_C
 void    sp_dump(fp,A)
 FILE    *fp;
-SPMeMAT  *A;
+SPMAT  *A;
 #else
-void    sp_dump(FILE *fp, const SPMeMAT *A)
+void    sp_dump(FILE *fp, const SPMAT *A)
 #endif
 {
 	int     i, j, j_idx;
@@ -190,16 +190,16 @@ void    sp_dump(FILE *fp, const SPMeMAT *A)
 	-- uses friendly me_input routine if fp is a tty
 	-- uses format identical to output format otherwise */
 #ifndef ANSI_C
-SPMeMAT  *sp_fme_input(fp)
+SPMAT  *sp_fme_input(fp)
 FILE    *fp;
 #else
-SPMeMAT  *sp_fme_input(FILE *fp)
+SPMAT  *sp_fme_input(FILE *fp)
 #endif
 {
 	int     i, len, ret_val;
 	int     col, curr_col, m, n, tmp, tty;
 	Real  val;
-	SPMeMAT  *A;
+	SPMAT  *A;
 	SPROW  *rows;
 
 	static row_elt *scratch;
@@ -275,7 +275,7 @@ SPMeMAT  *sp_fme_input(FILE *fp)
 		    if ( len > 5 )
 		     {
 			if (mem_info_is_on()) {
-			   mem_bytes(TYPE_SPMeMAT,
+			   mem_bytes(TYPE_SPMAT,
 					   A->row[i].MeMemaxlen*sizeof(row_elt),
 					   len*sizeof(row_elt));  
 			}
@@ -296,7 +296,7 @@ SPMeMAT  *sp_fme_input(FILE *fp)
 		fscanf(fp,"SparseMatrix:");
 		skipjunk(fp);
 		if ( (ret_val=fscanf(fp,"%u by %u",&m,&n)) != 2 )
-		    Meerror((ret_val == EOF) ? E_EOF : E_FORMeMAT,"sp_fme_input");
+		    Meerror((ret_val == EOF) ? E_EOF : E_FORMAT,"sp_fme_input");
 		A = sp_get(m,n,5);
 
 		/* initialise start_row */
@@ -311,7 +311,7 @@ SPMeMAT  *sp_fme_input(FILE *fp)
 		    skipjunk(fp);
 		    if ( (ret_val=fscanf(fp,"row %d :",&tmp)) != 1 ||
 			 tmp != i )
-			Meerror((ret_val == EOF) ? E_EOF : E_FORMeMAT,
+			Meerror((ret_val == EOF) ? E_EOF : E_FORMAT,
 			      "sp_fme_input");
 		    curr_col = -1;
 		    len = 0;
@@ -333,7 +333,7 @@ SPMeMAT  *sp_fme_input(FILE *fp)
 #endif
 			    break;
 			if ( col <= curr_col || col >= n )
-			    Meerror(E_FORMeMAT,"sp_fme_input");
+			    Meerror(E_FORMAT,"sp_fme_input");
 			scratch[len].col = col;
 			scratch[len].val = val;
 

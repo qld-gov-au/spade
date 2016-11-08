@@ -62,11 +62,11 @@ static	void	hhldr3(double x, double y, double z,
 
 #ifndef ANSI_C
 static	void	hhldr3cols(A,k,j0,beta,nu1,nu2,nu3)
-MeMAT	*A;
+MAT	*A;
 int	k, j0;
 double	beta, nu1, nu2, nu3;
 #else
-static	void	hhldr3cols(MeMAT *A, int k, int j0, double beta,
+static	void	hhldr3cols(MAT *A, int k, int j0, double beta,
 			   double nu1, double nu2, double nu3)
 #endif
 {
@@ -111,11 +111,11 @@ static	void	hhldr3cols(MeMAT *A, int k, int j0, double beta,
 
 #ifndef ANSI_C
 static	void	hhldr3rows(A,k,i0,beta,nu1,nu2,nu3)
-MeMAT	*A;
+MAT	*A;
 int	k, i0;
 double	beta, nu1, nu2, nu3;
 #else
-static	void	hhldr3rows(MeMAT *A, int k, int i0, double beta,
+static	void	hhldr3rows(MAT *A, int k, int i0, double beta,
 			   double nu1, double nu2, double nu3)
 #endif
 {
@@ -152,17 +152,17 @@ static	void	hhldr3rows(MeMAT *A, int k, int i0, double beta,
 	-- optionally, gives Q matrix such that Q^T.A.Q is upper triangular
 	-- returns upper triangular Schur matrix */
 #ifndef ANSI_C
-MeMAT	*schur(A,Q)
-MeMAT	*A, *Q;
+MAT	*schur(A,Q)
+MAT	*A, *Q;
 #else
-MeMAT	*schur(MeMAT *A, MeMAT *Q)
+MAT	*schur(MAT *A, MAT *Q)
 #endif
 {
     int		i, j, iter, k, k_Memin, k_MeMemax, k_tmp, n, split;
     Real	beta2, c, discrim, dummy, nu1, s, t, tmp, x, y, z;
     Real	**A_me;
     Real	sqrt_macheps;
-    STATIC	MeVEC	*diag=VNULL, *beta=VNULL;
+    STATIC	VEC	*diag=VNULL, *beta=VNULL;
     
     if ( ! A )
 	Meerror(E_NULL,"schur");
@@ -173,8 +173,8 @@ MeMAT	*schur(MeMAT *A, MeMAT *Q)
     n = A->n;
     diag = v_resize(diag,A->n);
     beta = v_resize(beta,A->n);
-    MEM_STAT_REG(diag,TYPE_MeVEC);
-    MEM_STAT_REG(beta,TYPE_MeVEC);
+    MEM_STAT_REG(diag,TYPE_VEC);
+    MEM_STAT_REG(beta,TYPE_VEC);
     /* compute Hessenberg form */
     Hfactor(A,diag,beta);
     
@@ -441,10 +441,10 @@ MeMAT	*schur(MeMAT *A, MeMAT *Q)
 	-- real parts stored in real_pt, imaginary parts in imag_pt */
 #ifndef ANSI_C
 void	schur_evals(T,real_pt,imag_pt)
-MeMAT	*T;
-MeVEC	*real_pt, *imag_pt;
+MAT	*T;
+VEC	*real_pt, *imag_pt;
 #else
-void	schur_evals(MeMAT *T, MeVEC *real_pt, MeVEC *imag_pt)
+void	schur_evals(MAT *T, VEC *real_pt, VEC *imag_pt)
 #endif
 {
 	int	i, n;
@@ -500,10 +500,10 @@ void	schur_evals(MeMAT *T, MeVEC *real_pt, MeVEC *imag_pt)
 		and X_im is the imaginary part of the matrix.
 	-- X_re is returned */
 #ifndef ANSI_C
-MeMAT	*schur_vecs(T,Q,X_re,X_im)
-MeMAT	*T, *Q, *X_re, *X_im;
+MAT	*schur_vecs(T,Q,X_re,X_im)
+MAT	*T, *Q, *X_re, *X_im;
 #else
-MeMAT	*schur_vecs(MeMAT *T, MeMAT *Q, MeMAT *X_re, MeMAT *X_im)
+MAT	*schur_vecs(MAT *T, MAT *Q, MAT *X_re, MAT *X_im)
 #endif
 {
 	int	i, j, limit;
@@ -512,7 +512,7 @@ MeMAT	*schur_vecs(MeMAT *T, MeMAT *Q, MeMAT *X_re, MeMAT *X_im)
 		val1_re, val1_im, val2_re, val2_im,
 		tmp_val1_re, tmp_val1_im, tmp_val2_re, tmp_val2_im, **T_me;
 	Real	sum, diff, discrim, magdet, norm, scale;
-	STATIC MeVEC	*tmp1_re=VNULL, *tmp1_im=VNULL,
+	STATIC VEC	*tmp1_re=VNULL, *tmp1_im=VNULL,
 			*tmp2_re=VNULL, *tmp2_im=VNULL;
 
 	if ( ! T || ! X_re )
@@ -530,10 +530,10 @@ MeMAT	*schur_vecs(MeMAT *T, MeMAT *Q, MeMAT *X_re, MeMAT *X_im)
 	tmp1_im = v_resize(tmp1_im,T->m);
 	tmp2_re = v_resize(tmp2_re,T->m);
 	tmp2_im = v_resize(tmp2_im,T->m);
-	MEM_STAT_REG(tmp1_re,TYPE_MeVEC);
-	MEM_STAT_REG(tmp1_im,TYPE_MeVEC);
-	MEM_STAT_REG(tmp2_re,TYPE_MeVEC);
-	MEM_STAT_REG(tmp2_im,TYPE_MeVEC);
+	MEM_STAT_REG(tmp1_re,TYPE_VEC);
+	MEM_STAT_REG(tmp1_im,TYPE_VEC);
+	MEM_STAT_REG(tmp2_re,TYPE_VEC);
+	MEM_STAT_REG(tmp2_im,TYPE_VEC);
 
 	T_me = T->me;
 	i = 0;

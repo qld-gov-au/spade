@@ -4,10 +4,10 @@
 #include "../parameters.h"
 #include "optim.h"
 
-MeVEC * bfgs(
+VEC * bfgs(
 
-	   MeVEC * (*model)(MeVEC *,MeVEC *,Real *,Parameters *),
-	   MeVEC *x,
+	   VEC * (*model)(VEC *,VEC *,Real *,Parameters *),
+	   VEC *x,
 	   Parameters * parameters,
 	   OptimControl opt
 
@@ -20,16 +20,16 @@ MeVEC * bfgs(
   Real f;
   Real fv;
 
-  MeVEC *s = v_get(n);
-  MeVEC *y = v_get(n);
-  MeVEC *g = v_get(n);
-  MeVEC *p = v_get(n);
-  MeVEC *u = v_get(n);
+  VEC *s = v_get(n);
+  VEC *y = v_get(n);
+  VEC *g = v_get(n);
+  VEC *p = v_get(n);
+  VEC *u = v_get(n);
 
-  MeVEC *oldx = v_get(n);
-  MeVEC *oldg = v_get(n);
+  VEC *oldx = v_get(n);
+  VEC *oldg = v_get(n);
 
-  MeMAT *B = m_get(n,n);
+  MAT *B = m_get(n,n);
 
   m_ident(B);
 
@@ -72,7 +72,7 @@ MeVEC * bfgs(
       mv_mlt(B,g,p);      
       sv_mlt(-1./v_norm2(p),p,p);
 
-      //MeVEC * p_copy = v_get(n);
+      //VEC * p_copy = v_get(n);
       //v_copy(p,p_copy);
       /*
       if (count==0) {      
@@ -87,8 +87,8 @@ MeVEC * bfgs(
 
           Real nfv;
           
-          MeVEC *newx = v_get(n);
-          MeVEC *ptmp = v_get(n);
+          VEC *newx = v_get(n);
+          VEC *ptmp = v_get(n);
           ptmp = sv_mlt(stp,p,ptmp);
           v_add(x,ptmp,newx);         
           
@@ -202,11 +202,11 @@ MeVEC * bfgs(
 
 int cvsrch(
 
-    MeVEC *(*fcn)(MeVEC *,MeVEC *,Real *,Parameters *),
-    MeVEC *x,
+    VEC *(*fcn)(VEC *,VEC *,Real *,Parameters *),
+    VEC *x,
     Real f,
-    MeVEC *gr,
-    MeVEC *sd,
+    VEC *gr,
+    VEC *sd,
     Real stp,
     Real ftol,
     Real gtol,
@@ -387,7 +387,7 @@ int cvsrch(
   Real dgtest = ftol*dginit;
   Real width = stpmax - stpmin;
   Real width1 = 2*width;
-  MeVEC *wa = v_get(x->dim);
+  VEC *wa = v_get(x->dim);
   v_copy(x,wa);
 
   //%     The variables stx, fx, dgx contain the values of the step, 
@@ -450,7 +450,7 @@ int cvsrch(
       //%        and compute the directional derivative.
       //%
 
-      MeVEC *vtmp = v_get(x->dim);
+      VEC *vtmp = v_get(x->dim);
       vtmp = sv_mlt(stp,sd,vtmp);
       v_add(wa,vtmp,x);
       V_FREE(vtmp);
@@ -696,7 +696,7 @@ int cstep(
       info = 1;
       bound = 1;
       theta = 3*((*fx) - fp)/((*stp) - (*stx)) + (*dx) + dp;
-      MeVEC *tmp = v_get(3);
+      VEC *tmp = v_get(3);
       tmp->ve[0] = theta;
       tmp->ve[1] = (*dx);
       tmp->ve[2] = dp;
@@ -728,7 +728,7 @@ int cstep(
       bound = 0;
 
       theta = 3*((*fx) - fp)/((*stp) - (*stx)) + (*dx) + dp;
-      MeVEC *tmp = v_get(3);
+      VEC *tmp = v_get(3);
       tmp->ve[0] = theta;
       tmp->ve[1] = (*dx);
       tmp->ve[2] = dp;
@@ -762,7 +762,7 @@ int cstep(
       bound = 1;
 
       theta = 3*((*fx) - fp)/((*stp) - (*stx)) + (*dx) + dp;
-      MeVEC *tmp = v_get(3);
+      VEC *tmp = v_get(3);
       tmp->ve[0] = theta;
       tmp->ve[1] = (*dx);
       tmp->ve[2] = dp;
@@ -812,7 +812,7 @@ int cstep(
 	{
 
 	  theta = 3*(fp - (*fy))/((*sty) - *stp) + (*dy) + dp;
-	  MeVEC *tmp = v_get(3);
+	  VEC *tmp = v_get(3);
 	  tmp->ve[0] = theta;
 	  tmp->ve[1] = (*dy);
 	  tmp->ve[2] = dp;

@@ -50,7 +50,7 @@ static	char	rcsid[] = "$Id: qrfactor.c,v 1.5 1994/01/13 05:35:07 des Exp $";
 
 #define		sign(x)	((x) > 0.0 ? 1 : ((x) < 0.0 ? -1 : 0 ))
 
-extern	MeVEC	*Usolve();	/* See matrix2.h */
+extern	VEC	*Usolve();	/* See matrix2.h */
 
 /* Note: The usual representation of a Householder transformation is taken
    to be:
@@ -61,16 +61,16 @@ extern	MeVEC	*Usolve();	/* See matrix2.h */
 /* QRfactor -- forms the QR factorisation of A -- factorisation stored in
    compact form as described above ( not quite standard format ) */
 #ifndef ANSI_C
-MeMAT	*QRfactor(A,diag)
-MeMAT	*A;
-MeVEC	*diag;
+MAT	*QRfactor(A,diag)
+MAT	*A;
+VEC	*diag;
 #else
-MeMAT	*QRfactor(MeMAT *A, MeVEC *diag)
+MAT	*QRfactor(MAT *A, VEC *diag)
 #endif
 {
     unsigned int	k,limit;
     Real	beta;
-    STATIC	MeVEC	*hh=VNULL, *w=VNULL;
+    STATIC	VEC	*hh=VNULL, *w=VNULL;
     
     if ( ! A || ! diag )
 	Meerror(E_NULL,"QRfactor");
@@ -80,8 +80,8 @@ MeMAT	*QRfactor(MeMAT *A, MeVEC *diag)
     
     hh = v_resize(hh,A->m);
     w  = v_resize(w, A->n);
-    MEM_STAT_REG(hh,TYPE_MeVEC);
-    MEM_STAT_REG(w, TYPE_MeVEC);
+    MEM_STAT_REG(hh,TYPE_VEC);
+    MEM_STAT_REG(w, TYPE_VEC);
     
     for ( k=0; k<limit; k++ )
     {
@@ -107,16 +107,16 @@ MeMAT	*QRfactor(MeMAT *A, MeVEC *diag)
    -- factorisation stored in compact form as described above
    ( not quite standard format )				*/
 #ifndef ANSI_C
-MeMAT	*QRCPfactor(A,diag,px)
-MeMAT	*A;
-MeVEC	*diag;
+MAT	*QRCPfactor(A,diag,px)
+MAT	*A;
+VEC	*diag;
 PERM	*px;
 #else
-MeMAT	*QRCPfactor(MeMAT *A, MeVEC *diag, PERM *px)
+MAT	*QRCPfactor(MAT *A, VEC *diag, PERM *px)
 #endif
 {
     unsigned int	i, i_MeMemax, j, k, limit;
-    STATIC	MeVEC	*gamma=VNULL, *tmp1=VNULL, *tmp2=VNULL, *w=VNULL;
+    STATIC	VEC	*gamma=VNULL, *tmp1=VNULL, *tmp2=VNULL, *w=VNULL;
     Real	beta, MeMemaxgamma, sum, tmp;
     
     if ( ! A || ! diag || ! px )
@@ -129,10 +129,10 @@ MeMAT	*QRCPfactor(MeMAT *A, MeVEC *diag, PERM *px)
     tmp2 = v_resize(tmp2,A->m);
     gamma = v_resize(gamma,A->n);
     w    = v_resize(w,   A->n);
-    MEM_STAT_REG(tmp1,TYPE_MeVEC);
-    MEM_STAT_REG(tmp2,TYPE_MeVEC);
-    MEM_STAT_REG(gamma,TYPE_MeVEC);
-    MEM_STAT_REG(w,   TYPE_MeVEC);
+    MEM_STAT_REG(tmp1,TYPE_VEC);
+    MEM_STAT_REG(tmp2,TYPE_VEC);
+    MEM_STAT_REG(gamma,TYPE_VEC);
+    MEM_STAT_REG(w,   TYPE_VEC);
     
     /* initialise gamma and px */
     for ( j=0; j<A->n; j++ )
@@ -199,12 +199,12 @@ MeMAT	*QRCPfactor(MeMAT *A, MeVEC *diag, PERM *px)
 /* Qsolve -- solves Qx = b, Q is an orthogonal matrix stored in compact
    form a la QRfactor() -- may be in-situ */
 #ifndef ANSI_C
-MeVEC	*_Qsolve(QR,diag,b,x,tmp)
-MeMAT	*QR;
-MeVEC	*diag, *b, *x, *tmp;
+VEC	*_Qsolve(QR,diag,b,x,tmp)
+MAT	*QR;
+VEC	*diag, *b, *x, *tmp;
 #else
-MeVEC	*_Qsolve(const MeMAT *QR, const MeVEC *diag, const MeVEC *b, 
-		 MeVEC *x, MeVEC *tmp)
+VEC	*_Qsolve(const MAT *QR, const VEC *diag, const VEC *b, 
+		 VEC *x, VEC *tmp)
 #endif
 {
     unsigned int	dynamic;
@@ -244,14 +244,14 @@ MeVEC	*_Qsolve(const MeMAT *QR, const MeVEC *diag, const MeVEC *b,
 /* makeQ -- constructs orthogonal matrix from Householder vectors stored in
    compact QR form */
 #ifndef ANSI_C
-MeMAT	*makeQ(QR,diag,Qout)
-MeMAT	*QR,*Qout;
-MeVEC	*diag;
+MAT	*makeQ(QR,diag,Qout)
+MAT	*QR,*Qout;
+VEC	*diag;
 #else
-MeMAT	*makeQ(const MeMAT *QR,const MeVEC *diag, MeMAT *Qout)
+MAT	*makeQ(const MAT *QR,const VEC *diag, MAT *Qout)
 #endif
 {
-    STATIC	MeVEC	*tmp1=VNULL,*tmp2=VNULL;
+    STATIC	VEC	*tmp1=VNULL,*tmp2=VNULL;
     unsigned int	i, limit;
     Real	beta, r_ii, tmp_val;
     int	j;
@@ -261,13 +261,13 @@ MeMAT	*makeQ(const MeMAT *QR,const MeVEC *diag, MeMAT *Qout)
 	Meerror(E_NULL,"makeQ");
     if ( diag->dim < limit )
 	Meerror(E_SIZES,"makeQ");
-    if ( Qout==(MeMAT *)NULL || Qout->m < QR->m || Qout->n < QR->m )
+    if ( Qout==(MAT *)NULL || Qout->m < QR->m || Qout->n < QR->m )
 	Qout = m_get(QR->m,QR->m);
     
     tmp1 = v_resize(tmp1,QR->m);	/* contains basis vec & columns of Q */
     tmp2 = v_resize(tmp2,QR->m);	/* contains H/holder vectors */
-    MEM_STAT_REG(tmp1,TYPE_MeVEC);
-    MEM_STAT_REG(tmp2,TYPE_MeVEC);
+    MEM_STAT_REG(tmp1,TYPE_VEC);
+    MEM_STAT_REG(tmp2,TYPE_VEC);
     
     for ( i=0; i<QR->m ; i++ )
     {	/* get i-th column of Q */
@@ -302,10 +302,10 @@ MeMAT	*makeQ(const MeMAT *QR,const MeVEC *diag, MeMAT *Qout)
 /* makeR -- constructs upper triangular matrix from QR (compact form)
    -- may be in-situ (all it does is zero the lower 1/2) */
 #ifndef ANSI_C
-MeMAT	*makeR(QR,Rout)
-MeMAT	*QR,*Rout;
+MAT	*makeR(QR,Rout)
+MAT	*QR,*Rout;
 #else
-MeMAT	*makeR(const MeMAT *QR, MeMAT *Rout)
+MAT	*makeR(const MAT *QR, MAT *Rout)
 #endif
 {
     unsigned int	i,j;
@@ -324,15 +324,15 @@ MeMAT	*makeR(const MeMAT *QR, MeMAT *Rout)
 /* QRsolve -- solves the system Q.R.x=b where Q & R are stored in compact form
    -- returns x, which is created if necessary */
 #ifndef ANSI_C
-MeVEC	*QRsolve(QR,diag,b,x)
-MeMAT	*QR;
-MeVEC	*diag /* , *beta */ , *b, *x;
+VEC	*QRsolve(QR,diag,b,x)
+MAT	*QR;
+VEC	*diag /* , *beta */ , *b, *x;
 #else
-MeVEC	*QRsolve(const MeMAT *QR, const MeVEC *diag, const MeVEC *b, MeVEC *x)
+VEC	*QRsolve(const MAT *QR, const VEC *diag, const VEC *b, VEC *x)
 #endif
 {
     int	limit;
-    STATIC	MeVEC	*tmp = VNULL;
+    STATIC	VEC	*tmp = VNULL;
     
     if ( ! QR || ! diag || ! b )
 	Meerror(E_NULL,"QRsolve");
@@ -340,7 +340,7 @@ MeVEC	*QRsolve(const MeMAT *QR, const MeVEC *diag, const MeVEC *b, MeVEC *x)
     if ( diag->dim < limit || b->dim != QR->m )
 	Meerror(E_SIZES,"QRsolve");
     tmp = v_resize(tmp,limit);
-    MEM_STAT_REG(tmp,TYPE_MeVEC);
+    MEM_STAT_REG(tmp,TYPE_VEC);
 
     x = v_resize(x,QR->n);
     _Qsolve(QR,diag,b,x,tmp);
@@ -357,17 +357,17 @@ MeVEC	*QRsolve(const MeMAT *QR, const MeVEC *diag, const MeVEC *b, MeVEC *x)
 /* QRCPsolve -- solves A.x = b where A is factored by QRCPfactor()
    -- assumes that A is in the compact factored form */
 #ifndef ANSI_C
-MeVEC	*QRCPsolve(QR,diag,pivot,b,x)
-MeMAT	*QR;
-MeVEC	*diag;
+VEC	*QRCPsolve(QR,diag,pivot,b,x)
+MAT	*QR;
+VEC	*diag;
 PERM	*pivot;
-MeVEC	*b, *x;
+VEC	*b, *x;
 #else
-MeVEC	*QRCPsolve(const MeMAT *QR, const MeVEC *diag, PERM *pivot,
-		   const MeVEC *b, MeVEC *x)
+VEC	*QRCPsolve(const MAT *QR, const VEC *diag, PERM *pivot,
+		   const VEC *b, VEC *x)
 #endif
 {
-    STATIC	MeVEC	*tmp=VNULL;
+    STATIC	VEC	*tmp=VNULL;
     
     if ( ! QR || ! diag || ! pivot || ! b )
 	Meerror(E_NULL,"QRCPsolve");
@@ -375,7 +375,7 @@ MeVEC	*QRCPsolve(const MeMAT *QR, const MeVEC *diag, PERM *pivot,
 	Meerror(E_SIZES,"QRCPsolve");
     
     tmp = QRsolve(QR,diag,b,tmp);
-    MEM_STAT_REG(tmp,TYPE_MeVEC);
+    MEM_STAT_REG(tmp,TYPE_VEC);
     x = pxinv_vec(pivot,tmp,x);
 
 #ifdef	THREADSAFE
@@ -388,11 +388,11 @@ MeVEC	*QRCPsolve(const MeMAT *QR, const MeVEC *diag, PERM *pivot,
 /* Umlt -- compute out = upper_triang(U).x
 	-- may be in situ */
 #ifndef ANSI_C
-static	MeVEC	*Umlt(U,x,out)
-MeMAT	*U;
-MeVEC	*x, *out;
+static	VEC	*Umlt(U,x,out)
+MAT	*U;
+VEC	*x, *out;
 #else
-static	MeVEC	*Umlt(const MeMAT *U, const MeVEC *x, MeVEC *out)
+static	VEC	*Umlt(const MAT *U, const VEC *x, VEC *out)
 #endif
 {
     int		i, limit;
@@ -412,11 +412,11 @@ static	MeVEC	*Umlt(const MeMAT *U, const MeVEC *x, MeVEC *out)
 
 /* UTmlt -- returns out = upper_triang(U)^T.x */
 #ifndef ANSI_C
-static	MeVEC	*UTmlt(U,x,out)
-MeMAT	*U;
-MeVEC	*x, *out;
+static	VEC	*UTmlt(U,x,out)
+MAT	*U;
+VEC	*x, *out;
 #else
-static	MeVEC	*UTmlt(const MeMAT *U, const MeVEC *x, MeVEC *out)
+static	VEC	*UTmlt(const MAT *U, const VEC *x, VEC *out)
 #endif
 {
     Real	sum;
@@ -443,11 +443,11 @@ static	MeVEC	*UTmlt(const MeMAT *U, const MeVEC *x, MeVEC *out)
 	-- returns sc
 	-- original due to Mike Osborne modified Wed 09th Dec 1992 */
 #ifndef ANSI_C
-MeVEC *QRTsolve(A,diag,c,sc)
-MeMAT *A;
-MeVEC *diag, *c, *sc;
+VEC *QRTsolve(A,diag,c,sc)
+MAT *A;
+VEC *diag, *c, *sc;
 #else
-MeVEC *QRTsolve(const MeMAT *A, const MeVEC *diag, const MeVEC *c, MeVEC *sc)
+VEC *QRTsolve(const MAT *A, const VEC *diag, const VEC *c, VEC *sc)
 #endif
 {
     int		i, j, k, n, p;
@@ -507,12 +507,12 @@ MeVEC *QRTsolve(const MeMAT *A, const MeVEC *diag, const MeVEC *c, MeVEC *sc)
 		matrices factored using QRCPfactor() */
 #ifndef ANSI_C
 double	QRcondest(QR)
-MeMAT	*QR;
+MAT	*QR;
 #else
-double	QRcondest(const MeMAT *QR)
+double	QRcondest(const MAT *QR)
 #endif
 {
-    STATIC	MeVEC	*y=VNULL;
+    STATIC	VEC	*y=VNULL;
     Real	norm1, norm2, sum, tmp1, tmp2;
     int		i, j, limit;
 
@@ -525,7 +525,7 @@ double	QRcondest(const MeMAT *QR)
 	    return HUGE_VAL;
 
     y = v_resize(y,limit);
-    MEM_STAT_REG(y,TYPE_MeVEC);
+    MEM_STAT_REG(y,TYPE_VEC);
     /* use the trick for getting a unit vector y with ||R.y||_inf small
        from the LU condition estimator */
     for ( i = 0; i < limit; i++ )

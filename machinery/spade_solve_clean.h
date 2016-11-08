@@ -5,7 +5,7 @@
 void solve_clean(
 
 		 Parameters * parameters,
-		 MeVEC *eff,
+		 VEC *eff,
 		 Real k,		 
 		 int S,
 		 int Y,

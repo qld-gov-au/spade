@@ -190,10 +190,10 @@ PERM    *pi;
 }
 
 #ifdef SPARSE
-SPMeMAT  *gen_non_symm(m,n)
+SPMAT  *gen_non_symm(m,n)
 int     m, n;
 {
-    SPMeMAT      *A;
+    SPMAT      *A;
     static      PERM    *px = PNULL;
     int         i, j, k, k_MeMemax;
     Real        s1;
@@ -229,11 +229,11 @@ int     m, n;
 void stat_test1(par)
 int par;
 {
-   static MeMAT *AT = MNULL;
-   static MeVEC *xt1 = VNULL, *yt1 = VNULL;
-   static MeVEC *xt2 = VNULL, *yt2 = VNULL;
-   static MeVEC *xt3 = VNULL, *yt3 = VNULL;
-   static MeVEC *xt4 = VNULL, *yt4 = VNULL;
+   static MAT *AT = MNULL;
+   static VEC *xt1 = VNULL, *yt1 = VNULL;
+   static VEC *xt2 = VNULL, *yt2 = VNULL;
+   static VEC *xt3 = VNULL, *yt3 = VNULL;
+   static VEC *xt4 = VNULL, *yt4 = VNULL;
 
    AT = m_resize(AT,10,10);
    xt1 = v_resize(xt1,10);
@@ -245,24 +245,24 @@ int par;
    xt4 = v_resize(xt4,10);
    yt4 = v_resize(yt4,10);
 
-   MEM_STAT_REG(AT,TYPE_MeMAT);
+   MEM_STAT_REG(AT,TYPE_MAT);
 
 #ifdef ANSI_C
-   mem_stat_reg_vars(0,TYPE_MeVEC,__FILE__,__LINE__,&xt1,&xt2,&xt3,&xt4,&yt1,
+   mem_stat_reg_vars(0,TYPE_VEC,__FILE__,__LINE__,&xt1,&xt2,&xt3,&xt4,&yt1,
 		     &yt2,&yt3,&yt4,NULL);
 #else
 #ifdef VARARGS
-   mem_stat_reg_vars(0,TYPE_MeVEC,__FILE__,__LINE__,&xt1,&xt2,&xt3,&xt4,&yt1,
+   mem_stat_reg_vars(0,TYPE_VEC,__FILE__,__LINE__,&xt1,&xt2,&xt3,&xt4,&yt1,
 		     &yt2,&yt3,&yt4,NULL);
 #else
-   MEM_STAT_REG(xt1,TYPE_MeVEC);
-   MEM_STAT_REG(yt1,TYPE_MeVEC);
-   MEM_STAT_REG(xt2,TYPE_MeVEC);
-   MEM_STAT_REG(yt2,TYPE_MeVEC);
-   MEM_STAT_REG(xt3,TYPE_MeVEC);
-   MEM_STAT_REG(yt3,TYPE_MeVEC);
-   MEM_STAT_REG(xt4,TYPE_MeVEC);
-   MEM_STAT_REG(yt4,TYPE_MeVEC);
+   MEM_STAT_REG(xt1,TYPE_VEC);
+   MEM_STAT_REG(yt1,TYPE_VEC);
+   MEM_STAT_REG(xt2,TYPE_VEC);
+   MEM_STAT_REG(yt2,TYPE_VEC);
+   MEM_STAT_REG(xt3,TYPE_VEC);
+   MEM_STAT_REG(yt3,TYPE_VEC);
+   MEM_STAT_REG(xt4,TYPE_VEC);
+   MEM_STAT_REG(yt4,TYPE_VEC);
 #endif
 #endif
 
@@ -277,15 +277,15 @@ void stat_test2(par)
 int par;
 {
    static PERM *px = PNULL;
-   static IMeVEC *ixt = IVNULL, *iyt = IVNULL;
+   static IVEC *ixt = IVNULL, *iyt = IVNULL;
    
    px = px_resize(px,10);
    ixt = iv_resize(ixt,10);
    iyt = iv_resize(iyt,10);
 
    MEM_STAT_REG(px,TYPE_PERM);
-   MEM_STAT_REG(ixt,TYPE_IMeVEC);
-   MEM_STAT_REG(iyt,TYPE_IMeVEC);
+   MEM_STAT_REG(ixt,TYPE_IVEC);
+   MEM_STAT_REG(iyt,TYPE_IVEC);
 
    px_rand(px);
    px_inv(px,px);
@@ -295,11 +295,11 @@ int par;
 void stat_test3(par)
 int par;
 {
-   static SPMeMAT *AT = (SPMeMAT *)NULL;
-   static MeVEC *xt = VNULL, *yt = VNULL;
+   static SPMAT *AT = (SPMAT *)NULL;
+   static VEC *xt = VNULL, *yt = VNULL;
    static SPROW *r = (SPROW *) NULL;
    
-   if (AT == (SPMeMAT *)NULL)
+   if (AT == (SPMAT *)NULL)
      AT = gen_non_symm(100,100);
    else
      AT = sp_resize(AT,100,100);
@@ -307,9 +307,9 @@ int par;
    yt = v_resize(yt,100);
    if (r == NULL) r = sprow_get(100);
 
-   MEM_STAT_REG(AT,TYPE_SPMeMAT);
-   MEM_STAT_REG(xt,TYPE_MeVEC);
-   MEM_STAT_REG(yt,TYPE_MeVEC);
+   MEM_STAT_REG(AT,TYPE_SPMAT);
+   MEM_STAT_REG(xt,TYPE_VEC);
+   MEM_STAT_REG(yt,TYPE_VEC);
    MEM_STAT_REG(r,TYPE_SPROW);
 
    v_rand(xt);
@@ -322,16 +322,16 @@ int par;
 void stat_test4(par)
 int par;
 {
-   static ZMeMAT *AT = ZMNULL;
-   static ZMeVEC *xt = ZVNULL, *yt = ZVNULL;
+   static ZMAT *AT = ZMNULL;
+   static ZVEC *xt = ZVNULL, *yt = ZVNULL;
    
    AT = zm_resize(AT,10,10);
    xt = zv_resize(xt,10);
    yt = zv_resize(yt,10);
 
-   MEM_STAT_REG(AT,TYPE_ZMeMAT);
-   MEM_STAT_REG(xt,TYPE_ZMeVEC);
-   MEM_STAT_REG(yt,TYPE_ZMeVEC);
+   MEM_STAT_REG(AT,TYPE_ZMAT);
+   MEM_STAT_REG(xt,TYPE_ZVEC);
+   MEM_STAT_REG(yt,TYPE_ZVEC);
 
    zv_rand(xt);
    zm_rand(AT);
@@ -345,19 +345,19 @@ void main(argc, argv)
 int     argc;
 char    *argv[];
 {
-   MeVEC  *x = VNULL, *y = VNULL, *z = VNULL;
+   VEC  *x = VNULL, *y = VNULL, *z = VNULL;
    PERM  *pi1 = PNULL, *pi2 = PNULL, *pi3 = PNULL;
-   MeMAT   *A = MNULL, *B = MNULL, *C = MNULL;
+   MAT   *A = MNULL, *B = MNULL, *C = MNULL;
 #ifdef SPARSE
-   SPMeMAT *sA, *sB;
+   SPMAT *sA, *sB;
    SPROW *r;
 #endif
-   IMeVEC *ix = IVNULL, *iy = IVNULL, *iz = IVNULL;
+   IVEC *ix = IVNULL, *iy = IVNULL, *iz = IVNULL;
    int m,n,i,j,deg,k;
    Real s1,s2;
 #ifdef COMPLEX
-   ZMeVEC        *zx = ZVNULL, *zy = ZVNULL, *zz = ZVNULL;
-   ZMeMAT        *zA = ZMNULL, *zB = ZMNULL, *zC = ZMNULL;
+   ZVEC        *zx = ZVNULL, *zy = ZVNULL, *zz = ZVNULL;
+   ZMAT        *zA = ZMNULL, *zB = ZMNULL, *zC = ZMNULL;
    complex     ONE;
 #endif
    /* variables for testing attaching new lists of types  */
@@ -371,7 +371,7 @@ char    *argv[];
 
    notice("vector initialize, copy & resize");
    
-   n = v_get_vars(15,&x,&y,&z,(MeVEC **)NULL);
+   n = v_get_vars(15,&x,&y,&z,(VEC **)NULL);
    if (n != 3) {
       errmesg("v_get_vars");
       printf(" n = %d (should be 3)\n",n);
@@ -385,17 +385,17 @@ char    *argv[];
    v_copy(x,y);
    n = v_resize_vars(10,&x,&y,&z,NULL);
    if ( n != 3 || v_norm2(v_sub(x,y,z)) >= MACHEPS )
-     errmesg("MeVEC copy/resize");
+     errmesg("VEC copy/resize");
 
    n = v_resize_vars(20,&x,&y,&z,NULL);
    if ( n != 3 || v_norm2(v_sub(x,y,z)) >= MACHEPS )
-     errmesg("MeVEC resize"); 
+     errmesg("VEC resize"); 
 
    n = v_free_vars(&x,&y,&z,NULL);
    if (n != 3)
      errmesg("v_free_vars");
    
-   /* IMeVEC */
+   /* IVEC */
    notice("int vector initialise, copy & resize");
    n = iv_get_vars(15,&ix,&iy,&iz,NULL);
 
@@ -413,26 +413,26 @@ char    *argv[];
        errmesg("iv_get_vars");
    
    n = iv_resize_vars(10,&ix,&iy,&iz,NULL);
-   if ( n != 3) errmesg("IMeVEC copy/resize");
+   if ( n != 3) errmesg("IVEC copy/resize");
    
    iv_add(ix,iy,iz);
    for (i=0; i < ix->dim; i++)
      if (iz->ive[i] != 5*i+1)
-       errmesg("IMeVEC copy/resize");
+       errmesg("IVEC copy/resize");
    
    n = iv_resize_vars(20,&ix,&iy,&iz,NULL);
-   if ( n != 3 ) errmesg("IMeVEC resize");
+   if ( n != 3 ) errmesg("IVEC resize");
    
    iv_add(ix,iy,iz);
    for (i=0; i < 10; i++)
      if (iz->ive[i] != 5*i+1)
-       errmesg("IMeVEC copy/resize");
+       errmesg("IVEC copy/resize");
    
    n = iv_free_vars(&ix,&iy,&iz,NULL);
    if (n != 3) 
      errmesg("iv_free_vars");
    
-   /* MeMAT */
+   /* MAT */
    notice("matrix initialise, copy & resize");
    n = m_get_vars(10,10,&A,&B,&C,NULL);
    if (n != 3) {
@@ -444,19 +444,19 @@ char    *argv[];
    m_rand(B);
    C = m_copy(A,C);
    if ( m_norm_inf(m_sub(A,C,C)) >= MACHEPS )
-     errmesg("MeMAT copy");
+     errmesg("MAT copy");
    m_copy(A,B);
    n = m_resize_vars(5,5,&A,&B,&C,NULL);
    if ( n != 3 || m_norm_inf(m_sub(A,B,C)) >= MACHEPS )
-     errmesg("MeMAT copy/resize");
+     errmesg("MAT copy/resize");
    
    n = m_resize_vars(20,20,&A,&B,NULL);
    if ( m_norm_inf(m_sub(A,B,C)) >= MACHEPS )
-     errmesg("MeMAT resize"); 
+     errmesg("MAT resize"); 
    
    k = m_free_vars(&A,&B,&C,NULL);
    if ( k != 3 )
-     errmesg("MeMAT free");
+     errmesg("MAT free");
    
    /* PERM */
    notice("permutation initialise, inverting & permuting vectors");
@@ -587,7 +587,7 @@ char    *argv[];
    printf("# ONE = "); z_output(ONE);
    printf("# Check: MACHEPS = %g\n",MACHEPS);
    /* allocate, initialise, copy and resize operations */
-   /* ZMeVEC */
+   /* ZVEC */
    notice("vector initialise, copy & resize");
    zv_get_vars(12,&zx,&zy,&zz,NULL);
    
@@ -595,12 +595,12 @@ char    *argv[];
    zv_rand(zy);
    zz = zv_copy(zx,zz);
    if ( zv_norm2(zv_sub(zx,zz,zz)) >= MACHEPS )
-     errmesg("ZMeVEC copy");
+     errmesg("ZVEC copy");
    zv_copy(zx,zy);
    
    zv_resize_vars(10,&zx,&zy,NULL);
    if ( zv_norm2(zv_sub(zx,zy,zz)) >= MACHEPS )
-     errmesg("ZMeVEC copy/resize");
+     errmesg("ZVEC copy/resize");
    
    zv_resize_vars(20,&zx,&zy,NULL);
    if ( zv_norm2(zv_sub(zx,zy,zz)) >= MACHEPS )
@@ -608,7 +608,7 @@ char    *argv[];
    zv_free_vars(&zx,&zy,&zz,NULL);
 
    
-   /* ZMeMAT */
+   /* ZMAT */
    notice("matrix initialise, copy & resize");
    zm_get_vars(8,5,&zA,&zB,&zC,NULL);
    
@@ -616,17 +616,17 @@ char    *argv[];
    zm_rand(zB);
    zC = zm_copy(zA,zC);
    if ( zm_norm_inf(zm_sub(zA,zC,zC)) >= MACHEPS )
-     errmesg("ZMeMAT copy");
+     errmesg("ZMAT copy");
    
    zm_copy(zA,zB);
    zm_resize_vars(3,5,&zA,&zB,&zC,NULL);
    
    if ( zm_norm_inf(zm_sub(zA,zB,zC)) >= MACHEPS )
-     errmesg("ZMeMAT copy/resize");
+     errmesg("ZMAT copy/resize");
    zm_resize_vars(20,20,&zA,&zB,&zC,NULL);
    
    if ( zm_norm_inf(zm_sub(zA,zB,zC)) >= MACHEPS )
-     errmesg("ZMeMAT resize");
+     errmesg("ZMAT resize");
    
    zm_free_vars(&zA,&zB,&zC,NULL);
 #endif /* COMPLEX */
@@ -634,8 +634,8 @@ char    *argv[];
 #endif  /* if defined(ANSI_C) || defined(VARARGS) */
 
    printf("# test of mem_info_bytes and mem_info_numvar\n");
-   printf("  TYPE MeVEC: %ld bytes allocated, %d variables allocated\n",
-	  mem_info_bytes(TYPE_MeVEC,0),mem_info_numvar(TYPE_MeVEC,0));
+   printf("  TYPE VEC: %ld bytes allocated, %d variables allocated\n",
+	  mem_info_bytes(TYPE_VEC,0),mem_info_numvar(TYPE_VEC,0));
 
    notice("static memory test");
    mem_info_on(TRUE);
@@ -745,9 +745,9 @@ char    *argv[];
 
    printf("# you should get: \n");
 #if (REAL == FLOAT)
-     printf("#   type MeVEC: 276 bytes allocated, 3 variables allocated\n");
+     printf("#   type VEC: 276 bytes allocated, 3 variables allocated\n");
 #elif (REAL == DOUBLE)
-     printf("#   type MeVEC: 516 bytes allocated, 3 variables allocated\n");
+     printf("#   type VEC: 516 bytes allocated, 3 variables allocated\n");
 #endif
    printf("#   and other types are zeros\n");
 

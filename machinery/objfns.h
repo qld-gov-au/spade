@@ -47,9 +47,9 @@ Real K_dr(
 
 Real G(
 
-	 MeMAT *p,
-	 MeMAT *x,
-	 MeMAT *u,
+	 MAT *p,
+	 MAT *x,
+	 MAT *u,
 	 Data *data,
 	 Real iota
 	
@@ -57,9 +57,9 @@ Real G(
 
 Real G_ni(
 
-	    MeMAT *p,
-	    MeMAT *x,
-	    MeMAT *u,
+	    MAT *p,
+	    MAT *x,
+	    MAT *u,
 	    Data *data,
 	    Real iota
 

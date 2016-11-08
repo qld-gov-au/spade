@@ -40,16 +40,16 @@ static	char	rcsid[] = "$Id: chfactor.c,v 1.2 1994/01/13 05:36:36 des Exp $";
 
 /* CHfactor -- Cholesky L.L' factorisation of A in-situ */
 #ifndef ANSI_C
-MeMAT	*CHfactor(A)
-MeMAT	*A;
+MAT	*CHfactor(A)
+MAT	*A;
 #else
-MeMAT	*CHfactor(MeMAT *A)
+MAT	*CHfactor(MAT *A)
 #endif
 {
 	unsigned int	i, j, k, n;
 	Real	**A_ent, *A_piv, *A_row, sum, tmp;
 
-	if ( A==(MeMAT *)NULL )
+	if ( A==(MAT *)NULL )
 		Meerror(E_NULL,"CHfactor");
 	if ( A->m != A->n )
 		Meerror(E_SQUARE,"CHfactor");
@@ -92,11 +92,11 @@ MeMAT	*CHfactor(MeMAT *A)
 
 /* CHsolve -- given a CHolesky factorisation in A, solve A.x=b */
 #ifndef ANSI_C
-MeVEC	*CHsolve(A,b,x)
-MeMAT	*A;
-MeVEC	*b,*x;
+VEC	*CHsolve(A,b,x)
+MAT	*A;
+VEC	*b,*x;
 #else
-MeVEC	*CHsolve(const MeMAT *A, const MeVEC *b, MeVEC *x)
+VEC	*CHsolve(const MAT *A, const VEC *b, VEC *x)
 #endif
 {
 	if ( A==MNULL || b==VNULL )
@@ -112,16 +112,16 @@ MeVEC	*CHsolve(const MeMAT *A, const MeVEC *b, MeVEC *x)
 
 /* LDLfactor -- L.D.L' factorisation of A in-situ */
 #ifndef ANSI_C
-MeMAT	*LDLfactor(A)
-MeMAT	*A;
+MAT	*LDLfactor(A)
+MAT	*A;
 #else
-MeMAT	*LDLfactor(MeMAT *A)
+MAT	*LDLfactor(MAT *A)
 #endif
 {
 	unsigned int	i, k, n, p;
 	Real	**A_ent;
 	Real d, sum;
-	STATIC MeVEC	*r = VNULL;
+	STATIC VEC	*r = VNULL;
 
 	if ( ! A )
 		Meerror(E_NULL,"LDLfactor");
@@ -129,7 +129,7 @@ MeMAT	*LDLfactor(MeMAT *A)
 		Meerror(E_SQUARE,"LDLfactor");
 	n = A->n;	A_ent = A->me;
 	r = v_resize(r,n);
-	MEM_STAT_REG(r,TYPE_MeVEC);
+	MEM_STAT_REG(r,TYPE_VEC);
 
 	for ( k = 0; k < n; k++ )
 	{
@@ -165,11 +165,11 @@ MeMAT	*LDLfactor(MeMAT *A)
 /* LDLsolve -- solves linear system A.x = b with A factored by LDLfactor()
    -- returns x, which is created if it is NULL on entry */
 #ifndef ANSI_C
-MeVEC	*LDLsolve(LDL,b,x)
-MeMAT	*LDL;
-MeVEC	*b, *x;
+VEC	*LDLsolve(LDL,b,x)
+MAT	*LDL;
+VEC	*b, *x;
 #else
-MeVEC	*LDLsolve(const MeMAT *LDL, const MeVEC *b, MeVEC *x)
+VEC	*LDLsolve(const MAT *LDL, const VEC *b, VEC *x)
 #endif
 {
 	if ( ! LDL || ! b )
@@ -189,17 +189,17 @@ MeVEC	*LDLsolve(const MeMAT *LDL, const MeVEC *b, MeVEC *x)
 
 /* MCHfactor -- Modified Cholesky L.L' factorisation of A in-situ */
 #ifndef ANSI_C
-MeMAT	*MCHfactor(A,tol)
-MeMAT	*A;
+MAT	*MCHfactor(A,tol)
+MAT	*A;
 double  tol;
 #else
-MeMAT	*MCHfactor(MeMAT *A, double tol)
+MAT	*MCHfactor(MAT *A, double tol)
 #endif
 {
 	unsigned int	i, j, k, n;
 	Real	**A_ent, *A_piv, *A_row, sum, tmp;
 
-	if ( A==(MeMAT *)NULL )
+	if ( A==(MAT *)NULL )
 		Meerror(E_NULL,"MCHfactor");
 	if ( A->m != A->n )
 		Meerror(E_SQUARE,"MCHfactor");

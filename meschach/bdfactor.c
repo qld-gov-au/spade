@@ -201,11 +201,11 @@ BAND *bd_copy(const BAND *A, BAND *B)
 
 /* copy band matrix bA to a Mesquare matrix A returning A */
 #ifndef ANSI_C
-MeMAT *band2mat(bA,A)
+MAT *band2mat(bA,A)
 BAND *bA;
-MeMAT *A;
+MAT *A;
 #else
-MeMAT *band2mat(const BAND *bA, MeMAT *A)
+MAT *band2mat(const BAND *bA, MAT *A)
 #endif
 {
    int i,j,l,n,n1;
@@ -238,10 +238,10 @@ MeMAT *band2mat(const BAND *bA, MeMAT *A)
 #ifndef ANSI_C
 BAND *mat2band(A,lb,ub,bA)
 BAND *bA;
-MeMAT *A;
+MAT *A;
 int lb, ub;
 #else
-BAND *mat2band(const MeMAT *A, int lb, int ub,BAND *bA)
+BAND *mat2band(const MAT *A, int lb, int ub,BAND *bA)
 #endif
 {
    int i, j, l, n1;
@@ -284,7 +284,7 @@ BAND *bd_transp(const BAND *in, BAND *out)
    int in_situ;
    Real  **in_v, **out_v;
    
-   if ( in == (BAND *)NULL || in->mat == (MeMAT *)NULL )
+   if ( in == (BAND *)NULL || in->mat == (MAT *)NULL )
      Meerror(E_NULL,"bd_transp");
 
    lb = in->lb;
@@ -380,14 +380,14 @@ BAND *bd_transp(const BAND *in, BAND *out)
    -- if y is NULL then create y (as zero vector)
    -- Meerror if either A or x is NULL */
 #ifndef ANSI_C
-MeVEC	*bdv_mltadd(x,y,bA,s,out)
+VEC	*bdv_mltadd(x,y,bA,s,out)
      BAND	*bA;
-     MeVEC	*x, *y;
+     VEC	*x, *y;
      double	s;
-     MeVEC *out;
+     VEC *out;
 #else
-MeVEC	*bdv_mltadd(const MeVEC *x, const MeVEC *y, const BAND *bA,
-		    double s, MeVEC *out)
+VEC	*bdv_mltadd(const VEC *x, const VEC *y, const BAND *bA,
+		    double s, VEC *out)
 #endif
 {
   int	i, j;
@@ -412,14 +412,14 @@ MeVEC	*bdv_mltadd(const MeVEC *x, const MeVEC *y, const BAND *bA,
    -- if out is NULL then create out (as zero vector)
    -- Meerror if either bA or x is NULL */
 #ifndef ANSI_C
-MeVEC	*vbd_mltadd(x,y,bA,s,out)
+VEC	*vbd_mltadd(x,y,bA,s,out)
      BAND	*bA;
-     MeVEC	*x, *y;
+     VEC	*x, *y;
      double	s;
-     MeVEC *out;
+     VEC *out;
 #else
-MeVEC	*vbd_mltadd(const MeVEC *x, const MeVEC *y, const BAND *bA,
-		    double s, MeVEC *out)
+VEC	*vbd_mltadd(const VEC *x, const VEC *y, const BAND *bA,
+		    double s, VEC *out)
 #endif
 {
   int	i, j;
@@ -600,19 +600,19 @@ BAND	*bdLUfactor(BAND *bA, PERM *pivot)
 /* bdLUsolve -- given an LU factorisation in bA, solve bA*x=b */
 /* pivot is changed upon return  */
 #ifndef ANSI_C
-MeVEC	*bdLUsolve(bA,pivot,b,x)
+VEC	*bdLUsolve(bA,pivot,b,x)
 BAND	*bA;
 PERM	*pivot;
-MeVEC	*b,*x;
+VEC	*b,*x;
 #else
-MeVEC	*bdLUsolve(const BAND *bA, PERM *pivot, const MeVEC *b, MeVEC *x)
+VEC	*bdLUsolve(const BAND *bA, PERM *pivot, const VEC *b, VEC *x)
 #endif
 {
    int i,j,l,n,n1,pi,lb,ub,jMemin, MeMemaxj;
    Real c;
    Real **bA_v;
 
-   if ( bA==(BAND *)NULL || b==(MeVEC *)NULL || pivot==(PERM *)NULL )
+   if ( bA==(BAND *)NULL || b==(VEC *)NULL || pivot==(PERM *)NULL )
      Meerror(E_NULL,"bdLUsolve");
    if ( bA->mat->n != b->dim || bA->mat->n != pivot->size)
      Meerror(E_SIZES,"bdLUsolve");
@@ -712,11 +712,11 @@ BAND *bdLDLfactor(BAND *A)
 /* solve A*x = b, where A is factorized by 
    Choleski LDL^T factorization */
 #ifndef ANSI_C
-MeVEC    *bdLDLsolve(A,b,x)
+VEC    *bdLDLsolve(A,b,x)
 BAND   *A;
-MeVEC    *b, *x;
+VEC    *b, *x;
 #else
-MeVEC    *bdLDLsolve(const BAND *A, const MeVEC *b, MeVEC *x)
+VEC    *bdLDLsolve(const BAND *A, const VEC *b, VEC *x)
 #endif
 {
    int i,j,l,n,n1,lb,ilb;
@@ -774,9 +774,9 @@ MeVEC    *bdLDLsolve(const BAND *A, const MeVEC *b, MeVEC *x)
  *   may not work in situ (x != out)
  */
 
-MeVEC *bd_mv_mlt(A, x, out)
+VEC *bd_mv_mlt(A, x, out)
 BAND *A;
-MeVEC *x, *out;
+VEC *x, *out;
 {
   int i, j, j_end, k;
   int start_idx, end_idx;

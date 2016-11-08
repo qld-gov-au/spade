@@ -8,9 +8,9 @@ void Q2_omega(
 	      Real a,
 	      Real k,
 	      Real w,
-	      MeVEC *x,
-	      MeVEC *u,
-	      MeVEC *p
+	      VEC *x,
+	      VEC *u,
+	      VEC *p
 
 	      );
 

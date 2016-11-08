@@ -26,7 +26,7 @@
 
 /*
 	File for doing assorted I/O operations not invlolving
-	MeMAT/MeVEC/PERM objects
+	MAT/VEC/PERM objects
 */
 static	char	rcsid[] = "$Id: otherio.c,v 1.2 1994/01/13 05:34:52 des Exp $";
 
@@ -106,7 +106,7 @@ int	fin_int(FILE *fp, const char *s, int low, int high)
 		if ( (retcode=fscanf(fp,"%d",&x)) == EOF )
 			Meerror(E_INPUT,"fin_int");
 		if ( retcode <= 0 )
-			Meerror(E_FORMeMAT,"fin_int");
+			Meerror(E_FORMAT,"fin_int");
 		if ( low <= high && ( x < low || x > high ) )
 			Meerror(E_BOUNDS,"fin_int");
 		return x;
@@ -155,7 +155,7 @@ double	fin_double(FILE *fp, const char *s, double low, double high)
 #endif
 			Meerror(E_INPUT,"fin_double");
 		if ( retcode <= 0 )
-			Meerror(E_FORMeMAT,"fin_double");
+			Meerror(E_FORMAT,"fin_double");
 		if ( low <= high && ( x < low || x > high ) )
 			Meerror(E_BOUNDS,"fin_double");
 		return (double)x;

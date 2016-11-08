@@ -43,11 +43,11 @@ static	char	rcsid[] = "$Id: spswap.c,v 1.3 1994/01/13 05:44:43 des Exp $";
 	column with row # <= MeMemax_row, if any */
 #ifndef ANSI_C
 void	scan_to(A, scan_row, scan_idx, col_list, MeMemax_row)
-SPMeMAT	*A;
-IMeVEC	*scan_row, *scan_idx, *col_list;
+SPMAT	*A;
+IVEC	*scan_row, *scan_idx, *col_list;
 int	MeMemax_row;
 #else
-void	scan_to(SPMeMAT *A, IMeVEC *scan_row, IMeVEC *scan_idx, IMeVEC *col_list, 
+void	scan_to(SPMAT *A, IVEC *scan_row, IVEC *scan_idx, IVEC *col_list, 
 		int MeMemax_row)
 #endif
 {
@@ -110,10 +110,10 @@ void	scan_to(SPMeMAT *A, IMeVEC *scan_row, IMeVEC *scan_idx, IMeVEC *col_list,
 /* patch_col -- patches column access paths for fill-in */
 #ifndef ANSI_C
 void patch_col(A, col, old_row, old_idx, row_num, idx)
-SPMeMAT	*A;
+SPMAT	*A;
 int	col, old_row, old_idx, row_num, idx;
 #else
-void patch_col(SPMeMAT *A, int col, int old_row, int old_idx, int row_num, 
+void patch_col(SPMAT *A, int col, int old_row, int old_idx, int row_num, 
 	       int idx)
 #endif
 {
@@ -142,10 +142,10 @@ void patch_col(SPMeMAT *A, int col, int old_row, int old_idx, int row_num,
    nxt_idx fields) are set up */
 #ifndef ANSI_C
 row_elt *chase_col(A, col, row_num, idx, MeMemax_row)
-SPMeMAT	*A;
+SPMAT	*A;
 int	col, *row_num, *idx, MeMemax_row;
 #else
-row_elt *chase_col(const SPMeMAT *A, int col, int *row_num, int *idx, 
+row_elt *chase_col(const SPMAT *A, int col, int *row_num, int *idx, 
 		   int MeMemax_row)
 #endif
 {
@@ -223,10 +223,10 @@ row_elt *chase_col(const SPMeMAT *A, int col, int *row_num, int *idx,
 	row whose row # >= Memin_row; -1 indicates no such row */
 #ifndef ANSI_C
 row_elt *chase_past(A, col, row_num, idx, Memin_row)
-SPMeMAT	*A;
+SPMAT	*A;
 int	col, *row_num, *idx, Memin_row;
 #else
-row_elt *chase_past(const SPMeMAT *A, int col, int *row_num, int *idx, 
+row_elt *chase_past(const SPMAT *A, int col, int *row_num, int *idx, 
 		    int Memin_row)
 #endif
 {
@@ -276,10 +276,10 @@ row_elt *chase_past(const SPMeMAT *A, int col, int *row_num, int *idx,
 	-- update row_num and idx */
 #ifndef ANSI_C
 row_elt *bump_col(A, col, row_num, idx)
-SPMeMAT	*A;
+SPMAT	*A;
 int	col, *row_num, *idx;
 #else
-row_elt *bump_col(const SPMeMAT *A, int col, int *row_num, int *idx)
+row_elt *bump_col(const SPMAT *A, int col, int *row_num, int *idx)
 #endif
 {
     SPROW	*r;
