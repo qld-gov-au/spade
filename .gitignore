@@ -21,3 +21,16 @@ plot*.pdf
 vgcore.*
 *.txt
 *.toc
+*.bar
+*.obj
+*.pin
+*.std
+*.pin
+*.tmp
+*.cor
+*.old
+*.par
+*.eva
+*.cov
+*.dep
+*.hes
