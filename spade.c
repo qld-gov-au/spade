@@ -50,18 +50,23 @@
 #include "util/util.h"
 //}
 
-Real iota1=5.2;
-Real iota2=0.619;
-Real phi=17;
-Real eta1=1.703205e-5;
-Real eta2=2.9526;
+Real iota1;//=5.2;
+Real iota2;//=0.619;
+Real phi;//=17;
+Real eta1;//=1.703205e-5;
+Real eta2;//=2.9526;
 
 int interactive_mode_requested = 0;
+
+Real A1=0;
+Real A2=0;
 
 int J;
 Real h;
 Da d;
 Real k;
+
+int *idx;
 
 int feenableexcept(int);
 
@@ -568,7 +573,7 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  data_read(data_file_name);
+  data_read_fast(data_file_name);
 
   // Read optim options
   OptimControl optim;
@@ -580,11 +585,11 @@ int main(int argc, char *argv[])
   Parameters parameters =
     {
 
-    alpha1 : { grad : &grad_alpha1, value: 0, active: 0, gradient: 0, name: "alpha1" },
-    alpha2 : { grad : &grad_alpha2, value: 0, active: 0, gradient: 0, name: "alpha2" },
-    beta : { grad : &grad_beta, value: 0, active: 0, gradient: 0, name : "beta",  },
-    gamma : { grad : &grad_gamma, value: 0, active: 0, gradient: 0, name : "gamma", },
-    iota : { grad : &grad_iota, value: 0, active: 0, gradient: 0, name : "iota"},
+    alpha1 : { grad : &grad_alpha1_fast, value: 0, active: 0, gradient: 0, name: "alpha1" },
+    alpha2 : { grad : &grad_alpha2_fast, value: 0, active: 0, gradient: 0, name: "alpha2" },
+    beta : { grad : &grad_beta_fast, value: 0, active: 0, gradient: 0, name : "beta",  },
+    gamma : { grad : &grad_gamma_fast, value: 0, active: 0, gradient: 0, name : "gamma", },
+    iota : { grad : &grad_iota_fast, value: 0, active: 0, gradient: 0, name : "iota"},
     kappa : { grad : &grad_kappa, value: 0, active: 0, gradient: 0,name : "kappa" },
     omega : { grad : &grad_omega, value: 0, active: 0, gradient: 0, name : "omega"}
 
@@ -601,6 +606,7 @@ int main(int argc, char *argv[])
   parameters.parameter[5] = &parameters.kappa;
   parameters.parameter[6] = &parameters.omega;
   parameters.count = PARAMETER_COUNT;
+  parameters.ff = 0;
 
   // Read all parameter values from the command line.
   if(!parameters_read(&parameters, argc, argv)) {
@@ -608,21 +614,23 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
+  //0x847cf0
+  
   MeVEC *theta = parameters_to_vec(&parameters);
 
-  h = parameters.omega.value / (d.J-d.I);
+  //h = parameters.omega.value / (d.J-d.I);
+  h = parameters.omega.value / d.J;
 
   char labbuffer[10];
   sprintf(labbuffer,"before");
-  plot(&parameters,labbuffer);
-  exit(1);
+  //plot_fast(&parameters,labbuffer);
   
   theta = bfgs(_VMGMM,theta,&parameters,optim);
 
   char labbuffer2[10];
   sprintf(labbuffer2,"after");
-  //plot(&parameters,&data,labbuffer2);
-  
+  //plot_fast(&parameters,labbuffer2);
+
   //mp.computations(argc,argv,_VMGMM,theta,&parameters);
 
   /* 
