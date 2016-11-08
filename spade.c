@@ -60,6 +60,7 @@ int pt,new_pt;
 int WindWidth, WindHeight;
 int window;
 
+
 double curvature0(
 		 double x,
 		 void *param
@@ -75,6 +76,35 @@ double curvature0(
 }
 	       
 
+double distance(
+
+		gsl_vector *x,
+		void *param
+
+		)
+
+{
+
+  double d0 = gsl_vector_get(x,0);
+  double dd0 = gsl_vector_get(x,1);
+  double ddN = gsl_vector_get(x,2);
+
+  lb->ve[N+N-1+N-1+N-1+2] = ddN;
+  lb->ve[N+N-1+N-1+N-1+1] = dd0;
+  lb->ve[N+N-1+N-1+N-1] = d0;
+
+  lx = LUsolve(LU,pivot,lb,VNULL);
+  
+  double dist=0;
+  
+  for (int i=0;i<N;i++)
+    for (int j=0;j<100;j++)
+      dist += pow(effort[i] - lx->ve[i*4] + lx->ve[i*4+1]*(i+j/100.0) + lx->ve[i*4+2]*pow((i+j/100.0),2.0) + lx->ve[i*4+3] * pow((i+j/100.0),3.0) , 2.0);
+
+  return dist;
+
+}
+
 void process_Normal_Keys(int key, int x, int y) 
 {
      switch (key) 
@@ -82,8 +112,10 @@ void process_Normal_Keys(int key, int x, int y)
        case 27 :      break;
        case 100 :
 
+	 status = gsl_multimin_fminimizer_iterate(s);
+	 
 	 printf("GLUT_KEY_LEFT %d\n",key);
-
+	 /*
 	 thingy += .1;
 	 
 	 lb->ve[N+N-1+N-1+N-1+2] = thingy;
@@ -91,6 +123,7 @@ void process_Normal_Keys(int key, int x, int y)
 	 lx = LUsolve(LU,pivot,lb,VNULL);
 
 	 //         v_output(lx);
+	 */
 	 
 	 glutPostRedisplay();
 	 
@@ -155,7 +188,6 @@ void display(void)
   glBegin(GL_POINTS);
   
   glColor3f(0.0f,1.0f,0.0f);
-
 
   for (int i=0;i<N;i++)
     {
@@ -327,8 +359,7 @@ int main(int argc, char *argv[])
     }
 
   for (int i=0;i<N-1;i++)
-    {
-
+    { 
       A->me[N+N-1+N-1+i][i*4 + 2] = 2;
       A->me[N+N-1+N-1+i][i*4 + 3] = 6*(i+1);
       A->me[N+N-1+N-1+i][i*4 + 6] = -2;
@@ -352,7 +383,6 @@ int main(int argc, char *argv[])
   pivot = px_get(A->m);
   LUfactor(LU,pivot);
 
-  
   lx = LUsolve(LU,pivot,lb,VNULL);
 
   v_output(lx);
@@ -363,6 +393,23 @@ int main(int argc, char *argv[])
 
   s = NULL;
 
+  // Set initial step sizes to 0.1 
+  ss = gsl_vector_alloc (3);
+  gsl_vector_set_all (ss, 0.1);
+
+  minex.n = 3;
+  minex.f = &distance;
+  minex.params = NULL;
+
+  qq = gsl_vector_alloc (3);
+  gsl_vector_set (qq, 0, 0);
+  gsl_vector_set (qq, 1, 0);
+  gsl_vector_set (qq, 2, 0);
+  
+  s = gsl_multimin_fminimizer_alloc(T,3);
+  gsl_multimin_fminimizer_set (s,&minex,qq,ss);
+
+  
   /*
   
   z = (double *) calloc(I,sizeof(double));
@@ -435,16 +482,6 @@ int main(int argc, char *argv[])
 	}
 
   
-  // Set initial step sizes to 0.1 
-  ss = gsl_vector_alloc (3);
-  gsl_vector_set_all (ss, 0.0001);
-
-  minex.n = 3;
-  minex.f = &regularise_new;
-  minex.params = (void *) &reg;
-
-  s = gsl_multimin_fminimizer_alloc(T,3);
-  gsl_multimin_fminimizer_set (s,&minex,qq,ss);
   
   //for (int iter=0;iter<10000;iter++)
   //  {  
@@ -529,9 +566,6 @@ int main(int argc, char *argv[])
 	    {
 
 	      //printf("even\n");	      
-	      gsl_vector_set (qq, 0, z[pt-2]);
-	      gsl_vector_set (qq, 1, z[pt]);
-	      gsl_vector_set (qq, 2, z[pt+2]);
 	    }
 	 	  
 	  gsl_vector_set_all (ss, 0.00001);
