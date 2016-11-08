@@ -24,6 +24,12 @@ double *d1;
 double *d2;
 double *effort;
 
+VEC *lx;
+
+VEC *lb;
+MAT *A, *LU;
+PERM *pivot;
+
 typedef struct {
 
   int nBlocks;
@@ -47,6 +53,8 @@ double size;
 double maxcurv;
 int mcidx;
 
+double thingy,thingy2;
+
 int pt,new_pt;
 
 int WindWidth, WindHeight;
@@ -60,6 +68,370 @@ void process_Normal_Keys(int key, int x, int y)
        case 100 :
 
 	 printf("GLUT_KEY_LEFT %d\n",key);
+
+	 thingy += .1;
+	 
+	 lb->ve[N+N-1+N-1+N-1+2] = thingy;
+	   
+	 lx = LUsolve(LU,pivot,lb,VNULL);
+
+	 //         v_output(lx);
+	 
+	 glutPostRedisplay();
+	 
+	 break;
+	 
+       case 102: printf("GLUT_KEY_RIGHT %d\n",key);
+
+	 thingy -= .1;
+	 
+	 lb->ve[N+N-1+N-1+N-1+2] = thingy;
+	 	   	 
+	 lx = LUsolve(LU,pivot,lb,VNULL);
+
+	 glutPostRedisplay();
+	 
+	 break;
+	 
+       case 101 : printf("GLUT_KEY_UP %d\n",key);  ; 
+
+	 thingy2 += .1;
+	 
+	 lb->ve[N+N-1+N-1+N-1+1] = thingy2;
+	 	   	 
+	 lx = LUsolve(LU,pivot,lb,VNULL);
+
+	 glutPostRedisplay();
+	 
+	 break;
+
+    case 103 : printf("GLUT_KEY_DOWN %d\n",key);  ; 
+
+	 thingy2 -= .1;
+	 
+	 lb->ve[N+N-1+N-1+N-1+1] = thingy2;
+	 	   	 
+	 lx = LUsolve(LU,pivot,lb,VNULL);
+
+	 glutPostRedisplay();
+
+    	 break;
+
+    }
+
+}
+
+void display(void)
+{
+  
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glPointSize(5.0f);
+  
+  glBegin(GL_POINTS);
+  
+  glColor3f(0.0f,0.0f,1.0f);
+
+  for (int i=0;i<I;i++)
+    glVertex2f(i/((float)(I-.5)),z[i]);
+  
+  glEnd();
+  
+  glBegin(GL_POINTS);
+  
+  glColor3f(0.0f,1.0f,0.0f);
+
+  double * erk = (double *) calloc(100*N,sizeof(double));
+
+  for (int i=0;i<N;i++)
+    {
+      for (int j=0;j<100;j++)
+	{
+	  glVertex2f((i*100+j)/200.0,lx->ve[i*4] + lx->ve[i*4+1]*(i+j/100.0) + lx->ve[i*4+2]*pow((i+j/100.0),2.0) + lx->ve[i*4+3] * pow((i+j/100.0),3.0));
+	}
+    }
+  
+  glEnd();
+
+  /*
+  glBegin(GL_POINTS);
+  
+  glColor3f(1.0f,0.0f,0.0f);
+  
+  for (int i=0;i<(int)(N/h);i++)
+    glVertex2f(i/(float)(N/h),x[i]/vpar.k.value);
+              
+  glEnd();
+  */
+  
+  glFlush ();
+  glutSwapBuffers();
+}
+
+void idle(void)
+{
+  glutPostRedisplay();
+}
+
+void Reshape(int width, int height)
+{
+  
+  glViewport(0, 0, width, height);
+  
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+
+  gluOrtho2D(-0.1,1.1,0,1.2);
+
+  glMatrixMode(GL_MODELVIEW);
+  
+  WindWidth = width;
+  WindHeight = height;
+}
+
+void init(void)
+{
+   glClearColor (0.0, 0.0, 0.0, 0.0);
+   glShadeModel (GL_FLAT);
+
+   glEnable(GL_BLEND);
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   
+}
+
+int main(int argc, char *argv[])
+{
+ 
+  WindWidth = 1800;
+  WindHeight = 1800;
+
+  glutInit(&argc, (char **)argv);
+    
+  glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+  glutInitWindowSize(1800, 1800);
+  
+  tbInit(GLUT_LEFT_BUTTON);
+  tbAnimate(GL_TRUE);
+
+  window = glutCreateWindow("smooth");
+  glutSpecialFunc( process_Normal_Keys );
+
+  glutDisplayFunc(display);
+  glutReshapeFunc(Reshape);
+  
+  init();  
+
+  FILE * fp = fopen("bc2aex.dat","r");
+  
+  if (fscanf(fp,"%d",&N) <1)
+    {
+      printf("error reading N\n");
+      exit(1);
+    }
+
+  effort = (double *) calloc(N,sizeof(double));
+
+  for (int i=0;i<N;i++)
+    if ( fscanf(fp, "%lf ",&effort[i]) < 1)
+      {
+	printf("error reading effort %d\n",i);
+	exit(1);
+      }
+    
+  fclose(fp);
+
+  N = 2;
+  M = 10;
+
+  I = M*N;
+
+  double maxeffort = 0;
+  for (int i=0;i<N;i++)
+    if (effort[i] > maxeffort)
+      maxeffort = effort[i];
+
+  for (int i=0;i<N;i++)
+    effort[i] /= 1.5*maxeffort;
+  
+  z = (double *) calloc(I,sizeof(double));
+  
+  for ( int i=0;i<N;i++)
+    for (int m=0;m<M;m++)
+      z[i*M+m] = effort[i];
+
+  A = m_get(4*N,4*N);
+    
+  for (int i=0;i<N;i++)
+    {
+    
+      A->me[i][i*4 + 0] = 1;
+      A->me[i][i*4 + 1] = .5*( pow(i+1,2.0) - pow(i,2.0) );
+      A->me[i][i*4 + 2] = (1.0/3) * ( pow(i+1,3.0) - pow(i,3.0));
+      A->me[i][i*4 + 3] = (1.0/4) * ( pow(i+1,4.0) - pow(i,4.0));
+    
+    }
+
+  for (int i=0;i<N-1;i++)
+    {
+
+      A->me[N+i][i*4 + 0] = 1;
+      A->me[N+i][i*4 + 1] = i+1;
+      A->me[N+i][i*4 + 2] = pow(i+1,2.0);
+      A->me[N+i][i*4 + 3] = pow(i+1,3.0);
+      A->me[N+i][i*4 + 4] = -1;
+      A->me[N+i][i*4 + 5] = -(i+1);
+      A->me[N+i][i*4 + 6] = -pow(i+1,2.0);
+      A->me[N+i][i*4 + 7] = -pow(i+1,3.0);
+      
+    }
+
+  for (int i=0;i<N-1;i++)
+    {
+
+      A->me[N+N-1+i][i*4 + 1] = 1;
+      A->me[N+N-1+i][i*4 + 2] = 2*(i+1);
+      A->me[N+N-1+i][i*4 + 3] = 3*pow(i+1,2.0);
+      A->me[N+N-1+i][i*4 + 5] = -1;
+      A->me[N+N-1+i][i*4 + 6] = -2*(i+1);
+      A->me[N+N-1+i][i*4 + 7] = -3*pow(i+1,2.0);
+      
+    }
+
+  for (int i=0;i<N-1;i++)
+    {
+
+      A->me[N+N-1+N-1+i][i*4 + 2] = 2;
+      A->me[N+N-1+N-1+i][i*4 + 3] = 6*(i+1);
+      A->me[N+N-1+N-1+i][i*4 + 6] = -2;
+      A->me[N+N-1+N-1+i][i*4 + 7] = -6*(i+1);
+    }
+    
+  A->me[N+N-1+N-1+N-1][1] = 1;  // first derivative at t=0
+
+  A->me[N+N-1+N-1+N-1+1][2] = 2; // second derivative at t=0
+
+  A->me[N+N-1+N-1+N-1+2][N+N-1+N-1+N-1+1] = 2; // second derivative at t=N
+  A->me[N+N-1+N-1+N-1+2][N+N-1+N-1+N-1+2] = 6*N; // second derivative at t=N
+   
+  lb = v_get(4*N);
+
+  for (int i=0;i<N;i++)
+    lb->ve[i] = effort[i];
+  
+  LU = m_get(4*N,4*N);
+  LU = m_copy(A,LU);
+  pivot = px_get(A->m);
+  LUfactor(LU,pivot);
+
+  
+  lx = LUsolve(LU,pivot,lb,VNULL);
+
+  v_output(lx);
+
+  
+  
+  thingy = 0; thingy2 = 0;
+    
+  /*
+  
+  T = gsl_multimin_fminimizer_nmsimplex2;
+
+  s = NULL;
+
+  z = (double *) calloc(I,sizeof(double));
+  
+  for ( int i=0;i<N;i++)
+    for (int m=0;m<M;m++)
+      z[i*M+m] = effort[i];
+
+  printf("\n");
+  for (int i=0;i<I;i++)
+    printf("%lf\n",z[i]);
+  
+  d1 = calloc(I-1,sizeof(*d1));
+  d2 = calloc(I-2,sizeof(*d2));
+
+  qq = gsl_vector_alloc(3);  
+  
+  reg.nBlocks = N;
+  reg.effort = calloc(N,sizeof(double));
+  reg.nPoints = M;
+  
+  for (int i=0;i<N;i++)
+    reg.effort[i] = effort[i];
+  
+  iter = 0;
+
+  for (int i=0;i<I-1;i++)
+    d1[i] = z[i+1]-z[i];
+  
+  for (int i=0;i<I-2;i++)
+    d2[i] = fabs(d1[i+1]-d1[i]);
+  
+  maxcurv = 0;
+  mcidx = -1;
+  for (int i=0;i<I-2;i++)
+    if (d2[i] > maxcurv)
+      {
+	maxcurv = d2[i];
+	mcidx = i;
+      }
+
+  pt = mcidx + 1;
+
+  new_pt = pt;
+
+  //printf("%d\n",pt);
+
+      if (pt > 1 && pt < 13)
+	{
+
+	  if (pt % 2 != 0)
+	    {
+
+	      //printf("odd\n");
+	      gsl_vector_set (qq, 0, z[pt-3]);
+	      gsl_vector_set (qq, 1, z[pt-1]);
+	      gsl_vector_set (qq, 2, z[pt+1]);
+	    }
+	  else
+	    {	   
+	      gsl_vector_set (qq, 0, z[pt-2]);
+	      gsl_vector_set (qq, 1, z[pt]);
+	      gsl_vector_set (qq, 2, z[pt+2]);
+	    }       	     	  
+	}
+      else
+	{
+	   printf("outside %d\n",pt);
+	  exit(1);
+	}
+
+  
+  // Set initial step sizes to 0.1 
+  ss = gsl_vector_alloc (3);
+  gsl_vector_set_all (ss, 0.0001);
+
+  minex.n = 3;
+  minex.f = &regularise_new;
+  minex.params = (void *) &reg;
+
+  s = gsl_multimin_fminimizer_alloc(T,3);
+  gsl_multimin_fminimizer_set (s,&minex,qq,ss);
+  
+  //for (int iter=0;iter<10000;iter++)
+  //  {  
+	  
+  // }             
+  */
+  
+  
+  glutMainLoop();
+
+  return(0);
+  
+}
+
 
 	 /*
       status = gsl_multimin_fminimizer_iterate(s);
@@ -168,353 +540,4 @@ void process_Normal_Keys(int key, int x, int y)
 	    printf("%lf ",z[i]);
 	  printf("\n");
 
-  glFlush ();
-  glutSwapBuffers();
-  glutPostRedisplay();
 	 */
-	 
-	 break;
-	 
-       case 102: printf("GLUT_KEY_RIGHT %d\n",key);
-	 
-	 break;
-	 
-       case 101 : printf("GLUT_KEY_UP %d\n",key);  ;  break;
-       case 103 : printf("GLUT_KEY_DOWN %d\n",key);  ;  break;
-    }
-
-}
-
-void display(void)
-{
-  
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  glPointSize(5.0f);
-  
-  glBegin(GL_POINTS);
-  
-  glColor3f(0.0f,0.0f,1.0f);
-
-  for (int i=0;i<I;i++)
-    glVertex2f(i/((float)(I-.5)),3*z[i] + .2);
-  
-  glEnd();
-  /*
-  glBegin(GL_POINTS);
-  
-  glColor3f(0.0f,1.0f,0.0f);
-
-  for (int i=0;i<N;i++)
-    glVertex2f(i/61.0,effort[i]);
-  
-  glEnd();
-
-  glBegin(GL_POINTS);
-  
-  glColor3f(1.0f,0.0f,0.0f);
-  
-  for (int i=0;i<(int)(N/h);i++)
-    glVertex2f(i/(float)(N/h),x[i]/vpar.k.value);
-              
-  glEnd();
-  */
-  
-  glFlush ();
-  glutSwapBuffers();
-}
-
-void idle(void)
-{
-  glutPostRedisplay();
-}
-
-void Reshape(int width, int height)
-{
-  
-  glViewport(0, 0, width, height);
-  
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  gluOrtho2D(-0.1,1.1,0,1.2);
-
-  glMatrixMode(GL_MODELVIEW);
-  
-  WindWidth = width;
-  WindHeight = height;
-}
-
-void init(void)
-{
-   glClearColor (0.0, 0.0, 0.0, 0.0);
-   glShadeModel (GL_FLAT);
-
-   glEnable(GL_BLEND);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   
-}
-
-int main(int argc, char *argv[])
-{
- 
-  WindWidth = 1800;
-  WindHeight = 1800;
-
-  glutInit(&argc, (char **)argv);
-    
-  glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-  glutInitWindowSize(1800, 1800);
-  
-  tbInit(GLUT_LEFT_BUTTON);
-  tbAnimate(GL_TRUE);
-
-  window = glutCreateWindow("smooth");
-  glutSpecialFunc( process_Normal_Keys );
-
-  glutDisplayFunc(display);
-  glutReshapeFunc(Reshape);
-  
-  init();  
-
-  FILE * fp = fopen("bc2aex.dat","r");
-  
-  if (fscanf(fp,"%d",&N) <1)
-    {
-      printf("error reading N\n");
-      exit(1);
-    }
-
-  effort = (double *) calloc(N,sizeof(double));
-
-  for (int i=0;i<N;i++)
-    if ( fscanf(fp, "%lf ",&effort[i]) < 1)
-      {
-	printf("error reading effort %d\n",i);
-	exit(1);
-      }
-    
-  fclose(fp);
-
-  N = 2;
-  M = 10;
-
-  I = M*N;
-  
-  z = (double *) calloc(I,sizeof(double));
-  
-  for ( int i=0;i<N;i++)
-    for (int m=0;m<M;m++)
-      z[i*M+m] = effort[i];
-
-
-
-
-
-
-
-  VEC *lx, *lb;
-  MAT *A, *LU;
-  PERM *pivot;
-
-  N=61;
-  A = m_get(4*N,4*N);
-    
-  for (int i=0;i<N;i++)
-    {
-    
-      A->me[i][i*4 + 0] = 1;
-      A->me[i][i*4 + 1] = .5*( pow(i+1,2.0) - pow(i,2.0) );
-      A->me[i][i*4 + 2] = (1.0/3) * ( pow(i+1,3.0) - pow(i,3.0));
-      A->me[i][i*4 + 3] = (1.0/4) * ( pow(i+1,4.0) - pow(i,4.0));
-    
-    }
-
-  for (int i=0;i<N-1;i++)
-    {
-
-      A->me[N+i][i*4 + 0] = 1;
-      A->me[N+i][i*4 + 1] = i+1;
-      A->me[N+i][i*4 + 2] = pow(i+1,2.0);
-      A->me[N+i][i*4 + 3] = pow(i+1,3.0);
-      A->me[N+i][i*4 + 4] = -1;
-      A->me[N+i][i*4 + 5] = -(i+1);
-      A->me[N+i][i*4 + 6] = -pow(i+1,2.0);
-      A->me[N+i][i*4 + 7] = -pow(i+1,3.0);
-      
-    }
-
-  for (int i=0;i<N-1;i++)
-    {
-
-      A->me[N+N-1+i][i*4 + 1] = 1;
-      A->me[N+N-1+i][i*4 + 2] = 2*(i+1);
-      A->me[N+N-1+i][i*4 + 3] = 3*pow(i+1,2.0);
-      A->me[N+N-1+i][i*4 + 5] = -1;
-      A->me[N+N-1+i][i*4 + 6] = -2*(i+1);
-      A->me[N+N-1+i][i*4 + 7] = -3*pow(i+1,2.0);
-      
-    }
-
-  for (int i=0;i<N-1;i++)
-    {
-
-      A->me[N+N-1+N-1+i][i*4 + 2] = 2;
-      A->me[N+N-1+N-1+i][i*4 + 3] = 6*(i+1);
-      A->me[N+N-1+N-1+i][i*4 + 6] = -2;
-      A->me[N+N-1+N-1+i][i*4 + 7] = -6*(i+1);
-    }
-    
-  A->me[N+N-1+N-1+N-1][1] = 1;  // first derivative at t=0
-
-  A->me[N+N-1+N-1+N-1+1][1] = 2; // second derivative at t=0
-
-  A->me[N+N-1+N-1+N-1+2][N+N-1+N-1+N-1+1] = 2; // second derivative at t=N
-  A->me[N+N-1+N-1+N-1+2][N+N-1+N-1+N-1+2] = 6*N; // second derivative at t=N
- 
-  //m_output(A);
-  //exit(1);
-  
-  lb = v_get(4*N);
-
-  for (int i=0;i<N;i++)
-    lb->ve[i] = effort[i];
-
-  //lb->ve[N+N-1+N-1+N-1] = 0.001;
-  
-  LU = m_get(4*N,4*N);
-  LU = m_copy(A,LU);
-  pivot = px_get(A->m);
-  LUfactor(LU,pivot);
-
-  lx = LUsolve(LU,pivot,lb,VNULL);
-
-  //v_output(lx);
-
-  printf("\n");
-  double * erk = (double *) calloc(100*N,sizeof(double));
-
-  for (int i=0;i<N;i++)
-    {
-      for (int j=0;j<100;j++)
-	{
-	  erk[i*100+j] = lx->ve[i*4] + lx->ve[i*4+1]*(i+j/100.0) + lx->ve[i*4+2]*pow((i+j/100.0),2.0) + lx->ve[i*4+3] * pow((i+j/100.0),3.0);
-	  printf("%lf\n",erk[i*100+j]);
-	}
-    }
-  printf("e\n");
-
-  for (int i=0;i<N;i++)
-    for (int j=0;j<100;j++)
-      printf("%lf\n",effort[i]);
-       
-  printf("\n");
-  for (int i=0;i<I;i++)
-    printf("%lf\n",z[i]);
-  printf("\n");
-
-
-
-
-
-
-  
-  /*
-  
-  T = gsl_multimin_fminimizer_nmsimplex2;
-
-  s = NULL;
-
-  z = (double *) calloc(I,sizeof(double));
-  
-  for ( int i=0;i<N;i++)
-    for (int m=0;m<M;m++)
-      z[i*M+m] = effort[i];
-
-  printf("\n");
-  for (int i=0;i<I;i++)
-    printf("%lf\n",z[i]);
-  
-  d1 = calloc(I-1,sizeof(*d1));
-  d2 = calloc(I-2,sizeof(*d2));
-
-  qq = gsl_vector_alloc(3);  
-  
-  reg.nBlocks = N;
-  reg.effort = calloc(N,sizeof(double));
-  reg.nPoints = M;
-  
-  for (int i=0;i<N;i++)
-    reg.effort[i] = effort[i];
-  
-  iter = 0;
-
-  for (int i=0;i<I-1;i++)
-    d1[i] = z[i+1]-z[i];
-  
-  for (int i=0;i<I-2;i++)
-    d2[i] = fabs(d1[i+1]-d1[i]);
-  
-  maxcurv = 0;
-  mcidx = -1;
-  for (int i=0;i<I-2;i++)
-    if (d2[i] > maxcurv)
-      {
-	maxcurv = d2[i];
-	mcidx = i;
-      }
-
-  pt = mcidx + 1;
-
-  new_pt = pt;
-
-  //printf("%d\n",pt);
-
-      if (pt > 1 && pt < 13)
-	{
-
-	  if (pt % 2 != 0)
-	    {
-
-	      //printf("odd\n");
-	      gsl_vector_set (qq, 0, z[pt-3]);
-	      gsl_vector_set (qq, 1, z[pt-1]);
-	      gsl_vector_set (qq, 2, z[pt+1]);
-	    }
-	  else
-	    {	   
-	      gsl_vector_set (qq, 0, z[pt-2]);
-	      gsl_vector_set (qq, 1, z[pt]);
-	      gsl_vector_set (qq, 2, z[pt+2]);
-	    }       	     	  
-	}
-      else
-	{
-	   printf("outside %d\n",pt);
-	  exit(1);
-	}
-
-  
-  // Set initial step sizes to 0.1 
-  ss = gsl_vector_alloc (3);
-  gsl_vector_set_all (ss, 0.0001);
-
-  minex.n = 3;
-  minex.f = &regularise_new;
-  minex.params = (void *) &reg;
-
-  s = gsl_multimin_fminimizer_alloc(T,3);
-  gsl_multimin_fminimizer_set (s,&minex,qq,ss);
-  
-  //for (int iter=0;iter<10000;iter++)
-  //  {  
-	  
-  // }             
-  */
-  
-  
-  glutMainLoop();
-
-  return(0);
-  
-}
