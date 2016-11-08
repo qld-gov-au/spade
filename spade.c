@@ -60,6 +60,21 @@ int pt,new_pt;
 int WindWidth, WindHeight;
 int window;
 
+double curvature0(
+		 double x,
+		 void *param
+
+		 )
+
+{
+
+  double * p = (double *) param;
+
+  return fabs(2*p[2] + 6*p[3] * x) / pow( 1 + pow(p[1] + 2*p[2]*x + 3*p[3] * pow(x,2.0),2.0), 2.0/3.0 );
+
+}
+	       
+
 void process_Normal_Keys(int key, int x, int y) 
 {
      switch (key) 
@@ -146,7 +161,7 @@ void display(void)
     {
       for (int j=0;j<100;j++)
 	{
-	  glVertex2f((i*100+j)/200.0,lx->ve[i*4] + lx->ve[i*4+1]*(i+j/100.0) + lx->ve[i*4+2]*pow((i+j/100.0),2.0) + lx->ve[i*4+3] * pow((i+j/100.0),3.0));
+	  glVertex2f((i*100+j)/(N*100.0),lx->ve[i*4] + lx->ve[i*4+1]*(i+j/100.0) + lx->ve[i*4+2]*pow((i+j/100.0),2.0) + lx->ve[i*4+3] * pow((i+j/100.0),3.0));
 	}
     }
   
@@ -254,7 +269,7 @@ int main(int argc, char *argv[])
     
   fclose(fp);
 
-  N = 2;
+  N = 3;
   M = 10;
 
   I = M*N;
@@ -341,17 +356,15 @@ int main(int argc, char *argv[])
   lx = LUsolve(LU,pivot,lb,VNULL);
 
   v_output(lx);
-
-  
   
   thingy = 0; thingy2 = 0;
-    
-  /*
-  
+
   T = gsl_multimin_fminimizer_nmsimplex2;
 
   s = NULL;
 
+  /*
+  
   z = (double *) calloc(I,sizeof(double));
   
   for ( int i=0;i<N;i++)
