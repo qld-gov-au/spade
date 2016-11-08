@@ -141,7 +141,6 @@ void display(void)
   
   glColor3f(0.0f,1.0f,0.0f);
 
-  double * erk = (double *) calloc(100*N,sizeof(double));
 
   for (int i=0;i<N;i++)
     {
@@ -153,17 +152,32 @@ void display(void)
   
   glEnd();
 
-  /*
+  double * erk = (double *) calloc(100*N,sizeof(double));
+
+  for (int i=0;i<N;i++)
+      for (int j=0;j<100;j++)		  
+	erk[i*100+j] = fabs(2*lx->ve[i*4+2] + 6*lx->ve[i*4+3] * (i+j/100.0)) / pow( 1 + pow(lx->ve[i*4+1] + 2*lx->ve[i*4+2]*(i+j/100.0) + 3*lx->ve[i*4+3] * pow((i+j/100.0),2.0),2.0), 2.0/3.0 );
+
+  double maxc = 0;
+  for (int i=0;i<100*N;i++)
+    if (erk[i] > maxc)
+      maxc = erk[i];
+
+  double minc = 0;
+  for (int i=0;i<100*N;i++)
+    if (erk[i] > minc)
+      minc = erk[i];
+  
   glBegin(GL_POINTS);
   
   glColor3f(1.0f,0.0f,0.0f);
-  
-  for (int i=0;i<(int)(N/h);i++)
-    glVertex2f(i/(float)(N/h),x[i]/vpar.k.value);
-              
+
+  for (int i=0;i<N;i++)
+    for (int j=0;j<100;j++)	
+      glVertex2f((i*100+j)/200.0,erk[i*100+j]); 
+
   glEnd();
-  */
-  
+    
   glFlush ();
   glutSwapBuffers();
 }
