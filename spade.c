@@ -19,10 +19,13 @@
 int N;  
 int M;
 int I;
+int S;
 double *z;
 double *d1;
 double *d2;
 double *effort;
+
+double *x;
 
 VEC *lx;
 
@@ -62,8 +65,9 @@ int window;
 
 
 double curvature0(
-		 double x,
-		 void *param
+
+		  double x,
+		  void *param
 
 		 )
 
@@ -85,21 +89,21 @@ double distance(
 
 {
 
-  double d0 = gsl_vector_get(x,0);
-  double dd0 = gsl_vector_get(x,1);
-  double ddN = gsl_vector_get(x,2);
+  double dd0 = gsl_vector_get(x,0);
+  double dd1 = gsl_vector_get(x,1);
 
-  lb->ve[N+N-1+N-1+N-1+2] = ddN;
-  lb->ve[N+N-1+N-1+N-1+1] = dd0;
-  lb->ve[N+N-1+N-1+N-1] = d0;
+  lb->ve[N+S-1+S-1+S-1] = dd0;
+  lb->ve[N+S-1+S-1+S-1+1] = dd1;
 
   lx = LUsolve(LU,pivot,lb,VNULL);
   
   double dist=0;
+
+  double nons = (double)N / (double) S;
   
-  for (int i=0;i<N;i++)
+  for (int i=0;i<S;i++)
     for (int j=0;j<100;j++)
-      dist += pow(effort[i] - lx->ve[i*4] + lx->ve[i*4+1]*(i+j/100.0) + lx->ve[i*4+2]*pow((i+j/100.0),2.0) + lx->ve[i*4+3] * pow((i+j/100.0),3.0) , 2.0);
+      dist += pow(effort[i] - lx->ve[i*4] + lx->ve[i*4+1]*(i+j/100.0)*nons + lx->ve[i*4+2]*pow((i+j/100.0)*nons,2.0) + lx->ve[i*4+3] * pow((i+j/100.0)*nons,3.0) , 2.0);
 
   return dist;
 
@@ -112,18 +116,17 @@ void process_Normal_Keys(int key, int x, int y)
        case 27 :      break;
        case 100 :
 
-	 status = gsl_multimin_fminimizer_iterate(s);
+	 //status = gsl_multimin_fminimizer_iterate(s);
 	 
 	 printf("GLUT_KEY_LEFT %d\n",key);
-	 /*
+	 
 	 thingy += .1;
 	 
-	 lb->ve[N+N-1+N-1+N-1+2] = thingy;
+	 lb->ve[N+S-1+S-1+S-1+2] = thingy;
 	   
 	 lx = LUsolve(LU,pivot,lb,VNULL);
 
-	 //         v_output(lx);
-	 */
+	 //         v_output(lx);	 
 	 
 	 glutPostRedisplay();
 	 
@@ -133,7 +136,7 @@ void process_Normal_Keys(int key, int x, int y)
 
 	 thingy -= .1;
 	 
-	 lb->ve[N+N-1+N-1+N-1+2] = thingy;
+	 lb->ve[N+S-1+S-1+S-1+2] = thingy;
 	 	   	 
 	 lx = LUsolve(LU,pivot,lb,VNULL);
 
@@ -145,7 +148,7 @@ void process_Normal_Keys(int key, int x, int y)
 
 	 thingy2 += .1;
 	 
-	 lb->ve[N+N-1+N-1+N-1+1] = thingy2;
+	 lb->ve[N+S-1+S-1+S-1+3] = thingy2;
 	 	   	 
 	 lx = LUsolve(LU,pivot,lb,VNULL);
 
@@ -157,7 +160,7 @@ void process_Normal_Keys(int key, int x, int y)
 
 	 thingy2 -= .1;
 	 
-	 lb->ve[N+N-1+N-1+N-1+1] = thingy2;
+	 lb->ve[N+S-1+S-1+S-1+3] = thingy2;
 	 	   	 
 	 lx = LUsolve(LU,pivot,lb,VNULL);
 
@@ -171,6 +174,8 @@ void process_Normal_Keys(int key, int x, int y)
 
 void display(void)
 {
+
+  double nons = (double)N / (double) S;
   
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -189,29 +194,29 @@ void display(void)
   
   glColor3f(0.0f,1.0f,0.0f);
 
-  for (int i=0;i<N;i++)
+  for (int i=0;i<S;i++)
     {
       for (int j=0;j<100;j++)
 	{
-	  glVertex2f((i*100+j)/(N*100.0),lx->ve[i*4] + lx->ve[i*4+1]*(i+j/100.0) + lx->ve[i*4+2]*pow((i+j/100.0),2.0) + lx->ve[i*4+3] * pow((i+j/100.0),3.0));
+	  glVertex2f(nons*(i*100+j)/(N*100.0),lx->ve[i*4] + lx->ve[i*4+1]*(i+j/100.0)*nons + lx->ve[i*4+2]*pow((i+j/100.0)*nons,2.0) + lx->ve[i*4+3] * pow((i+j/100.0)*nons,3.0));
 	}
     }
   
   glEnd();
 
-  double * erk = (double *) calloc(100*N,sizeof(double));
+  double * erk = (double *) calloc(100*S,sizeof(double));
 
-  for (int i=0;i<N;i++)
+  for (int i=0;i<S;i++)
       for (int j=0;j<100;j++)		  
-	erk[i*100+j] = fabs(2*lx->ve[i*4+2] + 6*lx->ve[i*4+3] * (i+j/100.0)) / pow( 1 + pow(lx->ve[i*4+1] + 2*lx->ve[i*4+2]*(i+j/100.0) + 3*lx->ve[i*4+3] * pow((i+j/100.0),2.0),2.0), 2.0/3.0 );
+	erk[i*100+j] = fabs(2*lx->ve[i*4+2] + 6*lx->ve[i*4+3] * (i+j/100.0)*nons) / pow( 1 + pow(lx->ve[i*4+1] + 2*lx->ve[i*4+2]*(i+j/100.0)*nons + 3*lx->ve[i*4+3] * pow((i+j/100.0)*nons,2.0),2.0), 2.0/3.0 );
 
   double maxc = 0;
-  for (int i=0;i<100*N;i++)
+  for (int i=0;i<100*S;i++)
     if (erk[i] > maxc)
       maxc = erk[i];
 
   double minc = 0;
-  for (int i=0;i<100*N;i++)
+  for (int i=0;i<100*S;i++)
     if (erk[i] > minc)
       minc = erk[i];
   
@@ -219,9 +224,9 @@ void display(void)
   
   glColor3f(1.0f,0.0f,0.0f);
 
-  for (int i=0;i<N;i++)
+  for (int i=0;i<S;i++)
     for (int j=0;j<100;j++)	
-      glVertex2f((i*100+j)/200.0,erk[i*100+j]); 
+      glVertex2f(nons*(i*100+j)/(N*100.0),erk[i*100+j]); 
 
   glEnd();
     
@@ -301,7 +306,7 @@ int main(int argc, char *argv[])
     
   fclose(fp);
 
-  N = 3;
+  N = 2;  // no. data blocks
   M = 10;
 
   I = M*N;
@@ -320,65 +325,132 @@ int main(int argc, char *argv[])
     for (int m=0;m<M;m++)
       z[i*M+m] = effort[i];
 
-  A = m_get(4*N,4*N);
-    
+  S=3; // no. splines
+  
+  A = m_get(4*S,4*S);
+
+  x = (double *) calloc(S+1,sizeof(double));
+
+  for (int i=0;i<=S;i++)
+    x[i] = i * ( (double)N / (double)S);
+
+  int j=0;
+
   for (int i=0;i<N;i++)
     {
-    
-      A->me[i][i*4 + 0] = 1;
-      A->me[i][i*4 + 1] = .5*( pow(i+1,2.0) - pow(i,2.0) );
-      A->me[i][i*4 + 2] = (1.0/3) * ( pow(i+1,3.0) - pow(i,3.0));
-      A->me[i][i*4 + 3] = (1.0/4) * ( pow(i+1,4.0) - pow(i,4.0));
-    
+
+      if (x[j] > i)
+	{
+	  A->me[i][(j-1)*4 + 0] += x[j] - i;
+	  A->me[i][(j-1)*4 + 1] += .5*( pow(x[j],2.0) - pow(i,2.0) );
+	  A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j],3.0) - pow(i,3.0));
+	  A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j],4.0) - pow(i,4.0));
+	}
+      
+      int counter=0;
+	        
+      while ( x[j+1] < i+1 ) { j++; counter++; }
+
+      int k=0;
+      
+      for (k=0;k<counter;k++)
+	{
+	
+	  A->me[i][(j-1)*4 + 0] += x[j-counter+k+1] - x[j-counter+k];
+	  A->me[i][(j-1)*4 + 1] += .5*( pow(x[j-counter+k+1],2.0) - pow(x[j-counter+k],2.0) );
+	  A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+1],3.0) - pow(x[j-counter+k],3.0));
+	  A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+1],4.0) - pow(x[j-counter+k],4.0));
+	  /*
+	  A->me[i][j*4 + 0] += x[j-counter+k+2] - x[j-counter+k+1];
+	  A->me[i][j*4 + 1] += .5*( pow(x[j-counter+k+2],2.0) - pow(x[j-counter+k+1],2.0) );
+	  A->me[i][j*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+2],3.0) - pow(x[j-counter+k+1],3.0));
+	  A->me[i][j*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+2],4.0) - pow(x[j-counter+k+1],4.0));
+	  */
+	}
+
+      A->me[i][j*4 + 0] += i+1-x[j-counter+k];
+      A->me[i][j*4 + 1] += .5*( pow(i+1,2.0) - pow(x[j-counter+k],2.0) );
+      A->me[i][j*4 + 2] += (1.0/3) * ( pow(i+1,3.0) - pow(x[j-counter+k],3.0));
+      A->me[i][j*4 + 3] += (1.0/4) * ( pow(i+1,4.0) - pow(x[j-counter+k],4.0));
+
+      j++; 
+      	  
     }
 
-  for (int i=0;i<N-1;i++)
+  for (int j=0;j<S-1;j++)
     {
 
-      A->me[N+i][i*4 + 0] = 1;
-      A->me[N+i][i*4 + 1] = i+1;
-      A->me[N+i][i*4 + 2] = pow(i+1,2.0);
-      A->me[N+i][i*4 + 3] = pow(i+1,3.0);
-      A->me[N+i][i*4 + 4] = -1;
-      A->me[N+i][i*4 + 5] = -(i+1);
-      A->me[N+i][i*4 + 6] = -pow(i+1,2.0);
-      A->me[N+i][i*4 + 7] = -pow(i+1,3.0);
+      A->me[N+j][j*4 + 0] = 1;
+      A->me[N+j][j*4 + 1] = x[j+1];
+      A->me[N+j][j*4 + 2] = pow(x[j+1],2.0);
+      A->me[N+j][j*4 + 3] = pow(x[j+1],3.0);
+      A->me[N+j][j*4 + 4] = -1;
+      A->me[N+j][j*4 + 5] = -(x[j+1]);
+      A->me[N+j][j*4 + 6] = -pow(x[j+1],2.0);
+      A->me[N+j][j*4 + 7] = -pow(x[j+1],3.0);
       
     }
 
-  for (int i=0;i<N-1;i++)
+  for (int j=0;j<S-1;j++)
     {
 
-      A->me[N+N-1+i][i*4 + 1] = 1;
-      A->me[N+N-1+i][i*4 + 2] = 2*(i+1);
-      A->me[N+N-1+i][i*4 + 3] = 3*pow(i+1,2.0);
-      A->me[N+N-1+i][i*4 + 5] = -1;
-      A->me[N+N-1+i][i*4 + 6] = -2*(i+1);
-      A->me[N+N-1+i][i*4 + 7] = -3*pow(i+1,2.0);
+      A->me[N+S-1+j][j*4 + 1] = 1;
+      A->me[N+S-1+j][j*4 + 2] = 2*(x[j+1]);
+      A->me[N+S-1+j][j*4 + 3] = 3*pow(x[j+1],2.0);
+      A->me[N+S-1+j][j*4 + 5] = -1;
+      A->me[N+S-1+j][j*4 + 6] = -2*(x[j+1]);
+      A->me[N+S-1+j][j*4 + 7] = -3*pow(x[j+1],2.0);
       
     }
 
-  for (int i=0;i<N-1;i++)
+  for (int j=0;j<S-1;j++)
     { 
-      A->me[N+N-1+N-1+i][i*4 + 2] = 2;
-      A->me[N+N-1+N-1+i][i*4 + 3] = 6*(i+1);
-      A->me[N+N-1+N-1+i][i*4 + 6] = -2;
-      A->me[N+N-1+N-1+i][i*4 + 7] = -6*(i+1);
+      A->me[N+S-1+S-1+j][j*4 + 2] = 2;
+      A->me[N+S-1+S-1+j][j*4 + 3] = 6*(x[j+1]);
+      A->me[N+S-1+S-1+j][j*4 + 6] = -2;
+      A->me[N+S-1+S-1+j][j*4 + 7] = -6*(x[j+1]);
     }
-    
-  A->me[N+N-1+N-1+N-1][1] = 1;  // first derivative at t=0
 
-  A->me[N+N-1+N-1+N-1+1][2] = 2; // second derivative at t=0
+  A->me[N+S-1+S-1+S-1][1] = 1;  // first derivative at t=0
+  A->me[N+S-1+S-1+S-1+1][2] = 2; // second derivative at t=0
 
-  A->me[N+N-1+N-1+N-1+2][N+N-1+N-1+N-1+1] = 2; // second derivative at t=N
-  A->me[N+N-1+N-1+N-1+2][N+N-1+N-1+N-1+2] = 6*N; // second derivative at t=N
-   
-  lb = v_get(4*N);
+  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-2] = 1;  // first derivative at t=N
+  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-1] = 2*N; // first derivative at t=N
+  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3] = 3*pow(N,2.0);  // first derivative at t=N
+
+  A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  
+  A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;  
+  
+  //A->me[N+S-1+S-1+S-1+S][N+S-1+S-1+S-1+S-1] = 2; // second derivative at t=N
+  //A->me[N+S-1+S-1+S-1+S][N+S-1+S-1+S-1+S] = 6*N; // second derivative at t=N
+
+  
+  
+  // second derivative at the join points
+
+  /*
+  for (int j=0;j<S-1;j++)
+    {
+
+      A->me[N+S-1+S-1+S-1+j][j*4 + 2] = 2;
+      A->me[N+S-1+S-1+S-1+j][j*4 + 3] = 6*(x[j+1]);
+
+    }
+  */
+  
+
+  //m_output(A);
+  //exit(1);
+  
+  lb = v_get(4*S);
 
   for (int i=0;i<N;i++)
     lb->ve[i] = effort[i];
+
+  //lb->ve[N+S-1+S-1+S-1] = 0;
+  //lb->ve[N+S-1+S-1+S-1+1] = 0;
   
-  LU = m_get(4*N,4*N);
+  LU = m_get(4*S,4*S);
   LU = m_copy(A,LU);
   pivot = px_get(A->m);
   LUfactor(LU,pivot);
