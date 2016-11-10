@@ -43,16 +43,15 @@ typedef struct {
 
 const gsl_multimin_fminimizer_type *T;
 
-gsl_multimin_fminimizer *s;
-gsl_vector *ss, *qq, *qq2;
-gsl_multimin_function minex;
+gsl_multimin_fminimizer *s,*s_d;
+gsl_vector *ss, *qq, *qq2, *qq_d;
+gsl_multimin_function minex,minex_d;
 
 GSL_reg reg;
     
 size_t iter;
 int status;
 double size;
-
 
 int ci;
 
@@ -65,7 +64,6 @@ int pt,new_pt;
 
 int WindWidth, WindHeight;
 int window;
-
 
 double curvaturei(
 
@@ -91,6 +89,285 @@ double ncurvaturei(
 
 }
 
+
+double curvaturex(
+
+		 gsl_vector *p,
+		 void *param
+
+		 )
+{
+
+  x[1] = gsl_vector_get(p,0);
+  x[2] = gsl_vector_get(p,1);
+
+  A = m_get(4*S,4*S);
+  
+  int j=0;
+
+  for (int i=0;i<N;i++)
+    {
+
+      if (x[j] > i)
+	{
+
+	  if (x[j] > i+1)
+	    {
+	      A->me[i][(j-1)*4 + 0] += (i+1) - i;
+	      A->me[i][(j-1)*4 + 1] += .5*( pow((i+1),2.0) - pow(i,2.0) );
+	      A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow((i+1),3.0) - pow(i,3.0));
+	      A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow((i+1),4.0) - pow(i,4.0));
+	      
+	    }
+	  else
+	    {
+	    
+	      A->me[i][(j-1)*4 + 0] += x[j] - i;
+	      A->me[i][(j-1)*4 + 1] += .5*( pow(x[j],2.0) - pow(i,2.0) );
+	      A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j],3.0) - pow(i,3.0));
+	      A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j],4.0) - pow(i,4.0));
+	    }
+	}
+      
+      int counter=0;
+	        
+      while (j<S && x[j+1] < i+1 )
+	{
+	  j++;
+	  counter++;
+	}
+
+      /*
+      if (j==S)
+	{
+	  printf("problem?\n");
+	  break;
+	}
+      */
+      
+      int k=0;
+      
+      for (k=0;k<counter;k++)
+	{
+	
+	  A->me[i][(j-1)*4 + 0] += x[j-counter+k+1] - x[j-counter+k];
+	  A->me[i][(j-1)*4 + 1] += .5*( pow(x[j-counter+k+1],2.0) - pow(x[j-counter+k],2.0) );
+	  A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+1],3.0) - pow(x[j-counter+k],3.0));
+	  A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+1],4.0) - pow(x[j-counter+k],4.0));
+	}
+
+      /*      if (x[j+1] > i+1)
+	{
+
+	  A->me[i][j*4 + 0] += i+1-x[j-counter+k];
+	  A->me[i][j*4 + 1] += .5*( pow(i+1,2.0) - pow(x[j-counter+k],2.0) );
+	  A->me[i][j*4 + 2] += (1.0/3) * ( pow(i+1,3.0) - pow(x[j-counter+k],3.0));
+	  A->me[i][j*4 + 3] += (1.0/4) * ( pow(i+1,4.0) - pow(x[j-counter+k],4.0));
+	  
+	}
+      else
+      {*/
+
+      if (x[j] < i+1)
+	{
+	  A->me[i][j*4 + 0] += i+1-x[j-counter+k];
+	  A->me[i][j*4 + 1] += .5*( pow(i+1,2.0) - pow(x[j-counter+k],2.0) );
+	  A->me[i][j*4 + 2] += (1.0/3) * ( pow(i+1,3.0) - pow(x[j-counter+k],3.0));
+	  A->me[i][j*4 + 3] += (1.0/4) * ( pow(i+1,4.0) - pow(x[j-counter+k],4.0));	  	  
+	}
+
+      j++;      
+
+      	  
+    }
+
+  for (int j=0;j<S-1;j++)
+    {
+
+      A->me[N+j][j*4 + 0] = 1;
+      A->me[N+j][j*4 + 1] = x[j+1];
+      A->me[N+j][j*4 + 2] = pow(x[j+1],2.0);
+      A->me[N+j][j*4 + 3] = pow(x[j+1],3.0);
+      A->me[N+j][j*4 + 4] = -1;
+      A->me[N+j][j*4 + 5] = -(x[j+1]);
+      A->me[N+j][j*4 + 6] = -pow(x[j+1],2.0);
+      A->me[N+j][j*4 + 7] = -pow(x[j+1],3.0);
+      
+    }
+
+  for (int j=0;j<S-1;j++)
+    {
+
+      A->me[N+S-1+j][j*4 + 1] = 1;
+      A->me[N+S-1+j][j*4 + 2] = 2*(x[j+1]);
+      A->me[N+S-1+j][j*4 + 3] = 3*pow(x[j+1],2.0);
+      A->me[N+S-1+j][j*4 + 5] = -1;
+      A->me[N+S-1+j][j*4 + 6] = -2*(x[j+1]);
+      A->me[N+S-1+j][j*4 + 7] = -3*pow(x[j+1],2.0);
+      
+    }
+
+  for (int j=0;j<S-1;j++)
+    { 
+      A->me[N+S-1+S-1+j][j*4 + 2] = 2;
+      A->me[N+S-1+S-1+j][j*4 + 3] = 6*(x[j+1]);
+      A->me[N+S-1+S-1+j][j*4 + 6] = -2;
+      A->me[N+S-1+S-1+j][j*4 + 7] = -6*(x[j+1]);
+    }
+
+  //A->me[N+S-1+S-1+S-1+1][1] = 1;  // first derivative at t=0
+
+  A->me[N+S-1+S-1+S-1+1][0] = 1;  // value at t=0;
+  
+  A->me[N+S-1+S-1+S-1][2] = 2; // second derivative at t=0
+  
+  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-2] = 1;  // first derivative at t=N
+  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-1] = 2*N; // first derivative at t=N
+  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3] = 3*pow(N,2.0);  // first derivative at t=N
+
+  A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
+  A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;  
+    
+  LU = m_get(4*S,4*S);
+  LU = m_copy(A,LU);
+  pivot = px_get(A->m);
+  LUfactor(LU,pivot);
+
+  lx = LUsolve(LU,pivot,lb,VNULL);
+
+  for (int i=0;i<S;i++)
+    for (int j=0;j<100;j++)
+      {
+	double xx = x[i]+j*(x[i+1]-x[i])/100.0;	  
+	printf("%lf ",lx->ve[i*4] + lx->ve[i*4+1]*xx + lx->ve[i*4+2]*pow(xx,2.0) + lx->ve[i*4+3] * pow(xx,3.0));
+      }
+
+  printf("\n");
+
+  
+  double f_best = 0;
+
+  for (ci=0;ci<S;ci++)
+    {
+      
+      double x_lower = x[ci];
+      double x_upper = x[ci+1];
+      double x_mid = (x[ci+1] + x[ci] )/2;
+  
+      double f_lower = curvaturei(x_lower);
+      double f_upper = curvaturei(x_upper);
+  
+      double f_mid = curvaturei(x_mid);
+
+      int found = 0;
+  
+      do
+	{
+          
+	  if (f_mid < f_lower && f_mid < f_upper)
+	    {
+
+	      if (f_lower > f_upper)
+		f_mid = f_lower;
+	      else
+		f_mid = f_upper;
+
+	      found = 1;
+	    }
+	  else
+	    {
+
+	      if (f_mid > f_lower && f_mid > f_upper)
+		{
+
+		  int status;
+		  int iter=0, max_iter =100;
+		  const gsl_min_fminimizer_type *T;
+		  gsl_min_fminimizer *s;
+	  
+		  gsl_function F;
+
+		  F.function = &ncurvaturei;
+		  F.params = 0;
+
+		  T = gsl_min_fminimizer_brent;
+		  s = gsl_min_fminimizer_alloc (T);
+		  gsl_min_fminimizer_set (s, &F, x_mid, x_lower, x_upper);
+
+		  printf ("using %s method\n",gsl_min_fminimizer_name (s));
+
+		  printf ("%5s [%9s, %9s] %9s %9s\n","iter", "lower", "upper", "min", "err(est)");
+
+		  printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
+	  
+		  do
+		    {
+   
+		      iter++;
+		      status = gsl_min_fminimizer_iterate (s);
+
+		      x_mid = gsl_min_fminimizer_x_minimum (s);
+		      x_lower = gsl_min_fminimizer_x_lower (s);
+		      x_upper = gsl_min_fminimizer_x_upper (s);
+
+		      status = gsl_min_test_interval (x_lower, x_upper, 0.001, 0.0);
+
+		      if (status == GSL_SUCCESS)
+			printf ("Converged:\n");
+
+		      printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
+	      
+		    }
+		  while (status == GSL_CONTINUE && iter < max_iter);
+
+		  found = 1;
+
+		  f_mid = curvaturei(x_mid);
+	  
+		}
+	      else
+		{
+	  
+		  if ( f_mid > f_lower)
+		    {
+
+		      x_lower = x_mid;
+		      f_lower = f_mid;
+	      
+		      x_mid = (x_lower + x_upper) / 2;
+		      f_mid = curvaturei(x_mid);
+
+		      if ( (x_mid - x_lower) < 0.001)
+			found = 1;
+	      
+		    }
+		  else
+		    {
+
+		      x_upper = x_mid;
+		      f_upper = f_mid;
+	      
+		      x_mid = (x_lower + x_upper) / 2;
+		      f_mid = curvaturei(x_mid);
+
+		      if ( (x_mid - x_lower) < 0.001)
+			found = 1;
+		    }
+		}
+	    }
+	}
+      
+      while (found ==0);
+
+      if (f_mid > f_best)
+	f_best = f_mid;
+
+    }
+
+  return f_best;
+
+}
+
 double curvature(
 
 		 gsl_vector *p,
@@ -101,9 +378,11 @@ double curvature(
 
   double d0 = gsl_vector_get(p,0);
   double d1 = gsl_vector_get(p,1);
+  double dd1 = gsl_vector_get(p,2);
 
   lb->ve[N+S-1+S-1+S-1] = d0;
   lb->ve[N+S-1+S-1+S-1+2] = d1;
+  lb->ve[N+S-1+S-1+S-1+3] = dd1;
 
   lx = LUsolve(LU,pivot,lb,VNULL);
 
@@ -230,7 +509,9 @@ double curvature(
 
 }
   
-    /*
+
+
+/*
   double block1 = 4 * sqrt(135+144 * pow(lx->ve[ci*4+1],2.0)) * pow(lx->ve[ci*4+3],2.0) - 96 * lx->ve[ci*4+1] * pow(lx->ve[ci*4+2],2.0) * lx->ve[ci*4+3]+16 * pow(lx->ve[ci*4+2],4.0) / (45 * pow(lx->ve[ci*4+3],2.0));
 
   double block2 = (12 * lx->ve[ci*4+1] * lx->ve[ci*4+3] - 4 * pow(lx->ve[ci*4 + 2],2.0)) / (45 * pow(lx->ve[ci*4+3],2.0));
@@ -241,7 +522,6 @@ double curvature(
 
   double x3 = sqrt( block1 - block2) /2.0 - lx->ve[ci*4+2] / (3.0*lx->ve[ci*4+3]);
   */
-
 
 double distance(
 
@@ -282,20 +562,51 @@ void process_Normal_Keys(int key, int x, int y)
 	 //status = gsl_multimin_fminimizer_iterate(s);
 	 
 	 printf("GLUT_KEY_LEFT %d\n",key);
-	 	 
-	 lb->ve[N+S-1+S-1+S-1] += .1;
+
+	 //do
+	 //{
+	 //iter++;
+      status = gsl_multimin_fminimizer_iterate(s);
+
+      /*
+      if (status) 
+        break;
+
+      size = gsl_multimin_fminimizer_size (s);
+      status = gsl_multimin_test_size (size, 5e-2);
+
+      if (status == GSL_SUCCESS)
+        {
+          printf ("converged to minimum at\n");
+        }
+
+      printf ("%5d %10.3e %10.3e f() = %7.3f size = %.3f\n", 
+              iter,
+              gsl_vector_get (s->x, 0), 
+              gsl_vector_get (s->x, 1), 
+              //gsl_vector_get (s->x, 2), 
+              s->fval, size);
+    }
+  while (status == GSL_CONTINUE && iter < 100);  
+      */
+	 
+  //	 lb->ve[N+S-1+S-1+S-1] += .1;
 	   
-	 lx = LUsolve(LU,pivot,lb,VNULL);
+  //	 lx = LUsolve(LU,pivot,lb,VNULL);
 	 
 	 glutPostRedisplay();
 	 
 	 break;
 	 
        case 102: printf("GLUT_KEY_RIGHT %d\n",key);
+
+
+	 gsl_multimin_fminimizer_set (s,&minex,qq,ss);
+
 	 
-	 lb->ve[N+S-1+S-1+S-1] -= .1;
+	 //	 lb->ve[N+S-1+S-1+S-1] -= .1;
 	 	   	 
-	 lx = LUsolve(LU,pivot,lb,VNULL);
+	 //lx = LUsolve(LU,pivot,lb,VNULL);
 
 	 glutPostRedisplay();
 	 
@@ -351,7 +662,9 @@ void display(void)
     {
       for (int j=0;j<100;j++)
 	{
-	  glVertex2f(nons*(i*100+j)/(N*100.0),lx->ve[i*4] + lx->ve[i*4+1]*(i+j/100.0)*nons + lx->ve[i*4+2]*pow((i+j/100.0)*nons,2.0) + lx->ve[i*4+3] * pow((i+j/100.0)*nons,3.0));
+	  double xx = x[i]+j*(x[i+1]-x[i])/100.0;
+	  
+	  glVertex2f(xx/N,lx->ve[i*4] + lx->ve[i*4+1]*xx + lx->ve[i*4+2]*pow(xx,2.0) + lx->ve[i*4+3] * pow(xx,3.0));
 	}
     }
   
@@ -360,8 +673,12 @@ void display(void)
   double * erk = (double *) calloc(100*S,sizeof(double));
 
   for (int i=0;i<S;i++)
-      for (int j=0;j<100;j++)		  
-	erk[i*100+j] = (1/5.0)*fabs(2*lx->ve[i*4+2] + 6*lx->ve[i*4+3] * (i+j/100.0)*nons) / pow( 1 + pow(lx->ve[i*4+1] + 2*lx->ve[i*4+2]*(i+j/100.0)*nons + 3*lx->ve[i*4+3] * pow((i+j/100.0)*nons,2.0),2.0), 2.0/3.0 );
+    for (int j=0;j<100;j++)
+      {
+	double xx = x[i]+j*(x[i+1]-x[i])/100.0;
+	erk[i*100+j] = (1/5.0)*fabs(2*lx->ve[i*4+2] + 6*lx->ve[i*4+3] * xx) / pow( 1 + pow(lx->ve[i*4+1] + 2*lx->ve[i*4+2]*xx + 3*lx->ve[i*4+3] * pow(xx,2.0),2.0), 2.0/3.0);
+
+      }
 
   double maxc = 0;
   for (int i=0;i<100*S;i++)
@@ -378,8 +695,11 @@ void display(void)
   glColor3f(1.0f,0.0f,0.0f);
 
   for (int i=0;i<S;i++)
-    for (int j=0;j<100;j++)	
-      glVertex2f(nons*(i*100+j)/(N*100.0),erk[i*100+j]); 
+    for (int j=0;j<100;j++)
+      {
+	  double xx = x[i]+j*(x[i+1]-x[i])/100.0;	  	
+	  glVertex2f(xx/N,erk[i*100+j]);
+      }
 
   glEnd();
     
@@ -630,7 +950,12 @@ int main(int argc, char *argv[])
 
   A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
   A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;  
-  
+
+  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-3] = 1;  // second derivative at t=N
+  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-2] = N;  
+  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = pow(N,2.0);  // second derivative at t=N
+  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = pow(N,3.0);  
+    
   //A->me[N+S-1+S-1+S-1+S][N+S-1+S-1+S-1+S-1] = 2; // second derivative at t=N
   //A->me[N+S-1+S-1+S-1+S][N+S-1+S-1+S-1+S] = 6*N; // second derivative at t=N
   
@@ -644,8 +969,7 @@ int main(int argc, char *argv[])
       A->me[N+S-1+S-1+S-1+j][j*4 + 3] = 6*(x[j+1]);
 
     }
-  */
-  
+  */  
 
   //m_output(A);
   //exit(1);
@@ -657,6 +981,8 @@ int main(int argc, char *argv[])
 
   //lb->ve[N+S-1+S-1+S-1] = 0;
   //lb->ve[N+S-1+S-1+S-1+1] = 0;
+
+  //lb->ve[N+S-1+S-1+S-1+3] = effort[N-1];  
   
   LU = m_get(4*S,4*S);
   LU = m_copy(A,LU);
@@ -667,9 +993,6 @@ int main(int argc, char *argv[])
 
   v_output(lx);
   
-  thingy = 0; thingy2 = 0;
-
-  
   T = gsl_multimin_fminimizer_nmsimplex2;
 
   s = NULL;
@@ -679,41 +1002,32 @@ int main(int argc, char *argv[])
   gsl_vector_set_all (ss, 0.1);
 
   minex.n = 2;
-  minex.f = &curvature;
+  minex.f = &curvaturex;
   minex.params = NULL;
 
+  minex_d.n = 2;
+  minex_d.f = &distance;
+  minex_d.params = NULL;
+  
   qq = gsl_vector_alloc (2);
-  gsl_vector_set (qq, 0, 0);
-  gsl_vector_set (qq, 1, 0);
+  gsl_vector_set (qq, 0, x[1]);
+  gsl_vector_set (qq, 1, x[2]);
+  //gsl_vector_set (qq, 2, 0);
   
   s = gsl_multimin_fminimizer_alloc(T,2);
-  /*
-  gsl_multimin_fminimizer_set (s,&minex,qq,ss);
+  
 
-  do
-    {
-      iter++;
-      status = gsl_multimin_fminimizer_iterate(s);
-      
-      if (status) 
-        break;
-
-      size = gsl_multimin_fminimizer_size (s);
-      status = gsl_multimin_test_size (size, 1e-2);
-
-      if (status == GSL_SUCCESS)
-        {
-          printf ("converged to minimum at\n");
-        }
-
-      printf ("%5d %10.3e %10.3e f() = %7.3f size = %.3f\n", 
-              iter,
-              gsl_vector_get (s->x, 0), 
-              gsl_vector_get (s->x, 1), 
-              s->fval, size);
-    }
-  while (status == GSL_CONTINUE && iter < 100);  
-  */
+  qq_d = gsl_vector_alloc (2);
+  gsl_vector_set (qq_d, 0, 0);
+  gsl_vector_set (qq_d, 1, 0);  
+  
+  
+  //s_d = gsl_multimin_fminimizer_alloc(T,2);
+  
+  //gsl_multimin_fminimizer_set (s_d,&minex_d,qq_d,ss);
+    
+  
+  
   
   /*
   
