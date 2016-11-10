@@ -252,11 +252,11 @@ double distance(
 
 {
 
-  double dd0 = gsl_vector_get(x,0);
-  double dd1 = gsl_vector_get(x,1);
+  double d0 = gsl_vector_get(x,0);
+  double d1 = gsl_vector_get(x,1);
 
-  lb->ve[N+S-1+S-1+S-1] = dd0;
-  lb->ve[N+S-1+S-1+S-1+1] = dd1;
+  lb->ve[N+S-1+S-1+S-1] = d0;
+  lb->ve[N+S-1+S-1+S-1+2] = d1;
 
   lx = LUsolve(LU,pivot,lb,VNULL);
   
@@ -282,55 +282,40 @@ void process_Normal_Keys(int key, int x, int y)
 	 //status = gsl_multimin_fminimizer_iterate(s);
 	 
 	 printf("GLUT_KEY_LEFT %d\n",key);
-	 
-	 thingy += .1;
-	 
-	 lb->ve[N+S-1+S-1+S-1+2] = thingy;
+	 	 
+	 lb->ve[N+S-1+S-1+S-1] += .1;
 	   
 	 lx = LUsolve(LU,pivot,lb,VNULL);
-
-	 printf("%lf\n",curvature(qq,0));
-	 
-	 //         v_output(lx);	 
 	 
 	 glutPostRedisplay();
 	 
 	 break;
 	 
        case 102: printf("GLUT_KEY_RIGHT %d\n",key);
-
-	 thingy -= .1;
 	 
-	 lb->ve[N+S-1+S-1+S-1+2] = thingy;
+	 lb->ve[N+S-1+S-1+S-1] -= .1;
 	 	   	 
 	 lx = LUsolve(LU,pivot,lb,VNULL);
-	 printf("%lf\n",curvature(qq,0));
 
 	 glutPostRedisplay();
 	 
 	 break;
 	 
        case 101 : printf("GLUT_KEY_UP %d\n",key);  ; 
-
-	 thingy2 += .1;
 	 
-	 lb->ve[N+S-1+S-1+S-1+3] = thingy2;
+	 lb->ve[N+S-1+S-1+S-1+2] += .1;
 	 	   	 
 	 lx = LUsolve(LU,pivot,lb,VNULL);
-	 printf("%lf\n",curvature(qq,0));
 
 	 glutPostRedisplay();
 	 
 	 break;
 
     case 103 : printf("GLUT_KEY_DOWN %d\n",key);  ; 
-
-	 thingy2 -= .1;
 	 
-	 lb->ve[N+S-1+S-1+S-1+3] = thingy2;
+	 lb->ve[N+S-1+S-1+S-1+2] -= .1;
 	 	   	 
 	 lx = LUsolve(LU,pivot,lb,VNULL);
-	 printf("%lf\n",curvature(qq,0));
 
 	 glutPostRedisplay();
 
@@ -376,7 +361,7 @@ void display(void)
 
   for (int i=0;i<S;i++)
       for (int j=0;j<100;j++)		  
-	erk[i*100+j] = (2*lx->ve[i*4+2] + 6*lx->ve[i*4+3] * (i+j/100.0)*nons) / pow( 1 + pow(lx->ve[i*4+1] + 2*lx->ve[i*4+2]*(i+j/100.0)*nons + 3*lx->ve[i*4+3] * pow((i+j/100.0)*nons,2.0),2.0), 2.0/3.0 );
+	erk[i*100+j] = (1/5.0)*fabs(2*lx->ve[i*4+2] + 6*lx->ve[i*4+3] * (i+j/100.0)*nons) / pow( 1 + pow(lx->ve[i*4+1] + 2*lx->ve[i*4+2]*(i+j/100.0)*nons + 3*lx->ve[i*4+3] * pow((i+j/100.0)*nons,2.0),2.0), 2.0/3.0 );
 
   double maxc = 0;
   for (int i=0;i<100*S;i++)
@@ -415,7 +400,7 @@ void Reshape(int width, int height)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
-  gluOrtho2D(-0.1,1.1,0,1.2);
+  gluOrtho2D(-0.1,1.1,0,2.2);
 
   glMatrixMode(GL_MODELVIEW);
   
@@ -456,44 +441,98 @@ int main(int argc, char *argv[])
   init();  
 
   FILE * fp = fopen("bc2aex.dat","r");
+
+  int K;
   
-  if (fscanf(fp,"%d",&N) <1)
+  if (fscanf(fp,"%d",&K) <1)
     {
-      printf("error reading N\n");
+      printf("error reading I\n");
       exit(1);
     }
 
-  effort = (double *) calloc(N,sizeof(double));
+  double * raweffort = (double *) calloc(K,sizeof(double));
 
-  for (int i=0;i<N;i++)
-    if ( fscanf(fp, "%lf ",&effort[i]) < 1)
+  for (int i=0;i<K;i++)
+    if ( fscanf(fp, "%lf ",&raweffort[i]) < 1)
       {
-	printf("error reading effort %d\n",i);
+	printf("error reading raweffort %d\n",i);
 	exit(1);
       }
-    
+
+  double * begintime = (double *) calloc(K, sizeof(double));
+  
+  for (int i=0;i<K;i++)
+    if ( fscanf(fp, "%lf ",&begintime[i]) < 1)
+      {
+	printf("error reading begintime %d\n",i);
+	exit(1);
+      }
+
+  double * endtime = (double *) calloc(K, sizeof(double));
+  
+  for (int i=0;i<K;i++)
+    if ( fscanf(fp, "%lf ",&endtime[i]) < 1)
+      {
+	printf("error reading endtime %d\n",i);
+	exit(1);
+      }
+  
   fclose(fp);
 
-  N = 2;  // no. data blocks
-  M = 10;
+  N = 3;  // no. data blocks
 
+  double mintime=begintime[0];
+  for (int i=1;i<K;i++)
+    if (begintime[i] < mintime)
+      mintime = begintime[i];
+
+  double maxtime=endtime[0];
+  for (int i=1;i<K;i++)
+    if (endtime[i] > maxtime)
+      maxtime = endtime[i];
+  
+  effort = (double *) calloc(N,sizeof(double));
+  
+  double tottime = maxtime - mintime + 1e-12;
+
+  //printf("%lf %lf %lf\n",mintime,maxtime,tottime);
+  
+  for (int i=0;i<N;i++)
+    for (int j=0;j<K;j++)
+      {
+
+	double periodstart = mintime + i*tottime/N;
+	double periodend = mintime + (i+1)*tottime/N;
+	
+	if (begintime[j] >= periodstart && begintime[j] < periodend)
+	  {
+
+	    if (endtime[j] < periodend)
+	      effort[i] += raweffort[j];
+	    else	      
+              effort[i] += raweffort[j] * (periodend - begintime[j]) / (endtime[j] - begintime[j]); 			      
+
+	  }
+      }		      
+  
+  M = 10;
   I = M*N;
 
-  double maxeffort = 0;
+  double toteffort = 0;
   for (int i=0;i<N;i++)
-    if (effort[i] > maxeffort)
-      maxeffort = effort[i];
+    toteffort += effort[i];
 
+  double avgeffort = toteffort / N;
+  
   for (int i=0;i<N;i++)
-    effort[i] /= 1.5*maxeffort;
+    effort[i] /= avgeffort;
   
-  z = (double *) calloc(I,sizeof(double));
-  
+  z = (double *) calloc(I,sizeof(double));  
   for ( int i=0;i<N;i++)
     for (int m=0;m<M;m++)
       z[i*M+m] = effort[i];
 
-  S=3; // no. splines
+  S=4; // no. splines
   
   A = m_get(4*S,4*S);
 
@@ -579,14 +618,17 @@ int main(int argc, char *argv[])
       A->me[N+S-1+S-1+j][j*4 + 7] = -6*(x[j+1]);
     }
 
-  A->me[N+S-1+S-1+S-1][1] = 1;  // first derivative at t=0
-  A->me[N+S-1+S-1+S-1+1][2] = 2; // second derivative at t=0
+  //A->me[N+S-1+S-1+S-1+1][1] = 1;  // first derivative at t=0
 
+  A->me[N+S-1+S-1+S-1+1][0] = 1;  // value at t=0;
+  
+  A->me[N+S-1+S-1+S-1][2] = 2; // second derivative at t=0
+  
   A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-2] = 1;  // first derivative at t=N
   A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-1] = 2*N; // first derivative at t=N
   A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3] = 3*pow(N,2.0);  // first derivative at t=N
 
-  A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  
+  A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
   A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;  
   
   //A->me[N+S-1+S-1+S-1+S][N+S-1+S-1+S-1+S-1] = 2; // second derivative at t=N
@@ -645,9 +687,8 @@ int main(int argc, char *argv[])
   gsl_vector_set (qq, 1, 0);
   
   s = gsl_multimin_fminimizer_alloc(T,2);
-  
+  /*
   gsl_multimin_fminimizer_set (s,&minex,qq,ss);
-
 
   do
     {
@@ -671,7 +712,8 @@ int main(int argc, char *argv[])
               gsl_vector_get (s->x, 1), 
               s->fval, size);
     }
-  while (status == GSL_CONTINUE && iter < 100);
+  while (status == GSL_CONTINUE && iter < 100);  
+  */
   
   /*
   
