@@ -1053,12 +1053,11 @@ double curvature(
   //  printf(" %lf ",lb->ve[i]);
   //printf("\n");
 
-  lb->ve[N+S-1+S-1+S-1] = d0;
   lb->ve[N+S-1+S-1+S-1+2] = d1;
   lb->ve[N+S-1+S-1+S-1+3] = dd1;
 
   for (int i=1;i<P;i++)
-    lb->ve[N+S-1+S-1+S-1+3+i] = gsl_vector_get(p,2+i);
+    lb->ve[N+S-1+S-1+S-1+3+i] = gsl_vector_get(p,1+i);
 
   //printf("after: ");
   //for (int i=0;i<4*S;i++)
@@ -1652,13 +1651,12 @@ int main(int argc, char *argv[])
       int k=0;
       
       for (k=0;k<counter;k++)
-	{
-	
+	{	
 	  A->me[i][(j-1)*4 + 0] += x[j-counter+k+1] - x[j-counter+k];
 	  A->me[i][(j-1)*4 + 1] += .5*( pow(x[j-counter+k+1],2.0) - pow(x[j-counter+k],2.0) );
 	  A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+1],3.0) - pow(x[j-counter+k],3.0));
 	  A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+1],4.0) - pow(x[j-counter+k],4.0));
-	
+
 	}
 
       A->me[i][j*4 + 0] += i+1-x[j-counter+k];
@@ -1714,7 +1712,7 @@ int main(int argc, char *argv[])
 
   A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
   A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;  
-  
+
   lb = v_get(4*S);
 
   for (int i=0;i<N;i++)
