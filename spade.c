@@ -364,7 +364,34 @@ double curvatureboth(
 
     }
 
-  return f_best;
+
+  double f_pen = 0;
+  for (int i=0;i<S;i++)
+    {
+      for (int j=0;j<100;j++)
+	{
+	  double xx = x[i]+j*(x[i+1]-x[i])/100.0;
+	  double yy = lx->ve[i*4] + lx->ve[i*4+1]*xx + lx->ve[i*4+2]*pow(xx,2.0) + lx->ve[i*4+3] * pow(xx,3.0);
+
+	  if (yy < 0)
+	    f_pen += pow(10*yy,2.0);
+
+	}
+    }
+
+  
+
+  double  f_pen2 = 0;
+
+  for (int i=1;i<=S;i++)  
+    f_pen2 += pow(1.0/(20*(x[i]-x[i-1])),4.0);
+
+  //if (x[S-1] > N)
+  //f_pen2 = 100*pow(N-x[S-1],2.0);
+
+  printf("fpen: %lf fen2: %lf\n",f_pen,f_pen2);
+
+  return f_best + f_pen + f_pen2;
 
 }
 
@@ -936,6 +963,8 @@ void process_Normal_Keys(int key, int xlah, int ylah)
 
       status = gsl_multimin_fminimizer_iterate(sb);
 
+      printf("%lf %lf %lf %lf\n",x[1],x[2],x[3],sb->fval);
+
 	 glutPostRedisplay();
 
     	 break;
@@ -986,6 +1015,9 @@ void display(void)
 	double xx = x[i]+j*(x[i+1]-x[i])/100.0;
 	erk[i*100+j] = (1/5.0)*fabs(2*lx->ve[i*4+2] + 6*lx->ve[i*4+3] * xx) / pow( 1 + pow(lx->ve[i*4+1] + 2*lx->ve[i*4+2]*xx + 3*lx->ve[i*4+3] * pow(xx,2.0),2.0), 2.0/3.0);
 
+
+	//fabs(2*lx->ve[ci*4+2] + 6*lx->ve[ci*4+3] * x) / pow( 1 + pow(lx->ve[ci*4+1] + 2*lx->ve[ci*4+2]*x + 3*lx->ve[ci*4+3] * pow(x,2.0),2.0), 2.0/3.0 );
+
       }
 
   double maxc = 0;
@@ -1008,6 +1040,12 @@ void display(void)
 	  double xx = x[i]+j*(x[i+1]-x[i])/100.0;	  	
 	  glVertex2f(xx/N,erk[i*100+j]);
       }
+
+  glColor3f(1.0f,0.0f,1.0f);
+  
+  double xx = 1.5;
+  int i=1;
+  glVertex2f(xx/N, (1/5.0)*fabs(2*lx->ve[i*4+2] + 6*lx->ve[i*4+3] * xx) / pow( 1 + pow(lx->ve[i*4+1] + 2*lx->ve[i*4+2]*xx + 3*lx->ve[i*4+3] * pow(xx,2.0),2.0), 2.0/3.0));
 
   glEnd();
     
@@ -1245,12 +1283,10 @@ int main(int argc, char *argv[])
       A->me[N+S-1+S-1+j][j*4 + 6] = -2;
       A->me[N+S-1+S-1+j][j*4 + 7] = -6*(x[j+1]);
     }
-
-  //A->me[N+S-1+S-1+S-1+1][1] = 1;  // first derivative at t=0
-
-  A->me[N+S-1+S-1+S-1+1][0] = 1;  // value at t=0;
   
   A->me[N+S-1+S-1+S-1][2] = 2; // second derivative at t=0
+
+  A->me[N+S-1+S-1+S-1+1][0] = 1;  // value at t=0;
   
   A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-2] = 1;  // first derivative at t=N
   A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-1] = 2*N; // first derivative at t=N
@@ -1268,27 +1304,6 @@ int main(int argc, char *argv[])
       A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+3] = pow(N/(double)P,3.0);
     }
    
-
-  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-3] = 1;  // second derivative at t=N
-  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-2] = N;  
-  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = pow(N,2.0);  // second derivative at t=N
-  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = pow(N,3.0);  
-    
-  //A->me[N+S-1+S-1+S-1+S][N+S-1+S-1+S-1+S-1] = 2; // second derivative at t=N
-  //A->me[N+S-1+S-1+S-1+S][N+S-1+S-1+S-1+S] = 6*N; // second derivative at t=N
-  
-  // second derivative at the join points
-
-  /*
-  for (int j=0;j<S-1;j++)
-    {
-
-      A->me[N+S-1+S-1+S-1+j][j*4 + 2] = 2;
-      A->me[N+S-1+S-1+S-1+j][j*4 + 3] = 6*(x[j+1]);
-
-    }
-  */  
- 
   lb = v_get(4*S);
 
   for (int i=0;i<N;i++)
