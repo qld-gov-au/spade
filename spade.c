@@ -101,19 +101,17 @@ double curvatureboth(
 		 )
 {
 
-  double d0 = gsl_vector_get(p,0);
-  double d1 = gsl_vector_get(p,1);
-  double dd1 = gsl_vector_get(p,2);
+  double d1 = gsl_vector_get(p,0);
+  double dd1 = gsl_vector_get(p,1);
 
-  lb->ve[N+S-1+S-1+S-1] = d0;
   lb->ve[N+S-1+S-1+S-1+2] = d1;
   lb->ve[N+S-1+S-1+S-1+3] = dd1;
 
   for (int i=1;i<P;i++)
-    lb->ve[N+S-1+S-1+S-1+3+i] = gsl_vector_get(p,2+i);
+    lb->ve[N+S-1+S-1+S-1+3+i] = gsl_vector_get(p,1+i);
 
   for (int i=1;i<S;i++)
-    x[i] = gsl_vector_get(p,i-1+3+(P-1));
+    x[i] = gsl_vector_get(p,i-1+2+(P-1));
 
   MAT *nA = m_get(4*S,4*S);
   
@@ -216,11 +214,13 @@ double curvatureboth(
       nA->me[N+S-1+S-1+j][j*4 + 7] = -6*(x[j+1]);
     }
 
-  //nA->me[N+S-1+S-1+S-1+1][1] = 1;  // first derivative at t=0
+  // value at t=N ish
+  nA->me[N+S-1+S-1+S-1][N+S-1+S-1+S-1+3-3] = 1;  
+  nA->me[N+S-1+S-1+S-1][N+S-1+S-1+S-1+3-2] = N;  
+  nA->me[N+S-1+S-1+S-1][N+S-1+S-1+S-1+3-1] = pow(N,2.0);  
+  nA->me[N+S-1+S-1+S-1][N+S-1+S-1+S-1+3] = pow(N,3.0);  
 
   nA->me[N+S-1+S-1+S-1+1][0] = 1;  // value at t=0;
-  
-  nA->me[N+S-1+S-1+S-1][2] = 2; // second derivative at t=0
   
   nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-2] = 1;  // first derivative at t=N
   nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-1] = 2*N; // first derivative at t=N
@@ -668,21 +668,19 @@ double curvature(
 		 )
 {
 
-  double d0 = gsl_vector_get(p,0);
-  double d1 = gsl_vector_get(p,1);
-  double dd1 = gsl_vector_get(p,2);
+  double d1 = gsl_vector_get(p,0);
+  double dd1 = gsl_vector_get(p,1);
 
   //printf("before: ");
   //for (int i=0;i<4*S;i++)
   //  printf(" %lf ",lb->ve[i]);
   //printf("\n");
 
-  lb->ve[N+S-1+S-1+S-1] = d0;
   lb->ve[N+S-1+S-1+S-1+2] = d1;
   lb->ve[N+S-1+S-1+S-1+3] = dd1;
 
   for (int i=1;i<P;i++)
-    lb->ve[N+S-1+S-1+S-1+3+i] = gsl_vector_get(p,2+i);
+    lb->ve[N+S-1+S-1+S-1+3+i] = gsl_vector_get(p,1+i);
 
   //printf("after: ");
   //for (int i=0;i<4*S;i++)
@@ -1189,18 +1187,11 @@ int main(int argc, char *argv[])
       int k=0;
       
       for (k=0;k<counter;k++)
-	{
-	
+	{	
 	  A->me[i][(j-1)*4 + 0] += x[j-counter+k+1] - x[j-counter+k];
 	  A->me[i][(j-1)*4 + 1] += .5*( pow(x[j-counter+k+1],2.0) - pow(x[j-counter+k],2.0) );
 	  A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+1],3.0) - pow(x[j-counter+k],3.0));
 	  A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+1],4.0) - pow(x[j-counter+k],4.0));
-	  /*
-	  A->me[i][j*4 + 0] += x[j-counter+k+2] - x[j-counter+k+1];
-	  A->me[i][j*4 + 1] += .5*( pow(x[j-counter+k+2],2.0) - pow(x[j-counter+k+1],2.0) );
-	  A->me[i][j*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+2],3.0) - pow(x[j-counter+k+1],3.0));
-	  A->me[i][j*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+2],4.0) - pow(x[j-counter+k+1],4.0));
-	  */
 	}
 
       A->me[i][j*4 + 0] += i+1-x[j-counter+k];
@@ -1246,12 +1237,14 @@ int main(int argc, char *argv[])
       A->me[N+S-1+S-1+j][j*4 + 7] = -6*(x[j+1]);
     }
 
-  //A->me[N+S-1+S-1+S-1+1][1] = 1;  // first derivative at t=0
+  // value at t=N ish
+  A->me[N+S-1+S-1+S-1][N+S-1+S-1+S-1+3-3] = 1;  
+  A->me[N+S-1+S-1+S-1][N+S-1+S-1+S-1+3-2] = N;  
+  A->me[N+S-1+S-1+S-1][N+S-1+S-1+S-1+3-1] = pow(N,2.0);  
+  A->me[N+S-1+S-1+S-1][N+S-1+S-1+S-1+3] = pow(N,3.0);  
 
   A->me[N+S-1+S-1+S-1+1][0] = 1;  // value at t=0;
-  
-  A->me[N+S-1+S-1+S-1][2] = 2; // second derivative at t=0
-  
+
   A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-2] = 1;  // first derivative at t=N
   A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-1] = 2*N; // first derivative at t=N
   A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3] = 3*pow(N,2.0);  // first derivative at t=N
@@ -1267,32 +1260,13 @@ int main(int argc, char *argv[])
       A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+2] = pow(N/(double)P,2.0);
       A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+3] = pow(N/(double)P,3.0);
     }
-   
-
-  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-3] = 1;  // second derivative at t=N
-  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-2] = N;  
-  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = pow(N,2.0);  // second derivative at t=N
-  //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = pow(N,3.0);  
-    
-  //A->me[N+S-1+S-1+S-1+S][N+S-1+S-1+S-1+S-1] = 2; // second derivative at t=N
-  //A->me[N+S-1+S-1+S-1+S][N+S-1+S-1+S-1+S] = 6*N; // second derivative at t=N
-  
-  // second derivative at the join points
-
-  /*
-  for (int j=0;j<S-1;j++)
-    {
-
-      A->me[N+S-1+S-1+S-1+j][j*4 + 2] = 2;
-      A->me[N+S-1+S-1+S-1+j][j*4 + 3] = 6*(x[j+1]);
-
-    }
-  */  
- 
+      
   lb = v_get(4*S);
 
   for (int i=0;i<N;i++)
     lb->ve[i] = effort[i];
+
+  //lb->ve[N+S-1+S-1+S-1] = effort[N-1];
 
   for (int i=1;i<P;i++)
     lb->ve[N+S-1+S-1+S-1+3+i] = effort[i*N/P];
@@ -1313,7 +1287,7 @@ int main(int argc, char *argv[])
 
   // Set initial step sizes to 0.1 
 
-  Nparams1 = 3 + (P-1);
+  Nparams1 = 2 + (P-1);
   Nparamsb = Nparams1 + S-1;
 
   ss1 = gsl_vector_alloc (Nparams1);
@@ -1328,9 +1302,8 @@ int main(int argc, char *argv[])
 
   gsl_vector_set (q1, 0, 0);
   gsl_vector_set (q1, 1, 0);
-  gsl_vector_set (q1, 2, 0);
   for (int i=1;i<P;i++)
-    gsl_vector_set (q1, 2+i, effort[i*N/P]);  
+    gsl_vector_set (q1, 1+i, effort[i*N/P]);  
   
   s1 = gsl_multimin_fminimizer_alloc(T,Nparams1);
 
@@ -1343,198 +1316,9 @@ int main(int argc, char *argv[])
 
   sb = gsl_multimin_fminimizer_alloc(T,Nparamsb);
    
-  //s_d = gsl_multimin_fminimizer_alloc(T,2);  
-  //gsl_multimin_fminimizer_set (s_d,&minex_d,qq_d,ss);    
-   
-  /*
-  
-  z = (double *) calloc(I,sizeof(double));
-  
-  for ( int i=0;i<N;i++)
-    for (int m=0;m<M;m++)
-      z[i*M+m] = effort[i];
-
-  printf("\n");
-  for (int i=0;i<I;i++)
-    printf("%lf\n",z[i]);
-  
-  d1 = calloc(I-1,sizeof(*d1));
-  d2 = calloc(I-2,sizeof(*d2));
-
-  qq = gsl_vector_alloc(3);  
-  
-  reg.nBlocks = N;
-  reg.effort = calloc(N,sizeof(double));
-  reg.nPoints = M;
-  
-  for (int i=0;i<N;i++)
-    reg.effort[i] = effort[i];
-  
-  iter = 0;
-
-  for (int i=0;i<I-1;i++)
-    d1[i] = z[i+1]-z[i];
-  
-  for (int i=0;i<I-2;i++)
-    d2[i] = fabs(d1[i+1]-d1[i]);
-  
-  maxcurv = 0;
-  mcidx = -1;
-  for (int i=0;i<I-2;i++)
-    if (d2[i] > maxcurv)
-      {
-	maxcurv = d2[i];
-	mcidx = i;
-      }
-
-  pt = mcidx + 1;
-
-  new_pt = pt;
-
-  //printf("%d\n",pt);
-
-      if (pt > 1 && pt < 13)
-	{
-
-	  if (pt % 2 != 0)
-	    {
-
-	      //printf("odd\n");
-	      gsl_vector_set (qq, 0, z[pt-3]);
-	      gsl_vector_set (qq, 1, z[pt-1]);
-	      gsl_vector_set (qq, 2, z[pt+1]);
-	    }
-	  else
-	    {	   
-	      gsl_vector_set (qq, 0, z[pt-2]);
-	      gsl_vector_set (qq, 1, z[pt]);
-	      gsl_vector_set (qq, 2, z[pt+2]);
-	    }       	     	  
-	}
-      else
-	{
-	   printf("outside %d\n",pt);
-	  exit(1);
-	}
-
-  
-  
-  //for (int iter=0;iter<10000;iter++)
-  //  {  
-	  
-  // }             
-  */
-  
-  
   glutMainLoop();
 
   return(0);
   
 }
 
-
-	 /*
-      status = gsl_multimin_fminimizer_iterate(s);
-
-      printf("%d\n",pt);
-      
-       if (pt % 2 != 0)
-	 {
-	   z[pt-3] = gsl_vector_get(s->x,0);
-	   z[pt-2] = 2*effort[(pt-3)/2] - z[pt-3];
-	   z[pt-1] = gsl_vector_get(s->x,1);
-	   z[pt] = 2*effort[(pt-1)/2] - z[pt-1];
-	   z[pt+1] = gsl_vector_get(s->x,2);
-	   z[pt+2] = 2*effort[(pt+1)/2] - z[pt+1];       
-	 }
-       else
-	 {
-	   z[pt-2] = gsl_vector_get(s->x,0);
-	   z[pt-1] = 2*effort[(pt-2)/2] - z[pt-2];
-	   z[pt] = gsl_vector_get(s->x,1);
-	   z[pt+1] = 2*effort[pt/2] - z[pt];
-	   z[pt+2] = gsl_vector_get(s->x,2);
-	   z[pt+3] = 2*effort[(pt+2)/2] - z[pt+2];       
-	 }
-
-      for (int i=0;i<I-1;i++)
-	d1[i] = z[i+1]-z[i];
-  
-      for (int i=0;i<I-2;i++)
-	d2[i] = fabs(d1[i+1]-d1[i]);
-  
-      maxcurv = 0;
-      mcidx = -1;
-      for (int i=0;i<I-2;i++)	
-	if (d2[i] > maxcurv)
-	  {
-	    maxcurv = d2[i];
-	    mcidx = i;
-	  }
-
-      new_pt = mcidx + 1;
-
-      //printf("pt: %d\n",pt);
-
-      if (new_pt != pt)
-	{
-
-	  //printf("in here\n");
-
-	  pt = new_pt;
-
-      if (pt ==1)
-	pt += 1;
-
-      if (pt == 12)
-	pt -= 1;
-
-	  
-	  if (pt % 2 != 0)
-	    {
-
-	      //printf("odd\n");
-	      gsl_vector_set (qq, 0, z[pt-3]);
-	      gsl_vector_set (qq, 1, z[pt-1]);
-	      gsl_vector_set (qq, 2, z[pt+1]);
-	    }
-	  else
-	    {
-
-	      //printf("even\n");	      
-	    }
-	 	  
-	  gsl_vector_set_all (ss, 0.00001);
-	  gsl_multimin_fminimizer_set (s,&minex,qq,ss);
-	}
-          
-      if (pt ==1)
-	pt += 1;
-
-      if (pt == 12)
-	pt -= 1;
-	  
-	  if (pt % 2 != 0)
-	    {
-
-	      //printf("odd\n");
-	      gsl_vector_set (qq, 0, z[pt-3]);
-	      gsl_vector_set (qq, 1, z[pt-1]);
-	      gsl_vector_set (qq, 2, z[pt+1]);
-	    }
-	  else
-	    {
-
-	      //printf("even\n");	      
-	      gsl_vector_set (qq, 0, z[pt-2]);
-	      gsl_vector_set (qq, 1, z[pt]);
-	      gsl_vector_set (qq, 2, z[pt+2]);
-	    }
-
-      
-	  printf("\n\n");
-	  for (int i=0;i<I;i++)
-	    printf("%lf ",z[i]);
-	  printf("\n");
-
-	 */
