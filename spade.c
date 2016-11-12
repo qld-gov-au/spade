@@ -26,15 +26,19 @@ double *d1;
 double *d2;
 double *effort;
 
+int N2;
+int S2;
+
 int Nparams1;
 int Nparamsb;
 
-double *x;
+double *x,*x2;
+double *N2x;
 
-VEC *lx;
+VEC *lx,*lx2;
 
-VEC *lb;
-MAT *A, *LU;
+VEC *lb,*lb2;
+MAT *A, *LU, *A2, *LU2;
 PERM *pivot;
 
 typedef struct {
@@ -109,11 +113,8 @@ double curvatureboth(
   lb->ve[N+S-1+S-1+S-1+2] = d1;
   lb->ve[N+S-1+S-1+S-1+3] = dd1;
 
-  for (int i=1;i<P;i++)
-    lb->ve[N+S-1+S-1+S-1+3+i] = gsl_vector_get(p,2+i);
-
   for (int i=1;i<S;i++)
-    x[i] = gsl_vector_get(p,i-1+3+(P-1));
+    x[i] = gsl_vector_get(p,i-1+3);
 
   MAT *nA = m_get(4*S,4*S);
   
@@ -227,16 +228,7 @@ double curvatureboth(
   nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3] = 3*pow(N,2.0);  // first derivative at t=N
 
   nA->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
-  nA->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;  
-    
-  P = S-N;
-  for (int i=1;i<P;i++)
-    {
-      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4] = 1;  // S bigger than 3
-      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+1] = N/(double)P;
-      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+2] = pow(N/(double)P,2.0);
-      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+3] = pow(N/(double)P,3.0);
-    }
+  nA->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;     
 
   LU = m_get(4*S,4*S);
   LU = m_copy(nA,LU);
@@ -1007,6 +999,73 @@ void display(void)
   
   glEnd();
 
+
+  // new curve!
+  glBegin(GL_POINTS);
+  
+  glColor3f(0.0f,1.0f,0.5f);
+
+  for (int i=0;i<S2;i++)
+    {
+      for (int j=0;j<100;j++)
+	{
+	  double xx = x2[i]+j*(x2[i+1]-x2[i])/100.0;
+	  
+	  glVertex2f(xx/N,lx2->ve[i*4] + lx2->ve[i*4+1]*xx + lx2->ve[i*4+2]*pow(xx,2.0) + lx2->ve[i*4+3] * pow(xx,3.0));
+	}
+    }
+  
+  glEnd();
+
+
+
+  glBegin(GL_POINTS);
+  
+  glColor3f(1.0f,0.1f,0.1f);
+
+  int i=0;
+  int j=0;
+  int counter=0;
+  int k=0;
+
+  for (int l=0;l<100;l++)
+    {
+
+      double xx = l*(N2x[i+1]-x2[j-counter+k])/100 + x2[j-counter+k];
+      int oldi = S;
+      while (x[oldi]>xx) { oldi--; }
+
+      glVertex2f(xx/N,lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
+
+    }
+
+  glEnd();
+
+
+
+  glBegin(GL_POINTS);
+  
+  glColor3f(0.2f,0.4f,0.1f);
+
+  i=1;
+  j=1;
+
+  for (int l=0;l<100;l++)
+    {
+
+      double xx = l*(x2[j]-N2x[i])/100 + N2x[i];
+
+      int oldi = S;
+      while (x[oldi]>xx) { oldi--; }
+
+      glVertex2f(xx/N,lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
+
+    }
+
+  glEnd();
+
+
+
   double * erk = (double *) calloc(100*S,sizeof(double));
 
   for (int i=0;i<S;i++)
@@ -1044,7 +1103,7 @@ void display(void)
   glColor3f(1.0f,0.0f,1.0f);
   
   double xx = 1.5;
-  int i=1;
+  i=1;
   glVertex2f(xx/N, (1/5.0)*fabs(2*lx->ve[i*4+2] + 6*lx->ve[i*4+3] * xx) / pow( 1 + pow(lx->ve[i*4+1] + 2*lx->ve[i*4+2]*xx + 3*lx->ve[i*4+3] * pow(xx,2.0),2.0), 2.0/3.0));
 
   glEnd();
@@ -1233,12 +1292,7 @@ int main(int argc, char *argv[])
 	  A->me[i][(j-1)*4 + 1] += .5*( pow(x[j-counter+k+1],2.0) - pow(x[j-counter+k],2.0) );
 	  A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+1],3.0) - pow(x[j-counter+k],3.0));
 	  A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+1],4.0) - pow(x[j-counter+k],4.0));
-	  /*
-	  A->me[i][j*4 + 0] += x[j-counter+k+2] - x[j-counter+k+1];
-	  A->me[i][j*4 + 1] += .5*( pow(x[j-counter+k+2],2.0) - pow(x[j-counter+k+1],2.0) );
-	  A->me[i][j*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+2],3.0) - pow(x[j-counter+k+1],3.0));
-	  A->me[i][j*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+2],4.0) - pow(x[j-counter+k+1],4.0));
-	  */
+	
 	}
 
       A->me[i][j*4 + 0] += i+1-x[j-counter+k];
@@ -1294,23 +1348,11 @@ int main(int argc, char *argv[])
 
   A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
   A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;  
-
-  P = S-N;
-  for (int i=1;i<P;i++)
-    {
-      A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4] = 1;  // S bigger than 3
-      A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+1] = N/(double)P;
-      A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+2] = pow(N/(double)P,2.0);
-      A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+3] = pow(N/(double)P,3.0);
-    }
-   
+  
   lb = v_get(4*S);
 
   for (int i=0;i<N;i++)
     lb->ve[i] = effort[i];
-
-  for (int i=1;i<P;i++)
-    lb->ve[N+S-1+S-1+S-1+3+i] = effort[i*N/P];
 
   LU = m_get(4*S,4*S);
   LU = m_copy(A,LU);
@@ -1328,7 +1370,7 @@ int main(int argc, char *argv[])
 
   // Set initial step sizes to 0.1 
 
-  Nparams1 = 3 + (P-1);
+  Nparams1 = 3;
   Nparamsb = Nparams1 + S-1;
 
   ss1 = gsl_vector_alloc (Nparams1);
@@ -1344,8 +1386,6 @@ int main(int argc, char *argv[])
   gsl_vector_set (q1, 0, 0);
   gsl_vector_set (q1, 1, 0);
   gsl_vector_set (q1, 2, 0);
-  for (int i=1;i<P;i++)
-    gsl_vector_set (q1, 2+i, effort[i*N/P]);  
   
   s1 = gsl_multimin_fminimizer_alloc(T,Nparams1);
 
@@ -1357,199 +1397,314 @@ int main(int argc, char *argv[])
   fb.params = NULL;
 
   sb = gsl_multimin_fminimizer_alloc(T,Nparamsb);
-   
-  //s_d = gsl_multimin_fminimizer_alloc(T,2);  
-  //gsl_multimin_fminimizer_set (s_d,&minex_d,qq_d,ss);    
-   
-  /*
-  
-  z = (double *) calloc(I,sizeof(double));
-  
-  for ( int i=0;i<N;i++)
-    for (int m=0;m<M;m++)
-      z[i*M+m] = effort[i];
 
-  printf("\n");
-  for (int i=0;i<I;i++)
-    printf("%lf\n",z[i]);
-  
-  d1 = calloc(I-1,sizeof(*d1));
-  d2 = calloc(I-2,sizeof(*d2));
+  qb = gsl_vector_alloc (Nparamsb);
 
-  qq = gsl_vector_alloc(3);  
-  
-  reg.nBlocks = N;
-  reg.effort = calloc(N,sizeof(double));
-  reg.nPoints = M;
-  
-  for (int i=0;i<N;i++)
-    reg.effort[i] = effort[i];
-  
-  iter = 0;
+  for (int i=0;i<Nparams1;i++)
+    gsl_vector_set (qb, i, gsl_vector_get(q1,i));
 
-  for (int i=0;i<I-1;i++)
-    d1[i] = z[i+1]-z[i];
-  
-  for (int i=0;i<I-2;i++)
-    d2[i] = fabs(d1[i+1]-d1[i]);
-  
-  maxcurv = 0;
-  mcidx = -1;
-  for (int i=0;i<I-2;i++)
-    if (d2[i] > maxcurv)
+  for (int i=1;i<S;i++)
+    gsl_vector_set (qb, Nparams1 + i-1, x[i]);
+
+  gsl_multimin_fminimizer_set (sb,&fb,qb,ssb);
+
+  do {
+
+    iter++;
+    status = gsl_multimin_fminimizer_iterate(sb);
+      
+    if (status) 
+      break;
+
+    size = gsl_multimin_fminimizer_size (sb);
+    status = gsl_multimin_test_size (size, 1e-3);
+
+    if (status == GSL_SUCCESS)
       {
-	maxcurv = d2[i];
-	mcidx = i;
+	printf ("converged to minimum at\n");
       }
 
-  pt = mcidx + 1;
+    printf ("%5d %10.3e %10.3e %10.3e %10.3e f() = %7.3f size = %.3f\n", iter, gsl_vector_get (sb->x, 0), gsl_vector_get (sb->x, 1), gsl_vector_get (sb->x, 2), gsl_vector_get (sb->x, 3), sb->fval, size);
+  }
+  while (status == GSL_CONTINUE && iter < 100);
 
-  new_pt = pt;
+  
+  double * testeffort = (double *) calloc(N,sizeof(double));
 
-  //printf("%d\n",pt);
+  int id;
+  for (int i=0;i<N;i++) 
+    {
+      for (int l=0;l<100;l++)
+	{
+	  double xx = l/100.0 + i;
+	  if (xx<x[1])
+	    id = 0;
+	  if (xx>=x[1] && xx < x[2])
+	    id = 1;
+	  if (xx>=x[2] && xx < x[3])
+	    id = 2;
+	  if (xx>=x[3] && xx < x[4])
+	    id = 3;
 
-      if (pt > 1 && pt < 13)
+	  testeffort[i] += (1.0/100) * (lx->ve[4*id] + lx->ve[4*id+1]*xx + lx->ve[4*id+2]*pow(xx,2.0) + lx->ve[4*id+3]*pow(xx,3.0));
+	}
+
+      printf("%lf\n",testeffort[i]);
+    }
+
+  for (int i=0;i<N;i++)
+    printf("%lf\n",effort[i]);
+
+
+
+  N2 = 4;  // no. data blocks
+ 
+  double * effort2 = (double *) calloc(N2,sizeof(double));  
+  
+  for (int i=0;i<N2;i++)
+    for (int j=0;j<K;j++)
+      {
+
+	double periodstart = mintime + i*tottime/N2;
+	double periodend = mintime + (i+1)*tottime/N2;
+	
+	if (begintime[j] >= periodstart && begintime[j] < periodend)
+	  {
+
+	    if (endtime[j] < periodend)
+	      effort2[i] += raweffort[j];
+	    else	      
+              effort2[i] += raweffort[j] * (periodend - begintime[j]) / (endtime[j] - begintime[j]); 			      
+
+	  }
+      }		      
+  
+  toteffort = 0;
+  for (int i=0;i<N2;i++)
+    toteffort += effort2[i];
+
+  avgeffort = toteffort / N2;
+  
+  for (int i=0;i<N;i++)
+    effort2[i] /= avgeffort;
+
+  S2=5; // no. splines
+  
+  double gap=0;
+  int idx=-1;
+  for (int i=0;i<S;i++)
+    if (x[i+1]-x[i] > gap)
+      {
+	gap = x[i+1] - x[i];
+	idx = i;
+      }
+
+  x2 = (double *) calloc(S2+1,sizeof(double));  
+
+  int i;
+  for (i=0;i<=idx;i++)
+    x2[i] = x[i];
+
+  x2[i] = (x[i]+x[i-1])/2;
+
+  for (i=idx+1;i<S2;i++)
+    x2[i+1] = x[i];
+
+  for (int i=0;i<=S;i++)
+    printf("%lf\n",x[i]);
+  for (int i=0;i<=S2;i++)
+    printf("%lf\n",x2[i]);
+
+
+
+  A2 = m_get(4*S2,4*S2);
+
+  double * fakeeffort = (double *) calloc(N2,sizeof(double));
+  N2x = (double *) calloc(N2+1,sizeof(double));
+
+  for (int i=0;i<=N2;i++)
+    N2x[i] = i * (double)N / (double)N2;
+
+
+  for (int i=0;i<=N2;i++)
+    printf("%lf\n",N2x[i]);
+
+  //  exit(1);
+
+  j=0;
+  for (int i=0;i<N2;i++)
+    {
+
+      if (x2[j] > N2x[i])
 	{
 
-	  if (pt % 2 != 0)
+          double tmpfakeeffort=0;
+	  for (int l=0;l<100;l++)
 	    {
 
-	      //printf("odd\n");
-	      gsl_vector_set (qq, 0, z[pt-3]);
-	      gsl_vector_set (qq, 1, z[pt-1]);
-	      gsl_vector_set (qq, 2, z[pt+1]);
+	      double xx = l*(x2[j]-N2x[i])/100 + N2x[i];
+	      int oldi = S;
+	      while (x[oldi]>xx) { oldi--; }
+
+	      tmpfakeeffort += ((x2[j]-N2x[i])/100) * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
+
 	    }
-	  else
-	    {	   
-	      gsl_vector_set (qq, 0, z[pt-2]);
-	      gsl_vector_set (qq, 1, z[pt]);
-	      gsl_vector_set (qq, 2, z[pt+2]);
-	    }       	     	  
-	}
-      else
-	{
-	   printf("outside %d\n",pt);
-	  exit(1);
+	  fakeeffort[i] += tmpfakeeffort; ///(N2x[i]-x2[j]);
 	}
 
+      int counter=0;
+      while ( x2[j+1] < N2x[i+1] ) { j++; counter++; }
+
+      int k=0;
+      
+      for (k=0;k<counter;k++)
+	{
+
+          double tmpfakeeffort=0;
+	  for (int l=0;l<100;l++)
+	    {
+
+	      double xx = l*(x2[j-counter+k+1]-x2[j-counter+k])/100 + x2[j-counter+k];
+	      int oldi = S;
+	      while (x[oldi]>xx) { oldi--; }
+
+	      tmpfakeeffort += (x2[j-counter+k+1]-x2[j-counter+k])/100 * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
+
+	    }
+	  fakeeffort[i] += tmpfakeeffort; ///(x2[j-counter+k+1]-x2[j-counter+k]);
+	}
+
+      double tmpfakeeffort=0;
+      for (int l=0;l<100;l++)
+	{
+
+	  double xx = l*(N2x[i+1]-x2[j-counter+k])/100 + x2[j-counter+k];
+	  int oldi = S;
+	  while (x[oldi]>xx) { oldi--; }
+
+	  tmpfakeeffort += (N2x[i+1]-x2[j-counter+k])/100 * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
+
+	}
+
+      fakeeffort[i] += tmpfakeeffort; //x[i+1]-x2[j-counter+k]);
+
+      j++; 
+    }
+
+  j=0;
+
+  for (int i=0;i<N2;i++)
+    printf("%lf\n", fakeeffort[i]);
+
+  for (int i=0;i<=S2;i++)
+    printf("%lf\n", x2[i]);
+
+  for (int i=0;i<N2;i++)
+    {
+
+      if (x2[j] > N2x[i])
+	{
+	  A2->me[i][(j-1)*4 + 0] += x2[j] - N2x[i];
+	  A2->me[i][(j-1)*4 + 1] += .5*( pow(x2[j],2.0) - pow(N2x[i],2.0) );
+	  A2->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x2[j],3.0) - pow(N2x[i],3.0));
+	  A2->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x2[j],4.0) - pow(N2x[i],4.0));
+	}
+      
+      int counter=0;
+	        
+      while ( x2[j+1] < N2x[i+1] ) { j++; counter++; }
+
+      int k=0;
+      
+      for (k=0;k<counter;k++)
+	{
+	
+	  A2->me[i][(j-1)*4 + 0] += x2[j-counter+k+1] - x2[j-counter+k];
+	  A2->me[i][(j-1)*4 + 1] += .5*( pow(x2[j-counter+k+1],2.0) - pow(x2[j-counter+k],2.0) );
+	  A2->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x2[j-counter+k+1],3.0) - pow(x2[j-counter+k],3.0));
+	  A2->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x2[j-counter+k+1],4.0) - pow(x2[j-counter+k],4.0));
+
+	}
+
+      A2->me[i][j*4 + 0] += N2x[i+1]-x2[j-counter+k];
+      A2->me[i][j*4 + 1] += .5*( pow(N2x[i+1],2.0) - pow(x2[j-counter+k],2.0) );
+      A2->me[i][j*4 + 2] += (1.0/3) * ( pow(N2x[i+1],3.0) - pow(x2[j-counter+k],3.0));
+      A2->me[i][j*4 + 3] += (1.0/4) * ( pow(N2x[i+1],4.0) - pow(x2[j-counter+k],4.0));
+
+      j++; 
+      	  
+    }
+
+  for (int j=0;j<S2-1;j++)
+    {
+
+      A2->me[N2+j][j*4 + 0] = 1;
+      A2->me[N2+j][j*4 + 1] = x2[j+1];
+      A2->me[N2+j][j*4 + 2] = pow(x2[j+1],2.0);
+      A2->me[N2+j][j*4 + 3] = pow(x2[j+1],3.0);
+      A2->me[N2+j][j*4 + 4] = -1;
+      A2->me[N2+j][j*4 + 5] = -(x2[j+1]);
+      A2->me[N2+j][j*4 + 6] = -pow(x2[j+1],2.0);
+      A2->me[N2+j][j*4 + 7] = -pow(x2[j+1],3.0);
+      
+    }
+
+  for (int j=0;j<S2-1;j++)
+    {
+
+      A2->me[N2+S2-1+j][j*4 + 1] = 1;
+      A2->me[N2+S2-1+j][j*4 + 2] = 2*(x2[j+1]);
+      A2->me[N2+S2-1+j][j*4 + 3] = 3*pow(x2[j+1],2.0);
+      A2->me[N2+S2-1+j][j*4 + 5] = -1;
+      A2->me[N2+S2-1+j][j*4 + 6] = -2*(x2[j+1]);
+      A2->me[N2+S2-1+j][j*4 + 7] = -3*pow(x2[j+1],2.0);
+      
+    }
+
+  for (int j=0;j<S2-1;j++)
+    { 
+      A2->me[N2+S2-1+S2-1+j][j*4 + 2] = 2;
+      A2->me[N2+S2-1+S2-1+j][j*4 + 3] = 6*(x2[j+1]);
+      A2->me[N2+S2-1+S2-1+j][j*4 + 6] = -2;
+      A2->me[N2+S2-1+S2-1+j][j*4 + 7] = -6*(x2[j+1]);
+    }
   
+  A2->me[N2+S2-1+S2-1+S2-1][2] = 2; // second derivative at t=0
+
+  A2->me[N2+S2-1+S2-1+S2-1+1][0] = 1;  // value at t=0;
   
-  //for (int iter=0;iter<10000;iter++)
-  //  {  
-	  
-  // }             
-  */
+  A2->me[N2+S2-1+S2-1+S2-1+2][N2+S2-1+S2-1+S2-1+3-2] = 1;  // first derivative at t=N2
+  A2->me[N2+S2-1+S2-1+S2-1+2][N2+S2-1+S2-1+S2-1+3-1] = 2*N2x[N2]; // first derivative at t=N2
+  A2->me[N2+S2-1+S2-1+S2-1+2][N2+S2-1+S2-1+S2-1+3] = 3*pow(N2x[N2],2.0);  // first derivative at t=N2
+
+  A2->me[N2+S2-1+S2-1+S2-1+3][N2+S2-1+S2-1+S2-1+3-1] = 2;  // second derivative at t=N2
+  A2->me[N2+S2-1+S2-1+S2-1+3][N2+S2-1+S2-1+S2-1+3] = 6*N2x[N2];  
   
-  
+  m_output(A);
+  m_output(A2);
+
+  //exit(1);
+
+  lb2 = v_get(4*S2);
+
+  double p = .5;
+  for (int i=0;i<N2;i++)
+    lb2->ve[i] = p*fakeeffort[i] + (1-p)*effort2[i];
+
+  lb2->ve[N2+S2-1+S2-1+S2-1] = gsl_vector_get(sb->x,0);
+  lb2->ve[N2+S2-1+S2-1+S2-1+2] = gsl_vector_get(sb->x,1);
+  lb2->ve[N2+S2-1+S2-1+S2-1+3] = gsl_vector_get(sb->x,2);
+
+  LU2 = m_get(4*S2,4*S2);
+  LU2 = m_copy(A2,LU2);
+  pivot = px_get(A2->m);
+  LUfactor(LU2,pivot);
+
+  lx2 = LUsolve(LU2,pivot,lb2,VNULL);
+
   glutMainLoop();
 
   return(0);
   
 }
 
-
-	 /*
-      status = gsl_multimin_fminimizer_iterate(s);
-
-      printf("%d\n",pt);
-      
-       if (pt % 2 != 0)
-	 {
-	   z[pt-3] = gsl_vector_get(s->x,0);
-	   z[pt-2] = 2*effort[(pt-3)/2] - z[pt-3];
-	   z[pt-1] = gsl_vector_get(s->x,1);
-	   z[pt] = 2*effort[(pt-1)/2] - z[pt-1];
-	   z[pt+1] = gsl_vector_get(s->x,2);
-	   z[pt+2] = 2*effort[(pt+1)/2] - z[pt+1];       
-	 }
-       else
-	 {
-	   z[pt-2] = gsl_vector_get(s->x,0);
-	   z[pt-1] = 2*effort[(pt-2)/2] - z[pt-2];
-	   z[pt] = gsl_vector_get(s->x,1);
-	   z[pt+1] = 2*effort[pt/2] - z[pt];
-	   z[pt+2] = gsl_vector_get(s->x,2);
-	   z[pt+3] = 2*effort[(pt+2)/2] - z[pt+2];       
-	 }
-
-      for (int i=0;i<I-1;i++)
-	d1[i] = z[i+1]-z[i];
-  
-      for (int i=0;i<I-2;i++)
-	d2[i] = fabs(d1[i+1]-d1[i]);
-  
-      maxcurv = 0;
-      mcidx = -1;
-      for (int i=0;i<I-2;i++)	
-	if (d2[i] > maxcurv)
-	  {
-	    maxcurv = d2[i];
-	    mcidx = i;
-	  }
-
-      new_pt = mcidx + 1;
-
-      //printf("pt: %d\n",pt);
-
-      if (new_pt != pt)
-	{
-
-	  //printf("in here\n");
-
-	  pt = new_pt;
-
-      if (pt ==1)
-	pt += 1;
-
-      if (pt == 12)
-	pt -= 1;
-
-	  
-	  if (pt % 2 != 0)
-	    {
-
-	      //printf("odd\n");
-	      gsl_vector_set (qq, 0, z[pt-3]);
-	      gsl_vector_set (qq, 1, z[pt-1]);
-	      gsl_vector_set (qq, 2, z[pt+1]);
-	    }
-	  else
-	    {
-
-	      //printf("even\n");	      
-	    }
-	 	  
-	  gsl_vector_set_all (ss, 0.00001);
-	  gsl_multimin_fminimizer_set (s,&minex,qq,ss);
-	}
-          
-      if (pt ==1)
-	pt += 1;
-
-      if (pt == 12)
-	pt -= 1;
-	  
-	  if (pt % 2 != 0)
-	    {
-
-	      //printf("odd\n");
-	      gsl_vector_set (qq, 0, z[pt-3]);
-	      gsl_vector_set (qq, 1, z[pt-1]);
-	      gsl_vector_set (qq, 2, z[pt+1]);
-	    }
-	  else
-	    {
-
-	      //printf("even\n");	      
-	      gsl_vector_set (qq, 0, z[pt-2]);
-	      gsl_vector_set (qq, 1, z[pt]);
-	      gsl_vector_set (qq, 2, z[pt+2]);
-	    }
-
-      
-	  printf("\n\n");
-	  for (int i=0;i<I;i++)
-	    printf("%lf ",z[i]);
-	  printf("\n");
-
-	 */
