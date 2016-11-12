@@ -26,6 +26,9 @@ double *d1;
 double *d2;
 double *effort;
 
+int Nparams1;
+int Nparamsb;
+
 double *x;
 
 VEC *lx;
@@ -44,9 +47,9 @@ typedef struct {
 
 const gsl_multimin_fminimizer_type *T;
 
-gsl_multimin_fminimizer *s,*s_d;
-gsl_vector *ss, *qq, *qq2, *qq_d;
-gsl_multimin_function minex,minex_d;
+gsl_multimin_fminimizer *s1,*s2,*sb;
+gsl_vector *ss1, *ss2, *ssb, *q1, *q2, *qb;
+gsl_multimin_function f1,f2,fb;
 
 GSL_reg reg;
     
@@ -90,8 +93,7 @@ double ncurvaturei(
 
 }
 
-
-double curvaturex(
+double curvatureboth(
 
 		 gsl_vector *p,
 		 void *param
@@ -99,10 +101,21 @@ double curvaturex(
 		 )
 {
 
-  x[1] = gsl_vector_get(p,0);
-  x[2] = gsl_vector_get(p,1);
+  double d0 = gsl_vector_get(p,0);
+  double d1 = gsl_vector_get(p,1);
+  double dd1 = gsl_vector_get(p,2);
 
-  A = m_get(4*S,4*S);
+  lb->ve[N+S-1+S-1+S-1] = d0;
+  lb->ve[N+S-1+S-1+S-1+2] = d1;
+  lb->ve[N+S-1+S-1+S-1+3] = dd1;
+
+  for (int i=1;i<P;i++)
+    lb->ve[N+S-1+S-1+S-1+3+i] = gsl_vector_get(p,2+i);
+
+  for (int i=1;i<S;i++)
+    x[i] = gsl_vector_get(p,i-1+3+(P-1));
+
+  MAT *nA = m_get(4*S,4*S);
   
   int j=0;
 
@@ -114,19 +127,19 @@ double curvaturex(
 
 	  if (x[j] > i+1)
 	    {
-	      A->me[i][(j-1)*4 + 0] += (i+1) - i;
-	      A->me[i][(j-1)*4 + 1] += .5*( pow((i+1),2.0) - pow(i,2.0) );
-	      A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow((i+1),3.0) - pow(i,3.0));
-	      A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow((i+1),4.0) - pow(i,4.0));
+	      nA->me[i][(j-1)*4 + 0] += (i+1) - i;
+	      nA->me[i][(j-1)*4 + 1] += .5*( pow((i+1),2.0) - pow(i,2.0) );
+	      nA->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow((i+1),3.0) - pow(i,3.0));
+	      nA->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow((i+1),4.0) - pow(i,4.0));
 	      
 	    }
 	  else
 	    {
 	    
-	      A->me[i][(j-1)*4 + 0] += x[j] - i;
-	      A->me[i][(j-1)*4 + 1] += .5*( pow(x[j],2.0) - pow(i,2.0) );
-	      A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j],3.0) - pow(i,3.0));
-	      A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j],4.0) - pow(i,4.0));
+	      nA->me[i][(j-1)*4 + 0] += x[j] - i;
+	      nA->me[i][(j-1)*4 + 1] += .5*( pow(x[j],2.0) - pow(i,2.0) );
+	      nA->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j],3.0) - pow(i,3.0));
+	      nA->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j],4.0) - pow(i,4.0));
 	    }
 	}
       
@@ -151,19 +164,287 @@ double curvaturex(
       for (k=0;k<counter;k++)
 	{
 	
-	  A->me[i][(j-1)*4 + 0] += x[j-counter+k+1] - x[j-counter+k];
-	  A->me[i][(j-1)*4 + 1] += .5*( pow(x[j-counter+k+1],2.0) - pow(x[j-counter+k],2.0) );
-	  A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+1],3.0) - pow(x[j-counter+k],3.0));
-	  A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+1],4.0) - pow(x[j-counter+k],4.0));
+	  nA->me[i][(j-1)*4 + 0] += x[j-counter+k+1] - x[j-counter+k];
+	  nA->me[i][(j-1)*4 + 1] += .5*( pow(x[j-counter+k+1],2.0) - pow(x[j-counter+k],2.0) );
+	  nA->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+1],3.0) - pow(x[j-counter+k],3.0));
+	  nA->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+1],4.0) - pow(x[j-counter+k],4.0));
+	}
+
+      if (x[j] < i+1)
+	{
+	  nA->me[i][j*4 + 0] += i+1-x[j-counter+k];
+	  nA->me[i][j*4 + 1] += .5*( pow(i+1,2.0) - pow(x[j-counter+k],2.0) );
+	  nA->me[i][j*4 + 2] += (1.0/3) * ( pow(i+1,3.0) - pow(x[j-counter+k],3.0));
+	  nA->me[i][j*4 + 3] += (1.0/4) * ( pow(i+1,4.0) - pow(x[j-counter+k],4.0));	  	  
+	}
+
+      j++;      
+      	  
+    }
+
+  for (int j=0;j<S-1;j++)
+    {
+
+      nA->me[N+j][j*4 + 0] = 1;
+      nA->me[N+j][j*4 + 1] = x[j+1];
+      nA->me[N+j][j*4 + 2] = pow(x[j+1],2.0);
+      nA->me[N+j][j*4 + 3] = pow(x[j+1],3.0);
+      nA->me[N+j][j*4 + 4] = -1;
+      nA->me[N+j][j*4 + 5] = -(x[j+1]);
+      nA->me[N+j][j*4 + 6] = -pow(x[j+1],2.0);
+      nA->me[N+j][j*4 + 7] = -pow(x[j+1],3.0);
+      
+    }
+
+  for (int j=0;j<S-1;j++)
+    {
+
+      nA->me[N+S-1+j][j*4 + 1] = 1;
+      nA->me[N+S-1+j][j*4 + 2] = 2*(x[j+1]);
+      nA->me[N+S-1+j][j*4 + 3] = 3*pow(x[j+1],2.0);
+      nA->me[N+S-1+j][j*4 + 5] = -1;
+      nA->me[N+S-1+j][j*4 + 6] = -2*(x[j+1]);
+      nA->me[N+S-1+j][j*4 + 7] = -3*pow(x[j+1],2.0);
+      
+    }
+
+  for (int j=0;j<S-1;j++)
+    { 
+      nA->me[N+S-1+S-1+j][j*4 + 2] = 2;
+      nA->me[N+S-1+S-1+j][j*4 + 3] = 6*(x[j+1]);
+      nA->me[N+S-1+S-1+j][j*4 + 6] = -2;
+      nA->me[N+S-1+S-1+j][j*4 + 7] = -6*(x[j+1]);
+    }
+
+  //nA->me[N+S-1+S-1+S-1+1][1] = 1;  // first derivative at t=0
+
+  nA->me[N+S-1+S-1+S-1+1][0] = 1;  // value at t=0;
+  
+  nA->me[N+S-1+S-1+S-1][2] = 2; // second derivative at t=0
+  
+  nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-2] = 1;  // first derivative at t=N
+  nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-1] = 2*N; // first derivative at t=N
+  nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3] = 3*pow(N,2.0);  // first derivative at t=N
+
+  nA->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
+  nA->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;  
+    
+  P = S-N;
+  for (int i=1;i<P;i++)
+    {
+      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4] = 1;  // S bigger than 3
+      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+1] = N/(double)P;
+      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+2] = pow(N/(double)P,2.0);
+      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+3] = pow(N/(double)P,3.0);
+    }
+
+  LU = m_get(4*S,4*S);
+  LU = m_copy(nA,LU);
+  pivot = px_get(nA->m);
+  LUfactor(LU,pivot);
+
+  lx = LUsolve(LU,pivot,lb,VNULL);
+
+  double f_best = 0;
+
+  for (ci=0;ci<S;ci++)
+    {
+      
+      double x_lower = x[ci];
+      double x_upper = x[ci+1];
+      double x_mid = (x[ci+1] + x[ci] )/2;
+  
+      double f_lower = curvaturei(x_lower);
+      double f_upper = curvaturei(x_upper);
+  
+      double f_mid = curvaturei(x_mid);
+
+      int found = 0;
+  
+      do
+	{
+          
+	  if (f_mid < f_lower && f_mid < f_upper)
+	    {
+
+	      if (f_lower > f_upper)
+		f_mid = f_lower;
+	      else
+		f_mid = f_upper;
+
+	      found = 1;
+	    }
+	  else
+	    {
+
+	      if (f_mid > f_lower && f_mid > f_upper)
+		{
+
+		  int status;
+		  int iter=0, max_iter =100;
+		  const gsl_min_fminimizer_type *T;
+		  gsl_min_fminimizer *s;
+	  
+		  gsl_function F;
+
+		  F.function = &ncurvaturei;
+		  F.params = 0;
+
+		  T = gsl_min_fminimizer_brent;
+		  s = gsl_min_fminimizer_alloc (T);
+		  gsl_min_fminimizer_set (s, &F, x_mid, x_lower, x_upper);
+
+		  printf ("using %s method\n",gsl_min_fminimizer_name (s));
+
+		  printf ("%5s [%9s, %9s] %9s %9s\n","iter", "lower", "upper", "min", "err(est)");
+
+		  printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
+	  
+		  do
+		    {
+   
+		      iter++;
+		      status = gsl_min_fminimizer_iterate (s);
+
+		      x_mid = gsl_min_fminimizer_x_minimum (s);
+		      x_lower = gsl_min_fminimizer_x_lower (s);
+		      x_upper = gsl_min_fminimizer_x_upper (s);
+
+		      status = gsl_min_test_interval (x_lower, x_upper, 0.001, 0.0);
+
+		      if (status == GSL_SUCCESS)
+			printf ("Converged:\n");
+
+		      printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
+	      
+		    }
+		  while (status == GSL_CONTINUE && iter < max_iter);
+
+		  found = 1;
+
+		  f_mid = curvaturei(x_mid);
+	  
+		}
+	      else
+		{
+	  
+		  if ( f_mid > f_lower)
+		    {
+
+		      x_lower = x_mid;
+		      f_lower = f_mid;
+	      
+		      x_mid = (x_lower + x_upper) / 2;
+		      f_mid = curvaturei(x_mid);
+
+		      if ( (x_mid - x_lower) < 0.001)
+			found = 1;
+	      
+		    }
+		  else
+		    {
+
+		      x_upper = x_mid;
+		      f_upper = f_mid;
+	      
+		      x_mid = (x_lower + x_upper) / 2;
+		      f_mid = curvaturei(x_mid);
+
+		      if ( (x_mid - x_lower) < 0.001)
+			found = 1;
+		    }
+		}
+	    }
+	}
+      
+      while (found ==0);
+
+      if (f_mid > f_best)
+	f_best = f_mid;
+
+    }
+
+  return f_best;
+
+}
+
+double curvaturex(
+
+		 gsl_vector *p,
+		 void *param
+
+		 )
+{
+
+  //x[1] = gsl_vector_get(p,0);
+  //x[2] = gsl_vector_get(p,1);
+
+  for (int i=1;i<S;i++)
+    x[i] = gsl_vector_get(p,i-1);
+
+  MAT *nA = m_get(4*S,4*S);
+  //A = m_get(4*S,4*S);
+  
+  int j=0;
+
+  for (int i=0;i<N;i++)
+    {
+
+      if (x[j] > i)
+	{
+
+	  if (x[j] > i+1)
+	    {
+	      nA->me[i][(j-1)*4 + 0] += (i+1) - i;
+	      nA->me[i][(j-1)*4 + 1] += .5*( pow((i+1),2.0) - pow(i,2.0) );
+	      nA->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow((i+1),3.0) - pow(i,3.0));
+	      nA->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow((i+1),4.0) - pow(i,4.0));
+	      
+	    }
+	  else
+	    {
+	    
+	      nA->me[i][(j-1)*4 + 0] += x[j] - i;
+	      nA->me[i][(j-1)*4 + 1] += .5*( pow(x[j],2.0) - pow(i,2.0) );
+	      nA->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j],3.0) - pow(i,3.0));
+	      nA->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j],4.0) - pow(i,4.0));
+	    }
+	}
+      
+      int counter=0;
+	        
+      while (j<S && x[j+1] < i+1 )
+	{
+	  j++;
+	  counter++;
+	}
+
+      /*
+      if (j==S)
+	{
+	  printf("problem?\n");
+	  break;
+	}
+      */
+      
+      int k=0;
+      
+      for (k=0;k<counter;k++)
+	{
+	
+	  nA->me[i][(j-1)*4 + 0] += x[j-counter+k+1] - x[j-counter+k];
+	  nA->me[i][(j-1)*4 + 1] += .5*( pow(x[j-counter+k+1],2.0) - pow(x[j-counter+k],2.0) );
+	  nA->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+1],3.0) - pow(x[j-counter+k],3.0));
+	  nA->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+1],4.0) - pow(x[j-counter+k],4.0));
 	}
 
       /*      if (x[j+1] > i+1)
 	{
 
-	  A->me[i][j*4 + 0] += i+1-x[j-counter+k];
-	  A->me[i][j*4 + 1] += .5*( pow(i+1,2.0) - pow(x[j-counter+k],2.0) );
-	  A->me[i][j*4 + 2] += (1.0/3) * ( pow(i+1,3.0) - pow(x[j-counter+k],3.0));
-	  A->me[i][j*4 + 3] += (1.0/4) * ( pow(i+1,4.0) - pow(x[j-counter+k],4.0));
+	  nA->me[i][j*4 + 0] += i+1-x[j-counter+k];
+	  nA->me[i][j*4 + 1] += .5*( pow(i+1,2.0) - pow(x[j-counter+k],2.0) );
+	  nA->me[i][j*4 + 2] += (1.0/3) * ( pow(i+1,3.0) - pow(x[j-counter+k],3.0));
+	  nA->me[i][j*4 + 3] += (1.0/4) * ( pow(i+1,4.0) - pow(x[j-counter+k],4.0));
 	  
 	}
       else
@@ -171,71 +452,81 @@ double curvaturex(
 
       if (x[j] < i+1)
 	{
-	  A->me[i][j*4 + 0] += i+1-x[j-counter+k];
-	  A->me[i][j*4 + 1] += .5*( pow(i+1,2.0) - pow(x[j-counter+k],2.0) );
-	  A->me[i][j*4 + 2] += (1.0/3) * ( pow(i+1,3.0) - pow(x[j-counter+k],3.0));
-	  A->me[i][j*4 + 3] += (1.0/4) * ( pow(i+1,4.0) - pow(x[j-counter+k],4.0));	  	  
+	  nA->me[i][j*4 + 0] += i+1-x[j-counter+k];
+	  nA->me[i][j*4 + 1] += .5*( pow(i+1,2.0) - pow(x[j-counter+k],2.0) );
+	  nA->me[i][j*4 + 2] += (1.0/3) * ( pow(i+1,3.0) - pow(x[j-counter+k],3.0));
+	  nA->me[i][j*4 + 3] += (1.0/4) * ( pow(i+1,4.0) - pow(x[j-counter+k],4.0));	  	  
 	}
 
       j++;      
-
       	  
     }
 
   for (int j=0;j<S-1;j++)
     {
 
-      A->me[N+j][j*4 + 0] = 1;
-      A->me[N+j][j*4 + 1] = x[j+1];
-      A->me[N+j][j*4 + 2] = pow(x[j+1],2.0);
-      A->me[N+j][j*4 + 3] = pow(x[j+1],3.0);
-      A->me[N+j][j*4 + 4] = -1;
-      A->me[N+j][j*4 + 5] = -(x[j+1]);
-      A->me[N+j][j*4 + 6] = -pow(x[j+1],2.0);
-      A->me[N+j][j*4 + 7] = -pow(x[j+1],3.0);
+      nA->me[N+j][j*4 + 0] = 1;
+      nA->me[N+j][j*4 + 1] = x[j+1];
+      nA->me[N+j][j*4 + 2] = pow(x[j+1],2.0);
+      nA->me[N+j][j*4 + 3] = pow(x[j+1],3.0);
+      nA->me[N+j][j*4 + 4] = -1;
+      nA->me[N+j][j*4 + 5] = -(x[j+1]);
+      nA->me[N+j][j*4 + 6] = -pow(x[j+1],2.0);
+      nA->me[N+j][j*4 + 7] = -pow(x[j+1],3.0);
       
     }
 
   for (int j=0;j<S-1;j++)
     {
 
-      A->me[N+S-1+j][j*4 + 1] = 1;
-      A->me[N+S-1+j][j*4 + 2] = 2*(x[j+1]);
-      A->me[N+S-1+j][j*4 + 3] = 3*pow(x[j+1],2.0);
-      A->me[N+S-1+j][j*4 + 5] = -1;
-      A->me[N+S-1+j][j*4 + 6] = -2*(x[j+1]);
-      A->me[N+S-1+j][j*4 + 7] = -3*pow(x[j+1],2.0);
+      nA->me[N+S-1+j][j*4 + 1] = 1;
+      nA->me[N+S-1+j][j*4 + 2] = 2*(x[j+1]);
+      nA->me[N+S-1+j][j*4 + 3] = 3*pow(x[j+1],2.0);
+      nA->me[N+S-1+j][j*4 + 5] = -1;
+      nA->me[N+S-1+j][j*4 + 6] = -2*(x[j+1]);
+      nA->me[N+S-1+j][j*4 + 7] = -3*pow(x[j+1],2.0);
       
     }
 
   for (int j=0;j<S-1;j++)
     { 
-      A->me[N+S-1+S-1+j][j*4 + 2] = 2;
-      A->me[N+S-1+S-1+j][j*4 + 3] = 6*(x[j+1]);
-      A->me[N+S-1+S-1+j][j*4 + 6] = -2;
-      A->me[N+S-1+S-1+j][j*4 + 7] = -6*(x[j+1]);
+      nA->me[N+S-1+S-1+j][j*4 + 2] = 2;
+      nA->me[N+S-1+S-1+j][j*4 + 3] = 6*(x[j+1]);
+      nA->me[N+S-1+S-1+j][j*4 + 6] = -2;
+      nA->me[N+S-1+S-1+j][j*4 + 7] = -6*(x[j+1]);
     }
 
-  //A->me[N+S-1+S-1+S-1+1][1] = 1;  // first derivative at t=0
+  //nA->me[N+S-1+S-1+S-1+1][1] = 1;  // first derivative at t=0
 
-  A->me[N+S-1+S-1+S-1+1][0] = 1;  // value at t=0;
+  nA->me[N+S-1+S-1+S-1+1][0] = 1;  // value at t=0;
   
-  A->me[N+S-1+S-1+S-1][2] = 2; // second derivative at t=0
+  nA->me[N+S-1+S-1+S-1][2] = 2; // second derivative at t=0
   
-  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-2] = 1;  // first derivative at t=N
-  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-1] = 2*N; // first derivative at t=N
-  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3] = 3*pow(N,2.0);  // first derivative at t=N
+  nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-2] = 1;  // first derivative at t=N
+  nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-1] = 2*N; // first derivative at t=N
+  nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3] = 3*pow(N,2.0);  // first derivative at t=N
 
-  A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
-  A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;  
+  nA->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
+  nA->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;  
     
+  P = S-N;
+  for (int i=1;i<P;i++)
+    {
+      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4] = 1;  // S bigger than 3
+      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+1] = N/(double)P;
+      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+2] = pow(N/(double)P,2.0);
+      nA->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+3] = pow(N/(double)P,3.0);
+    }
+
+
   LU = m_get(4*S,4*S);
-  LU = m_copy(A,LU);
-  pivot = px_get(A->m);
+  LU = m_copy(nA,LU);
+  pivot = px_get(nA->m);
   LUfactor(LU,pivot);
 
   lx = LUsolve(LU,pivot,lb,VNULL);
 
+  /*
   for (int i=0;i<S;i++)
     for (int j=0;j<100;j++)
       {
@@ -244,7 +535,7 @@ double curvaturex(
       }
 
   printf("\n");
-
+  */
   
   double f_best = 0;
 
@@ -381,12 +672,22 @@ double curvature(
   double d1 = gsl_vector_get(p,1);
   double dd1 = gsl_vector_get(p,2);
 
+  //printf("before: ");
+  //for (int i=0;i<4*S;i++)
+  //  printf(" %lf ",lb->ve[i]);
+  //printf("\n");
+
   lb->ve[N+S-1+S-1+S-1] = d0;
   lb->ve[N+S-1+S-1+S-1+2] = d1;
   lb->ve[N+S-1+S-1+S-1+3] = dd1;
 
   for (int i=1;i<P;i++)
     lb->ve[N+S-1+S-1+S-1+3+i] = gsl_vector_get(p,2+i);
+
+  //printf("after: ");
+  //for (int i=0;i<4*S;i++)
+  //  printf(" %lf ",lb->ve[i]);
+  //printf("\n\n");
 
   lx = LUsolve(LU,pivot,lb,VNULL);
 
@@ -556,7 +857,7 @@ double distance(
 
 }
 
-void process_Normal_Keys(int key, int x, int y) 
+void process_Normal_Keys(int key, int xlah, int ylah) 
 {
      switch (key) 
     {    
@@ -570,7 +871,8 @@ void process_Normal_Keys(int key, int x, int y)
 	 //do
 	 //{
 	 //iter++;
-      status = gsl_multimin_fminimizer_iterate(s);
+
+	 status = gsl_multimin_fminimizer_iterate(s1);
 
       /*
       if (status) 
@@ -604,33 +906,35 @@ void process_Normal_Keys(int key, int x, int y)
 	 
        case 102: printf("GLUT_KEY_RIGHT %d\n",key);
 
-
-	 gsl_multimin_fminimizer_set (s,&minex,qq,ss);
-
+	 gsl_multimin_fminimizer_set (s1,&f1,q1,ss1);
 	 
-	 //	 lb->ve[N+S-1+S-1+S-1] -= .1;
-	 	   	 
-	 //lx = LUsolve(LU,pivot,lb,VNULL);
-
 	 glutPostRedisplay();
 	 
 	 break;
 	 
-       case 101 : printf("GLUT_KEY_UP %d\n",key);  ; 
-	 
-	 lb->ve[N+S-1+S-1+S-1+2] += .1;
-	 	   	 
-	 lx = LUsolve(LU,pivot,lb,VNULL);
+       case 101 : printf("GLUT_KEY_UP %d\n",key); 
+ 
+	 qb = gsl_vector_alloc (Nparamsb);
+
+	 for (int i=0;i<Nparams1;i++)
+	   gsl_vector_set (qb, i, gsl_vector_get(s1->x,i));
+
+	 for (int i=1;i<S;i++)
+	   gsl_vector_set (qb, Nparams1 + i-1, x[i]);
+
+	 gsl_multimin_fminimizer_set (sb,&fb,qb,ssb);
 
 	 glutPostRedisplay();
 	 
 	 break;
 
-    case 103 : printf("GLUT_KEY_DOWN %d\n",key);  ; 
+    case 103 : printf("GLUT_KEY_DOWN %d\n",key);   
 	 
-	 lb->ve[N+S-1+S-1+S-1+2] -= .1;
+      //	 lb->ve[N+S-1+S-1+S-1+2] -= .1;
 	 	   	 
-	 lx = LUsolve(LU,pivot,lb,VNULL);
+      // lx = LUsolve(LU,pivot,lb,VNULL);
+
+      status = gsl_multimin_fminimizer_iterate(sb);
 
 	 glutPostRedisplay();
 
@@ -803,7 +1107,7 @@ int main(int argc, char *argv[])
   
   fclose(fp);
 
-  N = 26;  // no. data blocks
+  N = 3;  // no. data blocks
 
   double mintime=begintime[0];
   for (int i=1;i<K;i++)
@@ -856,7 +1160,7 @@ int main(int argc, char *argv[])
     for (int m=0;m<M;m++)
       z[i*M+m] = effort[i];
 
-  S=28; // no. splines
+  S=4; // no. splines
   
   A = m_get(4*S,4*S);
 
@@ -958,11 +1262,10 @@ int main(int argc, char *argv[])
   P = S-N;
   for (int i=1;i<P;i++)
     {
-  A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4] = 1;  // S bigger than 3
-  A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+1] = N/(double)P;
-  A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+2] = pow(N/(double)P,2.0);
-  A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+3] = pow(N/(double)P,3.0);
-
+      A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4] = 1;  // S bigger than 3
+      A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+1] = N/(double)P;
+      A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+2] = pow(N/(double)P,2.0);
+      A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+3] = pow(N/(double)P,3.0);
     }
    
 
@@ -985,10 +1288,7 @@ int main(int argc, char *argv[])
 
     }
   */  
-
-  //m_output(A);
-  //exit(1);
-  
+ 
   lb = v_get(4*S);
 
   for (int i=0;i<N;i++)
@@ -997,11 +1297,6 @@ int main(int argc, char *argv[])
   for (int i=1;i<P;i++)
     lb->ve[N+S-1+S-1+S-1+3+i] = effort[i*N/P];
 
-  //lb->ve[N+S-1+S-1+S-1] = 0;
-  //lb->ve[N+S-1+S-1+S-1+1] = 0;
-
-  //lb->ve[N+S-1+S-1+S-1+3] = effort[N-1];  
-  
   LU = m_get(4*S,4*S);
   LU = m_copy(A,LU);
   pivot = px_get(A->m);
@@ -1013,49 +1308,44 @@ int main(int argc, char *argv[])
   
   T = gsl_multimin_fminimizer_nmsimplex2;
 
-  s = NULL;
+  s1 = NULL;
+  sb = NULL;
 
   // Set initial step sizes to 0.1 
 
-  int Nparams = 3 + P;
+  Nparams1 = 3 + (P-1);
+  Nparamsb = Nparams1 + S-1;
 
-  ss = gsl_vector_alloc (Nparams);
-  gsl_vector_set_all (ss, 0.001);
+  ss1 = gsl_vector_alloc (Nparams1);
+  gsl_vector_set_all (ss1, 0.1);
 
-  minex.n = Nparams;
-  minex.f = &curvature; //curvaturex;
-  minex.params = NULL;
+  f1.n = Nparams1;
+  f1.f = &curvature; 
+  f1.params = NULL;
 
-  //minex_d.n = 2;
-  //minex_d.f = &distance;
-  //minex_d.params = NULL;
-  
-  qq = gsl_vector_alloc (Nparams);
-  //gsl_vector_set (qq, 0, x[1]);
-  //gsl_vector_set (qq, 1, x[2]);
+  q1 = gsl_vector_alloc (Nparams1);
+  qb = gsl_vector_alloc (Nparamsb);
 
-  gsl_vector_set (qq, 0, 0);
-  gsl_vector_set (qq, 1, 0);
-  gsl_vector_set (qq, 2, 0);
+  gsl_vector_set (q1, 0, 0);
+  gsl_vector_set (q1, 1, 0);
+  gsl_vector_set (q1, 2, 0);
   for (int i=1;i<P;i++)
-    gsl_vector_set (qq, 2+i, i*(N/P));
+    gsl_vector_set (q1, 2+i, effort[i*N/P]);  
+  
+  s1 = gsl_multimin_fminimizer_alloc(T,Nparams1);
 
-  //gsl_vector_set (qq, 2, 0);
-  
-  s = gsl_multimin_fminimizer_alloc(T,Nparams);
-  
-  //_d = gsl_vector_alloc (2);
-  //l_vector_set (qq_d, 0, 0);
-  // gsl_vector_set (qq_d, 1, 0);  
-  
-  
-  //s_d = gsl_multimin_fminimizer_alloc(T,2);
-  
-  //gsl_multimin_fminimizer_set (s_d,&minex_d,qq_d,ss);
-    
-  
-  
-  
+  ssb = gsl_vector_alloc (Nparamsb);
+  gsl_vector_set_all (ssb, 0.1);
+
+  fb.n = Nparamsb;
+  fb.f = &curvatureboth; 
+  fb.params = NULL;
+
+  sb = gsl_multimin_fminimizer_alloc(T,Nparamsb);
+   
+  //s_d = gsl_multimin_fminimizer_alloc(T,2);  
+  //gsl_multimin_fminimizer_set (s_d,&minex_d,qq_d,ss);    
+   
   /*
   
   z = (double *) calloc(I,sizeof(double));
