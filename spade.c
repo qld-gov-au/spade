@@ -20,6 +20,7 @@ int N;
 int M;
 int I;
 int S;
+int P;
 double *z;
 double *d1;
 double *d2;
@@ -383,6 +384,9 @@ double curvature(
   lb->ve[N+S-1+S-1+S-1] = d0;
   lb->ve[N+S-1+S-1+S-1+2] = d1;
   lb->ve[N+S-1+S-1+S-1+3] = dd1;
+
+  for (int i=1;i<P;i++)
+    lb->ve[N+S-1+S-1+S-1+3+i] = gsl_vector_get(p,2+i);
 
   lx = LUsolve(LU,pivot,lb,VNULL);
 
@@ -799,7 +803,7 @@ int main(int argc, char *argv[])
   
   fclose(fp);
 
-  N = 3;  // no. data blocks
+  N = 26;  // no. data blocks
 
   double mintime=begintime[0];
   for (int i=1;i<K;i++)
@@ -852,7 +856,7 @@ int main(int argc, char *argv[])
     for (int m=0;m<M;m++)
       z[i*M+m] = effort[i];
 
-  S=4; // no. splines
+  S=28; // no. splines
   
   A = m_get(4*S,4*S);
 
@@ -951,6 +955,17 @@ int main(int argc, char *argv[])
   A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
   A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;  
 
+  P = S-N;
+  for (int i=1;i<P;i++)
+    {
+  A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4] = 1;  // S bigger than 3
+  A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+1] = N/(double)P;
+  A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+2] = pow(N/(double)P,2.0);
+  A->me[N+S-1+S-1+S-1+3+i][i*(S/P)*4+3] = pow(N/(double)P,3.0);
+
+    }
+   
+
   //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-3] = 1;  // second derivative at t=N
   //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-2] = N;  
   //A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = pow(N,2.0);  // second derivative at t=N
@@ -979,6 +994,9 @@ int main(int argc, char *argv[])
   for (int i=0;i<N;i++)
     lb->ve[i] = effort[i];
 
+  for (int i=1;i<P;i++)
+    lb->ve[N+S-1+S-1+S-1+3+i] = effort[i*N/P];
+
   //lb->ve[N+S-1+S-1+S-1] = 0;
   //lb->ve[N+S-1+S-1+S-1+1] = 0;
 
@@ -998,28 +1016,37 @@ int main(int argc, char *argv[])
   s = NULL;
 
   // Set initial step sizes to 0.1 
-  ss = gsl_vector_alloc (2);
-  gsl_vector_set_all (ss, 0.1);
 
-  minex.n = 2;
-  minex.f = &curvaturex;
+  int Nparams = 3 + P;
+
+  ss = gsl_vector_alloc (Nparams);
+  gsl_vector_set_all (ss, 0.001);
+
+  minex.n = Nparams;
+  minex.f = &curvature; //curvaturex;
   minex.params = NULL;
 
-  minex_d.n = 2;
-  minex_d.f = &distance;
-  minex_d.params = NULL;
+  //minex_d.n = 2;
+  //minex_d.f = &distance;
+  //minex_d.params = NULL;
   
-  qq = gsl_vector_alloc (2);
-  gsl_vector_set (qq, 0, x[1]);
-  gsl_vector_set (qq, 1, x[2]);
+  qq = gsl_vector_alloc (Nparams);
+  //gsl_vector_set (qq, 0, x[1]);
+  //gsl_vector_set (qq, 1, x[2]);
+
+  gsl_vector_set (qq, 0, 0);
+  gsl_vector_set (qq, 1, 0);
+  gsl_vector_set (qq, 2, 0);
+  for (int i=1;i<P;i++)
+    gsl_vector_set (qq, 2+i, i*(N/P));
+
   //gsl_vector_set (qq, 2, 0);
   
-  s = gsl_multimin_fminimizer_alloc(T,2);
+  s = gsl_multimin_fminimizer_alloc(T,Nparams);
   
-
-  qq_d = gsl_vector_alloc (2);
-  gsl_vector_set (qq_d, 0, 0);
-  gsl_vector_set (qq_d, 1, 0);  
+  //_d = gsl_vector_alloc (2);
+  //l_vector_set (qq_d, 0, 0);
+  // gsl_vector_set (qq_d, 1, 0);  
   
   
   //s_d = gsl_multimin_fminimizer_alloc(T,2);

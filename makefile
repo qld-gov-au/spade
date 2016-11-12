@@ -6,7 +6,7 @@ LINKER_FLAGS = -lgsl -lgslcblas -lm -lGL -lGLU -lglut
 
 # Spade options
 SPADE_CFLAGS = -g -std=c99 -Wall -Wextra -pedantic
-SPADE_SOURCES = trackball.c 
+SPADE_SOURCES = trackball.c
 
 SPADE_OBJECTS := $(patsubst %.c,%_SPADE.o,$(SPADE_SOURCES)) 
 
@@ -29,7 +29,7 @@ all: build
 
 # Generate executable
 build: clean $(OBJECTS)
-	$(CC) -c -g -o $(OBJ_NAME) spade.c
+	$(CC) -c -g -std=c99 -Wall -Wextra -pedantic -o $(OBJ_NAME) spade.c
 	$(CC) -g $(OBJ_NAME) $(OBJECTS) $(LINKER_FLAGS) -o $(OUTPUT_NAME)
 	@echo "Build successful"
 
@@ -46,4 +46,5 @@ rebuild: clean build
 # Remove build artifacts
 clean:
 	rm -f $(OUTPUT_NAME) $(SPADE_OBJECTS)
+
 
