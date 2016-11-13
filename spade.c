@@ -134,10 +134,6 @@ double curvatureboth2(
 		      )
 {
 
-
-  if (pfake<0.1)
-    printf("no fake\n");
-
   double d0 = gsl_vector_get(p,0);
   double d1 = gsl_vector_get(p,1);
   double dd1 = gsl_vector_get(p,2);
@@ -153,8 +149,9 @@ double curvatureboth2(
 
   double * fakeeffort = (double *) calloc(N2,sizeof(double));
 
+
   if (x2[2] < N2x[1])
-    printf("this time?");
+    printf("start");
 
   int j=0;
   for (int i=0;i<N2;i++)
@@ -178,7 +175,7 @@ double curvatureboth2(
 
 	    }
 
-	  fakeeffort[i] += tmpfakeeffort; ///(N2x[i]-x2[j]);
+	  fakeeffort[i] += tmpfakeeffort;
 	}
 
       int counter=0;
@@ -194,9 +191,6 @@ double curvatureboth2(
 	  for (int l=0;l<100;l++)
 	    {
 
-              if (j-counter+k+1 > S2)
-                printf("here\n");
-
 	      double xx = l*(x2[j-counter+k+1]-x2[j-counter+k])/100 + x2[j-counter+k];
 	      int oldi = S;
 	      while (x[oldi]>xx) { oldi--; }
@@ -207,7 +201,7 @@ double curvatureboth2(
 	      tmpfakeeffort += (x2[j-counter+k+1]-x2[j-counter+k])/100 * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
 
 	    }
-	  fakeeffort[i] += tmpfakeeffort; ///(x2[j-counter+k+1]-x2[j-counter+k]);
+	  fakeeffort[i] += tmpfakeeffort;
 	}
 
       if (N2x[i+1] > x2[j-counter+k])
@@ -224,14 +218,11 @@ double curvatureboth2(
 	      if (oldi==S)
 		oldi--;
 
-	      if (i+1 > N2 || (j-counter+k) > S2 || oldi==S)
-		printf("%d %d %d %d %d\n",i,j,counter,k,oldi);
-
 	      tmpfakeeffort += (N2x[i+1]-x2[j-counter+k])/100 * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
 
 	    }
 
-	  fakeeffort[i] += tmpfakeeffort; //x[i+1]-x2[j-counter+k]);	
+	  fakeeffort[i] += tmpfakeeffort; 
 	}
 
       j++;
@@ -259,22 +250,19 @@ double curvatureboth2(
       for (k=0;k<counter;k++)
 	{
 	
-	  A2->me[i][(j-1)*4 + 0] += x2[j-counter+k+1] - x2[j-counter+k];
-	  A2->me[i][(j-1)*4 + 1] += .5*( pow(x2[j-counter+k+1],2.0) - pow(x2[j-counter+k],2.0) );
-	  A2->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x2[j-counter+k+1],3.0) - pow(x2[j-counter+k],3.0));
-	  A2->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x2[j-counter+k+1],4.0) - pow(x2[j-counter+k],4.0));
+	  A2->me[i][(j-counter+k)*4 + 0] += x2[j-counter+k+1] - x2[j-counter+k];
+	  A2->me[i][(j-counter+k)*4 + 1] += .5*( pow(x2[j-counter+k+1],2.0) - pow(x2[j-counter+k],2.0) );
+	  A2->me[i][(j-counter+k)*4 + 2] += (1.0/3) * ( pow(x2[j-counter+k+1],3.0) - pow(x2[j-counter+k],3.0));
+	  A2->me[i][(j-counter+k)*4 + 3] += (1.0/4) * ( pow(x2[j-counter+k+1],4.0) - pow(x2[j-counter+k],4.0));
 
 	}
 
-      if (i+1 > N2 || j>=S2 || j-counter+k > S2)
-        printf("this");
-
-      if (N2x[i+1] > x2[j-counter+k])
+      if (N2x[i+1] > x2[j])
 	{
-	  A2->me[i][j*4 + 0] += N2x[i+1]-x2[j-counter+k];
-	  A2->me[i][j*4 + 1] += .5*( pow(N2x[i+1],2.0) - pow(x2[j-counter+k],2.0) );
-	  A2->me[i][j*4 + 2] += (1.0/3) * ( pow(N2x[i+1],3.0) - pow(x2[j-counter+k],3.0));
-	  A2->me[i][j*4 + 3] += (1.0/4) * ( pow(N2x[i+1],4.0) - pow(x2[j-counter+k],4.0));
+	  A2->me[i][j*4 + 0] += N2x[i+1]-x2[j];
+	  A2->me[i][j*4 + 1] += .5*( pow(N2x[i+1],2.0) - pow(x2[j],2.0) );
+	  A2->me[i][j*4 + 2] += (1.0/3) * ( pow(N2x[i+1],3.0) - pow(x2[j],3.0));
+	  A2->me[i][j*4 + 3] += (1.0/4) * ( pow(N2x[i+1],4.0) - pow(x2[j],4.0));
 	}
 
       j++; 
@@ -326,6 +314,12 @@ double curvatureboth2(
   A2->me[N2+S2-1+S2-1+S2-1+3][N2+S2-1+S2-1+S2-1+3-1] = 2;  // second derivative at t=N2
   A2->me[N2+S2-1+S2-1+S2-1+3][N2+S2-1+S2-1+S2-1+3] = 6*N2x[N2];   
 
+  //if (x2[2] < N2x[1])
+  //  {
+  //  m_output(A2);
+  //  exit(1);
+  //  }
+
   for (int i=0;i<N2;i++)
     lb2->ve[i] = pfake*fakeeffort[i] + (1-pfake)*effort2[i];
 
@@ -335,6 +329,164 @@ double curvatureboth2(
   LUfactor(LU2,pivot2);
 
   lx2 = LUsolve(LU2,pivot2,lb2,VNULL);
+
+  double integr;
+
+  if (N2x[1] < x2[1])
+    {
+  integr=0;
+  for (int i=0;i<1000;i++)
+    {
+      double xx = i*N2x[1]/1000;
+      integr += N2x[1]/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
+    }
+
+  printf("target: %lf actual: %lf\n",lb2->ve[0], integr);
+
+  if (integr > 1)
+    printf("here");
+
+    }
+  else if (N2x[1] > x2[1] && N2x[1] < x2[2]) 
+    {
+ 
+  integr=0;
+  for (int i=0;i<1000;i++)
+    {
+      double xx = i*x2[1]/1000;
+      integr += x2[1]/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
+    }
+
+  for (int i=0;i<1000;i++)
+    {
+      double xx = i*(N2x[1]-x2[1])/1000 + x2[1];
+      integr += (N2x[1]-x2[1])/1000 * (lx2->ve[4] + lx2->ve[5]*xx + lx2->ve[6]*pow(xx,2.0) + lx2->ve[7]*pow(xx,3.0));
+    }
+
+  if (integr > 1)
+    printf("here");
+
+  printf("target: %lf actual: %lf\n",lb2->ve[0], integr);
+
+    }
+  else if (N2x[1] > x2[1] && N2x[1] > x2[2]) 
+    {
+ 
+  integr=0;
+  for (int i=0;i<1000;i++)
+    {
+      double xx = i*x2[1]/1000;
+      integr += x2[1]/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
+    }
+
+  for (int i=0;i<1000;i++)    
+    {
+       double xx = i*(x2[2]-x2[1])/1000 + x2[1];
+       integr += (x2[2]-x2[1])/1000 * (lx2->ve[4] + lx2->ve[5]*xx + lx2->ve[6]*pow(xx,2.0) + lx2->ve[7]*pow(xx,3.0));
+   }
+
+  for (int i=0;i<1000;i++)
+    {
+      double xx = i*(N2x[1]-x2[2])/1000 + x2[2];
+      integr += (N2x[1]-x2[2])/1000 * (lx2->ve[8] + lx2->ve[9]*xx + lx2->ve[10]*pow(xx,2.0) + lx2->ve[11]*pow(xx,3.0));
+    }
+
+  if (integr > 1)
+    printf("here");
+
+  printf("target: %lf actual: %lf\n",lb2->ve[0], integr);
+
+    }
+  else
+    printf("exception i=0\n");
+
+
+
+  if (N2x[2] < x2[1])
+    {
+
+      integr=0;
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(N2x[2]-N2x[1])/1000;
+	  integr += (N2x[2]-N2x[1]) * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
+	}
+
+      printf("i = 1. case 1. target: %lf actual: %lf\n",lb2->ve[1], integr);
+    }
+  else if (x2[1] > N2x[1] && x2[2] > N2x[2]) 
+    {
+
+      integr=0;
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(x2[1]-N2x[1])/1000 + N2x[1];       
+	  integr += (x2[1]-N2x[1])/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
+	}
+
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(N2x[2]-x2[1])/1000 + x2[1];
+	  integr += (N2x[2]-x2[1])/1000 * (lx2->ve[4] + lx2->ve[5]*xx + lx2->ve[6]*pow(xx,2.0) + lx2->ve[7]*pow(xx,3.0));
+	}
+
+      printf("i = 1. case 2. target: %lf actual: %lf\n",lb2->ve[1], integr);
+    }
+  else if (x2[1] > N2x[1] && x2[2] < N2x[2] && x2[3] > N2x[2])
+    {
+
+      integr=0;
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(x2[1]-N2x[1])/1000 + N2x[1];       
+	  integr += (x2[1]-N2x[1])/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
+	}
+
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(x2[2]-x2[1])/1000 + x2[1];
+	  integr += (x2[2]-x2[1])/1000 * (lx2->ve[4] + lx2->ve[5]*xx + lx2->ve[6]*pow(xx,2.0) + lx2->ve[7]*pow(xx,3.0));
+	}
+
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(N2x[2]-x2[2])/1000 + x2[2];
+	  integr += (N2x[2]-x2[2])/1000 * (lx2->ve[8] + lx2->ve[9]*xx + lx2->ve[10]*pow(xx,2.0) + lx2->ve[11]*pow(xx,3.0));
+	}
+
+      printf("i = 1. case 3. target: %lf actual: %lf\n",lb2->ve[1], integr);
+    } else if (x2[1] < N2x[1] && x2[2] > N2x[1] && x2[2] < N2x[2] && x2[3] > N2x[2] ) 
+    {
+
+      integr=0;
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(x2[2]-N2x[1])/1000 + N2x[1];       
+	  integr += (x2[2]-N2x[1])/1000 * (lx2->ve[4] + lx2->ve[5]*xx + lx2->ve[6]*pow(xx,2.0) + lx2->ve[7]*pow(xx,3.0));
+	}
+
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(N2x[2]-x2[2])/1000 + x2[2];
+	  integr += (N2x[2]-x2[2])/1000 * (lx2->ve[8] + lx2->ve[9]*xx + lx2->ve[10]*pow(xx,2.0) + lx2->ve[11]*pow(xx,3.0));
+	}
+
+      printf("i = 1. case 4. target: %lf actual: %lf\n",lb2->ve[1], integr);
+    }
+  else if (x2[1] < N2x[1] && x2[2] < N2x[1] && x2[3] > N2x[2])
+    {
+
+      integr=0;
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(N2x[2]-N2x[1])/1000;
+	  integr += (N2x[2]-N2x[1]) * (lx2->ve[8] + lx2->ve[9]*xx + lx2->ve[10]*pow(xx,2.0) + lx2->ve[11]*pow(xx,3.0));
+	}
+
+      printf("i = 1. case 5. target: %lf actual: %lf\n",lb2->ve[1], integr);
+    }
+  else
+   printf("exception i=1\n");
 
   double f_best = 0;
 
@@ -2092,6 +2244,14 @@ int main(int argc, char *argv[])
 
   lx2 = LUsolve(LU2,pivot2,lb2,VNULL);
 
+  double integr=0;
+  for (int i=0;i<1000;i++)
+    {
+      double xx = i*N2x[1]/1000;
+      integr += N2x[1]/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
+    }
+
+  printf("target: %lf actual: %lf\n",lb2->ve[0], integr);
   
   sb2 = NULL;
 
@@ -2117,14 +2277,11 @@ int main(int argc, char *argv[])
   for (int i=1;i<S2;i++)
     gsl_vector_set (qb2, Nparams1 + i-1, x2[i]);
 
-  pfake = 0.9;
-
   gsl_multimin_fminimizer_set (sb2,&fb2,qb2,ssb2);
   
   for (int i=0;i<10;i++)
     status = gsl_multimin_fminimizer_iterate(sb2);
   
-
   /*
   do {
 
