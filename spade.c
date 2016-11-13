@@ -149,6 +149,7 @@ double curvatureboth2(
 
   double * fakeeffort = (double *) calloc(N2,sizeof(double));
 
+  double fet = 0;
 
   if (x2[2] < N2x[1])
     printf("start");
@@ -157,72 +158,59 @@ double curvatureboth2(
   for (int i=0;i<N2;i++)
     {
 
-      if (x2[j] > N2x[i])
+      if (x[j] > N2x[i])
 	{
 
-          double tmpfakeeffort=0;
+          fet=0;
 	  for (int l=0;l<100;l++)
 	    {
 
-	      double xx = l*(x2[j]-N2x[i])/100 + N2x[i];
-	      int oldi = S;
-	      while (x[oldi]>xx) { oldi--; }
+	      double xx = l*(x[j]-N2x[i])/100 + N2x[i];
 
-              if (oldi==S)
-		oldi--;
-
-	      tmpfakeeffort += ((x2[j]-N2x[i])/100) * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
+	      fet += ((x[j]-N2x[i])/100) * (lx->ve[4*(j-1)] + lx->ve[4*(j-1)+1]*xx + lx->ve[4*(j-1)+2]*pow(xx,2.0) + lx->ve[4*(j-1)+3]*pow(xx,3.0));
 
 	    }
 
-	  fakeeffort[i] += tmpfakeeffort;
+	  fakeeffort[i] += fet;
 	}
 
       int counter=0;
 
-      while ( j<S2 && x2[j+1] < N2x[i+1] ) { j++; counter++; }
+      while ( j<S && x[j+1] < N2x[i+1] ) { j++; counter++; }
 
       int k=0;
       
       for (k=0;k<counter;k++)
 	{
 
-          double tmpfakeeffort=0;
+	  fet=0;
 	  for (int l=0;l<100;l++)
 	    {
 
-	      double xx = l*(x2[j-counter+k+1]-x2[j-counter+k])/100 + x2[j-counter+k];
-	      int oldi = S;
-	      while (x[oldi]>xx) { oldi--; }
+	      double xx = l*(x[j-counter+k+1]-x[j-counter+k])/100 + x[j-counter+k];
 
-              if (oldi==S)
-		oldi--;
-
-	      tmpfakeeffort += (x2[j-counter+k+1]-x2[j-counter+k])/100 * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
+	      fet += (x[j-counter+k+1]-x[j-counter+k])/100 * (lx->ve[4*(j-counter+k)] + lx->ve[4*(j-counter+k)+1]*xx + lx->ve[4*(j-counter+k)+2]*pow(xx,2.0) + lx->ve[4*(j-counter+k)+3]*pow(xx,3.0));
 
 	    }
-	  fakeeffort[i] += tmpfakeeffort;
+
+	  fakeeffort[i] += fet;
+
 	}
 
-      if (N2x[i+1] > x2[j-counter+k])
+      if (N2x[i+1] > x[j])
 	{
 
-	  double tmpfakeeffort=0;
+	  fet=0;
 	  for (int l=0;l<100;l++)
 	    {
 
-	      double xx = l*(N2x[i+1]-x2[j-counter+k])/100 + x2[j-counter+k];
-	      int oldi = S;
-	      while (x[oldi]>xx) { oldi--; }
+	      double xx = l*(N2x[i+1]-x[j])/100 + x[j];
 
-	      if (oldi==S)
-		oldi--;
-
-	      tmpfakeeffort += (N2x[i+1]-x2[j-counter+k])/100 * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
+	      fet += (N2x[i+1]-x[j])/100 * (lx->ve[4*j] + lx->ve[4*j+1]*xx + lx->ve[4*j+2]*pow(xx,2.0) + lx->ve[4*j+3]*pow(xx,3.0));
 
 	    }
 
-	  fakeeffort[i] += tmpfakeeffort; 
+	  fakeeffort[i] += fet;
 	}
 
       j++;
@@ -234,12 +222,20 @@ double curvatureboth2(
     {
 
       if (x2[j] > N2x[i])
-	{
-	  A2->me[i][(j-1)*4 + 0] += x2[j] - N2x[i];
-	  A2->me[i][(j-1)*4 + 1] += .5*( pow(x2[j],2.0) - pow(N2x[i],2.0) );
-	  A2->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x2[j],3.0) - pow(N2x[i],3.0));
-	  A2->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x2[j],4.0) - pow(N2x[i],4.0));
-	}
+	if (x2[j] < N2x[i+1])
+	  {
+	    A2->me[i][(j-1)*4 + 0] += x2[j] - N2x[i];
+	    A2->me[i][(j-1)*4 + 1] += .5*( pow(x2[j],2.0) - pow(N2x[i],2.0) );
+	    A2->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x2[j],3.0) - pow(N2x[i],3.0));
+	    A2->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x2[j],4.0) - pow(N2x[i],4.0));
+	  }
+	else    
+	  {
+	    A2->me[i][(j-1)*4 + 0] += N2x[i+1] - N2x[i];
+	    A2->me[i][(j-1)*4 + 1] += .5*( pow(N2x[i+1],2.0) - pow(N2x[i],2.0) );
+	    A2->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(N2x[i+1],3.0) - pow(N2x[i],3.0));
+	    A2->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(N2x[i+1],4.0) - pow(N2x[i],4.0));
+	  }
       
       int counter=0;
 	        
@@ -263,9 +259,10 @@ double curvatureboth2(
 	  A2->me[i][j*4 + 1] += .5*( pow(N2x[i+1],2.0) - pow(x2[j],2.0) );
 	  A2->me[i][j*4 + 2] += (1.0/3) * ( pow(N2x[i+1],3.0) - pow(x2[j],3.0));
 	  A2->me[i][j*4 + 3] += (1.0/4) * ( pow(N2x[i+1],4.0) - pow(x2[j],4.0));
-	}
 
-      j++; 
+	  j++;
+
+	}
       	  
     }
 
@@ -314,11 +311,11 @@ double curvatureboth2(
   A2->me[N2+S2-1+S2-1+S2-1+3][N2+S2-1+S2-1+S2-1+3-1] = 2;  // second derivative at t=N2
   A2->me[N2+S2-1+S2-1+S2-1+3][N2+S2-1+S2-1+S2-1+3] = 6*N2x[N2];   
 
-  //if (x2[2] < N2x[1])
-  //  {
-  //  m_output(A2);
-  //  exit(1);
-  //  }
+  if (x2[2] < N2x[1])
+    {
+    m_output(A2);
+    //exit(1);
+    }
 
   for (int i=0;i<N2;i++)
     lb2->ve[i] = pfake*fakeeffort[i] + (1-pfake)*effort2[i];
