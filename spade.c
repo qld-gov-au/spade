@@ -101,7 +101,6 @@ double ncurvaturei(
 
 }
 
-
 double curvaturei2(
 
 		  double x
@@ -326,6 +325,7 @@ double curvatureboth2(
   LUfactor(LU2,pivot2);
 
   lx2 = LUsolve(LU2,pivot2,lb2,VNULL);
+
   /*
   double integr;
 
@@ -514,166 +514,11 @@ double curvatureboth2(
       if (xx + x2[S2]/1000 >= x2[ci+1])
 	ci++;
     }
-
-  /* 
-  //if (pfake<.6)
-  //printf("pfake.5");
-
-  for (ci=0;ci<S2;ci++)
-    {
-      
-      double x_lower = x2[ci];
-      double x_upper = x2[ci+1];
-      double x_mid = (x2[ci+1] + x2[ci] )/2;
   
-      double f_lower = curvaturei2(x_lower);
-      double f_upper = curvaturei2(x_upper);
-  
-      double f_mid = curvaturei2(x_mid);
-
-      int found = 0;
-
-      /*if (pfake < .6 && ci==2)
-	{
-
-          printf("\n");
-	  for (int i=0;i<300;i++)
-	    {
-	      double xx = x_lower + i*(x_upper-x_lower)/300;
-	      printf("%lf %lf\n",xx,curvaturei2(xx));
-            }
-          exit(1);
-	  }
-  
-      do
-	{
-          
-	  if (f_mid < f_lower && f_mid < f_upper)
-	    {
-
-	      if (f_lower > f_upper)
-		f_mid = f_lower;
-	      else
-		f_mid = f_upper;
-
-	      found = 1;
-	    }
-	  else
-	    {
-
-	      if (f_mid > f_lower && f_mid > f_upper)
-		{
-
-		  int status;
-		  int iter=0, max_iter =100;
-		  const gsl_min_fminimizer_type *T;
-		  gsl_min_fminimizer *s;
-	  
-		  gsl_function F;
-
-		  F.function = &ncurvaturei2;
-		  F.params = 0;
-
-		  T = gsl_min_fminimizer_brent;
-		  s = gsl_min_fminimizer_alloc (T);
-		  gsl_min_fminimizer_set (s, &F, x_mid, x_lower, x_upper);
-
-		  //printf ("using %s method\n",gsl_min_fminimizer_name (s));
-
-		  //printf ("%5s [%9s, %9s] %9s %9s\n","iter", "lower", "upper", "min", "err(est)");
-
-		  //printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
-	  
-		  do
-		    {
-   
-		      iter++;
-		      status = gsl_min_fminimizer_iterate (s);
-
-		      x_mid = gsl_min_fminimizer_x_minimum (s);
-		      x_lower = gsl_min_fminimizer_x_lower (s);
-		      x_upper = gsl_min_fminimizer_x_upper (s);
-
-		      status = gsl_min_test_interval (x_lower, x_upper, 0.001, 0.0);
-
-		      //if (status == GSL_SUCCESS)
-		      //	printf ("Converged:\n");
-
-		      //printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
-	      
-		    }
-		  while (status == GSL_CONTINUE && iter < max_iter);
-
-		  found = 1;
-
-		  f_mid = curvaturei2(x_mid);
-	  
-		}
-	      else
-		{
-	  
-		  if ( f_mid > f_lower)
-		    {
-
-		      x_lower = x_mid;
-		      f_lower = f_mid;
-	      
-		      x_mid = (x_lower + x_upper) / 2;
-		      f_mid = curvaturei2(x_mid);
-
-		      if ( (x_mid - x_lower) < 0.001)
-			found = 1;
-	      
-		    }
-		  else
-		    {
-
-		      x_upper = x_mid;
-		      f_upper = f_mid;
-	      
-		      x_mid = (x_lower + x_upper) / 2;
-		      f_mid = curvaturei2(x_mid);
-
-		      if ( (x_mid - x_lower) < 0.001)
-			found = 1;
-		    }
-		}
-	    }
-	}
-      
-      while (found ==0);
-
-      if (f_mid > f_best)
-	{
-	f_best = f_mid;
-	x_best = x_mid;
-	}
-
-    }
-
-
-  double f_pen = 0;
-  for (int i=0;i<S2;i++)
-    {
-      for (int j=0;j<100;j++)
-	{
-	  double xx = x2[i]+j*(x2[i+1]-x2[i])/100.0;
-	  double yy = lx2->ve[i*4] + lx2->ve[i*4+1]*xx + lx2->ve[i*4+2]*pow(xx,2.0) + lx2->ve[i*4+3] * pow(xx,3.0);
-
-	  if (yy < 0)
-	    f_pen += pow(10*yy,2.0);
-
-	}
-    }
-
-  */
-  double  f_pen2 = 0;
+  double f_pen2 = 0;
 
   for (int i=1;i<=S2;i++)  
     f_pen2 += pow(1.0/(20*(x2[i]-x2[i-1])),4.0);
-
-  //if (x[S-1] > N)
-  //f_pen2 = 100*pow(N-x[S-1],2.0);
 
   printf("fbest: %lf fpen: %lf fpen2: %lf\n",f_best,f_pen,f_pen2);
 
