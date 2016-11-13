@@ -400,16 +400,14 @@ double curvatureboth2(
   else
     printf("exception i=0\n");
 
-
-
   if (N2x[2] < x2[1])
     {
 
       integr=0;
       for (int i=0;i<1000;i++)
 	{
-	  double xx = i*(N2x[2]-N2x[1])/1000;
-	  integr += (N2x[2]-N2x[1]) * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
+	  double xx = i*(N2x[2]-N2x[1])/1000 + N2x[1];
+	  integr += (N2x[2]-N2x[1])/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
 	}
 
       printf("i = 1. case 1. target: %lf actual: %lf\n",lb2->ve[1], integr);
@@ -479,8 +477,8 @@ double curvatureboth2(
       integr=0;
       for (int i=0;i<1000;i++)
 	{
-	  double xx = i*(N2x[2]-N2x[1])/1000;
-	  integr += (N2x[2]-N2x[1]) * (lx2->ve[8] + lx2->ve[9]*xx + lx2->ve[10]*pow(xx,2.0) + lx2->ve[11]*pow(xx,3.0));
+	  double xx = i*(N2x[2]-N2x[1])/1000 + N2x[1];
+	  integr += (N2x[2]-N2x[1])/1000 * (lx2->ve[8] + lx2->ve[9]*xx + lx2->ve[10]*pow(xx,2.0) + lx2->ve[11]*pow(xx,3.0));
 	}
 
       printf("i = 1. case 5. target: %lf actual: %lf\n",lb2->ve[1], integr);
