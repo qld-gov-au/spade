@@ -135,6 +135,9 @@ double curvatureboth2(
 {
 
 
+  if (pfake<0.1)
+    printf("no fake\n");
+
   double d0 = gsl_vector_get(p,0);
   double d1 = gsl_vector_get(p,1);
   double dd1 = gsl_vector_get(p,2);
@@ -149,6 +152,9 @@ double curvatureboth2(
   A2 = m_get(4*S2,4*S2);
 
   double * fakeeffort = (double *) calloc(N2,sizeof(double));
+
+  if (x2[2] < N2x[1])
+    printf("this time?");
 
   int j=0;
   for (int i=0;i<N2;i++)
@@ -165,14 +171,19 @@ double curvatureboth2(
 	      int oldi = S;
 	      while (x[oldi]>xx) { oldi--; }
 
+              if (oldi==S)
+		oldi--;
+
 	      tmpfakeeffort += ((x2[j]-N2x[i])/100) * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
 
 	    }
+
 	  fakeeffort[i] += tmpfakeeffort; ///(N2x[i]-x2[j]);
 	}
 
       int counter=0;
-      while ( x2[j+1] < N2x[i+1] ) { j++; counter++; }
+
+      while ( j<S2 && x2[j+1] < N2x[i+1] ) { j++; counter++; }
 
       int k=0;
       
@@ -183,9 +194,15 @@ double curvatureboth2(
 	  for (int l=0;l<100;l++)
 	    {
 
+              if (j-counter+k+1 > S2)
+                printf("here\n");
+
 	      double xx = l*(x2[j-counter+k+1]-x2[j-counter+k])/100 + x2[j-counter+k];
 	      int oldi = S;
 	      while (x[oldi]>xx) { oldi--; }
+
+              if (oldi==S)
+		oldi--;
 
 	      tmpfakeeffort += (x2[j-counter+k+1]-x2[j-counter+k])/100 * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
 
@@ -193,21 +210,31 @@ double curvatureboth2(
 	  fakeeffort[i] += tmpfakeeffort; ///(x2[j-counter+k+1]-x2[j-counter+k]);
 	}
 
-      double tmpfakeeffort=0;
-      for (int l=0;l<100;l++)
+      if (N2x[i+1] > x2[j-counter+k])
 	{
 
-	  double xx = l*(N2x[i+1]-x2[j-counter+k])/100 + x2[j-counter+k];
-	  int oldi = S;
-	  while (x[oldi]>xx) { oldi--; }
+	  double tmpfakeeffort=0;
+	  for (int l=0;l<100;l++)
+	    {
 
-	  tmpfakeeffort += (N2x[i+1]-x2[j-counter+k])/100 * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
+	      double xx = l*(N2x[i+1]-x2[j-counter+k])/100 + x2[j-counter+k];
+	      int oldi = S;
+	      while (x[oldi]>xx) { oldi--; }
 
+	      if (oldi==S)
+		oldi--;
+
+	      if (i+1 > N2 || (j-counter+k) > S2 || oldi==S)
+		printf("%d %d %d %d %d\n",i,j,counter,k,oldi);
+
+	      tmpfakeeffort += (N2x[i+1]-x2[j-counter+k])/100 * (lx->ve[4*oldi] + lx->ve[4*oldi+1]*xx + lx->ve[4*oldi+2]*pow(xx,2.0) + lx->ve[4*oldi+3]*pow(xx,3.0));
+
+	    }
+
+	  fakeeffort[i] += tmpfakeeffort; //x[i+1]-x2[j-counter+k]);	
 	}
 
-      fakeeffort[i] += tmpfakeeffort; //x[i+1]-x2[j-counter+k]);
-
-      j++; 
+      j++;
     }
 
   j=0;
@@ -225,7 +252,7 @@ double curvatureboth2(
       
       int counter=0;
 	        
-      while ( x2[j+1] < N2x[i+1] ) { j++; counter++; }
+      while ( j<S2 && x2[j+1] < N2x[i+1] ) { j++; counter++; }
 
       int k=0;
       
@@ -239,10 +266,16 @@ double curvatureboth2(
 
 	}
 
-      A2->me[i][j*4 + 0] += N2x[i+1]-x2[j-counter+k];
-      A2->me[i][j*4 + 1] += .5*( pow(N2x[i+1],2.0) - pow(x2[j-counter+k],2.0) );
-      A2->me[i][j*4 + 2] += (1.0/3) * ( pow(N2x[i+1],3.0) - pow(x2[j-counter+k],3.0));
-      A2->me[i][j*4 + 3] += (1.0/4) * ( pow(N2x[i+1],4.0) - pow(x2[j-counter+k],4.0));
+      if (i+1 > N2 || j>=S2 || j-counter+k > S2)
+        printf("this");
+
+      if (N2x[i+1] > x2[j-counter+k])
+	{
+	  A2->me[i][j*4 + 0] += N2x[i+1]-x2[j-counter+k];
+	  A2->me[i][j*4 + 1] += .5*( pow(N2x[i+1],2.0) - pow(x2[j-counter+k],2.0) );
+	  A2->me[i][j*4 + 2] += (1.0/3) * ( pow(N2x[i+1],3.0) - pow(x2[j-counter+k],3.0));
+	  A2->me[i][j*4 + 3] += (1.0/4) * ( pow(N2x[i+1],4.0) - pow(x2[j-counter+k],4.0));
+	}
 
       j++; 
       	  
@@ -352,11 +385,11 @@ double curvatureboth2(
 		  s = gsl_min_fminimizer_alloc (T);
 		  gsl_min_fminimizer_set (s, &F, x_mid, x_lower, x_upper);
 
-		  printf ("using %s method\n",gsl_min_fminimizer_name (s));
+		  //printf ("using %s method\n",gsl_min_fminimizer_name (s));
 
-		  printf ("%5s [%9s, %9s] %9s %9s\n","iter", "lower", "upper", "min", "err(est)");
+		  //printf ("%5s [%9s, %9s] %9s %9s\n","iter", "lower", "upper", "min", "err(est)");
 
-		  printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
+		  //printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
 	  
 		  do
 		    {
@@ -370,10 +403,10 @@ double curvatureboth2(
 
 		      status = gsl_min_test_interval (x_lower, x_upper, 0.001, 0.0);
 
-		      if (status == GSL_SUCCESS)
-			printf ("Converged:\n");
+		      //if (status == GSL_SUCCESS)
+		      //	printf ("Converged:\n");
 
-		      printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
+		      //printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
 	      
 		    }
 		  while (status == GSL_CONTINUE && iter < max_iter);
@@ -447,7 +480,7 @@ double curvatureboth2(
   //if (x[S-1] > N)
   //f_pen2 = 100*pow(N-x[S-1],2.0);
 
-  printf("fpen: %lf fen2: %lf\n",f_pen,f_pen2);
+  //printf("fpen: %lf fen2: %lf\n",f_pen,f_pen2);
 
   M_FREE(A2);
   M_FREE(LU2);
@@ -2059,6 +2092,7 @@ int main(int argc, char *argv[])
 
   lx2 = LUsolve(LU2,pivot2,lb2,VNULL);
 
+  
   sb2 = NULL;
 
   // Set initial step sizes to 0.1 
@@ -2086,9 +2120,10 @@ int main(int argc, char *argv[])
   pfake = 0.9;
 
   gsl_multimin_fminimizer_set (sb2,&fb2,qb2,ssb2);
-
+  
   for (int i=0;i<10;i++)
     status = gsl_multimin_fminimizer_iterate(sb2);
+  
 
   /*
   do {
