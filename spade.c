@@ -2222,7 +2222,7 @@ int main(int argc, char *argv[])
  
   lb2 = v_get(4*S2);
 
-  pfake = 0.9;
+  pfake = 1.0;
   for (int i=0;i<N2;i++)
     lb2->ve[i] = pfake*fakeeffort[i] + (1-pfake)*effort2[i];
 
@@ -2274,8 +2274,8 @@ int main(int argc, char *argv[])
 
   gsl_multimin_fminimizer_set (sb2,&fb2,qb2,ssb2);
   
-  for (int i=0;i<10;i++)
-    status = gsl_multimin_fminimizer_iterate(sb2);
+  //for (int i=0;i<1;i++)
+  //  status = gsl_multimin_fminimizer_iterate(sb2);
   
   /*
   do {
