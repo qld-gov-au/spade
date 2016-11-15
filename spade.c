@@ -70,752 +70,21 @@ int ci;
 double maxcurv;
 int mcidx;
 
-double thingy,thingy2;
-
 int pt,new_pt;
 
 int WindWidth, WindHeight;
 int window;
 
-double curvaturei(
+void test0 (VEC *, double *, double *, double);
+void test1 (VEC *, double *, double *, double);
 
-		  double x
+void fakeeffort(VEC *, double *, double *, int, double *);
+MAT *generateA(MAT *,double *,double *,int);
+double curvature(double ,VEC *);
 
-		 )
+double maxCurvature(gsl_vector *,void *);
 
-{
-  
-  return fabs(2*lx->ve[ci*4+2] + 6*lx->ve[ci*4+3] * x) / pow( 1 + pow(lx->ve[ci*4+1] + 2*lx->ve[ci*4+2]*x + 3*lx->ve[ci*4+3] * pow(x,2.0),2.0), 2.0/3.0 );
-
-}
-
-double ncurvaturei(
-
-		  double x
-
-		 )
-
-{
-  
-  return -fabs(2*lx->ve[ci*4+2] + 6*lx->ve[ci*4+3] * x) / pow( 1 + pow(lx->ve[ci*4+1] + 2*lx->ve[ci*4+2]*x + 3*lx->ve[ci*4+3] * pow(x,2.0),2.0), 2.0/3.0 );
-
-}
-
-double curvaturei2(
-
-		  double x
-
-		 )
-
-{
-  
-  return fabs(2*lx2->ve[ci*4+2] + 6*lx2->ve[ci*4+3] * x) / pow( 1 + pow(lx2->ve[ci*4+1] + 2*lx2->ve[ci*4+2]*x + 3*lx2->ve[ci*4+3] * pow(x,2.0),2.0), 2.0/3.0 );
-
-}
-
-double ncurvaturei2(
-
-		  double x
-
-		 )
-
-{
-  
-  return -fabs(2*lx2->ve[ci*4+2] + 6*lx2->ve[ci*4+3] * x) / pow( 1 + pow(lx2->ve[ci*4+1] + 2*lx2->ve[ci*4+2]*x + 3*lx2->ve[ci*4+3] * pow(x,2.0),2.0), 2.0/3.0 );
-
-}
-
-double curvatureboth2(
-
-		      gsl_vector *p,
-		      void *param
-
-		      )
-{
-
-  double d0 = gsl_vector_get(p,0);
-  double d1 = gsl_vector_get(p,1);
-  double dd1 = gsl_vector_get(p,2);
-
-  lb2->ve[N2+S2-1+S2-1+S2-1] = d0;
-  lb2->ve[N2+S2-1+S2-1+S2-1+2] = d1;
-  lb2->ve[N2+S2-1+S2-1+S2-1+3] = dd1;
-
-  for (int i=1;i<S2;i++)
-    x2[i] = gsl_vector_get(p,i-1+3);
-
-  A2 = m_get(4*S2,4*S2);
-
-  double * fakeeffort = (double *) calloc(N2,sizeof(double));
-
-  double fet = 0;
-
-  //if (x2[2] < N2x[1])
-  //printf("start");
-
-  int j=0;
-  for (int i=0;i<N2;i++)
-    {
-
-      if (x[j] > N2x[i])
-	{
-
-          fet=0;
-	  for (int l=0;l<100;l++)
-	    {
-
-	      double xx = l*(x[j]-N2x[i])/100 + N2x[i];
-
-	      fet += ((x[j]-N2x[i])/100) * (lx->ve[4*(j-1)] + lx->ve[4*(j-1)+1]*xx + lx->ve[4*(j-1)+2]*pow(xx,2.0) + lx->ve[4*(j-1)+3]*pow(xx,3.0));
-
-	    }
-
-	  fakeeffort[i] += fet;
-	}
-
-      int counter=0;
-
-      while ( j<S && x[j+1] < N2x[i+1] ) { j++; counter++; }
-
-      int k=0;
-      
-      for (k=0;k<counter;k++)
-	{
-
-	  fet=0;
-	  for (int l=0;l<100;l++)
-	    {
-
-	      double xx = l*(x[j-counter+k+1]-x[j-counter+k])/100 + x[j-counter+k];
-
-	      fet += (x[j-counter+k+1]-x[j-counter+k])/100 * (lx->ve[4*(j-counter+k)] + lx->ve[4*(j-counter+k)+1]*xx + lx->ve[4*(j-counter+k)+2]*pow(xx,2.0) + lx->ve[4*(j-counter+k)+3]*pow(xx,3.0));
-
-	    }
-
-	  fakeeffort[i] += fet;
-
-	}
-
-      if (N2x[i+1] > x[j])
-	{
-
-	  fet=0;
-	  for (int l=0;l<100;l++)
-	    {
-
-	      double xx = l*(N2x[i+1]-x[j])/100 + x[j];
-
-	      fet += (N2x[i+1]-x[j])/100 * (lx->ve[4*j] + lx->ve[4*j+1]*xx + lx->ve[4*j+2]*pow(xx,2.0) + lx->ve[4*j+3]*pow(xx,3.0));
-
-	    }
-
-	  fakeeffort[i] += fet;
-	}
-
-      j++;
-    }
-
-  j=0;
-
-  for (int i=0;i<N2;i++)
-    {
-
-      if (x2[j] > N2x[i])
-	if (x2[j] < N2x[i+1])
-	  {
-	    A2->me[i][(j-1)*4 + 0] += x2[j] - N2x[i];
-	    A2->me[i][(j-1)*4 + 1] += .5*( pow(x2[j],2.0) - pow(N2x[i],2.0) );
-	    A2->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x2[j],3.0) - pow(N2x[i],3.0));
-	    A2->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x2[j],4.0) - pow(N2x[i],4.0));
-	  }
-	else    
-	  {
-	    A2->me[i][(j-1)*4 + 0] += N2x[i+1] - N2x[i];
-	    A2->me[i][(j-1)*4 + 1] += .5*( pow(N2x[i+1],2.0) - pow(N2x[i],2.0) );
-	    A2->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(N2x[i+1],3.0) - pow(N2x[i],3.0));
-	    A2->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(N2x[i+1],4.0) - pow(N2x[i],4.0));
-	  }
-      
-      int counter=0;
-	        
-      while ( j<S2 && x2[j+1] < N2x[i+1] ) { j++; counter++; }
-
-      int k=0;
-      
-      for (k=0;k<counter;k++)
-	{
-	
-	  A2->me[i][(j-counter+k)*4 + 0] += x2[j-counter+k+1] - x2[j-counter+k];
-	  A2->me[i][(j-counter+k)*4 + 1] += .5*( pow(x2[j-counter+k+1],2.0) - pow(x2[j-counter+k],2.0) );
-	  A2->me[i][(j-counter+k)*4 + 2] += (1.0/3) * ( pow(x2[j-counter+k+1],3.0) - pow(x2[j-counter+k],3.0));
-	  A2->me[i][(j-counter+k)*4 + 3] += (1.0/4) * ( pow(x2[j-counter+k+1],4.0) - pow(x2[j-counter+k],4.0));
-
-	}
-
-      if (N2x[i+1] > x2[j])
-	{
-	  A2->me[i][j*4 + 0] += N2x[i+1]-x2[j];
-	  A2->me[i][j*4 + 1] += .5*( pow(N2x[i+1],2.0) - pow(x2[j],2.0) );
-	  A2->me[i][j*4 + 2] += (1.0/3) * ( pow(N2x[i+1],3.0) - pow(x2[j],3.0));
-	  A2->me[i][j*4 + 3] += (1.0/4) * ( pow(N2x[i+1],4.0) - pow(x2[j],4.0));
-
-	  j++;
-
-	}
-      	  
-    }
-
-  for (int j=0;j<S2-1;j++)
-    {
-
-      A2->me[N2+j][j*4 + 0] = 1;
-      A2->me[N2+j][j*4 + 1] = x2[j+1];
-      A2->me[N2+j][j*4 + 2] = pow(x2[j+1],2.0);
-      A2->me[N2+j][j*4 + 3] = pow(x2[j+1],3.0);
-      A2->me[N2+j][j*4 + 4] = -1;
-      A2->me[N2+j][j*4 + 5] = -(x2[j+1]);
-      A2->me[N2+j][j*4 + 6] = -pow(x2[j+1],2.0);
-      A2->me[N2+j][j*4 + 7] = -pow(x2[j+1],3.0);
-      
-    }
-
-  for (int j=0;j<S2-1;j++)
-    {
-
-      A2->me[N2+S2-1+j][j*4 + 1] = 1;
-      A2->me[N2+S2-1+j][j*4 + 2] = 2*(x2[j+1]);
-      A2->me[N2+S2-1+j][j*4 + 3] = 3*pow(x2[j+1],2.0);
-      A2->me[N2+S2-1+j][j*4 + 5] = -1;
-      A2->me[N2+S2-1+j][j*4 + 6] = -2*(x2[j+1]);
-      A2->me[N2+S2-1+j][j*4 + 7] = -3*pow(x2[j+1],2.0);
-      
-    }
-
-  for (int j=0;j<S2-1;j++)
-    { 
-      A2->me[N2+S2-1+S2-1+j][j*4 + 2] = 2;
-      A2->me[N2+S2-1+S2-1+j][j*4 + 3] = 6*(x2[j+1]);
-      A2->me[N2+S2-1+S2-1+j][j*4 + 6] = -2;
-      A2->me[N2+S2-1+S2-1+j][j*4 + 7] = -6*(x2[j+1]);
-    }
-  
-  A2->me[N2+S2-1+S2-1+S2-1][2] = 2; // second derivative at t=0
-
-  A2->me[N2+S2-1+S2-1+S2-1+1][0] = 1;  // value at t=0;
-  
-  A2->me[N2+S2-1+S2-1+S2-1+2][N2+S2-1+S2-1+S2-1+3-2] = 1;  // first derivative at t=N2
-  A2->me[N2+S2-1+S2-1+S2-1+2][N2+S2-1+S2-1+S2-1+3-1] = 2*N2x[N2]; // first derivative at t=N2
-  A2->me[N2+S2-1+S2-1+S2-1+2][N2+S2-1+S2-1+S2-1+3] = 3*pow(N2x[N2],2.0);  // first derivative at t=N2
-
-  A2->me[N2+S2-1+S2-1+S2-1+3][N2+S2-1+S2-1+S2-1+3-1] = 2;  // second derivative at t=N2
-  A2->me[N2+S2-1+S2-1+S2-1+3][N2+S2-1+S2-1+S2-1+3] = 6*N2x[N2];   
-
-  //if (x2[2] < N2x[1])
-  //{
-  //m_output(A2);
-    //exit(1);
-    //}
-
-  for (int i=0;i<N2;i++)
-    lb2->ve[i] = pfake*fakeeffort[i] + (1-pfake)*effort2[i];
-
-  LU2 = m_get(4*S2,4*S2);
-  LU2 = m_copy(A2,LU2);
-  pivot2 = px_get(A2->m);
-  LUfactor(LU2,pivot2);
-
-  lx2 = LUsolve(LU2,pivot2,lb2,VNULL);
-
-  /*
-  double integr;
-
-  if (N2x[1] < x2[1])
-    {
-  integr=0;
-  for (int i=0;i<1000;i++)
-    {
-      double xx = i*N2x[1]/1000;
-      integr += N2x[1]/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
-    }
-
-  //printf("target: %lf actual: %lf\n",lb2->ve[0], integr);
-
-  if (integr > 1)
-    printf("here");
-
-    }
-  else if (N2x[1] > x2[1] && N2x[1] < x2[2]) 
-    {
- 
-  integr=0;
-  for (int i=0;i<1000;i++)
-    {
-      double xx = i*x2[1]/1000;
-      integr += x2[1]/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
-    }
-
-  for (int i=0;i<1000;i++)
-    {
-      double xx = i*(N2x[1]-x2[1])/1000 + x2[1];
-      integr += (N2x[1]-x2[1])/1000 * (lx2->ve[4] + lx2->ve[5]*xx + lx2->ve[6]*pow(xx,2.0) + lx2->ve[7]*pow(xx,3.0));
-    }
-
-  if (integr > 1)
-    printf("here");
-
-  printf("target: %lf actual: %lf\n",lb2->ve[0], integr);
-
-    }
-  else if (N2x[1] > x2[1] && N2x[1] > x2[2]) 
-    {
- 
-  integr=0;
-  for (int i=0;i<1000;i++)
-    {
-      double xx = i*x2[1]/1000;
-      integr += x2[1]/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
-    }
-
-  for (int i=0;i<1000;i++)    
-    {
-       double xx = i*(x2[2]-x2[1])/1000 + x2[1];
-       integr += (x2[2]-x2[1])/1000 * (lx2->ve[4] + lx2->ve[5]*xx + lx2->ve[6]*pow(xx,2.0) + lx2->ve[7]*pow(xx,3.0));
-   }
-
-  for (int i=0;i<1000;i++)
-    {
-      double xx = i*(N2x[1]-x2[2])/1000 + x2[2];
-      integr += (N2x[1]-x2[2])/1000 * (lx2->ve[8] + lx2->ve[9]*xx + lx2->ve[10]*pow(xx,2.0) + lx2->ve[11]*pow(xx,3.0));
-    }
-
-  if (integr > 1)
-    printf("here");
-
-  printf("target: %lf actual: %lf\n",lb2->ve[0], integr);
-
-    }
-  else
-    printf("exception i=0\n");
-
-  if (N2x[2] < x2[1])
-    {
-
-      integr=0;
-      for (int i=0;i<1000;i++)
-	{
-	  double xx = i*(N2x[2]-N2x[1])/1000 + N2x[1];
-	  integr += (N2x[2]-N2x[1])/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
-	}
-
-      printf("i = 1. case 1. target: %lf actual: %lf\n",lb2->ve[1], integr);
-    }
-  else if (x2[1] > N2x[1] && x2[2] > N2x[2]) 
-    {
-
-      integr=0;
-      for (int i=0;i<1000;i++)
-	{
-	  double xx = i*(x2[1]-N2x[1])/1000 + N2x[1];       
-	  integr += (x2[1]-N2x[1])/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
-	}
-
-      for (int i=0;i<1000;i++)
-	{
-	  double xx = i*(N2x[2]-x2[1])/1000 + x2[1];
-	  integr += (N2x[2]-x2[1])/1000 * (lx2->ve[4] + lx2->ve[5]*xx + lx2->ve[6]*pow(xx,2.0) + lx2->ve[7]*pow(xx,3.0));
-	}
-
-      printf("i = 1. case 2. target: %lf actual: %lf\n",lb2->ve[1], integr);
-    }
-  else if (x2[1] > N2x[1] && x2[2] < N2x[2] && x2[3] > N2x[2])
-    {
-
-      integr=0;
-      for (int i=0;i<1000;i++)
-	{
-	  double xx = i*(x2[1]-N2x[1])/1000 + N2x[1];       
-	  integr += (x2[1]-N2x[1])/1000 * (lx2->ve[0] + lx2->ve[1]*xx + lx2->ve[2]*pow(xx,2.0) + lx2->ve[3]*pow(xx,3.0));
-	}
-
-      for (int i=0;i<1000;i++)
-	{
-	  double xx = i*(x2[2]-x2[1])/1000 + x2[1];
-	  integr += (x2[2]-x2[1])/1000 * (lx2->ve[4] + lx2->ve[5]*xx + lx2->ve[6]*pow(xx,2.0) + lx2->ve[7]*pow(xx,3.0));
-	}
-
-      for (int i=0;i<1000;i++)
-	{
-	  double xx = i*(N2x[2]-x2[2])/1000 + x2[2];
-	  integr += (N2x[2]-x2[2])/1000 * (lx2->ve[8] + lx2->ve[9]*xx + lx2->ve[10]*pow(xx,2.0) + lx2->ve[11]*pow(xx,3.0));
-	}
-
-      printf("i = 1. case 3. target: %lf actual: %lf\n",lb2->ve[1], integr);
-    } else if (x2[1] < N2x[1] && x2[2] > N2x[1] && x2[2] < N2x[2] && x2[3] > N2x[2] ) 
-    {
-
-      integr=0;
-      for (int i=0;i<1000;i++)
-	{
-	  double xx = i*(x2[2]-N2x[1])/1000 + N2x[1];       
-	  integr += (x2[2]-N2x[1])/1000 * (lx2->ve[4] + lx2->ve[5]*xx + lx2->ve[6]*pow(xx,2.0) + lx2->ve[7]*pow(xx,3.0));
-	}
-
-      for (int i=0;i<1000;i++)
-	{
-	  double xx = i*(N2x[2]-x2[2])/1000 + x2[2];
-	  integr += (N2x[2]-x2[2])/1000 * (lx2->ve[8] + lx2->ve[9]*xx + lx2->ve[10]*pow(xx,2.0) + lx2->ve[11]*pow(xx,3.0));
-	}
-
-      printf("i = 1. case 4. target: %lf actual: %lf\n",lb2->ve[1], integr);
-    }
-  else if (x2[1] < N2x[1] && x2[2] < N2x[1] && x2[3] > N2x[2])
-    {
-
-      integr=0;
-      for (int i=0;i<1000;i++)
-	{
-	  double xx = i*(N2x[2]-N2x[1])/1000 + N2x[1];
-	  integr += (N2x[2]-N2x[1])/1000 * (lx2->ve[8] + lx2->ve[9]*xx + lx2->ve[10]*pow(xx,2.0) + lx2->ve[11]*pow(xx,3.0));
-	}
-
-      printf("i = 1. case 5. target: %lf actual: %lf\n",lb2->ve[1], integr);
-    }
-  else
-   printf("exception i=1\n");
-  
-  */
-  double f_best = 0;
-  double x_best = 0;
-  double f_pen = 0;
-
-  ci=0;
-  //printf("\n");
-
-  for (int i=0;i<1000;i++)
-    {
-
-      double xx = i*x2[S2]/1000;
-
-      double f_new = curvaturei2(xx);
-
-      //printf("%lf %lf\n",xx,f_new);
-      
-      if (f_new > f_best)
-	{
-	  f_best = f_new;
-	  x_best = xx;
-	}
-
-      double yy = lx2->ve[ci*4] + lx2->ve[ci*4+1]*xx + lx2->ve[ci*4+2]*pow(xx,2.0) + lx2->ve[ci*4+3] * pow(xx,3.0);
-
-      if (yy < 0)
-        f_pen += pow(10*yy,2.0);
-      
-      if (xx + x2[S2]/1000 >= x2[ci+1])
-	ci++;
-    }
-  
-  double f_pen2 = 0;
-
-  for (int i=1;i<=S2;i++)  
-    f_pen2 += pow(1.0/(20*(x2[i]-x2[i-1])),4.0);
-
-  printf("fbest: %lf fpen: %lf fpen2: %lf\n",f_best,f_pen,f_pen2);
-
-  M_FREE(A2);
-  M_FREE(LU2);
-
-  return f_best + f_pen + f_pen2;
-
-}
-
-double curvatureboth(
-
-		 gsl_vector *p,
-		 void *param
-
-		 )
-{
-
-  double d0 = gsl_vector_get(p,0);
-  double d1 = gsl_vector_get(p,1);
-  double dd1 = gsl_vector_get(p,2);
-
-  lb->ve[N+S-1+S-1+S-1] = d0;
-  lb->ve[N+S-1+S-1+S-1+2] = d1;
-  lb->ve[N+S-1+S-1+S-1+3] = dd1;
-
-  for (int i=1;i<S;i++)
-    x[i] = gsl_vector_get(p,i-1+3);
-
-  MAT *nA = m_get(4*S,4*S);
-  
-  int j=0;
-
-  for (int i=0;i<N;i++)
-    {
-
-      if (x[j] > i)
-	{
-
-	  if (x[j] > i+1)
-	    {
-	      nA->me[i][(j-1)*4 + 0] += (i+1) - i;
-	      nA->me[i][(j-1)*4 + 1] += .5*( pow((i+1),2.0) - pow(i,2.0) );
-	      nA->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow((i+1),3.0) - pow(i,3.0));
-	      nA->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow((i+1),4.0) - pow(i,4.0));
-	      
-	    }
-	  else
-	    {
-	    
-	      nA->me[i][(j-1)*4 + 0] += x[j] - i;
-	      nA->me[i][(j-1)*4 + 1] += .5*( pow(x[j],2.0) - pow(i,2.0) );
-	      nA->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j],3.0) - pow(i,3.0));
-	      nA->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j],4.0) - pow(i,4.0));
-	    }
-	}
-      
-      int counter=0;
-	        
-      while (j<S && x[j+1] < i+1 )
-	{
-	  j++;
-	  counter++;
-	}
-
-      /*
-      if (j==S)
-	{
-	  printf("problem?\n");
-	  break;
-	}
-      */
-      
-      int k=0;
-      
-      for (k=0;k<counter;k++)
-	{
-	
-	  nA->me[i][(j-1)*4 + 0] += x[j-counter+k+1] - x[j-counter+k];
-	  nA->me[i][(j-1)*4 + 1] += .5*( pow(x[j-counter+k+1],2.0) - pow(x[j-counter+k],2.0) );
-	  nA->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+1],3.0) - pow(x[j-counter+k],3.0));
-	  nA->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+1],4.0) - pow(x[j-counter+k],4.0));
-	}
-
-      if (x[j] < i+1)
-	{
-	  nA->me[i][j*4 + 0] += i+1-x[j-counter+k];
-	  nA->me[i][j*4 + 1] += .5*( pow(i+1,2.0) - pow(x[j-counter+k],2.0) );
-	  nA->me[i][j*4 + 2] += (1.0/3) * ( pow(i+1,3.0) - pow(x[j-counter+k],3.0));
-	  nA->me[i][j*4 + 3] += (1.0/4) * ( pow(i+1,4.0) - pow(x[j-counter+k],4.0));	  	  
-	}
-
-      j++;      
-      	  
-    }
-
-  for (int j=0;j<S-1;j++)
-    {
-
-      nA->me[N+j][j*4 + 0] = 1;
-      nA->me[N+j][j*4 + 1] = x[j+1];
-      nA->me[N+j][j*4 + 2] = pow(x[j+1],2.0);
-      nA->me[N+j][j*4 + 3] = pow(x[j+1],3.0);
-      nA->me[N+j][j*4 + 4] = -1;
-      nA->me[N+j][j*4 + 5] = -(x[j+1]);
-      nA->me[N+j][j*4 + 6] = -pow(x[j+1],2.0);
-      nA->me[N+j][j*4 + 7] = -pow(x[j+1],3.0);
-      
-    }
-
-  for (int j=0;j<S-1;j++)
-    {
-
-      nA->me[N+S-1+j][j*4 + 1] = 1;
-      nA->me[N+S-1+j][j*4 + 2] = 2*(x[j+1]);
-      nA->me[N+S-1+j][j*4 + 3] = 3*pow(x[j+1],2.0);
-      nA->me[N+S-1+j][j*4 + 5] = -1;
-      nA->me[N+S-1+j][j*4 + 6] = -2*(x[j+1]);
-      nA->me[N+S-1+j][j*4 + 7] = -3*pow(x[j+1],2.0);
-      
-    }
-
-  for (int j=0;j<S-1;j++)
-    { 
-      nA->me[N+S-1+S-1+j][j*4 + 2] = 2;
-      nA->me[N+S-1+S-1+j][j*4 + 3] = 6*(x[j+1]);
-      nA->me[N+S-1+S-1+j][j*4 + 6] = -2;
-      nA->me[N+S-1+S-1+j][j*4 + 7] = -6*(x[j+1]);
-    }
-
-  //nA->me[N+S-1+S-1+S-1+1][1] = 1;  // first derivative at t=0
-
-  nA->me[N+S-1+S-1+S-1+1][0] = 1;  // value at t=0;
-  
-  nA->me[N+S-1+S-1+S-1][2] = 2; // second derivative at t=0
-  
-  nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-2] = 1;  // first derivative at t=N
-  nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-1] = 2*N; // first derivative at t=N
-  nA->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3] = 3*pow(N,2.0);  // first derivative at t=N
-
-  nA->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
-  nA->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*N;     
-
-  LU = m_get(4*S,4*S);
-  LU = m_copy(nA,LU);
-  pivot = px_get(nA->m);
-  LUfactor(LU,pivot);
-
-  lx = LUsolve(LU,pivot,lb,VNULL);
-
-  double f_best = 0;
-
-  for (ci=0;ci<S;ci++)
-    {
-      
-      double x_lower = x[ci];
-      double x_upper = x[ci+1];
-      double x_mid = (x[ci+1] + x[ci] )/2;
-  
-      double f_lower = curvaturei(x_lower);
-      double f_upper = curvaturei(x_upper);
-  
-      double f_mid = curvaturei(x_mid);
-
-      int found = 0;
-  
-      do
-	{
-          
-	  if (f_mid < f_lower && f_mid < f_upper)
-	    {
-
-	      if (f_lower > f_upper)
-		f_mid = f_lower;
-	      else
-		f_mid = f_upper;
-
-	      found = 1;
-	    }
-	  else
-	    {
-
-	      if (f_mid > f_lower && f_mid > f_upper)
-		{
-
-		  int status;
-		  int iter=0, max_iter =100;
-		  const gsl_min_fminimizer_type *T;
-		  gsl_min_fminimizer *s;
-	  
-		  gsl_function F;
-
-		  F.function = &ncurvaturei;
-		  F.params = 0;
-
-		  T = gsl_min_fminimizer_brent;
-		  s = gsl_min_fminimizer_alloc (T);
-		  gsl_min_fminimizer_set (s, &F, x_mid, x_lower, x_upper);
-
-		  //printf ("using %s method\n",gsl_min_fminimizer_name (s));
-
-		  //printf ("%5s [%9s, %9s] %9s %9s\n","iter", "lower", "upper", "min", "err(est)");
-
-		  //printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
-	  
-		  do
-		    {
-   
-		      iter++;
-		      status = gsl_min_fminimizer_iterate (s);
-
-		      x_mid = gsl_min_fminimizer_x_minimum (s);
-		      x_lower = gsl_min_fminimizer_x_lower (s);
-		      x_upper = gsl_min_fminimizer_x_upper (s);
-
-		      status = gsl_min_test_interval (x_lower, x_upper, 0.001, 0.0);
-
-		      //if (status == GSL_SUCCESS)
-			//printf ("Converged:\n");
-
-			//printf ("%5d [%.7f, %.7f] %.7f %.7f\n",iter, x_lower, x_upper, x_mid, x_upper - x_lower);
-	      
-		    }
-		  while (status == GSL_CONTINUE && iter < max_iter);
-
-		  found = 1;
-
-		  f_mid = curvaturei(x_mid);
-	  
-		}
-	      else
-		{
-	  
-		  if ( f_mid > f_lower)
-		    {
-
-		      x_lower = x_mid;
-		      f_lower = f_mid;
-	      
-		      x_mid = (x_lower + x_upper) / 2;
-		      f_mid = curvaturei(x_mid);
-
-		      if ( (x_mid - x_lower) < 0.001)
-			found = 1;
-	      
-		    }
-		  else
-		    {
-
-		      x_upper = x_mid;
-		      f_upper = f_mid;
-	      
-		      x_mid = (x_lower + x_upper) / 2;
-		      f_mid = curvaturei(x_mid);
-
-		      if ( (x_mid - x_lower) < 0.001)
-			found = 1;
-		    }
-		}
-	    }
-	}
-      
-      while (found ==0);
-
-      if (f_mid > f_best)
-	f_best = f_mid;
-
-    }
-
-
-  double f_pen = 0;
-  for (int i=0;i<S;i++)
-    {
-      for (int j=0;j<100;j++)
-	{
-	  double xx = x[i]+j*(x[i+1]-x[i])/100.0;
-	  double yy = lx->ve[i*4] + lx->ve[i*4+1]*xx + lx->ve[i*4+2]*pow(xx,2.0) + lx->ve[i*4+3] * pow(xx,3.0);
-
-	  if (yy < 0)
-	    f_pen += pow(10*yy,2.0);
-
-	}
-    }
-
-  double  f_pen2 = 0;
-
-  for (int i=1;i<=S;i++)  
-    f_pen2 += pow(1.0/(20*(x[i]-x[i-1])),4.0);
-
-  //if (x[S-1] > N)
-  //f_pen2 = 100*pow(N-x[S-1],2.0);
-
-  //printf("fpen: %lf fen2: %lf\n",f_pen,f_pen2);
-
-  return f_best + f_pen + f_pen2;
-
-}
+void processNormalKeys(int, int, int);
 
 void process_Normal_Keys(int key, int xlah, int ylah) 
 {
@@ -836,7 +105,62 @@ void process_Normal_Keys(int key, int xlah, int ylah)
 	 
        case 102: printf("GLUT_KEY_RIGHT %d\n",key);
 
-	 gsl_multimin_fminimizer_set (s1,&f1,q1,ss1);
+
+	 N++;   // no. data blocks. N=N2
+  
+	 prev_effort = (double *) realloc(prev_effort,N*sizeof(double));
+
+	 for (int i=0;i<N;i++)
+	   prev_effort[i] = effort[i];
+   
+	 I = M*N;
+  
+	 prev_z = (double *) realloc(prev_z,I*sizeof(double));
+	 for ( int i=0;i<N;i++)
+	   for (int m=0;m<M;m++)
+	     prev_z[i*M+m] = prev_effort[i];
+
+	 S++;
+
+         prev_x = (double *) realloc(prev_x,(S+1)*sizeof(double));
+
+	 for (int i=0;i<=S;i++)
+	   prev_x[i] = x[i];
+        
+ 	 // get state
+         double * tmpstate = (double *) calloc(Nparamsb,sizeof(double));
+
+	 for (int k=0;k<Nparamsb;k++)
+	   state[k] = gsl_vector_get(sb->x,k);
+
+         gsl_multimin_fminimizer_free(sb);
+         gsl_vector_free (qb);
+         gsl_vector_free (ssb);
+ 
+         S2++;  
+         Nparamsb++;
+
+	 qb = gsl_vector_alloc (Nparamsb);
+	 ssb = gsl_vector_alloc (Nparamsb);
+
+	 gsl_vector_set_all (ssb, 0.1);
+	 fb.n = Nparamsb;
+         fb.f = ;
+	 sb = gsl_multimin_fminimizer_alloc(T,Nparamsb);
+
+         // restore endpoint state
+	 for (int i=0;i<3;i++)
+	   gsl_vector_set (qb, i, state[i]);
+
+	 // introduce node. even distribution to start
+	 for (int i=3;i<Nparamsb-1;i++)
+	   gsl_vector_set(qb, i, (i-2)/S2);
+
+	 gsl_multimin_fminimizer_set (sb2,&fb2,qb2,ssb2);
+
+	 status = gsl_multimin_fminimizer_iterate(sb2);
+
+	 printf("initial: %lf\n",sb2->fval);
 	 
 	 glutPostRedisplay();
 	 
@@ -1633,5 +957,464 @@ int main(int argc, char *argv[])
 
   return(0);
   
+}
+
+double maxCurvature(
+
+		      gsl_vector *p,
+		      void *param
+
+		      )
+{
+
+  VEC * lb = v_get(4*S);
+
+  lb->ve[N+S-1+S-1+S-1] = gsl_vector_get(p,0);
+  lb->ve[N+S-1+S-1+S-1+2] = gsl_vector_get(p,1);
+  lb->ve[N+S-1+S-1+S-1+3] = gsl_vector_get(p,2);
+
+  for (int i=1;i<S;i++)
+    x[i] = gsl_vector_get(p,i-1+3);
+
+  double * fe = (double *) calloc(N,sizeof(double));
+
+  if (pfake > 0)
+    fakeeffort(lx,x,y,N,fe);
+
+  for (int i=0;i<N;i++)
+    lb->ve[i] = pfake*fakeeffort[i] + (1-pfake)*effort[i];
+
+  MAT *A = m_get(4*S,4*S);
+  A = generateA(A,x,y,N);
+  MAT * LU = m_get(4*S,4*S);
+  LU = m_copy(A,LU);
+  PERM * pivot = px_get(A->m);
+  LUfactor(LU,pivot);
+
+  VEC * lx = LUsolve(LU,pivot,lb,VNULL);
+
+  PX_FREE(pivot);
+  M_FREE(LU);
+  M_FREE(A);
+
+  test0(lx,x,y,lb->ve[0]);
+  test1(lx,x,y,lb->ve[1]);
+
+  double f_best = 0;
+  double x_best = 0;
+  double f_pen = 0;
+
+  ci=0;
+  //printf("\n");
+
+  for (int i=0;i<1000;i++)
+    {
+
+      double xx = i*x[S]/1000;
+
+      double f_new = curvaturei2(xx);
+
+      //printf("%lf %lf\n",xx,f_new);
+      
+      if (f_new > f_best)
+	{
+	  f_best = f_new;
+	  x_best = xx;
+	}
+
+      double yy = lx->ve[ci*4] + lx->ve[ci*4+1]*xx + lx->ve[ci*4+2]*pow(xx,2.0) + lx->ve[ci*4+3] * pow(xx,3.0);
+
+      if (yy < 0)
+        f_pen += pow(10*yy,2.0);
+      
+      if (xx + x[S]/1000 >= x[ci+1])
+	ci++;
+    }
+  
+  double f_pen2 = 0;
+
+  for (int i=1;i<=S;i++)  
+    f_pen2 += pow(1.0/(20*(x[i]-x[i-1])),4.0);
+
+  printf("fbest: %lf fpen: %lf fpen2: %lf\n",f_best,f_pen,f_pen2);
+
+  V_FREE(lx);
+  V_FREE(lb);
+
+  return f_best + f_pen + f_pen2;
+
+}
+
+double curvature(
+
+		  double x,
+		  VEC *lx
+
+		 )
+
+{
+  
+  return fabs(2*lx->ve[ci*4+2] + 6*lx->ve[ci*4+3] * x) / pow( 1 + pow(lx->ve[ci*4+1] + 2*lx->ve[ci*4+2]*x + 3*lx->ve[ci*4+3] * pow(x,2.0),2.0), 2.0/3.0 );
+
+}
+
+void fakeeffort(
+
+		   VEC *lx,
+		   double *x,
+		   double *y,
+		   int N,
+		   double *fe
+
+		   )
+{
+
+  double fet;
+  int j=0;
+
+  for (int i=0;i<N;i++)
+    {
+
+      if (x[j] > y[i])
+	{
+
+          fet=0;
+	  for (int l=0;l<100;l++)
+	    {
+
+	      double xx = l*(x[j]-y[i])/100 + y[i];
+
+	      fet += ((x[j]-y[i])/100) * (lx->ve[4*(j-1)] + lx->ve[4*(j-1)+1]*xx + lx->ve[4*(j-1)+2]*pow(xx,2.0) + lx->ve[4*(j-1)+3]*pow(xx,3.0));
+
+	    }
+
+	  fe[i] += fet;
+	}
+
+      int counter=0;
+
+      while ( j<S && x[j+1] < y[i+1] ) { j++; counter++; }
+
+      int k=0;
+      
+      for (k=0;k<counter;k++)
+	{
+
+	  fet=0;
+	  for (int l=0;l<100;l++)
+	    {
+
+	      double xx = l*(x[j-counter+k+1]-x[j-counter+k])/100 + x[j-counter+k];
+
+	      fet += (x[j-counter+k+1]-x[j-counter+k])/100 * (lx->ve[4*(j-counter+k)] + lx->ve[4*(j-counter+k)+1]*xx + lx->ve[4*(j-counter+k)+2]*pow(xx,2.0) + lx->ve[4*(j-counter+k)+3]*pow(xx,3.0));
+
+	    }
+
+	  fe[i] += fet;
+
+	}
+
+      if (y[i+1] > x[j])
+	{
+
+	  fet=0;
+	  for (int l=0;l<100;l++)
+	    {
+
+	      double xx = l*(y[i+1]-x[j])/100 + x[j];
+
+	      fet += (y[i+1]-x[j])/100 * (lx->ve[4*j] + lx->ve[4*j+1]*xx + lx->ve[4*j+2]*pow(xx,2.0) + lx->ve[4*j+3]*pow(xx,3.0));
+
+	    }
+
+	  fe[i] += fet;
+	}
+
+      j++;
+    }
+
+}
+
+MAT * generateA(
+
+		MAT *A,
+		double *x,
+		double *y,
+		int N
+
+		)
+{
+
+  int j=0;
+  int S = A->m/4;
+
+  for (int i=0;i<N;i++)
+    {
+
+      if (x[j] > y[i])
+	if (x[j] < y[i+1])
+	  {
+	    A->me[i][(j-1)*4 + 0] += x[j] - y[i];
+	    A->me[i][(j-1)*4 + 1] += .5*( pow(x[j],2.0) - pow(y[i],2.0) );
+	    A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(x[j],3.0) - pow(y[i],3.0));
+	    A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(x[j],4.0) - pow(y[i],4.0));
+	  }
+	else    
+	  {
+	    A->me[i][(j-1)*4 + 0] += y[i+1] - y[i];
+	    A->me[i][(j-1)*4 + 1] += .5*( pow(y[i+1],2.0) - pow(y[i],2.0) );
+	    A->me[i][(j-1)*4 + 2] += (1.0/3) * ( pow(y[i+1],3.0) - pow(y[i],3.0));
+	    A->me[i][(j-1)*4 + 3] += (1.0/4) * ( pow(y[i+1],4.0) - pow(y[i],4.0));
+	  }
+      
+      int counter=0;
+	        
+      while ( j<S && x[j+1] < y[i+1] ) { j++; counter++; }
+
+      int k=0;
+      
+      for (k=0;k<counter;k++)
+	{
+	
+	  A->me[i][(j-counter+k)*4 + 0] += x[j-counter+k+1] - x[j-counter+k];
+	  A->me[i][(j-counter+k)*4 + 1] += .5*( pow(x[j-counter+k+1],2.0) - pow(x[j-counter+k],2.0) );
+	  A->me[i][(j-counter+k)*4 + 2] += (1.0/3) * ( pow(x[j-counter+k+1],3.0) - pow(x[j-counter+k],3.0));
+	  A->me[i][(j-counter+k)*4 + 3] += (1.0/4) * ( pow(x[j-counter+k+1],4.0) - pow(x[j-counter+k],4.0));
+
+	}
+
+      if (y[i+1] > x[j])
+	{
+	  A->me[i][j*4 + 0] += y[i+1]-x[j];
+	  A->me[i][j*4 + 1] += .5*( pow(y[i+1],2.0) - pow(x[j],2.0) );
+	  A->me[i][j*4 + 2] += (1.0/3) * ( pow(y[i+1],3.0) - pow(x[j],3.0));
+	  A->me[i][j*4 + 3] += (1.0/4) * ( pow(y[i+1],4.0) - pow(x[j],4.0));
+
+	  j++;
+
+	}
+      	  
+    }
+
+  for (int j=0;j<S-1;j++)
+    {
+
+      A->me[N+j][j*4 + 0] = 1;
+      A->me[N+j][j*4 + 1] = x[j+1];
+      A->me[N+j][j*4 + 2] = pow(x[j+1],2.0);
+      A->me[N+j][j*4 + 3] = pow(x[j+1],3.0);
+      A->me[N+j][j*4 + 4] = -1;
+      A->me[N+j][j*4 + 5] = -(x[j+1]);
+      A->me[N+j][j*4 + 6] = -pow(x[j+1],2.0);
+      A->me[N+j][j*4 + 7] = -pow(x[j+1],3.0);
+      
+    }
+
+  for (int j=0;j<S-1;j++)
+    {
+
+      A->me[N+S-1+j][j*4 + 1] = 1;
+      A->me[N+S-1+j][j*4 + 2] = 2*(x[j+1]);
+      A->me[N+S-1+j][j*4 + 3] = 3*pow(x[j+1],2.0);
+      A->me[N+S-1+j][j*4 + 5] = -1;
+      A->me[N+S-1+j][j*4 + 6] = -2*(x[j+1]);
+      A->me[N+S-1+j][j*4 + 7] = -3*pow(x[j+1],2.0);
+      
+    }
+
+  for (int j=0;j<S-1;j++)
+    { 
+      A->me[N+S-1+S-1+j][j*4 + 2] = 2;
+      A->me[N+S-1+S-1+j][j*4 + 3] = 6*(x[j+1]);
+      A->me[N+S-1+S-1+j][j*4 + 6] = -2;
+      A->me[N+S-1+S-1+j][j*4 + 7] = -6*(x[j+1]);
+    }
+  
+  A->me[N+S-1+S-1+S-1][2] = 2; // second derivative at t=0
+
+  A->me[N+S-1+S-1+S-1+1][0] = 1;  // value at t=0;
+  
+  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-2] = 1;  // first derivative at t=N
+  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3-1] = 2*y[N]; // first derivative at t=N
+  A->me[N+S-1+S-1+S-1+2][N+S-1+S-1+S-1+3] = 3*pow(y[N],2.0);  // first derivative at t=N
+
+  A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3-1] = 2;  // second derivative at t=N
+  A->me[N+S-1+S-1+S-1+3][N+S-1+S-1+S-1+3] = 6*y[N];   
+
+  return A;
+
+}
+
+void test1(
+
+	   VEC *lx,
+	   double *x,
+	   double *y,
+	   double target
+
+	   )
+{
+
+  double integr;
+
+  if (y[2] < x[1])
+    {
+
+      integr=0;
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(y[2]-y[1])/1000 + y[1];
+	  integr += (y[2]-y[1])/1000 * (lx->ve[0] + lx->ve[1]*xx + lx->ve[2]*pow(xx,2.0) + lx->ve[3]*pow(xx,3.0));
+	}
+
+      printf("i = 1. case 1. target: %lf actual: %lf\n",lb2->ve[1], integr);
+    }
+  else if (x[1] > y[1] && x[2] > y[2]) 
+    {
+
+      integr=0;
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(x[1]-y[1])/1000 + y[1];       
+	  integr += (x[1]-y[1])/1000 * (lx->ve[0] + lx->ve[1]*xx + lx->ve[2]*pow(xx,2.0) + lx->ve[3]*pow(xx,3.0));
+	}
+
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(y[2]-x[1])/1000 + x[1];
+	  integr += (y[2]-x[1])/1000 * (lx->ve[4] + lx->ve[5]*xx + lx->ve[6]*pow(xx,2.0) + lx->ve[7]*pow(xx,3.0));
+	}
+
+      printf("i = 1. case 2. target: %lf actual: %lf\n",lb2->ve[1], integr);
+    }
+  else if (x[1] > y[1] && x[2] < y[2] && x[3] > y[2])
+    {
+
+      integr=0;
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(x[1]-y[1])/1000 + y[1];       
+	  integr += (x[1]-y[1])/1000 * (lx->ve[0] + lx->ve[1]*xx + lx->ve[2]*pow(xx,2.0) + lx->ve[3]*pow(xx,3.0));
+	}
+
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(x[2]-x[1])/1000 + x[1];
+	  integr += (x[2]-x[1])/1000 * (lx->ve[4] + lx->ve[5]*xx + lx->ve[6]*pow(xx,2.0) + lx->ve[7]*pow(xx,3.0));
+	}
+
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(y[2]-x[2])/1000 + x[2];
+	  integr += (y[2]-x[2])/1000 * (lx->ve[8] + lx->ve[9]*xx + lx->ve[10]*pow(xx,2.0) + lx->ve[11]*pow(xx,3.0));
+	}
+
+      printf("i = 1. case 3. target: %lf actual: %lf\n",lb2->ve[1], integr);
+    } else if (x[1] < y[1] && x[2] > y[1] && x[2] < y[2] && x[3] > y[2] ) 
+    {
+
+      integr=0;
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(x[2]-y[1])/1000 + y[1];       
+	  integr += (x[2]-y[1])/1000 * (lx->ve[4] + lx->ve[5]*xx + lx->ve[6]*pow(xx,2.0) + lx->ve[7]*pow(xx,3.0));
+	}
+
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(y[2]-x[2])/1000 + x[2];
+	  integr += (y[2]-x[2])/1000 * (lx->ve[8] + lx->ve[9]*xx + lx->ve[10]*pow(xx,2.0) + lx->ve[11]*pow(xx,3.0));
+	}
+
+      printf("i = 1. case 4. target: %lf actual: %lf\n",lb2->ve[1], integr);
+    }
+  else if (x[1] < y[1] && x[2] < y[1] && x[3] > y[2])
+    {
+
+      integr=0;
+      for (int i=0;i<1000;i++)
+	{
+	  double xx = i*(y[2]-y[1])/1000 + y[1];
+	  integr += (y[2]-y[1])/1000 * (lx->ve[8] + lx->ve[9]*xx + lx->ve[10]*pow(xx,2.0) + lx->ve[11]*pow(xx,3.0));
+	}
+
+      printf("i = 1. case 5. target: %lf actual: %lf\n",lb2->ve[1], integr);
+    }
+  else
+   printf("exception i=1\n");
+
+}
+
+void test0(
+
+	   VEC *lx,
+	   double *x,
+	   double *y,
+	   double target
+
+	   )
+{
+
+  double integr;
+
+  if (y[1] < x[1])
+    {
+  integr=0;
+  for (int i=0;i<1000;i++)
+    {
+      double xx = i*y[1]/1000;
+      integr += y[1]/1000 * (lx->ve[0] + lx->ve[1]*xx + lx->ve[2]*pow(xx,2.0) + lx->ve[3]*pow(xx,3.0));
+    }
+
+  printf("target: %lf actual: %lf\n",target, integr);
+
+    }
+  else if (y[1] > x[1] && y[1] < x[2]) 
+    {
+ 
+  integr=0;
+  for (int i=0;i<1000;i++)
+    {
+      double xx = i*x[1]/1000;
+      integr += x[1]/1000 * (lx->ve[0] + lx->ve[1]*xx + lx->ve[2]*pow(xx,2.0) + lx->ve[3]*pow(xx,3.0));
+    }
+
+  for (int i=0;i<1000;i++)
+    {
+      double xx = i*(y[1]-x[1])/1000 + x[1];
+      integr += (y[1]-x[1])/1000 * (lx->ve[4] + lx->ve[5]*xx + lx->ve[6]*pow(xx,2.0) + lx->ve[7]*pow(xx,3.0));
+    }
+
+  printf("target: %lf actual: %lf\n",target,integr);
+
+    }
+  else if (y[1] > x[1] && y[1] > x[2]) 
+    {
+ 
+  integr=0;
+  for (int i=0;i<1000;i++)
+    {
+      double xx = i*x[1]/1000;
+      integr += x[1]/1000 * (lx->ve[0] + lx->ve[1]*xx + lx->ve[2]*pow(xx,2.0) + lx->ve[3]*pow(xx,3.0));
+    }
+
+  for (int i=0;i<1000;i++)    
+    {
+       double xx = i*(x[2]-x[1])/1000 + x[1];
+       integr += (x[2]-x[1])/1000 * (lx->ve[4] + lx->ve[5]*xx + lx->ve[6]*pow(xx,2.0) + lx->ve[7]*pow(xx,3.0));
+   }
+
+  for (int i=0;i<1000;i++)
+    {
+      double xx = i*(y[1]-x[2])/1000 + x[2];
+      integr += (y[1]-x[2])/1000 * (lx->ve[8] + lx->ve[9]*xx + lx->ve[10]*pow(xx,2.0) + lx->ve[11]*pow(xx,3.0));
+    }
+
+  printf("target: %lf actual: %lf\n",target, integr);
+
+    }
+  else
+    printf("exception i=0\n");
+
 }
 
