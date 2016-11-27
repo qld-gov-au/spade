@@ -45,6 +45,17 @@ VEC *lb,*lb2;
 MAT *A, *LU, *A2, *LU2;
 PERM *pivot, *pivot2;
 
+int L;
+double tmax;
+int nx;
+int nt;
+double dx;
+double dt;
+double r,r2;
+double t;
+double *u;
+double alpha;
+
 typedef struct {
 
   int nBlocks;
@@ -75,6 +86,42 @@ int pt,new_pt;
 int WindWidth, WindHeight;
 int window;
 
+void heat(void)
+{
+
+  double *uold = (double *) calloc(nx,sizeof(double));
+
+  for (int i=0;i<nx;i++)
+    uold[i] = u[i];
+
+  t = t + dt;
+
+  double *utrial = (double *) calloc(nx,sizeof(double));
+  
+  for (int i=1;i<nx-1;i++)
+    utrial[i] = r*uold[i-1] + r2*uold[i] + r*uold[i+1];
+
+  for (int i=0;i<N;i++) {
+    double cnt=0;
+    
+    for (int j=0;j<M-1;j++) {
+
+      u[i*M+j] = utrial[i*M+j];
+      cnt += utrial[i*M+j];
+
+    }
+
+    u[i*M+M-1] = M*effort[i] - cnt;
+
+  }
+    
+  
+  //for (int i=1;i<nx-1;i++)
+  //  printf("%f ",u[i]);
+  //printf("\n");
+  
+}
+    
 void test0 (VEC *, double *, double *, double);
 void test1 (VEC *, double *, double *, double);
 
@@ -97,6 +144,10 @@ void process_Normal_Keys(int key, int xlah, int ylah)
 	 
        case 102: printf("GLUT_KEY_RIGHT %d\n",key);
 
+	 heat();
+	 
+	 glutPostRedisplay();
+	 
 	 break;
 	 
     case 101 : //printf("GLUT_KEY_UP %d\n",key); 
@@ -123,11 +174,12 @@ void display(void)
   
   glColor3f(0.0f,0.0f,1.0f);
 
-  for (int i=0;i<I;i++)
-    glVertex2f(i/((float)(I-.5)),z[i]);
+  for (int i=0;i<nx;i++)
+    glVertex2f(i/((float)(nx-.5)),u[i]);
   
   glEnd();
-    
+
+  /*
   glBegin(GL_POINTS);
   
   glColor3f(0.0f,1.0f,0.0f);
@@ -144,7 +196,8 @@ void display(void)
   
   glEnd();
 
-    
+  */
+  
   glFlush ();
   glutSwapBuffers();
 }
@@ -277,8 +330,8 @@ int main(int argc, char *argv[])
 	  }
       }		      
   
-  M = 10;
-  I = M*N;
+  M = 100;
+  nx = M*N;
 
   double toteffort = 0;
   for (int i=0;i<N;i++)
@@ -289,71 +342,23 @@ int main(int argc, char *argv[])
   for (int i=0;i<N;i++)
     effort[i] /= avgeffort;
   
-  z = (double *) calloc(I,sizeof(double));  
+  u = (double *) calloc(nx,sizeof(double));  
   for ( int i=0;i<N;i++)
     for (int m=0;m<M;m++)
-      z[i*M+m] = effort[i];
+      u[i*M+m] = effort[i];
 
-  S=3; // no. splines
+  tmax = 1.0;
+  nt = 10000;
+
+  t = 0;
   
-  A = m_get(3*S,3*S);
+  dx = (double)N/(nx-1);
+  dt = tmax / (nt-1);
 
-  x = (double *) calloc(S+1,sizeof(double));
-
-  for (int i=0;i<=S;i++) {
-    x[i] = i * ( (double)N / (double)S);
-    printf("%f\n",x[i]);
-  }
+  alpha = 0.5;
   
-  int j=0;
-
-  for (int i=0;i<N;i++)
-    {
-      A->me[i][i*3 + 0] += x[i+1] - x[i];
-      A->me[i][i*3 + 1] += .5*( pow(x[i+1],2.0) - pow(x[i],2.0) );
-      A->me[i][i*3 + 2] += (1.0/3) * ( pow(x[i+1],3.0) - pow(x[i],3.0));
-    }
-  
-  for (int j=0;j<S-1;j++)
-    {
-
-      A->me[N+j][j*3 + 0] = 1;
-      A->me[N+j][j*3 + 1] = x[j+1];
-      A->me[N+j][j*3 + 2] = pow(x[j+1],2.0);
-      A->me[N+j][j*3 + 3] = -1;
-      A->me[N+j][j*3 + 4] = -(x[j+1]);
-      A->me[N+j][j*3 + 5] = -pow(x[j+1],2.0);
-      
-    }
-
-  for (int j=0;j<S-1;j++)
-    {
-
-      A->me[N+S-1+j][j*3 + 1] = 1;
-      A->me[N+S-1+j][j*3 + 2] = 2*(x[j+1]);
-      A->me[N+S-1+j][j*3 + 4] = -1;
-      A->me[N+S-1+j][j*3 + 5] = -2*(x[j+1]);
-      
-    }
-
-  for (int j=0;j<S-1;j++)
-    { 
-      A->me[N+S-1+S-1+j][j*3 + 2] = 2;
-      A->me[N+S-1+S-1+j][j*3 + 5] = -2;
-    }
-  
-  
-  lb = v_get(3*S);
-
-  for (int i=0;i<N;i++)
-    lb->ve[i] = effort[i];
-
-  LU = m_get(3*S,3*S);
-  LU = m_copy(A,LU);
-  pivot = px_get(A->m);
-  LUfactor(LU,pivot);
-
-  lx = LUsolve(LU,pivot,lb,VNULL);
+  r = alpha*dt / pow(dx,2.0);
+  r2 = 1-2*r;
   
   glutMainLoop();
 
