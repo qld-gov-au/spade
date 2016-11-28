@@ -86,6 +86,48 @@ int pt,new_pt;
 int WindWidth, WindHeight;
 int window;
 
+void simp(void)
+{
+
+  int i=0;
+  //  for (int i=0;i<N;i++)
+  //{
+
+      double dp = 0;
+
+      for (int j=0;j<M;j++)
+	dp += u[i*M+j];
+
+      double dist = (dp - M*effort[i]) / sqrt((double)N);
+
+      printf("%f\n",dist);
+
+      double delta = 0.01;
+
+      for (int j=0;j<M;j++)
+	{
+
+          double dpd = 0;
+
+	  u[i*M+j] += delta;
+	  
+          for (int k=0;k<M;k++)
+	    dpd += u[i*M+k];
+
+	  double distd = (dpd - M*effort[i]) / sqrt((double)N);
+
+	  double derivj = (distd - dist) / delta;
+
+          u[i*M+j] -= delta;
+
+	  printf("%f ",derivj);
+	}
+      //}
+
+      printf("\n");
+      
+}
+
 void heat(void)
 {
 
@@ -98,9 +140,14 @@ void heat(void)
 
   double *utrial = (double *) calloc(nx,sizeof(double));
   
-  for (int i=1;i<nx-1;i++)
-    utrial[i] = r*uold[i-1] + r2*uold[i] + r*uold[i+1];
+  //  for (int i=1;i<nx-1;i++)
+  //utrial[i] = r*uold[i-1] + r2*uold[i] + r*uold[i+1];
 
+  for (int i=1;i<nx-1;i++)
+    u[i] = r*uold[i-1] + r2*uold[i] + r*uold[i+1];
+
+  
+  /*
   for (int i=0;i<N;i++) {
     double cnt=0;
     
@@ -113,7 +160,7 @@ void heat(void)
 
     u[i*M+M-1] = M*effort[i] - cnt;
 
-  }
+    }*/
     
   
   //for (int i=1;i<nx-1;i++)
@@ -138,7 +185,9 @@ void process_Normal_Keys(int key, int xlah, int ylah)
      switch (key) 
     {    
        case 27 :      break;
-       case 100 :
+       case 100 : printf("GLUT_KEY_LEFT %d\n",key);
+
+	 simp();
 	 
 	 break;
 	 
