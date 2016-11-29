@@ -90,24 +90,27 @@ void simp(void)
 {
 
   int i=0;
-  //  for (int i=0;i<N;i++)
-  //{
+  for (int i=0;i<N;i++)
+    {
 
       double dp = 0;
 
       for (int j=0;j<M;j++)
 	dp += u[i*M+j];
+  
+      double dist = (dp - M*effort[i]); // / sqrt((double)M);
 
-      double dist = (dp - M*effort[i]) / sqrt((double)N);
+      //printf("%f\n",dist);
 
-      printf("%f\n",dist);
+      //      double delta = 0.01;
 
-      double delta = 0.01;
+      for (int j=0;j<M;j++)	
+	u[i*M+j] -= (1.0/(double)M)*(dp - M*effort[i]);
 
-      for (int j=0;j<M;j++)
-	{
-
-          double dpd = 0;
+    }
+  
+      /*
+	  double dpd = 0;
 
 	  u[i*M+j] += delta;
 	  
@@ -122,10 +125,10 @@ void simp(void)
 
 	  printf("%f ",derivj);
 	}
-      //}
+      }
 
       printf("\n");
-      
+      */
 }
 
 void heat(void)
@@ -185,16 +188,34 @@ void process_Normal_Keys(int key, int xlah, int ylah)
      switch (key) 
     {    
        case 27 :      break;
+	 
        case 100 : printf("GLUT_KEY_LEFT %d\n",key);
 
 	 simp();
+
+	 glutPostRedisplay();
 	 
 	 break;
 	 
        case 102: printf("GLUT_KEY_RIGHT %d\n",key);
 
-	 heat();
+         for (int i=0;i<1000;i++) {
 	 
+	   heat();
+	   simp();
+
+	 }
+
+	 for (int i=0;i<N;i++)
+	   {
+	     double dp = 0;
+
+	     for (int j=0;j<M;j++)
+	       dp += u[i*M+j];
+
+	     printf("%lf %lf\n",dp,M*effort[i]);
+	   }
+	       
 	 glutPostRedisplay();
 	 
 	 break;
@@ -343,7 +364,7 @@ int main(int argc, char *argv[])
   
   fclose(fp);
 
-  N = 3;  // no. data blocks
+  N = 61;  // no. data blocks
 
   double mintime=begintime[0];
   for (int i=1;i<K;i++)
