@@ -149,26 +149,18 @@ void heat(void)
   for (int i=1;i<nx-1;i++)
     u[i] = r*uold[i-1] + r2*uold[i] + r*uold[i+1];
 
-  
-  /*
-  for (int i=0;i<N;i++) {
-    double cnt=0;
-    
-    for (int j=0;j<M-1;j++) {
+  for (int i=0;i<N;i++)
+    {
 
-      u[i*M+j] = utrial[i*M+j];
-      cnt += utrial[i*M+j];
+      double dp = 0;
+
+      for (int j=0;j<M;j++)
+	dp += u[i*M+j];
+  
+      for (int j=0;j<M;j++)	
+	u[i*M+j] -= (1.0/(double)M)*(dp - M*effort[i]);
 
     }
-
-    u[i*M+M-1] = M*effort[i] - cnt;
-
-    }*/
-    
-  
-  //for (int i=1;i<nx-1;i++)
-  //  printf("%f ",u[i]);
-  //printf("\n");
   
 }
     
@@ -191,8 +183,8 @@ void process_Normal_Keys(int key, int xlah, int ylah)
 	 
        case 100 : printf("GLUT_KEY_LEFT %d\n",key);
 
-	 simp();
-
+	   heat();
+	 
 	 glutPostRedisplay();
 	 
 	 break;
@@ -202,7 +194,6 @@ void process_Normal_Keys(int key, int xlah, int ylah)
          for (int i=0;i<1000;i++) {
 	 
 	   heat();
-	   simp();
 
 	 }
 
@@ -364,7 +355,7 @@ int main(int argc, char *argv[])
   
   fclose(fp);
 
-  N = 61;  // no. data blocks
+  N = 30;  // no. data blocks
 
   double mintime=begintime[0];
   for (int i=1;i<K;i++)
