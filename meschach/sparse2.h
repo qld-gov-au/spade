@@ -55,7 +55,7 @@ VEC	*cgs(VEC *(*A)(),void *A_par,VEC *b,VEC *r0,double tol,VEC *x);
 VEC	*sp_cgs(SPMAT *,VEC *,VEC *,double,VEC *);
 VEC	*lsqr(VEC *(*A)(),VEC *(*AT)(),void *A_par,VEC *b,double tol,VEC *x);
 VEC	*sp_lsqr(SPMAT *,VEC *,double,VEC *);
-int	cg_set_MeMemaxiter(int);
+int	cg_set_maxiter(int);
 
 void	lanczos(VEC *(*A)(),void *A_par,int m,VEC *x0,VEC *a,VEC *b,
 						Real *beta_m1,MAT *Q);
@@ -80,7 +80,7 @@ extern SPMAT	*spBKPfactor();
 extern VEC	*spBKPsolve();
 
 extern VEC	*pccg(), *sp_pccg(), *cgs(), *sp_cgs(), *lsqr(), *sp_lsqr();
-extern int	cg_set_MeMemaxiter();
+extern int	cg_set_maxiter();
 
 void	lanczos(), sp_lanczos();
 VEC	*lanczos2(), *sp_lanczos2();

@@ -1,5 +1,0 @@
-1i\
-void df1b2_parameters::deallocate() \
-{
-/\.allocate(/!d
-s/\.allocate(.*/\.deallocate();/g

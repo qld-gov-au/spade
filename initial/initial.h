@@ -1,4 +1,8 @@
-﻿#ifndef SPADE_INITIAL_H
+// Copyright 2016 State of Queensland
+// This file is part of SPADE
+// See spade.c, COPYING, COPYING.LESSER
+
+#ifndef SPADE_INITIAL_H
 #define SPADE_INITIAL_H
 
 #include "../meschach/matrix.h"

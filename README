@@ -1,0 +1,30 @@
+SPADE: Stock assessment using PArtial Differential Equations
+
+The objective of this project is to provide modellers of
+harvested populations with access to some of the theoretical
+tools associated with smooth dynamical systems.
+
+It was conceived while attempting to model the influence
+of river flow on barramundi populations in Queensland, Australia.
+
+The code was written between December 2015 and September 2016 and is released under the LGPL. 
+
+Contributors:
+Alex Campbell - idea, theoretical framework, programming
+Oscar Angulo - PDE to ODE reduction, numerical guidance, mathematical advice
+Tomislav Buric - analytic derivatives, numerical bug fix, mathematical advice
+Michael Emery - programming
+George Leigh - mathematical advice
+Julie Robins - fishery domain expertise
+
+Administrative and financial support were provided by Animal Science and Fisheries Queensland of the Queensland Department of Agriculture and Fisheries, and the Scientific Computing Team of the Queensland Department of Science, Information Technology and Innovation. Thanks especially to Peter Johnston, Warwick Nash, Michael O'Neill, Andrew Thwaites, Maria Mohr and Jason Shen.
+
+Thanks also to You-Gan Wang for laying the seed in 2014 with a comment about the limitations of growth transition matrices. Thanks to Richard Little for coming up with the acronym.
+
+Install and run:
+> git clone https://github.com/qld-gov-au/spade
+> cd spade
+> make
+> ./spade
+
+

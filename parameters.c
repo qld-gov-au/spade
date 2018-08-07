@@ -1,4 +1,8 @@
-﻿#include <stdio.h>
+// Copyright 2016 State of Queensland
+// This file is part of SPADE
+// See spade.c, COPYING, COPYING.LESSER
+
+#include <stdio.h>
 #include "parameters.h"
 
 // Attempts to read all parameter configurations from command line

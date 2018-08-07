@@ -1,9 +1,13 @@
-﻿#include "arg.h"
+// Copyright 2016 State of Queensland
+// This file is part of SPADE
+// See spade.c, COPYING, COPYING.LESSER
+
+#include "arg.h"
 #include "meschach/matrix.h"
 
 // Attempts to read in an argument with the specified name into the specified value.
 // Returns FALSE if the argument was missing or invalid. Returns TRUE if the argument was read.
-int arg_read_int(const char * name, int * value, int argc, char * argv[]) {
+int arg_read_int(char * name, int * value, int argc, char * argv[]) {
   // Convert "arg" to "-arg"
   char arg_name[32];
   snprintf(arg_name, sizeof(arg_name), "%s%s", "-", name);
@@ -25,7 +29,7 @@ int arg_read_int(const char * name, int * value, int argc, char * argv[]) {
 
 // Attempts to read in an argument with the specified name into the specified value.
 // Returns FALSE if the argument was missing or invalid. Returns TRUE if the argument was read.
-int arg_read_real(const char * name, Real * value, int argc, char * argv[]) {
+int arg_read_real(char * name, Real * value, int argc, char * argv[]) {
   // Convert "arg" to "-arg"
   char arg_name[32];
   snprintf(arg_name, sizeof(arg_name), "%s%s", "-", name);
@@ -56,7 +60,7 @@ int arg_read_real(const char * name, Real * value, int argc, char * argv[]) {
 
 // Attempts to read in an argument with the specified name into the specified value.
 // Returns FALSE if the argument was missing or invalid. Returns TRUE if the argument was read.
-int arg_read_string(const char * name, char ** value, int argc, char * argv[]) {
+int arg_read_string(char * name, char ** value, int argc, char * argv[]) {
   // Convert "arg" to "-arg"
   char arg_name[32];
   snprintf(arg_name, sizeof(arg_name), "%s%s", "-", name);

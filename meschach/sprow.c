@@ -56,8 +56,8 @@ void sprow_dump(FILE *fp, const SPROW *r)
    if ( ! r )
    {       fprintf(fp,"*** NULL row ***\n");   return; }
    
-   fprintf(fp,"row: len = %d, MeMemaxlen = %d, diag idx = %d\n",
-	   r->len,r->MeMemaxlen,r->diag);
+   fprintf(fp,"row: len = %d, maxlen = %d, diag idx = %d\n",
+	   r->len,r->maxlen,r->diag);
    fprintf(fp,"element list @ 0x%lx\n",(long)(r->elt));
    if ( ! r->elt )
    {
@@ -73,7 +73,7 @@ void sprow_dump(FILE *fp, const SPROW *r)
 #endif /* MEX */
 
 /* sprow_idx -- get index into row for a given column in a given row
-   -- return -1 on Meerror
+   -- return -1 on error
    -- return -(idx+2) where idx is index to insertion point */
 #ifndef ANSI_C
 int	sprow_idx(r,col)
@@ -125,34 +125,34 @@ int	sprow_idx(const SPROW *r, int col)
 
 
 /* sprow_get -- gets, initialises and returns a SPROW structure
-   -- MeMemax. length is MeMemaxlen */
+   -- max. length is maxlen */
 #ifndef ANSI_C
-SPROW	*sprow_get(MeMemaxlen)
-int	MeMemaxlen;
+SPROW	*sprow_get(maxlen)
+int	maxlen;
 #else
-SPROW	*sprow_get(int MeMemaxlen)
+SPROW	*sprow_get(int maxlen)
 #endif
 {
    SPROW	*r;
    
-   if ( MeMemaxlen < 0 )
-     Meerror(E_NEG,"sprow_get");
+   if ( maxlen < 0 )
+     error(E_NEG,"sprow_get");
 
    r = NEW(SPROW);
    if ( ! r )
-     Meerror(E_MEM,"sprow_get");
+     error(E_MEM,"sprow_get");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_SPROW,0,sizeof(SPROW));
       mem_numvar(TYPE_SPROW,1);
    }
-   r->elt = NEW_A(MeMemaxlen,row_elt);
+   r->elt = NEW_A(maxlen,row_elt);
    if ( ! r->elt )
-     Meerror(E_MEM,"sprow_get");
+     error(E_MEM,"sprow_get");
    else if (mem_info_is_on()) {
-      mem_bytes(TYPE_SPROW,0,MeMemaxlen*sizeof(row_elt));
+      mem_bytes(TYPE_SPROW,0,maxlen*sizeof(row_elt));
    }
    r->len = 0;
-   r->MeMemaxlen = MeMemaxlen;
+   r->maxlen = maxlen;
    r->diag = -1;
    
    return r;
@@ -176,7 +176,7 @@ SPROW	*sprow_xpd(SPROW *r, int n, int type)
    if ( ! r ) {
      r = NEW(SPROW);
      if (! r ) 
-       Meerror(E_MEM,"sprow_xpd");
+       error(E_MEM,"sprow_xpd");
      else if ( mem_info_is_on()) {
 	if (type != TYPE_SPMAT && type != TYPE_SPROW)
 	  warning(WARN_WRONG_TYPE,"sprow_xpd");
@@ -190,19 +190,19 @@ SPROW	*sprow_xpd(SPROW *r, int n, int type)
    {
       r->elt = NEW_A((unsigned)n,row_elt);
       if ( ! r->elt )
-	Meerror(E_MEM,"sprow_xpd");
+	error(E_MEM,"sprow_xpd");
       else if (mem_info_is_on()) {
 	 mem_bytes(type,0,n*sizeof(row_elt));
       }
       r->len = 0;
-      r->MeMemaxlen = n;
+      r->maxlen = n;
       return r;
    }
    if ( n <= r->len )
-     newlen = MeMemax(2*r->len + 1,MINROWLEN);
+     newlen = max(2*r->len + 1,MINROWLEN);
    else
      newlen = n;
-   if ( newlen <= r->MeMemaxlen )
+   if ( newlen <= r->maxlen )
    {
       MEM_ZERO((char *)(&(r->elt[r->len])),
 	       (newlen-r->len)*sizeof(row_elt));
@@ -211,13 +211,13 @@ SPROW	*sprow_xpd(SPROW *r, int n, int type)
    else
    {
       if (mem_info_is_on()) {
-	 mem_bytes(type,r->MeMemaxlen*sizeof(row_elt),
+	 mem_bytes(type,r->maxlen*sizeof(row_elt),
 		     newlen*sizeof(row_elt)); 
       }
       r->elt = RENEW(r->elt,newlen,row_elt);
       if ( ! r->elt )
-	Meerror(E_MEM,"sprow_xpd");
-      r->MeMemaxlen = newlen;
+	error(E_MEM,"sprow_xpd");
+      r->maxlen = newlen;
       r->len = newlen;
    }
    
@@ -236,7 +236,7 @@ SPROW	*sprow_resize(SPROW *r, int n, int type)
 #endif
 {
    if (n < 0)
-     Meerror(E_NEG,"sprow_resize");
+     error(E_NEG,"sprow_resize");
 
    if ( ! r ) 
      return sprow_get(n);
@@ -248,26 +248,26 @@ SPROW	*sprow_resize(SPROW *r, int n, int type)
    {
       r->elt = NEW_A((unsigned)n,row_elt);
       if ( ! r->elt )
-	Meerror(E_MEM,"sprow_resize");
+	error(E_MEM,"sprow_resize");
       else if (mem_info_is_on()) {
 	 mem_bytes(type,0,n*sizeof(row_elt));
       }
-      r->MeMemaxlen = r->len = n;
+      r->maxlen = r->len = n;
       return r;
    }
 
-   if ( n <= r->MeMemaxlen )
+   if ( n <= r->maxlen )
      r->len = n;
    else
    {
       if (mem_info_is_on()) {
-	 mem_bytes(type,r->MeMemaxlen*sizeof(row_elt),
+	 mem_bytes(type,r->maxlen*sizeof(row_elt),
 		   n*sizeof(row_elt)); 
       }
       r->elt = RENEW(r->elt,n,row_elt);
       if ( ! r->elt )
-	Meerror(E_MEM,"sprow_resize");
-      r->MeMemaxlen = r->len = n;
+	error(E_MEM,"sprow_resize");
+      r->maxlen = r->len = n;
    }
    
    return r;
@@ -293,7 +293,7 @@ int sprow_free(SPROW *r)
    if ( r->elt )
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_SPROW,r->MeMemaxlen*sizeof(row_elt),0);
+	 mem_bytes(TYPE_SPROW,r->maxlen*sizeof(row_elt),0);
       }
       free((char *)r->elt);
    }
@@ -320,14 +320,14 @@ SPROW	*sprow_merge(const SPROW *r1, const SPROW *r2, SPROW *r_out, int type)
    row_elt	*elt1, *elt2, *elt_out;
    
    if ( ! r1 || ! r2 )
-     Meerror(E_NULL,"sprow_merge");
+     error(E_NULL,"sprow_merge");
    if ( ! r_out )
      r_out = sprow_get(MINROWLEN);
    if ( r1 == r_out || r2 == r_out )
-     Meerror(E_INSITU,"sprow_merge");
+     error(E_INSITU,"sprow_merge");
    
    /* Initialise */
-   len1 = r1->len;	len2 = r2->len;	len_out = r_out->MeMemaxlen;
+   len1 = r1->len;	len2 = r2->len;	len_out = r_out->maxlen;
    idx1 = idx2 = idx_out = 0;
    elt1 = r1->elt;	elt2 = r2->elt;	elt_out = r_out->elt;
    
@@ -379,14 +379,14 @@ SPROW	*sprow_copy(const SPROW *r1, const SPROW *r2, SPROW *r_out, int type)
    row_elt	*elt1, *elt2, *elt_out;
    
    if ( ! r1 || ! r2 )
-     Meerror(E_NULL,"sprow_copy");
+     error(E_NULL,"sprow_copy");
    if ( ! r_out )
      r_out = sprow_get(MINROWLEN);
    if ( r1 == r_out || r2 == r_out )
-     Meerror(E_INSITU,"sprow_copy");
+     error(E_INSITU,"sprow_copy");
    
    /* Initialise */
-   len1 = r1->len;	len2 = r2->len;	len_out = r_out->MeMemaxlen;
+   len1 = r1->len;	len2 = r2->len;	len_out = r_out->maxlen;
    idx1 = idx2 = idx_out = 0;
    elt1 = r1->elt;	elt2 = r2->elt;	elt_out = r_out->elt;
    
@@ -396,7 +396,7 @@ SPROW	*sprow_copy(const SPROW *r1, const SPROW *r2, SPROW *r_out, int type)
       {   /* r_out is too small */
 	 r_out->len = idx_out;
 	 r_out = sprow_xpd(r_out,0,type);
-	 len_out = r_out->MeMemaxlen;
+	 len_out = r_out->maxlen;
 	 elt_out = &(r_out->elt[idx_out]);
       }
       if ( idx2 >= len2 || (idx1 < len1 && elt1->col <= elt2->col) )
@@ -441,16 +441,16 @@ SPROW	*sprow_mltadd(const SPROW *r1,const SPROW *r2, double alpha,
    row_elt	*elt1, *elt2, *elt_out;
    
    if ( ! r1 || ! r2 )
-     Meerror(E_NULL,"sprow_mltadd");
+     error(E_NULL,"sprow_mltadd");
    if ( r1 == r_out || r2 == r_out )
-     Meerror(E_INSITU,"sprow_mltadd");
+     error(E_INSITU,"sprow_mltadd");
    if ( j0 < 0 )
-     Meerror(E_BOUNDS,"sprow_mltadd");
+     error(E_BOUNDS,"sprow_mltadd");
    if ( ! r_out )
      r_out = sprow_get(MINROWLEN);
    
    /* Initialise */
-   len1 = r1->len;	len2 = r2->len;	len_out = r_out->MeMemaxlen;
+   len1 = r1->len;	len2 = r2->len;	len_out = r_out->maxlen;
    /* idx1 = idx2 = idx_out = 0; */
    idx1    = sprow_idx(r1,j0);
    idx2    = sprow_idx(r2,j0);
@@ -468,7 +468,7 @@ SPROW	*sprow_mltadd(const SPROW *r1,const SPROW *r2, double alpha,
       {   /* r_out is too small */
 	 r_out->len = idx_out;
 	 r_out = sprow_xpd(r_out,0,type);
-	 len_out = r_out->MeMemaxlen;
+	 len_out = r_out->maxlen;
 	 elt_out = &(r_out->elt[idx_out]);
       }
       if ( idx2 >= len2 || (idx1 < len1 && elt1->col <= elt2->col) )
@@ -515,16 +515,16 @@ SPROW	*sprow_add(const SPROW *r1,const SPROW *r2,
    row_elt	*elt1, *elt2, *elt_out;
    
    if ( ! r1 || ! r2 )
-     Meerror(E_NULL,"sprow_add");
+     error(E_NULL,"sprow_add");
    if ( r1 == r_out || r2 == r_out )
-     Meerror(E_INSITU,"sprow_add");
+     error(E_INSITU,"sprow_add");
    if ( j0 < 0 )
-     Meerror(E_BOUNDS,"sprow_add");
+     error(E_BOUNDS,"sprow_add");
    if ( ! r_out )
      r_out = sprow_get(MINROWLEN);
    
    /* Initialise */
-   len1 = r1->len;	len2 = r2->len;	len_out = r_out->MeMemaxlen;
+   len1 = r1->len;	len2 = r2->len;	len_out = r_out->maxlen;
    /* idx1 = idx2 = idx_out = 0; */
    idx1    = sprow_idx(r1,j0);
    idx2    = sprow_idx(r2,j0);
@@ -542,7 +542,7 @@ SPROW	*sprow_add(const SPROW *r1,const SPROW *r2,
       {   /* r_out is too small */
 	 r_out->len = idx_out;
 	 r_out = sprow_xpd(r_out,0,type);
-	 len_out = r_out->MeMemaxlen;
+	 len_out = r_out->maxlen;
 	 elt_out = &(r_out->elt[idx_out]);
       }
       if ( idx2 >= len2 || (idx1 < len1 && elt1->col <= elt2->col) )
@@ -589,16 +589,16 @@ SPROW	*sprow_sub(const SPROW *r1, const SPROW *r2,
    row_elt	*elt1, *elt2, *elt_out;
    
    if ( ! r1 || ! r2 )
-     Meerror(E_NULL,"sprow_sub");
+     error(E_NULL,"sprow_sub");
    if ( r1 == r_out || r2 == r_out )
-     Meerror(E_INSITU,"sprow_sub");
+     error(E_INSITU,"sprow_sub");
    if ( j0 < 0 )
-     Meerror(E_BOUNDS,"sprow_sub");
+     error(E_BOUNDS,"sprow_sub");
    if ( ! r_out )
      r_out = sprow_get(MINROWLEN);
    
    /* Initialise */
-   len1 = r1->len;	len2 = r2->len;	len_out = r_out->MeMemaxlen;
+   len1 = r1->len;	len2 = r2->len;	len_out = r_out->maxlen;
    /* idx1 = idx2 = idx_out = 0; */
    idx1    = sprow_idx(r1,j0);
    idx2    = sprow_idx(r2,j0);
@@ -616,7 +616,7 @@ SPROW	*sprow_sub(const SPROW *r1, const SPROW *r2,
       {   /* r_out is too small */
 	 r_out->len = idx_out;
 	 r_out = sprow_xpd(r_out,0,type);
-	 len_out = r_out->MeMemaxlen;
+	 len_out = r_out->maxlen;
 	 elt_out = &(r_out->elt[idx_out]);
       }
       if ( idx2 >= len2 || (idx1 < len1 && elt1->col <= elt2->col) )
@@ -661,9 +661,9 @@ SPROW	*sprow_smlt(const SPROW *r1, double alpha, int j0, SPROW *r_out, int type)
    row_elt	*elt1, *elt_out;
    
    if ( ! r1 )
-     Meerror(E_NULL,"sprow_smlt");
+     error(E_NULL,"sprow_smlt");
    if ( j0 < 0 )
-     Meerror(E_BOUNDS,"sprow_smlt");
+     error(E_BOUNDS,"sprow_smlt");
    if ( ! r_out )
      r_out = sprow_get(MINROWLEN);
    
@@ -730,7 +730,7 @@ double  sprow_set_val(SPROW *r, int j, double val)
    int  idx, idx2, new_len;
    
    if ( ! r )
-     Meerror(E_NULL,"sprow_set_val");
+     error(E_NULL,"sprow_set_val");
    
    idx = sprow_idx(r,j);
    if ( idx >= 0 )
@@ -739,19 +739,19 @@ double  sprow_set_val(SPROW *r, int j, double val)
    {
       /* shift & insert new value */
       idx = -(idx+2);   /* this is the intended insertion index */
-      if ( r->len >= r->MeMemaxlen )
+      if ( r->len >= r->maxlen )
       {
-         r->len = r->MeMemaxlen;
-         new_len = MeMemax(2*r->MeMemaxlen+1,5);
+         r->len = r->maxlen;
+         new_len = max(2*r->maxlen+1,5);
          if (mem_info_is_on()) {
-            mem_bytes(TYPE_SPROW,r->MeMemaxlen*sizeof(row_elt),
+            mem_bytes(TYPE_SPROW,r->maxlen*sizeof(row_elt),
                         new_len*sizeof(row_elt)); 
          }
          
          r->elt = RENEW(r->elt,new_len,row_elt);
          if ( ! r->elt )        /* can't allocate */
-           Meerror(E_MEM,"sprow_set_val");
-         r->MeMemaxlen = 2*r->MeMemaxlen+1;
+           error(E_MEM,"sprow_set_val");
+         r->maxlen = 2*r->maxlen+1;
       }
       for ( idx2 = r->len-1; idx2 >= idx; idx2-- )
         MEM_COPY((char *)(&(r->elt[idx2])),
@@ -767,7 +767,7 @@ double  sprow_set_val(SPROW *r, int j, double val)
       r->elt[idx].nxt_idx = -1;
       return r->elt[idx].val = val;
    }
-   /* else -- idx == -1, Meerror in index/matrix! */
+   /* else -- idx == -1, error in index/matrix! */
    return 0.0;
 }
 

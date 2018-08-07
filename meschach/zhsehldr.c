@@ -43,7 +43,7 @@ static	char	rcsid[] = "$Id: zhsehldr.c,v 1.2 1994/04/07 01:43:47 des Exp $";
 
 #define	is_zero(z)	((z).re == 0.0 && (z).im == 0.0)
 
-/* zhhvec -- calulates Householder vector to eliMeminate all entries after the
+/* zhhvec -- calulates Householder vector to eliminate all entries after the
 	i0 entry of the vector vec. It is returned as out. May be in-situ */
 ZVEC	*zhhvec(vec,i0,beta,out,newval)
 ZVEC	*vec,*out;
@@ -55,7 +55,7 @@ complex	*newval;
 	Real	norm, abs_val;
 
 	if ( i0 < 0 || i0 >= vec->dim )
-	    Meerror(E_BOUNDS,"zhhvec");
+	    error(E_BOUNDS,"zhhvec");
 	out = _zv_copy(vec,out,i0);
 	tmp = _zin_prod(out,out,i0,Z_CONJ);
 	if ( tmp.re <= 0.0 )
@@ -94,11 +94,11 @@ double	beta;
 	/* unsigned int	i; */
 
 	if ( hh==ZVNULL || in==ZVNULL )
-		Meerror(E_NULL,"zhhtrvec");
+		error(E_NULL,"zhhtrvec");
 	if ( in->dim != hh->dim )
-		Meerror(E_SIZES,"zhhtrvec");
+		error(E_SIZES,"zhhtrvec");
 	if ( i0 < 0 || i0 > in->dim )
-	    Meerror(E_BOUNDS,"zhhvec");
+	    error(E_BOUNDS,"zhhvec");
 
 	tmp = _zin_prod(hh,in,i0,Z_CONJ);
 	scale.re = -beta*tmp.re;
@@ -128,11 +128,11 @@ double	beta;
 	int	i /*, j */;
 
 	if ( M==ZMNULL || hh==ZVNULL )
-		Meerror(E_NULL,"zhhtrrows");
+		error(E_NULL,"zhhtrrows");
 	if ( M->n != hh->dim )
-		Meerror(E_RANGE,"zhhtrrows");
+		error(E_RANGE,"zhhtrrows");
 	if ( i0 < 0 || i0 > M->m || j0 < 0 || j0 > M->n )
-		Meerror(E_BOUNDS,"zhhtrrows");
+		error(E_BOUNDS,"zhhtrrows");
 
 	if ( beta == 0.0 )	return (M);
 
@@ -184,11 +184,11 @@ double	beta;
 	STATIC	ZVEC	*w = ZVNULL;
 
 	if ( M==ZMNULL || hh==ZVNULL )
-		Meerror(E_NULL,"zhhtrcols");
+		error(E_NULL,"zhhtrcols");
 	if ( M->m != hh->dim )
-		Meerror(E_SIZES,"zhhtrcols");
+		error(E_SIZES,"zhhtrcols");
 	if ( i0 < 0 || i0 > M->m || j0 < 0 || j0 > M->n )
-		Meerror(E_BOUNDS,"zhhtrcols");
+		error(E_BOUNDS,"zhhtrcols");
 
 	if ( beta == 0.0 )	return (M);
 
@@ -210,7 +210,7 @@ double	beta;
 	-- that is, M(i0:m,j0:n) <- (I-beta.hh(i0:m).hh(i0:m)^T)M(i0:m,j0:n)
 	-- in-situ
 	-- scratch vector w passed as argument
-	-- raises Meerror if w == NULL */
+	-- raises error if w == NULL */
 ZMAT	*_zhhtrcols(M,i0,j0,hh,beta,w)
 ZMAT	*M;
 int	i0, j0;
@@ -223,11 +223,11 @@ ZVEC	*w;
 	int	i /*, k */;
 
 	if ( M==ZMNULL || hh==ZVNULL )
-		Meerror(E_NULL,"zhhtrcols");
+		error(E_NULL,"zhhtrcols");
 	if ( M->m != hh->dim )
-		Meerror(E_SIZES,"zhhtrcols");
+		error(E_SIZES,"zhhtrcols");
 	if ( i0 < 0 || i0 > M->m || j0 < 0 || j0 > M->n )
-		Meerror(E_BOUNDS,"zhhtrcols");
+		error(E_BOUNDS,"zhhtrcols");
 
 	if ( beta == 0.0 )	return (M);
 

@@ -59,11 +59,11 @@ MAT	*Q;
 	Real	alpha, beta;
 
 	if ( ! A_fn || ! x0 || ! a || ! b )
-		Meerror(E_NULL,"lanczos");
+		error(E_NULL,"lanczos");
 	if ( m <= 0 )
-		Meerror(E_BOUNDS,"lanczos");
+		error(E_BOUNDS,"lanczos");
 	if ( Q && ( Q->m < x0->dim || Q->n < m ) )
-		Meerror(E_SIZES,"lanczos");
+		error(E_SIZES,"lanczos");
 
 	a = v_resize(a,(unsigned int)m);
 	b = v_resize(b,(unsigned int)(m-1));
@@ -123,7 +123,7 @@ int	*expt;
 	int	i, tmp_expt;
 
 	if ( ! a )
-		Meerror(E_NULL,"product");
+		error(E_NULL,"product");
 
 	mant = 1.0;
 	*expt = 0;
@@ -170,9 +170,9 @@ int	*expt;
 	int	i, tmp_expt;
 
 	if ( ! a )
-		Meerror(E_NULL,"product2");
+		error(E_NULL,"product2");
 	if ( k < 0 || k >= a->dim )
-		Meerror(E_BOUNDS,"product2");
+		error(E_BOUNDS,"product2");
 
 	mant = 1.0;
 	*expt = 0;
@@ -207,7 +207,7 @@ Real	*x, *y;
 	return (tmp > 0 ? 1 : tmp < 0 ? -1: 0);
 }
 
-/* lanczos2 -- lanczos + Meerror estimate for every e-val
+/* lanczos2 -- lanczos + error estimate for every e-val
 	-- uses Cullum & Willoughby approach, Sparse Matrix Proc. 1978
 	-- returns multiple e-vals where multiple e-vals may not exist
 	-- returns evals vector */
@@ -217,7 +217,7 @@ void	*A_params;
 int	m;
 VEC	*x0;		/* initial vector */
 VEC	*evals;		/* eigenvalue vector */
-VEC	*err_est;	/* Meerror estimates of eigenvalues */
+VEC	*err_est;	/* error estimates of eigenvalues */
 {
 	VEC		*a;
 	STATIC	VEC	*b=VNULL, *a2=VNULL, *b2=VNULL;
@@ -225,9 +225,9 @@ VEC	*err_est;	/* Meerror estimates of eigenvalues */
 	int	i, pb_expt, det_expt, det_expt1, det_expt2;
 
 	if ( ! A_fn || ! x0 )
-		Meerror(E_NULL,"lanczos2");
+		error(E_NULL,"lanczos2");
 	if ( m <= 0 )
-		Meerror(E_RANGE,"lanczos2");
+		error(E_RANGE,"lanczos2");
 
 	a = evals;
 	a = v_resize(a,(unsigned int)m);
@@ -262,7 +262,7 @@ VEC	*err_est;	/* Meerror estimates of eigenvalues */
 	/* sort evals as a courtesy */
 	qsort((void *)(a->ve),(int)(a->dim),sizeof(Real),(int (*)())dbl_cmp);
 
-	/* Meerror estimates */
+	/* error estimates */
 	if ( err_est )
 	{
 		err_est = v_resize(err_est,(unsigned int)m);
@@ -323,6 +323,6 @@ SPMAT	*A;
 int	m;
 VEC	*x0;		/* initial vector */
 VEC	*evals;		/* eigenvalue vector */
-VEC	*err_est;	/* Meerror estimates of eigenvalues */
+VEC	*err_est;	/* error estimates of eigenvalues */
 {	return lanczos2(sp_mv_mlt,A,m,x0,evals,err_est);	}
 

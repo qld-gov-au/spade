@@ -108,13 +108,13 @@ VEC  *iter_cg(ITER *ip)
    VEC *rr;   /* rr == r or rr == z */
    
    if (ip == INULL)
-     Meerror(E_NULL,"iter_cg");
+     error(E_NULL,"iter_cg");
    if (!ip->Ax || !ip->b)
-     Meerror(E_NULL,"iter_cg");
+     error(E_NULL,"iter_cg");
    if ( ip->x == ip->b )
-     Meerror(E_INSITU,"iter_cg");
+     error(E_INSITU,"iter_cg");
    if (!ip->stop_crit)
-     Meerror(E_NULL,"iter_cg");
+     error(E_NULL,"iter_cg");
    
    if ( ip->eps <= 0.0 )
      ip->eps = MACHEPS;
@@ -136,7 +136,7 @@ VEC  *iter_cg(ITER *ip)
    
    if (ip->x != VNULL) {
       if (ip->x->dim != ip->b->dim)
-	Meerror(E_SIZES,"iter_cg");
+	error(E_SIZES,"iter_cg");
       ip->Ax(ip->A_par,ip->x,p);    		/* p = A*x */
       v_sub(ip->b,p,r);		 		/* r = b - A*x */
    }
@@ -172,7 +172,7 @@ VEC  *iter_cg(ITER *ip)
       (ip->Ax)(ip->A_par,p,q);     /* q = A*p */
       alpha = in_prod(p,q);
       if (sqrt(fabs(alpha)) <= MACHEPS*ip->init_res) 
-	Meerror(E_BREAKDOWN,"iter_cg");
+	error(E_BREAKDOWN,"iter_cg");
       alpha = inner/alpha;
       v_mltadd(ip->x,p,alpha,ip->x);
       v_mltadd(r,q,-alpha,r);
@@ -207,13 +207,13 @@ void	iter_lanczos(ITER *ip, VEC *a, VEC *b, Real *beta2, MAT *Q)
    Real	alpha, beta, c;
    
    if ( ! ip )
-     Meerror(E_NULL,"iter_lanczos");
+     error(E_NULL,"iter_lanczos");
    if ( ! ip->Ax || ! ip->x || ! a || ! b )
-     Meerror(E_NULL,"iter_lanczos");
+     error(E_NULL,"iter_lanczos");
    if ( ip->k <= 0 )
-     Meerror(E_BOUNDS,"iter_lanczos");
+     error(E_BOUNDS,"iter_lanczos");
    if ( Q && ( Q->n < ip->x->dim || Q->m < ip->k ) )
-     Meerror(E_SIZES,"iter_lanczos");
+     error(E_SIZES,"iter_lanczos");
    
    a = v_resize(a,(unsigned int)ip->k);	
    b = v_resize(b,(unsigned int)(ip->k-1));
@@ -318,7 +318,7 @@ static	double	product(VEC *a, double offset, int *expt)
    int	i, tmp_expt;
    
    if ( ! a )
-     Meerror(E_NULL,"product");
+     error(E_NULL,"product");
    
    mant = 1.0;
    *expt = 0;
@@ -369,9 +369,9 @@ static	double	product2(VEC *a, int k, int *expt)
    int	i, tmp_expt;
    
    if ( ! a )
-     Meerror(E_NULL,"product2");
+     error(E_NULL,"product2");
    if ( k < 0 || k >= a->dim )
-     Meerror(E_BOUNDS,"product2");
+     error(E_BOUNDS,"product2");
    
    mant = 1.0;
    *expt = 0;
@@ -410,7 +410,7 @@ static	int	dbl_cmp(Real *x, Real *y)
    return (tmp > 0 ? 1 : tmp < 0 ? -1: 0);
 }
 
-/* iter_lanczos2 -- lanczos + Meerror estimate for every e-val
+/* iter_lanczos2 -- lanczos + error estimate for every e-val
    -- uses Cullum & Willoughby approach, Sparse Matrix Proc. 1978
    -- returns multiple e-vals where multiple e-vals may not exist
    -- returns evals vector */
@@ -418,7 +418,7 @@ static	int	dbl_cmp(Real *x, Real *y)
 VEC	*iter_lanczos2(ip,evals,err_est)
 ITER 	*ip;            /* ITER structure */
 VEC	*evals;		/* eigenvalue vector */
-VEC	*err_est;	/* Meerror estimates of eigenvalues */
+VEC	*err_est;	/* error estimates of eigenvalues */
 #else
 VEC	*iter_lanczos2(ITER *ip, VEC *evals, VEC *err_est)
 #endif
@@ -429,11 +429,11 @@ VEC	*iter_lanczos2(ITER *ip, VEC *evals, VEC *err_est)
    int	i, pb_expt, det_expt, det_expt1, det_expt2;
    
    if ( ! ip )
-     Meerror(E_NULL,"iter_lanczos2");
+     error(E_NULL,"iter_lanczos2");
    if ( ! ip->Ax || ! ip->x )
-     Meerror(E_NULL,"iter_lanczos2");
+     error(E_NULL,"iter_lanczos2");
    if ( ip->k <= 0 )
-     Meerror(E_RANGE,"iter_lanczos2");
+     error(E_RANGE,"iter_lanczos2");
    
    a = evals;
    a = v_resize(a,(unsigned int)ip->k);
@@ -468,7 +468,7 @@ VEC	*iter_lanczos2(ITER *ip, VEC *evals, VEC *err_est)
    /* sort evals as a courtesy */
    qsort((void *)(a->ve),(int)(a->dim),sizeof(Real),(int (*)())dbl_cmp);
    
-   /* Meerror estimates */
+   /* error estimates */
    if ( err_est )
    {
       err_est = v_resize(err_est,(unsigned int)ip->k);
@@ -521,7 +521,7 @@ SPMAT	*A;
 int	 m;
 VEC	*x0;		/* initial vector */
 VEC	*evals;		/* eigenvalue vector */
-VEC	*err_est;	/* Meerror estimates of eigenvalues */
+VEC	*err_est;	/* error estimates of eigenvalues */
 #else
 VEC    *iter_splanczos2(SPMAT *A, int m, VEC *x0, VEC *evals, VEC *err_est)
 #endif
@@ -560,13 +560,13 @@ VEC  *iter_cg1(ITER *ip)
    VEC *rr;   /* rr == r or rr == z */
    
    if (ip == INULL)
-     Meerror(E_NULL,"iter_cg");
+     error(E_NULL,"iter_cg");
    if (!ip->Ax || !ip->b)
-     Meerror(E_NULL,"iter_cg");
+     error(E_NULL,"iter_cg");
    if ( ip->x == ip->b )
-     Meerror(E_INSITU,"iter_cg");
+     error(E_INSITU,"iter_cg");
    if (!ip->stop_crit)
-     Meerror(E_NULL,"iter_cg");
+     error(E_NULL,"iter_cg");
    
    if ( ip->eps <= 0.0 )
      ip->eps = MACHEPS;
@@ -588,7 +588,7 @@ VEC  *iter_cg1(ITER *ip)
    
    if (ip->x != VNULL) {
       if (ip->x->dim != ip->b->dim)
-	Meerror(E_SIZES,"iter_cg");
+	error(E_SIZES,"iter_cg");
       ip->Ax(ip->A_par,ip->x,p);    		/* p = A*x */
       v_sub(ip->b,p,r);		 		/* r = b - A*x */
    }
@@ -611,7 +611,7 @@ VEC  *iter_cg1(ITER *ip)
       ip->Ax(ip->A_par,p,q);
       inner = in_prod(q,p);
       if (sqrt(fabs(inner)) <= MACHEPS*ip->init_res)
-	Meerror(E_BREAKDOWN,"iter_cg1");
+	error(E_BREAKDOWN,"iter_cg1");
 
       alpha = in_prod(p,r)/inner;
       v_mltadd(ip->x,p,alpha,ip->x);

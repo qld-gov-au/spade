@@ -41,7 +41,7 @@ static	char	rcsid[] = "$Id: hsehldr.c,v 1.2 1994/01/13 05:36:29 des Exp $";
 #include        "matrix2.h"
 
 
-/* hhvec -- calulates Householder vector to eliMeminate all entries after the
+/* hhvec -- calulates Householder vector to eliminate all entries after the
 	i0 entry of the vector vec. It is returned as out. May be in-situ */
 #ifndef ANSI_C
 VEC	*hhvec(vec,i0,beta,out,newval)
@@ -89,11 +89,11 @@ VEC	*hhtrvec(const VEC *hh, double beta, unsigned int i0,
 	/* unsigned int	i; */
 
 	if ( hh==VNULL || in==VNULL )
-		Meerror(E_NULL,"hhtrvec");
+		error(E_NULL,"hhtrvec");
 	if ( in->dim != hh->dim )
-		Meerror(E_SIZES,"hhtrvec");
+		error(E_SIZES,"hhtrvec");
 	if ( i0 > in->dim )
-		Meerror(E_BOUNDS,"hhtrvec");
+		error(E_BOUNDS,"hhtrvec");
 
 	scale = beta*_in_prod(hh,in,i0);
 	out = v_copy(in,out);
@@ -124,11 +124,11 @@ MAT	*hhtrrows(MAT *M, unsigned int i0, unsigned int j0,
 	int	i /*, j */;
 
 	if ( M==MNULL || hh==VNULL )
-		Meerror(E_NULL,"hhtrrows");
+		error(E_NULL,"hhtrrows");
 	if ( M->n != hh->dim )
-		Meerror(E_RANGE,"hhtrrows");
+		error(E_RANGE,"hhtrrows");
 	if ( i0 > M->m || j0 > M->n )
-		Meerror(E_BOUNDS,"hhtrrows");
+		error(E_BOUNDS,"hhtrrows");
 
 	if ( beta == 0.0 )	return (M);
 
@@ -179,11 +179,11 @@ MAT	*hhtrcols(MAT *M, unsigned int i0, unsigned int j0,
   STATIC VEC	*w = VNULL;
 
   if ( M == MNULL || hh == VNULL || w == VNULL )
-    Meerror(E_NULL,"hhtrcols");
+    error(E_NULL,"hhtrcols");
   if ( M->m != hh->dim )
-    Meerror(E_SIZES,"hhtrcols");
+    error(E_SIZES,"hhtrcols");
   if ( i0 > M->m || j0 > M->n )
-    Meerror(E_BOUNDS,"hhtrcols");
+    error(E_BOUNDS,"hhtrcols");
 
   if ( ! w || w->dim < M->n )
     w = v_resize(w,M->n);
@@ -203,7 +203,7 @@ MAT	*hhtrcols(MAT *M, unsigned int i0, unsigned int j0,
 	-- that is, M(i0:m,j0:n) <- (I-beta.hh(i0:m).hh(i0:m)^T)M(i0:m,j0:n)
 	-- in-situ
 	-- scratch vector w passed as argument
-	-- raises Meerror if w == NULL
+	-- raises error if w == NULL
 */
 #ifndef ANSI_C
 MAT	*_hhtrcols(M,i0,j0,hh,beta,w)
@@ -222,11 +222,11 @@ MAT	*_hhtrcols(MAT *M, unsigned int i0, unsigned int j0,
 	/*  STATIC	VEC	*w = VNULL; */
 
 	if ( M == MNULL || hh == VNULL || w == VNULL )
-		Meerror(E_NULL,"_hhtrcols");
+		error(E_NULL,"_hhtrcols");
 	if ( M->m != hh->dim )
-		Meerror(E_SIZES,"_hhtrcols");
+		error(E_SIZES,"_hhtrcols");
 	if ( i0 > M->m || j0 > M->n )
-		Meerror(E_BOUNDS,"_hhtrcols");
+		error(E_BOUNDS,"_hhtrcols");
 
 	if ( beta == 0.0 )	return (M);
 

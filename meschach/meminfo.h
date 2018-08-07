@@ -153,11 +153,11 @@ int mem_stat_reg_vars();
 typedef struct {
    char **type_names;        /* array of names of types (strings) */
    int  (**free_funcs)();    /* array of functions for releasing types */
-   unsigned ntypes;          /* MeMemax number of types */
+   unsigned ntypes;          /* max number of types */
    MEM_ARRAY *info_sum;      /* local array for keeping track of memory */
 } MEM_CONNECT;
 
-/* MeMemax number of lists of types */
+/* max number of lists of types */
 #define MEM_CONNECT_MAX_LISTS    5
 
 

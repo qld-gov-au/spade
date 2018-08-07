@@ -1,9 +1,13 @@
-﻿#ifndef SPADE_ARGS_H
+// Copyright 2016 State of Queensland
+// This file is part of SPADE
+// See spade.c, COPYING, COPYING.LESSER
+
+#ifndef SPADE_ARGS_H
 #define SPADE_ARGS_H
 
 #include "meschach/matrix.h"
 
-#define PARAMETER_COUNT 7
+#define PARAMETER_COUNT 6
 
 typedef struct {
   // The gradient function for a given parameter (e.g. grad_alpha)
@@ -21,13 +25,12 @@ typedef struct {
 
   // A string identifier for this parameter. This is used when
   // reading values from the command line.
-  const char * name;
+  char * name;
   
 } Parameter;
 
 typedef struct {
-  Parameter alpha1;
-  Parameter alpha2;
+  Parameter alpha;
   Parameter beta;
   Parameter gamma;
   Parameter iota;
@@ -35,7 +38,6 @@ typedef struct {
   Parameter omega;
   Parameter * parameter[PARAMETER_COUNT];
   int count;
-  Real ff;  // objective function value
 } Parameters;
 
 int parameters_read(Parameters * parameters, int argc, char * argv[]);

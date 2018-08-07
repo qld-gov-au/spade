@@ -42,7 +42,7 @@
 
 /* spLUfactor -- sparse LU factorisation with pivoting
 	-- uses partial pivoting and Markowitz criterion
-			|a[p][k]| >= alpha * MeMemax_i |a[i][k]|
+			|a[p][k]| >= alpha * max_i |a[i][k]|
 	-- creates fill-in as needed
 	-- in situ factorisation */
 #ifndef ANSI_C
@@ -57,13 +57,13 @@ SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 	int	i, best_i, k, idx, len, best_len, m, n;
 	SPROW	*r, *r_piv, tmp_row;
 	STATIC	SPROW	*merge = (SPROW *)NULL;
-	Real	MeMemax_val, tmp;
+	Real	max_val, tmp;
 	STATIC VEC	*col_vals=VNULL;
 
 	if ( ! A || ! px )
-		Meerror(E_NULL,"spLUfctr");
+		error(E_NULL,"spLUfctr");
 	if ( alpha <= 0.0 || alpha > 1.0 )
-		Meerror(E_RANGE,"alpha in spLUfctr");
+		error(E_RANGE,"alpha in spLUfctr");
 	if ( px->size <= A->m )
 		px = px_resize(px,A->m);
 	px_ident(px);
@@ -86,7 +86,7 @@ SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 	    /* find pivot row/element for partial pivoting */
 
 	    /* get first row with a non-zero entry in the k-th column */
-	    MeMemax_val = 0.0;
+	    max_val = 0.0;
 	    for ( i = k; i < m; i++ )
 	    {
 		r = &(A->row[i]);
@@ -95,12 +95,12 @@ SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 		    tmp = 0.0;
 		else
 		    tmp = r->elt[idx].val;
-		if ( fabs(tmp) > MeMemax_val )
-		    MeMemax_val = fabs(tmp);
+		if ( fabs(tmp) > max_val )
+		    max_val = fabs(tmp);
 		col_vals->ve[i] = tmp;
 	    }
 
-	    if ( MeMemax_val == 0.0 )
+	    if ( max_val == 0.0 )
 		continue;
 
 	    best_len = n+1;	/* only if no possibilities */
@@ -110,7 +110,7 @@ SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 		tmp = fabs(col_vals->ve[i]);
 		if ( tmp == 0.0 )
 		    continue;
-		if ( tmp >= alpha*MeMemax_val )
+		if ( tmp >= alpha*max_val )
 		{
 		    r = &(A->row[i]);
 		    idx = sprow_idx(r,k);
@@ -151,7 +151,7 @@ SPMAT	*spLUfactor(SPMAT *A, PERM *px, double alpha)
 		if ( idx < 0 )
 		    idx = -(idx+2);
 		/* see if r needs expanding */
-		if ( r->MeMemaxlen < idx + merge->len )
+		if ( r->maxlen < idx + merge->len )
 		    sprow_xpd(r,idx+merge->len,TYPE_SPMAT);
 		r->len = idx+merge->len;
 		MEM_COPY((char *)(merge->elt),(char *)&(r->elt[idx]),
@@ -183,9 +183,9 @@ VEC	*spLUsolve(const SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 	row_elt	*elt;
 
 	if ( ! A || ! b )
-	    Meerror(E_NULL,"spLUsolve");
+	    error(E_NULL,"spLUsolve");
 	if ( (pivot != PNULL && A->m != pivot->size) || A->m != b->dim )
-	    Meerror(E_SIZES,"spLUsolve");
+	    error(E_SIZES,"spLUsolve");
 	if ( ! x || x->dim != A->n )
 	    x = v_resize(x,A->n);
 
@@ -195,7 +195,7 @@ VEC	*spLUsolve(const SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 	    x = v_copy(b,x);
 
 	x_ve = x->ve;
-	lim = Memin(A->m,A->n);
+	lim = min(A->m,A->n);
 	for ( i = 0; i < lim; i++ )
 	{
 	    sum = x_ve[i];
@@ -216,7 +216,7 @@ VEC	*spLUsolve(const SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 	    for ( idx = len-1; idx >= 0 && elt->col > i; idx--, elt-- )
 		sum -= elt->val*x_ve[elt->col];
 	    if ( idx < 0 || elt->col != i || elt->val == 0.0 )
-		Meerror(E_SING,"spLUsolve");
+		error(E_SING,"spLUsolve");
 	    x_ve[i] = sum/elt->val;
 	}
 
@@ -242,9 +242,9 @@ VEC	*spLUTsolve(SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 	STATIC VEC	*tmp=VNULL;
 
 	if ( ! A || ! b )
-	    Meerror(E_NULL,"spLUTsolve");
+	    error(E_NULL,"spLUTsolve");
 	if ( (pivot != PNULL && A->m != pivot->size) || A->m != b->dim )
-	    Meerror(E_SIZES,"spLUTsolve");
+	    error(E_SIZES,"spLUTsolve");
 	tmp = v_copy(b,tmp);
 	MEM_STAT_REG(tmp,TYPE_VEC);
 
@@ -253,7 +253,7 @@ VEC	*spLUTsolve(SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 	if ( ! A->flag_diag )
 	    sp_diag_access(A);
 
-	lim = Memin(A->m,A->n);
+	lim = min(A->m,A->n);
 	tmp_ve = tmp->ve;
 	/* solve U^T.tmp = b */
 	for ( i = 0; i < lim; i++ )
@@ -262,7 +262,7 @@ VEC	*spLUTsolve(SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 	    rownum = A->start_row[i];
 	    idx    = A->start_idx[i];
 	    if ( rownum < 0 || idx < 0 )
-		Meerror(E_SING,"spLUTsolve");
+		error(E_SING,"spLUTsolve");
 	    while ( rownum < i && rownum >= 0 && idx >= 0 )
 	    {
 		elt = &(A->row[rownum].elt[idx]);
@@ -271,10 +271,10 @@ VEC	*spLUTsolve(SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 		idx    = elt->nxt_idx;
 	    }
 	    if ( rownum != i )
-		Meerror(E_SING,"spLUTsolve");
+		error(E_SING,"spLUTsolve");
 	    elt = &(A->row[rownum].elt[idx]);
 	    if ( elt->val == 0.0 )
-		Meerror(E_SING,"spLUTsolve");
+		error(E_SING,"spLUTsolve");
 	    tmp_ve[i] = sum/elt->val;
 	}
 
@@ -285,7 +285,7 @@ VEC	*spLUTsolve(SPMAT *A, PERM *pivot, const VEC *b, VEC *x)
 	    rownum = i;
 	    idx    = A->row[rownum].diag;
 	    if ( idx < 0 )
-		Meerror(E_NULL,"spLUTsolve");
+		error(E_NULL,"spLUTsolve");
 	    elt = &(A->row[rownum].elt[idx]);
 	    rownum = elt->nxt_row;
 	    idx    = elt->nxt_idx;
@@ -331,9 +331,9 @@ SPMAT	*spILUfactor(SPMAT *A, double alpha)
     
     /* printf("spILUfactor: entered\n"); */
     if ( ! A )
-	Meerror(E_NULL,"spILUfactor");
+	error(E_NULL,"spILUfactor");
     if ( alpha < 0.0 )
-	Meerror(E_RANGE,"[alpha] in spILUfactor");
+	error(E_RANGE,"[alpha] in spILUfactor");
     
     m = A->m;	n = A->n;
     sp_diag_access(A);
@@ -353,14 +353,14 @@ SPMAT	*spILUfactor(SPMAT *A, double alpha)
 	}
 	/* printf("spILUfactor: checkpoint B\n"); */
 	if ( idx_piv < 0 )
-	    Meerror(E_BOUNDS,"spILUfactor");
+	    error(E_BOUNDS,"spILUfactor");
 	old_idx_piv = idx_piv;
 	piv_val = r_piv->elt[idx_piv].val;
 	/* printf("spILUfactor: checkpoint C\n"); */
 	if ( fabs(piv_val) < alpha )
 	    piv_val = ( piv_val < 0.0 ) ? -alpha : alpha;
 	if ( piv_val == 0.0 )	/* alpha == 0.0 too! */
-	    Meerror(E_SING,"spILUfactor");
+	    error(E_SING,"spILUfactor");
 
 	/* go to next row with a non-zero in this column */
 	i = r_piv->elt[idx_piv].nxt_row;

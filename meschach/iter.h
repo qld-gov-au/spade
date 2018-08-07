@@ -61,7 +61,7 @@ typedef struct Iter_data {
    int steps;    /* no. of iter. steps done */
    Real eps;     /* accuracy required */
    
-   VEC *x;       /* me_input: initial guess;
+   VEC *x;       /* input: initial guess;
 		    output: approximate solution */
    VEC *b;       /* right hand side of the equation A*x = b */
 

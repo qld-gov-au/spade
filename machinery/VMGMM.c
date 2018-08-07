@@ -1,11 +1,14 @@
-﻿#include <pthread.h>
+// Copyright 2016 State of Queensland
+// This file is part of SPADE
+// See spade.c, COPYING, COPYING.LESSER
+
+#include <pthread.h>
 #include <math.h>
 #include "../meschach/matrix.h"
 #include "../common.h"
 #include "../parameters.h"
 #include "spade_solve.h"
-#include "alpha1/grad_alpha1.h"
-#include "alpha2/grad_alpha2.h"
+#include "alpha/grad_alpha.h"
 #include "beta/grad_beta.h"
 #include "gamma/grad_gamma.h"
 #include "iota/grad_iota.h"
@@ -15,109 +18,6 @@
 #include <math.h>
 #include "VMGMM.h"
 
-
-
-VEC *_VMGMM(
-
-	     VEC *theta,
-	     VEC *g,
-	     Real *f,
-	     Parameters * parameters
-
-	     )
-{
-
-
-  Kveryfast((void *)parameters);
-    
-  pthread_t threads[theta->dim+1];
-
-  int iTheta = 0;
-
-  // multi-threaded mode
-  if(PTH) {
-
-    /*
-    // launch a thread for each gradient function
-    for(int i = 0; i < parameters->count; i++) {
-      if(parameters->parameter[i]->active == TRUE)
-	{
-	  if(pthread_create(&(threads[iTheta]), NULL, (void *) parameters->parameter[i]->grad, (void *) parameters))
-	    {
-	      fprintf(stderr, "Error creating thread");
-	      exit(0);
-	    }
-	    
-	  iTheta++;
-	}
-    }
-    */
-
-    // launch a thread for the objective function
-    if (pthread_create(&(threads[iTheta]), NULL, Kveryfast, (void *) parameters))
-      {
-	fprintf(stderr, "Error creating thread");
-	exit(0);
-      }   
-
-    // await all threads
-    for(int i = 0; i < theta->dim; i++) {
-      pthread_join(threads[i], NULL);
-    }
-  }
-
-  // single-threaded mode
-  else {
-
-    Kfast((void *)parameters);
-    
-    for(int i = 0; i < parameters->count; i++) {
-      if(parameters->parameter[i]->active == TRUE)
-	{
-	  parameters->parameter[i]->grad((void *) parameters);
-	  iTheta++;
-	}
-    }
-  }
-  
-  // load parameters[i].gradient back into g
-  iTheta=0;
-  for(int i = 0; i < parameters->count; i++) 
-    if(parameters->parameter[i]->active == TRUE) {
-      g->ve[iTheta] = parameters->parameter[i]->gradient;
-      iTheta++;
-    }
-
-  *f = parameters->ff;
-
-  /*
-  int iTheta = 0;
-  for(int i = 0; i < parameters->count; i++) 
-      if(parameters->parameter[i]->active == TRUE)
-      parameters->parameter[i]->grad((void *) parameters);      				    */
-  
-  if (interactive_mode_requested)
-    {
-      check_derivative2(parameters,f);      
-      interactive_mode_requested = 0;
-    }
-  
-    
-  return g;
-  
-}
-
-  /*
-  parameters->parameter[1]->grad((void *) parameters);
-  parameters->parameter[2]->grad((void *) parameters);
-  parameters->parameter[3]->grad((void *) parameters);
-  parameters->parameter[4]->grad((void *) parameters);
-      g->ve[1] = parameters->parameter[1]->gradient;
-      g->ve[2] = parameters->parameter[2]->gradient;
-      g->ve[3] = parameters->parameter[3]->gradient;
-      g->ve[4] = parameters->parameter[4]->gradient;*/
-
-  
 VEC *VMGMM(
 
 		  VEC *theta,
@@ -293,110 +193,6 @@ VEC *VMGMM(
   return g;
 
 }
-
-
-void check_derivative2(Parameters * parameters, Real * f) {
-  // Prompt user for the lower bound, upper bound, and parameter name.
-  char buf[16];
-  int upper_bound;
-  int lower_bound;
-  char requested_parameter[16];
-  printf("\nDerivative Checker\n");
-
-  printf("Enter upper bound: ");
-  fgets(buf, sizeof(buf), stdin);
-  if(sscanf(buf, "%d", &upper_bound) != 1) {
-    printf("Invalid upper bound\n");
-    return;
-  }
-
-  printf("Enter lower bound: ");
-  fgets(buf, sizeof(buf), stdin);
-  if(sscanf(buf, "%d", &lower_bound) != 1) {
-    printf("Invalid lower bound\n");
-    return;
-  }
-
-  printf("Enter parameter name (e.g. alpha, must be an active parameter): ");
-  fgets(buf, sizeof(buf), stdin);
-  if(sscanf(buf, "%s", requested_parameter) != 1) {
-    printf("Invalid parameter name\n");
-    return;
-  }
-
-  // Ensure lower and upper bound are valid
-  if(lower_bound > upper_bound) {
-    printf("Lower bound must be less than or equal to upper bound.\n");
-    return;
-  }
-
-  printf("\n");
-
-  // Attempt to find the parameter and args corresponding to the
-  // parameter name requested by the user. If the parameter is
-  // found, found_parameter will be set to 1.
-  Parameter* parameter;
-  int found_parameter = 0;
-  int iTheta = 0;
-  for(int i = 0; i < parameters->count; i++) {
-    if(parameters->parameter[i]->active == TRUE) {
-      // Check if the requested parameter name matches this parameter's name
-      if(strcmp(requested_parameter, parameters->parameter[i]->name) == 0) {
-        parameter = parameters->parameter[i];
-        found_parameter = 1;
-      }
-      iTheta++;
-    }
-  }
-
-  // If the user entered an invalid parameter name or a parameter
-  // which is inactive, notify the user and return to normal
-  // program flow.
-  if(found_parameter == 0) {
-    printf("Could not find an active parameter named %s\n", requested_parameter);
-    return;
-  }
-
-  //parameter->grad((void *) &arg);
-
-  #if REAL == DOUBLE
-    // lf
-    printf("analytic: %lf\n",parameter->gradient);
-  #elif REAL == FLOAT
-    // f
-    //printf("analytic: %f\n",parameter->gradient);
-  #elif REAL == LONGDOUBLE
-    // Lf
-    //printf("analytic: %Lf\n",parameter->gradient);
-  #endif
-
-  Real par_save = parameter->value;
-
-  for (int i=upper_bound;i>=lower_bound;i--) {
-
-    Real dX = exp((Real)i);
-
-    parameter->value = par_save + dX;
-
-    // recompute ff
-    Kfast((void *)parameters);
-  
-    Real dY = parameters->ff - *f;
-
-  #if REAL == DOUBLE
-    // lf
-    printf("%lf %lf\n",dX,dY/dX);
-  #elif REAL == FLOAT
-    // f
-    printf("%f %f\n",dX,dY/dX);
-  #elif REAL == LONGDOUBLE
-    // Lf
-    printf("%Lf %Lf\n",dX,dY/dX);
-  #endif
-  }
-}
-
-
 
 void check_derivative(Parameters * parameters, Grad_Args * args, Data * d, Real * f, Solve_Core_Args core_args) {
   // Prompt user for the lower bound, upper bound, and parameter name.

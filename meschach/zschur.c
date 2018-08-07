@@ -48,7 +48,7 @@ static char rcsid[] = "$Id: zschur.c,v 1.4 1995/04/07 16:28:58 des Exp $";
 ZMAT	*zschur(A,Q)
 ZMAT	*A, *Q;
 {
-    int		i, j, iter, k, k_Memin, k_MeMemax, k_tmp, n, split;
+    int		i, j, iter, k, k_min, k_max, k_tmp, n, split;
     Real	c;
     complex	det, discrim, lambda, lambda0, lambda1, s, sum, ztmp;
     complex	x, y;	/* for chasing algorithm */
@@ -56,11 +56,11 @@ ZMAT	*A, *Q;
     STATIC	ZVEC	*diag=ZVNULL;
     
     if ( ! A )
-	Meerror(E_NULL,"zschur");
+	error(E_NULL,"zschur");
     if ( A->m != A->n || ( Q && Q->m != Q->n ) )
-	Meerror(E_SQUARE,"zschur");
+	error(E_SQUARE,"zschur");
     if ( Q != ZMNULL && Q->m != A->m )
-	Meerror(E_SIZES,"zschur");
+	error(E_SIZES,"zschur");
     n = A->n;
     diag = zv_resize(diag,A->n);
     MEM_STAT_REG(diag,TYPE_ZVEC);
@@ -70,20 +70,20 @@ ZMAT	*A, *Q;
     /* save Q if necessary, and make A explicitly Hessenberg */
     zHQunpack(A,diag,Q,A);
 
-    k_Memin = 0;	A_me = A->me;
+    k_min = 0;	A_me = A->me;
 
-    while ( k_Memin < n )
+    while ( k_min < n )
     {
-	/* find k_MeMemax to suit:
-	   submatrix k_Memin..k_MeMemax should be irreducible */
-	k_MeMemax = n-1;
-	for ( k = k_Memin; k < k_MeMemax; k++ )
+	/* find k_max to suit:
+	   submatrix k_min..k_max should be irreducible */
+	k_max = n-1;
+	for ( k = k_min; k < k_max; k++ )
 	    if ( is_zero(A_me[k+1][k]) )
-	    {	k_MeMemax = k;	break;	}
+	    {	k_max = k;	break;	}
 
-	if ( k_MeMemax <= k_Memin )
+	if ( k_max <= k_min )
 	{
-	    k_Memin = k_MeMemax + 1;
+	    k_min = k_max + 1;
 	    continue;		/* outer loop */
 	}
 
@@ -97,12 +97,12 @@ ZMAT	*A, *Q;
 	    
 	    /* set up Wilkinson/Francis complex shift */
 	    /* use the smallest eigenvalue of the bottom 2 x 2 submatrix */
-	    k_tmp = k_MeMemax - 1;
+	    k_tmp = k_max - 1;
 
 	    a00 = A_me[k_tmp][k_tmp];
-	    a01 = A_me[k_tmp][k_MeMemax];
-	    a10 = A_me[k_MeMemax][k_tmp];
-	    a11 = A_me[k_MeMemax][k_MeMemax];
+	    a01 = A_me[k_tmp][k_max];
+	    a10 = A_me[k_max][k_tmp];
+	    a11 = A_me[k_max][k_max];
 	    ztmp.re = 0.5*(a00.re - a11.re);
 	    ztmp.im = 0.5*(a00.im - a11.im);
 	    discrim = zsqrt(zadd(zmlt(ztmp,ztmp),zmlt(a01,a10)));
@@ -129,13 +129,13 @@ ZMAT	*A, *Q;
 	    }
 
 	    /* set up Householder transformations */
-	    k_tmp = k_Memin + 1;
+	    k_tmp = k_min + 1;
 
-	    x = zsub(A->me[k_Memin][k_Memin],lambda);
-	    y = A->me[k_Memin+1][k_Memin];
+	    x = zsub(A->me[k_min][k_min],lambda);
+	    y = A->me[k_min+1][k_min];
 
 	    /* use Givens' rotations to "chase" off-Hessenberg entry */
-	    for ( k = k_Memin; k <= k_MeMemax-1; k++ )
+	    for ( k = k_min; k <= k_max-1; k++ )
 	    {
 		zgivens(x,y,&c,&s);
 		zrot_cols(A,k,k+1,c,s,A);
@@ -144,25 +144,25 @@ ZMAT	*A, *Q;
 		    zrot_cols(Q,k,k+1,c,s,Q);
 
 		/* zero things that should be zero */
-		if ( k > k_Memin )
+		if ( k > k_min )
 		    A->me[k+1][k-1].re = A->me[k+1][k-1].im = 0.0;
 
 		/* get next entry to chase along sub-diagonal */
 		x = A->me[k+1][k];
-		if ( k <= k_MeMemax - 2 )
+		if ( k <= k_max - 2 )
 		    y = A->me[k+2][k];
 		else
 		    y.re = y.im = 0.0;
 	    }
 
-	    for ( k = k_Memin; k <= k_MeMemax-2; k++ )
+	    for ( k = k_min; k <= k_max-2; k++ )
 	    {
 		/* zero appropriate sub-diagonals */
 		A->me[k+2][k].re = A->me[k+2][k].im = 0.0;
 	    }
 
 	    /* test to see if matrix should split */
-	    for ( k = k_Memin; k < k_MeMemax; k++ )
+	    for ( k = k_min; k < k_max; k++ )
 		if ( zabs(A_me[k+1][k]) < MACHEPS*
 		    (zabs(A_me[k][k])+zabs(A_me[k+1][k+1])) )
 		{
@@ -213,15 +213,15 @@ MAT	*T, *Q, *X_re, *X_im;
 			*tmp2_re=VNULL, *tmp2_im=VNULL;
 
 	if ( ! T || ! X_re )
-	    Meerror(E_NULL,"schur_vecs");
+	    error(E_NULL,"schur_vecs");
 	if ( T->m != T->n || X_re->m != X_re->n ||
 		( Q != MNULL && Q->m != Q->n ) ||
 		( X_im != MNULL && X_im->m != X_im->n ) )
-	    Meerror(E_SQUARE,"schur_vecs");
+	    error(E_SQUARE,"schur_vecs");
 	if ( T->m != X_re->m ||
 		( Q != MNULL && T->m != Q->m ) ||
 		( X_im != MNULL && T->m != X_im->m ) )
-	    Meerror(E_SIZES,"schur_vecs");
+	    error(E_SIZES,"schur_vecs");
 
 	tmp1_re = v_resize(tmp1_re,T->m);
 	tmp1_im = v_resize(tmp1_im,T->m);
@@ -248,7 +248,7 @@ MAT	*T, *Q, *X_re, *X_im;
 		    l_im = sqrt(-discrim);
 		}
 		else /* not correct Real Schur form */
-		    Meerror(E_RANGE,"schur_vecs");
+		    error(E_RANGE,"schur_vecs");
 	    }
 	    else
 	    {
@@ -362,7 +362,7 @@ MAT	*T, *Q, *X_re, *X_im;
 	    if ( l_im != 0.0 )
 	    {
 		if ( ! X_im )
-		Meerror(E_NULL,"schur_vecs");
+		error(E_NULL,"schur_vecs");
 		set_col(X_re,i,tmp2_re);
 		set_col(X_im,i,tmp2_im);
 		sv_mlt(-1.0,tmp2_im,tmp2_im);

@@ -43,7 +43,7 @@ ZVEC	*zv_zero(ZVEC *x)
 #endif
 {
    if ( ! x )
-     Meerror(E_NULL,"zv_zero");
+     error(E_NULL,"zv_zero");
    __zzero__(x->ve,x->dim);
    
    return x;
@@ -61,7 +61,7 @@ ZMAT	*zm_zero(ZMAT *A)
    int		i;
    
    if ( ! A )
-     Meerror(E_NULL,"zm_zero");
+     error(E_NULL,"zm_zero");
    for ( i = 0; i < A->m; i++ )
      __zzero__(A->me[i],A->n);
    
@@ -80,22 +80,22 @@ ZMAT	*zm_get(int m, int n)
    unsigned int	i;
    
    if (m < 0 || n < 0)
-     Meerror(E_NEG,"zm_get");
+     error(E_NEG,"zm_get");
 
    if ((matrix=NEW(ZMAT)) == (ZMAT *)NULL )
-     Meerror(E_MEM,"zm_get");
+     error(E_MEM,"zm_get");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_ZMAT,0,sizeof(ZMAT));
       mem_numvar(TYPE_ZMAT,1);
    }
    
-   matrix->m = m;		matrix->n = matrix->MeMemax_n = n;
-   matrix->MeMemax_m = m;	matrix->MeMemax_size = m*n;
+   matrix->m = m;		matrix->n = matrix->max_n = n;
+   matrix->max_m = m;	matrix->max_size = m*n;
 #ifndef SEGMENTED
    if ((matrix->base = NEW_A(m*n,complex)) == (complex *)NULL )
    {
       free(matrix);
-      Meerror(E_MEM,"zm_get");
+      error(E_MEM,"zm_get");
    }
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_ZMAT,0,m*n*sizeof(complex));
@@ -106,7 +106,7 @@ ZMAT	*zm_get(int m, int n)
    if ((matrix->me = (complex **)calloc(m,sizeof(complex *))) == 
        (complex **)NULL )
    {	free(matrix->base);	free(matrix);
-	Meerror(E_MEM,"zm_get");
+	error(E_MEM,"zm_get");
      }
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_ZMAT,0,m*sizeof(complex *));
@@ -118,7 +118,7 @@ ZMAT	*zm_get(int m, int n)
 #else
    for ( i = 0; i < m; i++ )
      if ( (matrix->me[i]=NEW_A(n,complex)) == (complex *)NULL )
-       Meerror(E_MEM,"zm_get");
+       error(E_MEM,"zm_get");
      else if (mem_info_is_on()) {
 	mem_bytes(TYPE_ZMAT,0,n*sizeof(complex));
      }
@@ -140,19 +140,19 @@ ZVEC	*zv_get(int size)
    ZVEC	*vector;
 
    if (size < 0)
-     Meerror(E_NEG,"zv_get");
+     error(E_NEG,"zv_get");
 
    if ((vector=NEW(ZVEC)) == (ZVEC *)NULL )
-     Meerror(E_MEM,"zv_get");
+     error(E_MEM,"zv_get");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_ZVEC,0,sizeof(ZVEC));
       mem_numvar(TYPE_ZVEC,1);
    }
-   vector->dim = vector->MeMemax_dim = size;
+   vector->dim = vector->max_dim = size;
    if ((vector->ve=NEW_A(size,complex)) == (complex *)NULL )
    {
       free(vector);
-      Meerror(E_MEM,"zv_get");
+      error(E_MEM,"zv_get");
    }
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_ZVEC,0,size*sizeof(complex));
@@ -180,22 +180,22 @@ int	zm_free(ZMAT *mat)
 #ifndef SEGMENTED
    if ( mat->base != (complex *)NULL ) {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_ZMAT,mat->MeMemax_m*mat->MeMemax_n*sizeof(complex),0);
+	 mem_bytes(TYPE_ZMAT,mat->max_m*mat->max_n*sizeof(complex),0);
       }	   
       free((char *)(mat->base));
    }
 #else
-   for ( i = 0; i < mat->MeMemax_m; i++ )
+   for ( i = 0; i < mat->max_m; i++ )
      if ( mat->me[i] != (complex *)NULL ) {
 	if (mem_info_is_on()) {
-	   mem_bytes(TYPE_ZMAT,mat->MeMemax_n*sizeof(complex),0);
+	   mem_bytes(TYPE_ZMAT,mat->max_n*sizeof(complex),0);
 	}
 	free((char *)(mat->me[i]));
      }
 #endif
    if ( mat->me != (complex **)NULL ) {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_ZMAT,mat->MeMemax_m*sizeof(complex *),0);
+	 mem_bytes(TYPE_ZMAT,mat->max_m*sizeof(complex *),0);
       }	   
       free((char *)(mat->me));
    }
@@ -232,7 +232,7 @@ int	zv_free(ZVEC *vec)
    else
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_ZVEC,vec->MeMemax_dim*sizeof(complex)+
+	 mem_bytes(TYPE_ZVEC,vec->max_dim*sizeof(complex)+
 		      sizeof(ZVEC),0);
 	 mem_numvar(TYPE_ZVEC,-1);
       }
@@ -255,10 +255,10 @@ int	new_m, new_n;
 ZMAT	*zm_resize(ZMAT *A, int new_m, int new_n)
 #endif
 {
-   unsigned int	i, new_MeMemax_m, new_MeMemax_n, new_size, old_m, old_n;
+   unsigned int	i, new_max_m, new_max_n, new_size, old_m, old_n;
    
    if (new_m < 0 || new_n < 0)
-     Meerror(E_NEG,"zm_resize");
+     error(E_NEG,"zm_resize");
 
    if ( ! A )
      return zm_get(new_m,new_n);
@@ -267,33 +267,33 @@ ZMAT	*zm_resize(ZMAT *A, int new_m, int new_n)
      return A;
 
    old_m = A->m;	old_n = A->n;
-   if ( new_m > A->MeMemax_m )
+   if ( new_m > A->max_m )
    {	/* re-allocate A->me */
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_ZMAT,A->MeMemax_m*sizeof(complex *),
+	 mem_bytes(TYPE_ZMAT,A->max_m*sizeof(complex *),
 		      new_m*sizeof(complex *));
       }
 
       A->me = RENEW(A->me,new_m,complex *);
       if ( ! A->me )
-	Meerror(E_MEM,"zm_resize");
+	error(E_MEM,"zm_resize");
    }
-   new_MeMemax_m = MeMemax(new_m,A->MeMemax_m);
-   new_MeMemax_n = MeMemax(new_n,A->MeMemax_n);
+   new_max_m = max(new_m,A->max_m);
+   new_max_n = max(new_n,A->max_n);
    
 #ifndef SEGMENTED
-   new_size = new_MeMemax_m*new_MeMemax_n;
-   if ( new_size > A->MeMemax_size )
+   new_size = new_max_m*new_max_n;
+   if ( new_size > A->max_size )
    {	/* re-allocate A->base */
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_ZMAT,A->MeMemax_m*A->MeMemax_n*sizeof(complex),
+	 mem_bytes(TYPE_ZMAT,A->max_m*A->max_n*sizeof(complex),
 		new_size*sizeof(complex));      
       }
 
       A->base = RENEW(A->base,new_size,complex);
       if ( ! A->base )
-	Meerror(E_MEM,"zm_resize");
-      A->MeMemax_size = new_size;
+	error(E_MEM,"zm_resize");
+      A->max_size = new_size;
    }
    
    /* now set up A->me[i] */
@@ -303,14 +303,14 @@ ZMAT	*zm_resize(ZMAT *A, int new_m, int new_n)
    /* now shift data in matrix */
    if ( old_n > new_n )
    {
-      for ( i = 1; i < Memin(old_m,new_m); i++ )
+      for ( i = 1; i < min(old_m,new_m); i++ )
 	MEM_COPY((char *)&(A->base[i*old_n]),
 		 (char *)&(A->base[i*new_n]),
 		 sizeof(complex)*new_n);
    }
    else if ( old_n < new_n )
    {
-      for ( i = Memin(old_m,new_m)-1; i > 0; i-- )
+      for ( i = min(old_m,new_m)-1; i > 0; i-- )
       {   /* copy & then zero extra space */
 	 MEM_COPY((char *)&(A->base[i*old_n]),
 		  (char *)&(A->base[i*new_n]),
@@ -318,48 +318,48 @@ ZMAT	*zm_resize(ZMAT *A, int new_m, int new_n)
 	 __zzero__(&(A->base[i*new_n+old_n]),(new_n-old_n));
       }
       __zzero__(&(A->base[old_n]),(new_n-old_n));
-      A->MeMemax_n = new_n;
+      A->max_n = new_n;
    }
    /* zero out the new rows.. */
    for ( i = old_m; i < new_m; i++ )
      __zzero__(&(A->base[i*new_n]),new_n);
 #else
-   if ( A->MeMemax_n < new_n )
+   if ( A->max_n < new_n )
    {
       complex	*tmp;
       
-      for ( i = 0; i < A->MeMemax_m; i++ )
+      for ( i = 0; i < A->max_m; i++ )
       {
 	 if (mem_info_is_on()) {
-	    mem_bytes(TYPE_ZMAT,A->MeMemax_n*sizeof(complex),
-			 new_MeMemax_n*sizeof(complex));
+	    mem_bytes(TYPE_ZMAT,A->max_n*sizeof(complex),
+			 new_max_n*sizeof(complex));
 	 }
 
-	 if ( (tmp = RENEW(A->me[i],new_MeMemax_n,complex)) == NULL )
-	   Meerror(E_MEM,"zm_resize");
+	 if ( (tmp = RENEW(A->me[i],new_max_n,complex)) == NULL )
+	   error(E_MEM,"zm_resize");
 	 else {
 	    A->me[i] = tmp;
 	 }
       }
-      for ( i = A->MeMemax_m; i < new_MeMemax_m; i++ )
+      for ( i = A->max_m; i < new_max_m; i++ )
       {
-	 if ( (tmp = NEW_A(new_MeMemax_n,complex)) == NULL )
-	   Meerror(E_MEM,"zm_resize");
+	 if ( (tmp = NEW_A(new_max_n,complex)) == NULL )
+	   error(E_MEM,"zm_resize");
 	 else {
 	    A->me[i] = tmp;
 	    if (mem_info_is_on()) {
-	       mem_bytes(TYPE_ZMAT,0,new_MeMemax_n*sizeof(complex));
+	       mem_bytes(TYPE_ZMAT,0,new_max_n*sizeof(complex));
 	    }
 	 }
       }
    }
-   else if ( A->MeMemax_m < new_m )
+   else if ( A->max_m < new_m )
    {
-      for ( i = A->MeMemax_m; i < new_m; i++ )
-	if ( (A->me[i] = NEW_A(new_MeMemax_n,complex)) == NULL )
-	  Meerror(E_MEM,"zm_resize");
+      for ( i = A->max_m; i < new_m; i++ )
+	if ( (A->me[i] = NEW_A(new_max_n,complex)) == NULL )
+	  error(E_MEM,"zm_resize");
 	else if (mem_info_is_on()) {
-	   mem_bytes(TYPE_ZMAT,0,new_MeMemax_n*sizeof(complex));
+	   mem_bytes(TYPE_ZMAT,0,new_max_n*sizeof(complex));
 	}
       
    }
@@ -375,9 +375,9 @@ ZMAT	*zm_resize(ZMAT *A, int new_m, int new_n)
      __zzero__(A->me[i],new_n);
 #endif
    
-   A->MeMemax_m = new_MeMemax_m;
-   A->MeMemax_n = new_MeMemax_n;
-   A->MeMemax_size = A->MeMemax_m*A->MeMemax_n;
+   A->max_m = new_max_m;
+   A->max_n = new_max_n;
+   A->max_size = A->max_m*A->max_n;
    A->m = new_m;	A->n = new_n;
    
    return A;
@@ -395,7 +395,7 @@ ZVEC	*zv_resize(ZVEC *x, int new_dim)
 #endif
 {
    if (new_dim < 0)
-     Meerror(E_NEG,"zv_resize");
+     error(E_NEG,"zv_resize");
 
    if ( ! x )
      return zv_get(new_dim);
@@ -403,20 +403,20 @@ ZVEC	*zv_resize(ZVEC *x, int new_dim)
    if (new_dim == x->dim)
      return x;
 
-   if ( x->MeMemax_dim == 0 )	/* assume that it's from sub_zvec */
+   if ( x->max_dim == 0 )	/* assume that it's from sub_zvec */
      return zv_get(new_dim);
    
-   if ( new_dim > x->MeMemax_dim )
+   if ( new_dim > x->max_dim )
    {
       if (mem_info_is_on()) { 
-	 mem_bytes(TYPE_ZVEC,x->MeMemax_dim*sizeof(complex),
+	 mem_bytes(TYPE_ZVEC,x->max_dim*sizeof(complex),
 		      new_dim*sizeof(complex));
       }
 
       x->ve = RENEW(x->ve,new_dim,complex);
       if ( ! x->ve )
-	Meerror(E_MEM,"zv_resize");
-      x->MeMemax_dim = new_dim;
+	error(E_MEM,"zv_resize");
+      x->max_dim = new_dim;
    }
    
    if ( new_dim > x->dim )

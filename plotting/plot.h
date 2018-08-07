@@ -1,3 +1,7 @@
+// Copyright 2016 State of Queensland
+// This file is part of SPADE
+// See spade.c, COPYING, COPYING.LESSER
+
 #ifndef SPADE_PLOT_H
 #define SPADE_PLOT_H
 
@@ -7,13 +11,7 @@
 void plot(
 	
     Parameters *,
-	  char *
-
-	  );
-
-void plot_fast(
-	
-    Parameters *,
+	  Data *,
 	  char *
 
 	  );

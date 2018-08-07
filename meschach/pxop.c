@@ -64,7 +64,7 @@ PERM	*px_inv(const PERM *px, PERM *out)
 	    while (TRUE)
 	    {
 		if ( i < 0 || i >= out->size )
-		    Meerror(E_BOUNDS,"px_inv");
+		    error(E_BOUNDS,"px_inv");
 		j = p[i];	p[i] = -1 - k;
 		if ( j == n )
 		{	p[n] = i;	break;		}
@@ -86,18 +86,18 @@ PERM	*px_mlt(const PERM *px1, const PERM *px2, PERM *out)
     unsigned int	i,size;
     
     if ( px1==(PERM *)NULL || px2==(PERM *)NULL )
-	Meerror(E_NULL,"px_mlt");
+	error(E_NULL,"px_mlt");
     if ( px1->size != px2->size )
-	Meerror(E_SIZES,"px_mlt");
+	error(E_SIZES,"px_mlt");
     if ( px1 == out || px2 == out )
-	Meerror(E_INSITU,"px_mlt");
+	error(E_INSITU,"px_mlt");
     if ( out==(PERM *)NULL || out->size < px1->size )
 	out = px_resize(out,px1->size);
     
     size = px1->size;
     for ( i=0; i<size; i++ )
 	if ( px2->pe[i] >= size )
-	    Meerror(E_BOUNDS,"px_mlt");
+	    error(E_BOUNDS,"px_mlt");
 	else
 	    out->pe[i] = px1->pe[px2->pe[i]];
     
@@ -117,9 +117,9 @@ VEC	*px_vec(PERM *px, const VEC *vector, VEC *out)
     Real	tmp;
     
     if ( px==PNULL || vector==VNULL )
-	Meerror(E_NULL,"px_vec");
+	error(E_NULL,"px_vec");
     if ( px->size > vector->dim )
-	Meerror(E_SIZES,"px_vec");
+	error(E_SIZES,"px_vec");
     if ( out==VNULL || out->dim < vector->dim )
 	out = v_resize(out,vector->dim);
     
@@ -130,7 +130,7 @@ VEC	*px_vec(PERM *px, const VEC *vector, VEC *out)
     {
 	for ( i=0; i<size; i++ )
 	    if ( px->pe[i] >= size )
-		Meerror(E_BOUNDS,"px_vec");
+		error(E_BOUNDS,"px_vec");
 	    else
 		out->ve[i] = vector->ve[px->pe[i]];
     }
@@ -167,7 +167,7 @@ VEC	*px_vec(PERM *px, const VEC *vector, VEC *out)
 
 	for ( i = 0; i < size; i++ )
 	    if ( px->pe[i] < size )
-		Meerror(E_BOUNDS,"px_vec");
+		error(E_BOUNDS,"px_vec");
 	    else
 		px->pe[i] = px->pe[i]-size;
     }
@@ -187,11 +187,11 @@ VEC	*pxinv_vec(PERM *px, const VEC *x, VEC *out)
     unsigned int	i, size;
     
     if ( ! px || ! x )
-	Meerror(E_NULL,"pxinv_vec");
+	error(E_NULL,"pxinv_vec");
     if ( px->size > x->dim )
-	Meerror(E_SIZES,"pxinv_vec");
+	error(E_SIZES,"pxinv_vec");
     /* if ( x == out )
-	Meerror(E_INSITU,"pxinv_vec"); */
+	error(E_INSITU,"pxinv_vec"); */
     if ( ! out || out->dim < x->dim )
 	out = v_resize(out,x->dim);
     
@@ -202,7 +202,7 @@ VEC	*pxinv_vec(PERM *px, const VEC *x, VEC *out)
     {
 	for ( i=0; i<size; i++ )
 	    if ( px->pe[i] >= size )
-		Meerror(E_BOUNDS,"pxinv_vec");
+		error(E_BOUNDS,"pxinv_vec");
 	    else
 		out->ve[px->pe[i]] = x->ve[i];
     }
@@ -231,7 +231,7 @@ PERM	*px_transp(PERM *px, unsigned int i1, unsigned int i2)
 	unsigned int	temp;
 
 	if ( px==(PERM *)NULL )
-		Meerror(E_NULL,"px_transp");
+		error(E_NULL,"px_transp");
 
 	if ( i1 < px->size && i2 < px->size )
 	{
@@ -300,7 +300,7 @@ int	px_sign(const PERM *px)
 	PERM	*px2;
 
 	if ( px==(PERM *)NULL )
-		Meerror(E_NULL,"px_sign");
+		error(E_NULL,"px_sign");
 	px2 = px_copy(px,PNULL);
 	numtransp = myqsort((int *)px2->pe,px2->size);
 	px_free(px2);
@@ -328,11 +328,11 @@ MAT	*px_cols(const PERM *px, const MAT *A, MAT *out)
 #endif
 
 	if ( ! A || ! px )
-		Meerror(E_NULL,"px_cols");
+		error(E_NULL,"px_cols");
 	if ( px->size != A->n )
-		Meerror(E_SIZES,"px_cols");
+		error(E_SIZES,"px_cols");
 	if ( A == out )
-		Meerror(E_INSITU,"px_cols");
+		error(E_INSITU,"px_cols");
 	m = A->m;	n = A->n;
 	if ( ! out || out->m != m || out->n != n )
 		out = m_get(m,n);
@@ -342,7 +342,7 @@ MAT	*px_cols(const PERM *px, const MAT *A, MAT *out)
 	{
 		px_j = px->pe[j];
 		if ( px_j >= n )
-		    Meerror(E_BOUNDS,"px_cols");
+		    error(E_BOUNDS,"px_cols");
 		for ( i = 0; i < m; i++ )
 		    out_me[i][px_j] = A_me[i][j];
 	}
@@ -369,11 +369,11 @@ MAT	*px_rows(const PERM *px, const MAT *A, MAT *out)
 #endif
 
 	if ( ! A || ! px )
-		Meerror(E_NULL,"px_rows");
+		error(E_NULL,"px_rows");
 	if ( px->size != A->m )
-		Meerror(E_SIZES,"px_rows");
+		error(E_SIZES,"px_rows");
 	if ( A == out )
-		Meerror(E_INSITU,"px_rows");
+		error(E_INSITU,"px_rows");
 	m = A->m;	n = A->n;
 	if ( ! out || out->m != m || out->n != n )
 		out = m_get(m,n);
@@ -383,7 +383,7 @@ MAT	*px_rows(const PERM *px, const MAT *A, MAT *out)
 	{
 		px_i = px->pe[i];
 		if ( px_i >= m )
-		    Meerror(E_BOUNDS,"px_rows");
+		    error(E_BOUNDS,"px_rows");
 		for ( j = 0; j < n; j++ )
 		    out_me[i][j] = A_me[px_i][j];
 	}

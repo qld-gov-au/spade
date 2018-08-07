@@ -78,7 +78,7 @@ static double	sprow_ip(const SPROW *row1, const SPROW *row2, int lim)
 		idx1 = sprow_idx(row1,elts2->col);
 		idx1 = (idx1 < 0) ? -(idx1+2) : idx1;
 		if ( idx1 < 0 )
-			Meerror(E_UNKNOWN,"sprow_ip");
+			error(E_UNKNOWN,"sprow_ip");
 		len1 -= idx1;
 	}
 	else if ( len2 > 2*len1 )
@@ -86,7 +86,7 @@ static double	sprow_ip(const SPROW *row1, const SPROW *row2, int lim)
 		idx2 = sprow_idx(row2,elts1->col);
 		idx2 = (idx2 < 0) ? -(idx2+2) : idx2;
 		if ( idx2 < 0 )
-			Meerror(E_UNKNOWN,"sprow_ip");
+			error(E_UNKNOWN,"sprow_ip");
 		len2 -= idx2;
 	}
 	if ( len1 <= 0 || len2 <= 0 )
@@ -184,7 +184,7 @@ int	set_scan(int new_len)
 	}
 
 	if ( ! scan_row || ! scan_idx || ! col_list )
-		Meerror(E_MEM,"set_scan");
+		error(E_MEM,"set_scan");
 	return new_len;
 }
 
@@ -198,15 +198,15 @@ SPMAT	*spCHfactor(SPMAT *A)
 #endif
 {
 	register 	int	i;
-	int	idx, k, m, Meminim, n, num_scan, diag_idx, tmp1;
+	int	idx, k, m, minim, n, num_scan, diag_idx, tmp1;
 	Real	pivot, tmp2;
 	SPROW	*r_piv, *r_op;
 	row_elt	*elt_piv, *elt_op, *old_elt;
 
 	if ( A == SMNULL )
-		Meerror(E_NULL,"spCHfactor");
+		error(E_NULL,"spCHfactor");
 	if ( A->m != A->n )
-		Meerror(E_SQUARE,"spCHfactor");
+		error(E_SQUARE,"spCHfactor");
 
 	/* set up access paths if not already done so */
 	sp_col_access(A);
@@ -222,7 +222,7 @@ SPMAT	*spCHfactor(SPMAT *A)
 		elt_piv = r_piv->elt;
 		diag_idx = sprow_idx2(r_piv,k,r_piv->diag);
 		if ( diag_idx < 0 )
-			Meerror(E_POSDEF,"spCHfactor");
+			error(E_POSDEF,"spCHfactor");
 		old_elt = &(elt_piv[diag_idx]);
 		for ( i = 0; i < r_piv->len; i++ )
 		{
@@ -239,7 +239,7 @@ SPMAT	*spCHfactor(SPMAT *A)
 		/* set diagonal entry of Cholesky factor */
 		tmp2 = elt_piv[diag_idx].val - sprow_sqr(r_piv,k);
 		if ( tmp2 <= 0.0 )
-			Meerror(E_POSDEF,"spCHfactor");
+			error(E_POSDEF,"spCHfactor");
 		elt_piv[diag_idx].val = pivot = sqrt(tmp2);
 
 		/* now set the k-th column of the Cholesky factors */
@@ -248,38 +248,38 @@ SPMAT	*spCHfactor(SPMAT *A)
 		{
 		    /* printf("spCHfactor() -- checkpoint 3\n"); */
 		    /* find next row where something (non-trivial) happens
-			i.e. find Memin(scan_row) */
+			i.e. find min(scan_row) */
 		    /* printf("scan_row: "); */
-		    Meminim = n;
+		    minim = n;
 		    for ( i = 0; i < num_scan; i++ )
 		    {
 			tmp1 = scan_row[i];
 			/* printf("%d ",tmp1); */
-			Meminim = ( tmp1 >= 0 && tmp1 < Meminim ) ? tmp1 : Meminim;
+			minim = ( tmp1 >= 0 && tmp1 < minim ) ? tmp1 : minim;
 		    }
-		    /* printf("Meminim = %d\n",Meminim); */
+		    /* printf("minim = %d\n",minim); */
 		    /* printf("col_list: "); */
 		    /*  for ( i = 0; i < num_scan; i++ ) */
 			/*  printf("%d ",col_list[i]); */
 		    /*  printf("\n"); */
 
-		    if ( Meminim >= n )
+		    if ( minim >= n )
 			break;	/* nothing more to do for this column */
-		    r_op = &(A->row[Meminim]);
+		    r_op = &(A->row[minim]);
 		    elt_op = r_op->elt;
 
 		    /* set next entry in column k of Cholesky factors */
 		    idx = sprow_idx2(r_op,k,scan_idx[num_scan-1]);
 		    if ( idx < 0 )
 		    {	/* fill-in */
-			sp_set_val(A,Meminim,k,
+			sp_set_val(A,minim,k,
 					-sprow_ip(r_piv,r_op,k)/pivot);
 			/* in case a realloc() has occurred... */
 			elt_op = r_op->elt;
 			/* now set up column access path again */
 			idx = sprow_idx2(r_op,k,-(idx+2));
 			tmp1 = old_elt->nxt_row;
-			old_elt->nxt_row = Meminim;
+			old_elt->nxt_row = minim;
 			r_op->elt[idx].nxt_row = tmp1;
 			tmp1 = old_elt->nxt_idx;
 			old_elt->nxt_idx = idx;
@@ -297,10 +297,10 @@ SPMAT	*spCHfactor(SPMAT *A)
 
 		    /* update scan_row */
 		    /* printf("spCHfactor() -- checkpoint 5\n"); */
-		    /* printf("Meminim = %d\n",Meminim); */
+		    /* printf("minim = %d\n",minim); */
 		    for ( i = 0; i < num_scan; i++ )
 		    {
-			if ( scan_row[i] != Meminim )
+			if ( scan_row[i] != minim )
 				continue;
 			idx = sprow_idx2(r_op,col_list[i],scan_idx[i]);
 			if ( idx < 0 )
@@ -337,11 +337,11 @@ VEC	*spCHsolve(SPMAT *L, const VEC *b, VEC *out)
 	Real	diag_val, sum, *out_ve;
 
 	if ( L == SMNULL || b == VNULL )
-		Meerror(E_NULL,"spCHsolve");
+		error(E_NULL,"spCHsolve");
 	if ( L->m != L->n )
-		Meerror(E_SQUARE,"spCHsolve");
+		error(E_SQUARE,"spCHsolve");
 	if ( b->dim != L->m )
-		Meerror(E_SIZES,"spCHsolve");
+		error(E_SIZES,"spCHsolve");
 
 	if ( ! L->flag_col )
 		sp_col_access(L);
@@ -367,7 +367,7 @@ VEC	*spCHsolve(SPMAT *L, const VEC *b, VEC *out)
 		if ( row->diag >= 0 )
 		    out_ve[i] = sum/(row->elt[row->diag].val);
 		else
-		    Meerror(E_SING,"spCHsolve");
+		    error(E_SING,"spCHsolve");
 	}
 
 	/* backward substitution: solve L^T.out = x for out */
@@ -397,7 +397,7 @@ VEC	*spCHsolve(SPMAT *L, const VEC *b, VEC *out)
 }
 
 /* spICHfactor -- sparse Incomplete Cholesky factorisation
-	-- does a Cholesky factorisation assuMeming NO FILL-IN
+	-- does a Cholesky factorisation assuming NO FILL-IN
 	-- as for spCHfactor(), only the lower triangular part of A is used */
 #ifndef ANSI_C
 SPMAT	*spICHfactor(A)
@@ -412,9 +412,9 @@ SPMAT	*spICHfactor(SPMAT *A)
 	row_elt	*elt_piv, *elt_op;
 
 	if ( A == SMNULL )
-		Meerror(E_NULL,"spICHfactor");
+		error(E_NULL,"spICHfactor");
 	if ( A->m != A->n )
-		Meerror(E_SQUARE,"spICHfactor");
+		error(E_SQUARE,"spICHfactor");
 
 	/* set up access paths if not already done so */
 	if ( ! A->flag_col )
@@ -429,14 +429,14 @@ SPMAT	*spICHfactor(SPMAT *A)
 
 		diag_idx = r_piv->diag;
 		if ( diag_idx < 0 )
-			Meerror(E_POSDEF,"spICHfactor");
+			error(E_POSDEF,"spICHfactor");
 
 		elt_piv = r_piv->elt;
 
 		/* set diagonal entry of Cholesky factor */
 		tmp2 = elt_piv[diag_idx].val - sprow_sqr(r_piv,k);
 		if ( tmp2 <= 0.0 )
-			Meerror(E_POSDEF,"spICHfactor");
+			error(E_POSDEF,"spICHfactor");
 		elt_piv[diag_idx].val = pivot = sqrt(tmp2);
 
 		/* find next row where something (non-trivial) happens */
@@ -473,14 +473,14 @@ SPMAT	*spCHsymb(SPMAT *A)
 #endif
 {
 	register 	int	i;
-	int	idx, k, m, Meminim, n, num_scan, diag_idx, tmp1;
+	int	idx, k, m, minim, n, num_scan, diag_idx, tmp1;
 	SPROW	*r_piv, *r_op;
 	row_elt	*elt_piv, *elt_op, *old_elt;
 
 	if ( A == SMNULL )
-		Meerror(E_NULL,"spCHsymb");
+		error(E_NULL,"spCHsymb");
 	if ( A->m != A->n )
-		Meerror(E_SQUARE,"spCHsymb");
+		error(E_SQUARE,"spCHsymb");
 
 	/* set up access paths if not already done so */
 	if ( ! A->flag_col )
@@ -498,7 +498,7 @@ SPMAT	*spCHsymb(SPMAT *A)
 		elt_piv = r_piv->elt;
 		diag_idx = sprow_idx2(r_piv,k,r_piv->diag);
 		if ( diag_idx < 0 )
-			Meerror(E_POSDEF,"spCHsymb");
+			error(E_POSDEF,"spCHsymb");
 		old_elt = &(elt_piv[diag_idx]);
 		for ( i = 0; i < r_piv->len; i++ )
 		{
@@ -518,31 +518,31 @@ SPMAT	*spCHsymb(SPMAT *A)
 		{
 		    /* printf("spCHsymb() -- checkpoint 3\n"); */
 		    /* find next row where something (non-trivial) happens
-			i.e. find Memin(scan_row) */
-		    Meminim = n;
+			i.e. find min(scan_row) */
+		    minim = n;
 		    for ( i = 0; i < num_scan; i++ )
 		    {
 			tmp1 = scan_row[i];
 			/* printf("%d ",tmp1); */
-			Meminim = ( tmp1 >= 0 && tmp1 < Meminim ) ? tmp1 : Meminim;
+			minim = ( tmp1 >= 0 && tmp1 < minim ) ? tmp1 : minim;
 		    }
 
-		    if ( Meminim >= n )
+		    if ( minim >= n )
 			break;	/* nothing more to do for this column */
-		    r_op = &(A->row[Meminim]);
+		    r_op = &(A->row[minim]);
 		    elt_op = r_op->elt;
 
 		    /* set next entry in column k of Cholesky factors */
 		    idx = sprow_idx2(r_op,k,scan_idx[num_scan-1]);
 		    if ( idx < 0 )
 		    {	/* fill-in */
-			sp_set_val(A,Meminim,k,0.0);
+			sp_set_val(A,minim,k,0.0);
 			/* in case a realloc() has occurred... */
 			elt_op = r_op->elt;
 			/* now set up column access path again */
 			idx = sprow_idx2(r_op,k,-(idx+2));
 			tmp1 = old_elt->nxt_row;
-			old_elt->nxt_row = Meminim;
+			old_elt->nxt_row = minim;
 			r_op->elt[idx].nxt_row = tmp1;
 			tmp1 = old_elt->nxt_idx;
 			old_elt->nxt_idx = idx;
@@ -557,10 +557,10 @@ SPMAT	*spCHsymb(SPMAT *A)
 
 		    /* update scan_row */
 		    /* printf("spCHsymb() -- checkpoint 5\n"); */
-		    /* printf("Meminim = %d\n",Meminim); */
+		    /* printf("minim = %d\n",minim); */
 		    for ( i = 0; i < num_scan; i++ )
 		    {
-			if ( scan_row[i] != Meminim )
+			if ( scan_row[i] != minim )
 				continue;
 			idx = sprow_idx2(r_op,col_list[i],scan_idx[i]);
 			if ( idx < 0 )
@@ -589,11 +589,11 @@ SPMAT	*comp_AAT(SPMAT *A)
 	SPMAT	*AAT;
 	SPROW	*r, *r2;
 	row_elt	*elts, *elts2;
-	int	i, idx, idx2, j, m, Meminim, n, num_scan, tmp1;
+	int	i, idx, idx2, j, m, minim, n, num_scan, tmp1;
 	Real	ip;
 
 	if ( ! A )
-		Meerror(E_NULL,"comp_AAT");
+		error(E_NULL,"comp_AAT");
 	m = A->m;	n = A->n;
 
 	/* set up column access paths */
@@ -623,26 +623,26 @@ SPMAT	*comp_AAT(SPMAT *A)
 			associated with a diagonal entry */
 		for ( ; ; )
 		{
-		    Meminim = m;
+		    minim = m;
 		    for ( idx = 0; idx < num_scan; idx++ )
 		    {
 			tmp1 = scan_row[idx];
-			Meminim = ( tmp1 >= 0 && tmp1 < Meminim ) ? tmp1 : Meminim;
+			minim = ( tmp1 >= 0 && tmp1 < minim ) ? tmp1 : minim;
 		    }
-		    if ( Meminim >= m )
+		    if ( minim >= m )
 		 	break;
-		    r2 = &(A->row[Meminim]);
-		    if ( Meminim > i )
+		    r2 = &(A->row[minim]);
+		    if ( minim > i )
 		    {
 			ip = sprow_ip(r,r2,n);
-		        sp_set_val(AAT,Meminim,i,ip);
-		        sp_set_val(AAT,i,Meminim,ip);
+		        sp_set_val(AAT,minim,i,ip);
+		        sp_set_val(AAT,i,minim,ip);
 		    }
 		    /* update scan entries */
 		    elts2 = r2->elt;
 		    for ( idx = 0; idx < num_scan; idx++ )
 		    {
-			if ( scan_row[idx] != Meminim || scan_idx[idx] < 0 )
+			if ( scan_row[idx] != minim || scan_idx[idx] < 0 )
 			    continue;
 			idx2 = scan_idx[idx];
 			scan_row[idx] = elts2[idx2].nxt_row;

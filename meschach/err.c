@@ -25,7 +25,7 @@
 
 
 /*
-  File with basic Meerror-handling operations
+  File with basic error-handling operations
 */
 
 static	char	rcsid[] = "$Id: err.c,v 1.6 1995/01/30 14:49:14 des Exp $";
@@ -54,22 +54,22 @@ static	char	rcsid[] = "$Id: err.c,v 1.6 1995/01/30 14:49:14 des Exp $";
 #define	EF_JUMP		2
 #define	EF_SILENT	3
 
-/* The only Meerror caught in this file! */
+/* The only error caught in this file! */
 #define	E_SIGNAL	16
 
 static	char	*err_mesg[] =
-{	  "unknown Meerror",			    /* 0 */
+{	  "unknown error",			    /* 0 */
 	  "sizes of objects don't match",	    /* 1 */
 	  "index out of bounds",		    /* 2 */
 	  "can't allocate memory",		    /* 3 */
 	  "singular matrix",			    /* 4 */
 	  "matrix not positive definite",	    /* 5 */
-	  "incorrect format me_input",		    /* 6 */
-	  "bad me_input file/device",		    /* 7 */
+	  "incorrect format input",		    /* 6 */
+	  "bad input file/device",		    /* 7 */
 	  "NULL objects passed",		    /* 8 */
-	  "matrix not Mesquare",			    /* 9 */
+	  "matrix not square",			    /* 9 */
 	  "object out of range",		    /* 10 */
-	  "can't do operation in situ for non-Mesquare matrix",   /* 11 */
+	  "can't do operation in situ for non-square matrix",   /* 11 */
 	  "can't do operation in situ",		    /* 12 */
 	  "excessive number of iterations",	    /* 13 */
 	  "convergence criterion failed",	    /* 14 */
@@ -102,27 +102,27 @@ static char *warn_mesg[] = {
 jmp_buf	restart;
 
 
-/* array of pointers to lists of Meerrors */
+/* array of pointers to lists of errors */
 
 typedef struct {
-   char **listp;    /* pointer to a list of Meerrors */
+   char **listp;    /* pointer to a list of errors */
    unsigned len;    /* length of the list */
-   unsigned warn;   /* =FALSE - Meerrors, =TRUE - warnings */
+   unsigned warn;   /* =FALSE - errors, =TRUE - warnings */
 }  Err_list;
 
 static Err_list     err_list[ERR_LIST_MAX_LEN] = {
- {err_mesg,MAXERR,FALSE},	/* basic Meerrors list */
+ {err_mesg,MAXERR,FALSE},	/* basic errors list */
  {warn_mesg,MAXWARN,TRUE}	/* basic warnings list */
 };
 
 
 static int err_list_end = 2;   /* number of elements in err_list */
 
-/* attach a new list of Meerrors pointed by err_ptr
+/* attach a new list of errors pointed by err_ptr
    or change a previous one;
    list_len is the number of elements in the list;
    list_num is the list number;
-   warn == FALSE - Meerrors (stop the program),
+   warn == FALSE - errors (stop the program),
    warn == TRUE - warnings (continue the program);
    Note: lists numbered 0 and 1 are attached automatically,
    you do not need to do it
@@ -163,7 +163,7 @@ int err_list_attach(int list_num, int list_len, char **err_ptr, int warn)
 }
 
 
-/* release the Meerror list numbered list_num */
+/* release the error list numbered list_num */
 #ifndef ANSI_C
 int err_list_free(list_num)
 int list_num;
@@ -235,9 +235,9 @@ int	count_errs(int flag)
    return tmp;
 }
 
-/* ev_err -- reports Meerror (err_num) in file "file" at line "line_num" and
-   returns to user Meerror handler;
-   list_num is an Meerror list number (0 is the basic list 
+/* ev_err -- reports error (err_num) in file "file" at line "line_num" and
+   returns to user error handler;
+   list_num is an error list number (0 is the basic list 
    pointed by err_mesg, 1 is the basic list of warnings)
  */
 #ifndef ANSI_C
@@ -256,12 +256,12 @@ int	ev_err(const char *file, int err_num, int line_num,
    if (list_num < 0 || list_num >= err_list_end ||
        err_list[list_num].listp == (char **)NULL) {
       fprintf(stderr,
-	      "\n Not (properly) attached list of Meerrors: list_num = %d\n",
+	      "\n Not (properly) attached list of errors: list_num = %d\n",
 	      list_num);
       fprintf(stderr," Call \"err_list_attach\" in your program\n");
       if ( ! isatty(fileno(stdout)) ) {
 	 fprintf(stderr,
-		 "\n Not (properly) attached list of Meerrors: list_num = %d\n",
+		 "\n Not (properly) attached list of errors: list_num = %d\n",
 		 list_num);
 	 fprintf(stderr," Call \"err_list_attach\" in your program\n");
       }
@@ -272,7 +272,7 @@ int	ev_err(const char *file, int err_num, int line_num,
    num = err_num;
    if ( num >= err_list[list_num].len ) num = 0;
    
-   if ( cnt_errs && ++num_errs >= MAX_ERRS )	/* too many Meerrors */
+   if ( cnt_errs && ++num_errs >= MAX_ERRS )	/* too many errors */
    {
       fprintf(stderr,"\n\"%s\", line %d: %s in function %s()\n",
 	      file,line_num,err_list[list_num].listp[num],
@@ -281,7 +281,7 @@ int	ev_err(const char *file, int err_num, int line_num,
 	fprintf(stdout,"\n\"%s\", line %d: %s in function %s()\n",
 		file,line_num,err_list[list_num].listp[num],
 		isascii(*fn_name) ? fn_name : "???");
-      printf("Sorry, too many Meerrors: %d\n",num_errs);
+      printf("Sorry, too many errors: %d\n",num_errs);
       printf("Exiting program\n");
       exit(0);
    }
@@ -343,24 +343,24 @@ int	ev_err(const char *file, int err_num, int line_num,
    return 0;
 }
 
-/* float_Meerror -- catches floating arithmetic signals */
+/* float_error -- catches floating arithmetic signals */
 #ifndef ANSI_C
-static void	float_Meerror(num)
+static void	float_error(num)
 int	num;
 #else
-static void	float_Meerror(int num)
+static void	float_error(int num)
 #endif
 {
-   signal(SIGFPE,float_Meerror);
+   signal(SIGFPE,float_error);
    /* fprintf(stderr,"SIGFPE: signal #%d\n",num); */
    /* fprintf(stderr,"errno = %d\n",errno); */
    ev_err("???.c",E_SIGNAL,0,"???",0);
 }
 
-/* catch_signal -- sets up float_Meerror() to catch SIGFPE's */
+/* catch_signal -- sets up float_error() to catch SIGFPE's */
 void	catch_FPE()
 {
-   signal(SIGFPE,float_Meerror);
+   signal(SIGFPE,float_error);
 }
 
 

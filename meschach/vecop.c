@@ -47,10 +47,10 @@ double	_in_prod(const VEC *a, const VEC *b, unsigned int i0)
 	/* register Real	sum; */
 
 	if ( a==(VEC *)NULL || b==(VEC *)NULL )
-		Meerror(E_NULL,"_in_prod");
-	limit = Memin(a->dim,b->dim);
+		error(E_NULL,"_in_prod");
+	limit = min(a->dim,b->dim);
 	if ( i0 > limit )
-		Meerror(E_BOUNDS,"_in_prod");
+		error(E_BOUNDS,"_in_prod");
 
 	return __ip__(&(a->ve[i0]),&(b->ve[i0]),(int)(limit-i0));
 	/*****************************************
@@ -77,7 +77,7 @@ VEC	*sv_mlt(double scalar, const VEC *vector, VEC *out)
 	/* Real	*out_ve, *vec_ve; */
 
 	if ( vector==(VEC *)NULL )
-		Meerror(E_NULL,"sv_mlt");
+		error(E_NULL,"sv_mlt");
 	if ( out==(VEC *)NULL || out->dim != vector->dim )
 		out = v_resize(out,vector->dim);
 	if ( scalar == 0.0 )
@@ -108,9 +108,9 @@ VEC	*v_add(const VEC *vec1, const VEC *vec2, VEC *out)
 	/* Real	*out_ve, *vec1_ve, *vec2_ve; */
 
 	if ( vec1==(VEC *)NULL || vec2==(VEC *)NULL )
-		Meerror(E_NULL,"v_add");
+		error(E_NULL,"v_add");
 	if ( vec1->dim != vec2->dim )
-		Meerror(E_SIZES,"v_add");
+		error(E_SIZES,"v_add");
 	if ( out==(VEC *)NULL || out->dim != vec1->dim )
 		out = v_resize(out,vec1->dim);
 	dim = vec1->dim;
@@ -139,9 +139,9 @@ VEC	*v_mltadd(const VEC *v1, const VEC *v2, double scale, VEC *out)
 	/* Real	*out_ve, *v1_ve, *v2_ve; */
 
 	if ( v1==(VEC *)NULL || v2==(VEC *)NULL )
-		Meerror(E_NULL,"v_mltadd");
+		error(E_NULL,"v_mltadd");
 	if ( v1->dim != v2->dim )
-		Meerror(E_SIZES,"v_mltadd");
+		error(E_SIZES,"v_mltadd");
 	if ( scale == 0.0 )
 		return v_copy(v1,out);
 	if ( scale == 1.0 )
@@ -181,9 +181,9 @@ VEC	*v_sub(const VEC *vec1, const VEC *vec2, VEC *out)
 	/* Real	*out_ve, *vec1_ve, *vec2_ve; */
 
 	if ( vec1==(VEC *)NULL || vec2==(VEC *)NULL )
-		Meerror(E_NULL,"v_sub");
+		error(E_NULL,"v_sub");
 	if ( vec1->dim != vec2->dim )
-		Meerror(E_SIZES,"v_sub");
+		error(E_SIZES,"v_sub");
 	if ( out==(VEC *)NULL || out->dim != vec1->dim )
 		out = v_resize(out,vec1->dim);
 
@@ -217,7 +217,7 @@ VEC	*v_map(double (*f)(), const VEC *x, VEC *out)
 	int	i, dim;
 
 	if ( ! x || ! f )
-		Meerror(E_NULL,"v_map");
+		error(E_NULL,"v_map");
 	if ( ! out || out->dim != x->dim )
 		out = v_resize(out,x->dim);
 
@@ -246,7 +246,7 @@ VEC	*_v_map(double (*f)(), void *params, const VEC *x, VEC *out)
 	int	i, dim;
 
 	if ( ! x || ! f )
-		Meerror(E_NULL,"_v_map");
+		error(E_NULL,"_v_map");
 	if ( ! out || out->dim != x->dim )
 		out = v_resize(out,x->dim);
 
@@ -270,21 +270,21 @@ VEC	*v_lincomb(int n, const VEC *v[], const Real a[], VEC *out)
 	int	i;
 
 	if ( ! a || ! v )
-		Meerror(E_NULL,"v_lincomb");
+		error(E_NULL,"v_lincomb");
 	if ( n <= 0 )
 		return VNULL;
 
 	for ( i = 1; i < n; i++ )
 		if ( out == v[i] )
-		    Meerror(E_INSITU,"v_lincomb");
+		    error(E_INSITU,"v_lincomb");
 
 	out = sv_mlt(a[0],v[0],out);
 	for ( i = 1; i < n; i++ )
 	{
 		if ( ! v[i] )
-			Meerror(E_NULL,"v_lincomb");
+			error(E_NULL,"v_lincomb");
 		if ( v[i]->dim != out->dim )
-			Meerror(E_SIZES,"v_lincomb");
+			error(E_SIZES,"v_lincomb");
 		out = v_mltadd(out,v[i],a[i],out);
 	}
 
@@ -316,9 +316,9 @@ VEC  *v_linlist(VEC *out,VEC *v1,double a1,...)
       a_par = va_arg(ap,double);
       if (a_par == 0.0) continue;
       if ( out == par )		
-	Meerror(E_INSITU,"v_linlist");
+	error(E_INSITU,"v_linlist");
       if ( out->dim != par->dim )	
-	Meerror(E_SIZES,"v_linlist");
+	error(E_SIZES,"v_linlist");
 
       if (a_par == 1.0)
 	out = v_add(out,par,out);
@@ -361,9 +361,9 @@ VEC  *v_linlist(va_alist) va_dcl
       a_par = va_arg(ap,double);
       if (a_par == 0.0) continue;
       if ( out == par )		
-	Meerror(E_INSITU,"v_linlist");
+	error(E_INSITU,"v_linlist");
       if ( out->dim != par->dim )	
-	Meerror(E_SIZES,"v_linlist");
+	error(E_SIZES,"v_linlist");
 
       if (a_par == 1.0)
 	out = v_add(out,par,out);
@@ -395,9 +395,9 @@ VEC	*v_star(const VEC *x1, const VEC *x2, VEC *out)
     int		i;
 
     if ( ! x1 || ! x2 )
-	Meerror(E_NULL,"v_star");
+	error(E_NULL,"v_star");
     if ( x1->dim != x2->dim )
-	Meerror(E_SIZES,"v_star");
+	error(E_SIZES,"v_star");
     out = v_resize(out,x1->dim);
 
     for ( i = 0; i < x1->dim; i++ )
@@ -408,7 +408,7 @@ VEC	*v_star(const VEC *x1, const VEC *x2, VEC *out)
 
 /* v_slash -- computes componentwise ratio of x2 and x1
 	-- out[i] = x2[i] / x1[i]
-	-- if x1[i] == 0 for some i, then raise E_SING Meerror
+	-- if x1[i] == 0 for some i, then raise E_SING error
 	-- result out is returned */
 #ifndef ANSI_C
 VEC	*v_slash(x1, x2, out)
@@ -421,88 +421,88 @@ VEC	*v_slash(const VEC *x1, const VEC *x2, VEC *out)
     Real	tmp;
 
     if ( ! x1 || ! x2 )
-	Meerror(E_NULL,"v_slash");
+	error(E_NULL,"v_slash");
     if ( x1->dim != x2->dim )
-	Meerror(E_SIZES,"v_slash");
+	error(E_SIZES,"v_slash");
     out = v_resize(out,x1->dim);
 
     for ( i = 0; i < x1->dim; i++ )
     {
 	tmp = x1->ve[i];
 	if ( tmp == 0.0 )
-	    Meerror(E_SING,"v_slash");
+	    error(E_SING,"v_slash");
 	out->ve[i] = x2->ve[i] / tmp;
     }
 
     return out;
 }
 
-/* v_Memin -- computes Meminimum component of x, which is returned
-	-- also sets Memin_idx to the index of this Meminimum */
+/* v_min -- computes minimum component of x, which is returned
+	-- also sets min_idx to the index of this minimum */
 #ifndef ANSI_C
-double	v_Memin(x, Memin_idx)
+double	v_min(x, min_idx)
 VEC	*x;
-int	*Memin_idx;
+int	*min_idx;
 #else
-double	v_Memin(const VEC *x, int *Memin_idx)
+double	v_min(const VEC *x, int *min_idx)
 #endif
 {
-    int		i, i_Memin;
-    Real	Memin_val, tmp;
+    int		i, i_min;
+    Real	min_val, tmp;
 
     if ( ! x )
-	Meerror(E_NULL,"v_Memin");
+	error(E_NULL,"v_min");
     if ( x->dim <= 0 )
-	Meerror(E_SIZES,"v_Memin");
-    i_Memin = 0;
-    Memin_val = x->ve[0];
+	error(E_SIZES,"v_min");
+    i_min = 0;
+    min_val = x->ve[0];
     for ( i = 1; i < x->dim; i++ )
     {
 	tmp = x->ve[i];
-	if ( tmp < Memin_val )
+	if ( tmp < min_val )
 	{
-	    Memin_val = tmp;
-	    i_Memin = i;
+	    min_val = tmp;
+	    i_min = i;
 	}
     }
 
-    if ( Memin_idx != NULL )
-	*Memin_idx = i_Memin;
-    return Memin_val;
+    if ( min_idx != NULL )
+	*min_idx = i_min;
+    return min_val;
 }
 
-/* v_MeMemax -- computes MeMemaximum component of x, which is returned
-	-- also sets MeMemax_idx to the index of this MeMemaximum */
+/* v_max -- computes maximum component of x, which is returned
+	-- also sets max_idx to the index of this maximum */
 #ifndef ANSI_C
-double	v_MeMemax(x, MeMemax_idx)
+double	v_max(x, max_idx)
 VEC	*x;
-int	*MeMemax_idx;
+int	*max_idx;
 #else
-double	v_MeMemax(const VEC *x, int *MeMemax_idx)
+double	v_max(const VEC *x, int *max_idx)
 #endif
 {
-    int		i, i_MeMemax;
-    Real	MeMemax_val, tmp;
+    int		i, i_max;
+    Real	max_val, tmp;
 
     if ( ! x )
-	Meerror(E_NULL,"v_MeMemax");
+	error(E_NULL,"v_max");
     if ( x->dim <= 0 )
-	Meerror(E_SIZES,"v_MeMemax");
-    i_MeMemax = 0;
-    MeMemax_val = x->ve[0];
+	error(E_SIZES,"v_max");
+    i_max = 0;
+    max_val = x->ve[0];
     for ( i = 1; i < x->dim; i++ )
     {
 	tmp = x->ve[i];
-	if ( tmp > MeMemax_val )
+	if ( tmp > max_val )
 	{
-	    MeMemax_val = tmp;
-	    i_MeMemax = i;
+	    max_val = tmp;
+	    i_max = i;
 	}
     }
 
-    if ( MeMemax_idx != NULL )
-	*MeMemax_idx = i_MeMemax;
-    return MeMemax_val;
+    if ( max_idx != NULL )
+	*max_idx = i_max;
+    return max_val;
 }
 
 #define	MAX_STACK	60
@@ -527,7 +527,7 @@ VEC	*v_sort(VEC *x, PERM *order)
     int		stack[MAX_STACK], sp;
 
     if ( ! x )
-	Meerror(E_NULL,"v_sort");
+	error(E_NULL,"v_sort");
     if ( order != PNULL && order->size != x->dim )
 	order = px_resize(order, x->dim);
 
@@ -586,7 +586,7 @@ VEC	*v_sort(VEC *x, PERM *order)
 	    {   stack[sp++] = i+1;   stack[sp++] = r;   r = i-1;   }
 	}
 
-	/* recursion eliMemination */
+	/* recursion elimination */
 	if ( sp == 0 )
 	    break;
 	r = stack[--sp];
@@ -608,7 +608,7 @@ double	v_sum(const VEC *x)
     Real	sum;
 
     if ( ! x )
-	Meerror(E_NULL,"v_sum");
+	error(E_NULL,"v_sum");
 
     sum = 0.0;
     for ( i = 0; i < x->dim; i++ )
@@ -628,9 +628,9 @@ VEC	*v_conv(const VEC *x1, const VEC *x2, VEC *out)
     int		i;
 
     if ( ! x1 || ! x2 )
-	Meerror(E_NULL,"v_conv");
+	error(E_NULL,"v_conv");
     if ( x1 == out || x2 == out )
-	Meerror(E_INSITU,"v_conv");
+	error(E_INSITU,"v_conv");
     if ( x1->dim == 0 || x2->dim == 0 )
 	return out = v_resize(out,0);
 
@@ -654,9 +654,9 @@ VEC	*v_pconv(const VEC *x1, const VEC *x2, VEC *out)
     int		i;
 
     if ( ! x1 || ! x2 )
-	Meerror(E_NULL,"v_pconv");
+	error(E_NULL,"v_pconv");
     if ( x1 == out || x2 == out )
-	Meerror(E_INSITU,"v_pconv");
+	error(E_INSITU,"v_pconv");
     out = v_resize(out,x2->dim);
     if ( x2->dim == 0 )
 	return out;

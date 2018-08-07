@@ -46,7 +46,7 @@ double	_v_norm1(const VEC *x, const VEC *scale)
 	Real	s, sum;
 
 	if ( x == (VEC *)NULL )
-		Meerror(E_NULL,"_v_norm1");
+		error(E_NULL,"_v_norm1");
 	dim = x->dim;
 
 	sum = 0.0;
@@ -54,7 +54,7 @@ double	_v_norm1(const VEC *x, const VEC *scale)
 		for ( i = 0; i < dim; i++ )
 			sum += fabs(x->ve[i]);
 	else if ( scale->dim < dim )
-		Meerror(E_SIZES,"_v_norm1");
+		error(E_SIZES,"_v_norm1");
 	else
 		for ( i = 0; i < dim; i++ )
 		{	s = scale->ve[i];
@@ -64,21 +64,21 @@ double	_v_norm1(const VEC *x, const VEC *scale)
 	return sum;
 }
 
-/* Mesquare -- returns x^2 */
+/* square -- returns x^2 */
 #ifndef ANSI_C
-double	Mesquare(x)
+double	square(x)
 double	x;
 #else
-double	Mesquare(double x)
+double	square(double x)
 #endif
 {	return x*x;	}
 
-/* Mecube -- returns x^3 */
+/* cube -- returns x^3 */
 #ifndef ANSI_C
-double Mecube(x)
+double cube(x)
 double x;
 #else
-double Mecube(double x)
+double cube(double x)
 #endif
 {  return x*x*x;   }
 
@@ -94,26 +94,26 @@ double	_v_norm2(const VEC *x, const VEC *scale)
 	Real	s, sum;
 
 	if ( x == (VEC *)NULL )
-		Meerror(E_NULL,"_v_norm2");
+		error(E_NULL,"_v_norm2");
 	dim = x->dim;
 
 	sum = 0.0;
 	if ( scale == (VEC *)NULL )
 		for ( i = 0; i < dim; i++ )
-			sum += Mesquare(x->ve[i]);
+			sum += square(x->ve[i]);
 	else if ( scale->dim < dim )
-		Meerror(E_SIZES,"_v_norm2");
+		error(E_SIZES,"_v_norm2");
 	else
 		for ( i = 0; i < dim; i++ )
 		{	s = scale->ve[i];
-			sum += ( s== 0.0 ) ? Mesquare(x->ve[i]) :
-							Mesquare(x->ve[i]/s);
+			sum += ( s== 0.0 ) ? square(x->ve[i]) :
+							square(x->ve[i]/s);
 		}
 
 	return sqrt(sum);
 }
 
-#define	MeMemax(a,b)	((a) > (b) ? (a) : (b))
+#define	max(a,b)	((a) > (b) ? (a) : (b))
 
 /* _v_norm_inf -- computes (scaled) infinity-norm (supremum norm) of vectors */
 #ifndef ANSI_C
@@ -124,28 +124,28 @@ double	_v_norm_inf(const VEC *x, const VEC *scale)
 #endif
 {
 	int	i, dim;
-	Real	s, MeMemaxval, tmp;
+	Real	s, maxval, tmp;
 
 	if ( x == (VEC *)NULL )
-		Meerror(E_NULL,"_v_norm_inf");
+		error(E_NULL,"_v_norm_inf");
 	dim = x->dim;
 
-	MeMemaxval = 0.0;
+	maxval = 0.0;
 	if ( scale == (VEC *)NULL )
 		for ( i = 0; i < dim; i++ )
 		{	tmp = fabs(x->ve[i]);
-			MeMemaxval = MeMemax(MeMemaxval,tmp);
+			maxval = max(maxval,tmp);
 		}
 	else if ( scale->dim < dim )
-		Meerror(E_SIZES,"_v_norm_inf");
+		error(E_SIZES,"_v_norm_inf");
 	else
 		for ( i = 0; i < dim; i++ )
 		{	s = scale->ve[i];
 			tmp = ( s== 0.0 ) ? fabs(x->ve[i]) : fabs(x->ve[i]/s);
-			MeMemaxval = MeMemax(MeMemaxval,tmp);
+			maxval = max(maxval,tmp);
 		}
 
-	return MeMemaxval;
+	return maxval;
 }
 
 /* m_norm1 -- compute matrix 1-norm -- unscaled */
@@ -157,23 +157,23 @@ double	m_norm1(const MAT *A)
 #endif
 {
 	int	i, j, m, n;
-	Real	MeMemaxval, sum;
+	Real	maxval, sum;
 
 	if ( A == (MAT *)NULL )
-		Meerror(E_NULL,"m_norm1");
+		error(E_NULL,"m_norm1");
 
 	m = A->m;	n = A->n;
-	MeMemaxval = 0.0;
+	maxval = 0.0;
 
 	for ( j = 0; j < n; j++ )
 	{
 		sum = 0.0;
 		for ( i = 0; i < m; i ++ )
 			sum += fabs(A->me[i][j]);
-		MeMemaxval = MeMemax(MeMemaxval,sum);
+		maxval = max(maxval,sum);
 	}
 
-	return MeMemaxval;
+	return maxval;
 }
 
 /* m_norm_inf -- compute matrix infinity-norm -- unscaled */
@@ -185,23 +185,23 @@ double	m_norm_inf(const MAT *A)
 #endif
 {
 	int	i, j, m, n;
-	Real	MeMemaxval, sum;
+	Real	maxval, sum;
 
 	if ( A == (MAT *)NULL )
-		Meerror(E_NULL,"m_norm_inf");
+		error(E_NULL,"m_norm_inf");
 
 	m = A->m;	n = A->n;
-	MeMemaxval = 0.0;
+	maxval = 0.0;
 
 	for ( i = 0; i < m; i++ )
 	{
 		sum = 0.0;
 		for ( j = 0; j < n; j ++ )
 			sum += fabs(A->me[i][j]);
-		MeMemaxval = MeMemax(MeMemaxval,sum);
+		maxval = max(maxval,sum);
 	}
 
-	return MeMemaxval;
+	return maxval;
 }
 
 /* m_norm_frob -- compute matrix frobenius-norm -- unscaled */
@@ -216,14 +216,14 @@ double	m_norm_frob(const MAT *A)
 	Real	sum;
 
 	if ( A == (MAT *)NULL )
-		Meerror(E_NULL,"m_norm_frob");
+		error(E_NULL,"m_norm_frob");
 
 	m = A->m;	n = A->n;
 	sum = 0.0;
 
 	for ( i = 0; i < m; i++ )
 		for ( j = 0; j < n; j ++ )
-			sum += Mesquare(A->me[i][j]);
+			sum += square(A->me[i][j]);
 
 	return sqrt(sum);
 }

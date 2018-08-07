@@ -73,34 +73,34 @@ int	skipjunk(FILE *fp)
      return 0;
 }
 
-/* m_fme_input -- me_input matrix
-	-- me_input from a terMeminal is handled interactively
-	-- batch/file me_input has the same format as produced by m_foutput
+/* m_finput -- input matrix
+	-- input from a terminal is handled interactively
+	-- batch/file input has the same format as produced by m_foutput
 	except that whitespace and comments ("#..\n") are skipped
 	-- returns a, which is created if a == NULL on entry */
 #ifndef ANSI_C
-MAT     *m_fme_input(fp,a)
+MAT     *m_finput(fp,a)
 FILE    *fp;
 MAT     *a;
 #else
-MAT	*m_fme_input(FILE *fp, MAT *a)
+MAT	*m_finput(FILE *fp, MAT *a)
 #endif
 {
-     MAT        *im_fme_input(),*bm_fme_input();
+     MAT        *im_finput(),*bm_finput();
      
      if ( isatty(fileno(fp)) )
-	  return im_fme_input(fp,a);
+	  return im_finput(fp,a);
      else
-	  return bm_fme_input(fp,a);
+	  return bm_finput(fp,a);
 }
 
-/* im_fme_input -- interactive me_input of matrix */
+/* im_finput -- interactive input of matrix */
 #ifndef ANSI_C
-MAT     *im_fme_input(fp,mat)
+MAT     *im_finput(fp,mat)
 FILE    *fp;
 MAT     *mat;
 #else
-MAT     *im_fme_input(FILE *fp,MAT *mat)
+MAT     *im_finput(FILE *fp,MAT *mat)
 #endif
 {
      char       c;
@@ -117,12 +117,12 @@ MAT     *im_fme_input(FILE *fp,MAT *mat)
 	  {
 	       fprintf(stderr,"Matrix: rows cols:");
 	       if ( fgets(line,MAXLINE,fp)==NULL )
-		    Meerror(E_INPUT,"im_fme_input");
+		    error(E_INPUT,"im_finput");
 	  } while ( sscanf(line,"%u%u",&m,&n)<2 || m>MAXDIM || n>MAXDIM );
 	  mat = m_get(m,n);
      }
      
-     /* me_input elements */
+     /* input elements */
      for ( i=0; i<m; i++ )
      {
      redo:
@@ -136,7 +136,7 @@ MAT     *im_fme_input(FILE *fp,MAT *mat)
 			 fprintf(stderr,"old %14.9g new: ",
 				 mat->me[i][j]);
 		    if ( fgets(line,MAXLINE,fp)==NULL )
-			 Meerror(E_INPUT,"im_fme_input");
+			 error(E_INPUT,"im_finput");
 		    if ( (*line == 'b' || *line == 'B') && j > 0 )
 		    {   j--;    dynamic = FALSE;        goto redo2;     }
 		    if ( (*line == 'f' || *line == 'F') && j < n-1 )
@@ -162,13 +162,13 @@ MAT     *im_fme_input(FILE *fp,MAT *mat)
      return (mat);
 }
 
-/* bm_fme_input -- batch-file me_input of matrix */
+/* bm_finput -- batch-file input of matrix */
 #ifndef ANSI_C
-MAT     *bm_fme_input(fp,mat)
+MAT     *bm_finput(fp,mat)
 FILE    *fp;
 MAT     *mat;
 #else
-MAT     *bm_fme_input(FILE *fp,MAT *mat)
+MAT     *bm_finput(FILE *fp,MAT *mat)
 #endif
 {
      unsigned int      i,j,m,n,dummy;
@@ -178,7 +178,7 @@ MAT     *bm_fme_input(FILE *fp,MAT *mat)
      skipjunk(fp);
      if ((io_code=fscanf(fp," Matrix: %u by %u",&m,&n)) < 2 ||
 	 m>MAXDIM || n>MAXDIM )
-	  Meerror(io_code==EOF ? E_EOF : E_FORMAT,"bm_fme_input");
+	  error(io_code==EOF ? E_EOF : E_FORMAT,"bm_finput");
      
      /* allocate memory if necessary */
      if ( mat==(MAT *)NULL )
@@ -189,7 +189,7 @@ MAT     *bm_fme_input(FILE *fp,MAT *mat)
      {
 	  skipjunk(fp);
 	  if ( fscanf(fp," row %u:",&dummy) < 1 )
-	       Meerror(E_FORMAT,"bm_fme_input");
+	       error(E_FORMAT,"bm_finput");
 	  for ( j=0; j<n; j++ )
 #if REAL == DOUBLE
 	       if ((io_code=fscanf(fp,"%lf",&mat->me[i][j])) < 1 )
@@ -198,41 +198,41 @@ MAT     *bm_fme_input(FILE *fp,MAT *mat)
 #elif REAL == FLOAT
          if ((io_code=fscanf(fp,"%Lf",&mat->me[i][j])) < 1 )
 #endif
-		    Meerror(io_code==EOF ? 7 : 6,"bm_fme_input");
+		    error(io_code==EOF ? 7 : 6,"bm_finput");
      }
      
      return (mat);
 }
 
-/* px_fme_input -- me_inputs permutation from file/stream fp
-	-- me_input from a terMeminal is handled interactively
-	-- batch/file me_input has the same format as produced by px_foutput
+/* px_finput -- inputs permutation from file/stream fp
+	-- input from a terminal is handled interactively
+	-- batch/file input has the same format as produced by px_foutput
 	except that whitespace and comments ("#..\n") are skipped
 	-- returns px, which is created if px == NULL on entry */
 #ifndef ANSI_C
-PERM    *px_fme_input(fp,px)
+PERM    *px_finput(fp,px)
 FILE    *fp;
 PERM    *px;
 #else
-PERM    *px_fme_input(FILE *fp,PERM *px)
+PERM    *px_finput(FILE *fp,PERM *px)
 #endif
 {
-     PERM       *ipx_fme_input(),*bpx_fme_input();
+     PERM       *ipx_finput(),*bpx_finput();
      
      if ( isatty(fileno(fp)) )
-	  return ipx_fme_input(fp,px);
+	  return ipx_finput(fp,px);
      else
-	  return bpx_fme_input(fp,px);
+	  return bpx_finput(fp,px);
 }
 
 
-/* ipx_fme_input -- interactive me_input of permutation */
+/* ipx_finput -- interactive input of permutation */
 #ifndef ANSI_C
-PERM    *ipx_fme_input(fp,px)
+PERM    *ipx_finput(fp,px)
 FILE    *fp;
 PERM    *px;
 #else
-PERM    *ipx_fme_input(FILE *fp,PERM *px)
+PERM    *ipx_finput(FILE *fp,PERM *px)
 #endif
 {
      unsigned int      i,j,size,dynamic; /* dynamic set if memory allocated here */
@@ -248,7 +248,7 @@ PERM    *ipx_fme_input(FILE *fp,PERM *px)
 	  {
 	       fprintf(stderr,"Permutation: size: ");
 	       if ( fgets(line,MAXLINE,fp)==NULL )
-		    Meerror(E_INPUT,"ipx_fme_input");
+		    error(E_INPUT,"ipx_finput");
 	  } while ( sscanf(line,"%u",&size)<1 || size>MAXDIM );
 	  px = px_get(size);
      }
@@ -257,7 +257,7 @@ PERM    *ipx_fme_input(FILE *fp,PERM *px)
      i = 0;
      while ( i<size )
      {
-	  /* me_input entry */
+	  /* input entry */
 	  do
 	  {
 	  redo:
@@ -266,7 +266,7 @@ PERM    *ipx_fme_input(FILE *fp,PERM *px)
 		    fprintf(stderr,"old: %u->%u new: ",
 			    i,px->pe[i]);
 	       if ( fgets(line,MAXLINE,fp)==NULL )
-		    Meerror(E_INPUT,"ipx_fme_input");
+		    error(E_INPUT,"ipx_finput");
 	       if ( (*line == 'b' || *line == 'B') && i > 0 )
 	       {        i--;    dynamic = FALSE;        goto redo;      }
 	  } while ( *line=='\0' || sscanf(line,"%u",&entry) < 1 );
@@ -284,13 +284,13 @@ PERM    *ipx_fme_input(FILE *fp,PERM *px)
      return (px);
 }
 
-/* bpx_fme_input -- batch-file me_input of permutation */
+/* bpx_finput -- batch-file input of permutation */
 #ifndef ANSI_C
-PERM    *bpx_fme_input(fp,px)
+PERM    *bpx_finput(fp,px)
 FILE    *fp;
 PERM    *px;
 #else
-PERM    *bpx_fme_input(FILE *fp,PERM *px)
+PERM    *bpx_finput(FILE *fp,PERM *px)
 #endif
 {
      unsigned int      i,j,size,entry,ok;
@@ -300,7 +300,7 @@ PERM    *bpx_fme_input(FILE *fp,PERM *px)
      skipjunk(fp);
      if ((io_code=fscanf(fp," Permutation: size:%u",&size)) < 1 ||
 	 size>MAXDIM )
-	  Meerror(io_code==EOF ? 7 : 6,"bpx_fme_input");
+	  error(io_code==EOF ? 7 : 6,"bpx_finput");
      
      /* allocate memory if necessary */
      if ( px==(PERM *)NULL || px->size<size )
@@ -311,9 +311,9 @@ PERM    *bpx_fme_input(FILE *fp,PERM *px)
      i = 0;
      while ( i<size )
      {
-	  /* me_input entry */
+	  /* input entry */
 	  if ((io_code=fscanf(fp,"%*u -> %u",&entry)) < 1 )
-	       Meerror(io_code==EOF ? 7 : 6,"bpx_fme_input");
+	       error(io_code==EOF ? 7 : 6,"bpx_finput");
 	  /* check entry */
 	  ok = (entry < size);
 	  for ( j=0; j<i; j++ )
@@ -324,23 +324,23 @@ PERM    *bpx_fme_input(FILE *fp,PERM *px)
 	       i++;
 	  }
 	  else
-	       Meerror(E_BOUNDS,"bpx_fme_input");
+	       error(E_BOUNDS,"bpx_finput");
      }
      
      return (px);
 }
 
-/* v_fme_input -- me_inputs vector from file/stream fp
-	-- me_input from a terMeminal is handled interactively
-	-- batch/file me_input has the same format as produced by px_foutput
+/* v_finput -- inputs vector from file/stream fp
+	-- input from a terminal is handled interactively
+	-- batch/file input has the same format as produced by px_foutput
 	except that whitespace and comments ("#..\n") are skipped
 	-- returns x, which is created if x == NULL on entry */
 #ifndef ANSI_C
-VEC     *v_fme_input(fp,x)
+VEC     *v_finput(fp,x)
 FILE    *fp;
 VEC     *x;
 #else
-VEC     *v_fme_input(FILE *fp,VEC *x)
+VEC     *v_finput(FILE *fp,VEC *x)
 #endif
 {
      VEC        *ifin_vec(),*bfin_vec();
@@ -351,7 +351,7 @@ VEC     *v_fme_input(FILE *fp,VEC *x)
 	  return bfin_vec(fp,x);
 }
 
-/* ifin_vec -- interactive me_input of vector */
+/* ifin_vec -- interactive input of vector */
 #ifndef ANSI_C
 VEC     *ifin_vec(fp,vec)
 FILE    *fp;
@@ -372,12 +372,12 @@ VEC     *ifin_vec(FILE *fp,VEC *vec)
 	  {
 	       fprintf(stderr,"Vector: dim: ");
 	       if ( fgets(line,MAXLINE,fp)==NULL )
-		    Meerror(E_INPUT,"ifin_vec");
+		    error(E_INPUT,"ifin_vec");
 	  } while ( sscanf(line,"%u",&dim)<1 || dim>MAXDIM );
 	  vec = v_get(dim);
      }
      
-     /* me_input elements */
+     /* input elements */
      for ( i=0; i<dim; i++ )
 	  do
 	  {
@@ -386,7 +386,7 @@ VEC     *ifin_vec(FILE *fp,VEC *vec)
 	       if ( !dynamic )
 		    fprintf(stderr,"old %14.9g new: ",vec->ve[i]);
 	       if ( fgets(line,MAXLINE,fp)==NULL )
-		    Meerror(E_INPUT,"ifin_vec");
+		    error(E_INPUT,"ifin_vec");
 	       if ( (*line == 'b' || *line == 'B') && i > 0 )
 	       {        i--;    dynamic = FALSE;        goto redo;         }
 	       if ( (*line == 'f' || *line == 'F') && i < dim-1 )
@@ -402,7 +402,7 @@ VEC     *ifin_vec(FILE *fp,VEC *vec)
      return (vec);
 }
 
-/* bfin_vec -- batch-file me_input of vector */
+/* bfin_vec -- batch-file input of vector */
 #ifndef ANSI_C
 VEC     *bfin_vec(fp,vec)
 FILE    *fp;
@@ -418,7 +418,7 @@ VEC     *bfin_vec(FILE *fp,VEC *vec)
      skipjunk(fp);
      if ((io_code=fscanf(fp," Vector: dim:%u",&dim)) < 1 ||
 	 dim>MAXDIM )
-	  Meerror(io_code==EOF ? 7 : 6,"bfin_vec");
+	  error(io_code==EOF ? 7 : 6,"bfin_vec");
      
      /* allocate memory if necessary */
      if ( vec==(VEC *)NULL )
@@ -434,7 +434,7 @@ VEC     *bfin_vec(FILE *fp,VEC *vec)
  #elif REAL == LONGDOUBLE
     if ((io_code=fscanf(fp,"%Lf",&vec->ve[i])) < 1 )
 #endif
-	       Meerror(io_code==EOF ? 7 : 6,"bfin_vec");
+	       error(io_code==EOF ? 7 : 6,"bfin_vec");
      
      return (vec);
 }
@@ -552,8 +552,8 @@ void	m_dump(FILE *fp, const MAT *a)
      if ( a == (MAT *)NULL )
      {  fprintf(fp,"Matrix: NULL\n");   return;         }
      fprintf(fp,"Matrix: %d by %d @ 0x%lx\n",a->m,a->n,(long)a);
-     fprintf(fp,"\tMeMemax_m = %d, MeMemax_n = %d, MeMemax_size = %d\n",
-	     a->MeMemax_m, a->MeMemax_n, a->MeMemax_size);
+     fprintf(fp,"\tmax_m = %d, max_n = %d, max_size = %d\n",
+	     a->max_m, a->max_n, a->max_size);
      if ( a->me == (Real **)NULL )
      {  fprintf(fp,"NULL\n");           return;         }
      fprintf(fp,"a->me @ 0x%lx\n",(long)(a->me));
@@ -651,34 +651,34 @@ void	iv_foutput(FILE *fp, const IVEC *iv)
 }
 
 
-/* iv_fme_input -- me_input integer vector from stream fp
-	-- me_input from a terMeminal is handled interactively
-	-- batch/file me_input has the same format as produced by
+/* iv_finput -- input integer vector from stream fp
+	-- input from a terminal is handled interactively
+	-- batch/file input has the same format as produced by
 	iv_foutput except that whitespace and comments ("#...\n") 
 	are skipped */
 #ifndef ANSI_C
-IVEC	*iv_fme_input(fp,x)
+IVEC	*iv_finput(fp,x)
 FILE	*fp;
 IVEC	*x;
 #else
-IVEC	*iv_fme_input(FILE *fp, IVEC *x)
+IVEC	*iv_finput(FILE *fp, IVEC *x)
 #endif
 {
-   IVEC	*iiv_fme_input(),*biv_fme_input();
+   IVEC	*iiv_finput(),*biv_finput();
    
    if ( isatty(fileno(fp)) )
-     return iiv_fme_input(fp,x);
+     return iiv_finput(fp,x);
    else
-     return biv_fme_input(fp,x);
+     return biv_finput(fp,x);
 }
 
-/* iiv_fme_input -- interactive me_input of IVEC iv */
+/* iiv_finput -- interactive input of IVEC iv */
 #ifndef ANSI_C
-IVEC	*iiv_fme_input(fp,iv)
+IVEC	*iiv_finput(fp,iv)
 FILE	*fp;
 IVEC	*iv;
 #else
-IVEC	*iiv_fme_input(FILE *fp, IVEC *iv)
+IVEC	*iiv_finput(FILE *fp, IVEC *iv)
 #endif
 {
    unsigned int	i,dim,dynamic;	/* dynamic set if memory allocated here */
@@ -693,12 +693,12 @@ IVEC	*iiv_fme_input(FILE *fp, IVEC *iv)
       {
 	 fprintf(stderr,"IntVector: dim: ");
 	 if ( fgets(line,MAXLINE,fp)==NULL )
-	   Meerror(E_INPUT,"iiv_fme_input");
+	   error(E_INPUT,"iiv_finput");
       } while ( sscanf(line,"%u",&dim)<1 || dim>MAXDIM );
       iv = iv_get(dim);
    }
    
-   /* me_input elements */
+   /* input elements */
    for ( i=0; i<dim; i++ )
      do
      {
@@ -707,7 +707,7 @@ IVEC	*iiv_fme_input(FILE *fp, IVEC *iv)
 	if ( !dynamic )
 	  fprintf(stderr,"old: %-9d  new: ",iv->ive[i]);
 	if ( fgets(line,MAXLINE,fp)==NULL )
-	  Meerror(E_INPUT,"iiv_fme_input");
+	  error(E_INPUT,"iiv_finput");
 	if ( (*line == 'b' || *line == 'B') && i > 0 )
 	{	i--;	dynamic = FALSE;	goto redo;	   }
 	if ( (*line == 'f' || *line == 'F') && i < dim-1 )
@@ -717,13 +717,13 @@ IVEC	*iiv_fme_input(FILE *fp, IVEC *iv)
    return (iv);
 }
 
-/* biv_fme_input -- batch-file me_input of IVEC iv */
+/* biv_finput -- batch-file input of IVEC iv */
 #ifndef ANSI_C
-IVEC	*biv_fme_input(fp,iv)
+IVEC	*biv_finput(fp,iv)
 FILE	*fp;
 IVEC	*iv;
 #else
-IVEC	*biv_fme_input(FILE *fp, IVEC *iv)
+IVEC	*biv_finput(FILE *fp, IVEC *iv)
 #endif
 {
    unsigned int	i,dim;
@@ -733,7 +733,7 @@ IVEC	*biv_fme_input(FILE *fp, IVEC *iv)
    skipjunk(fp);
    if ((io_code=fscanf(fp," IntVector: dim:%u",&dim)) < 1 ||
        dim>MAXDIM )
-     Meerror(io_code==EOF ? 7 : 6,"biv_fme_input");
+     error(io_code==EOF ? 7 : 6,"biv_finput");
    
    /* allocate memory if necessary */
    if ( iv==(IVEC *)NULL || iv->dim<dim )
@@ -743,7 +743,7 @@ IVEC	*biv_fme_input(FILE *fp, IVEC *iv)
    skipjunk(fp);
    for ( i=0; i<dim; i++ )
      if ((io_code=fscanf(fp,"%d",&iv->ive[i])) < 1 )
-       Meerror(io_code==EOF ? 7 : 6,"biv_fme_input");
+       error(io_code==EOF ? 7 : 6,"biv_finput");
    
    return (iv);
 }
@@ -765,9 +765,9 @@ void	iv_dump(FILE *fp, const IVEC *iv)
       fprintf(fp,"**** NULL ****\n");
       return;
    }
-   fprintf(fp,"dim: %d, MeMemax_dim: %d\n",iv->dim,iv->MeMemax_dim);
+   fprintf(fp,"dim: %d, max_dim: %d\n",iv->dim,iv->max_dim);
    fprintf(fp,"ive @ 0x%lx\n",(long)(iv->ive));
-   for ( i = 0; i < iv->MeMemax_dim; i++ )
+   for ( i = 0; i < iv->max_dim; i++ )
    {
       if ( (i+1) % 8 )
 	fprintf(fp,"%8d ",iv->ive[i]);

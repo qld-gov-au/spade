@@ -1,4 +1,8 @@
-﻿#ifndef SPADE_COMMON_H
+// Copyright 2016 State of Queensland
+// This file is part of SPADE
+// See spade.c, COPYING, COPYING.LESSER
+
+#ifndef SPADE_COMMON_H
 #define SPADE_COMMON_H
 
 #include "meschach/matrix.h"
@@ -26,6 +30,9 @@
 // Whether to run grad_* methods concurrently
 #define PTH 1
 
+#define A1 8.588e-5
+#define A2 0.00144
+
 typedef struct {
   Real stp;
   Real ftol;
@@ -39,23 +46,14 @@ typedef struct {
 typedef struct {
   int nK;          // number knots
   int B;
-  VEC *knots_e;      // knots effort
-  VEC *knots_c;      // knots catch
+  VEC *knots_e;    // knots effort
+  VEC *knots_c;    // knots catch
   VEC *splcoef_e;    // knots effort
   VEC *splcoef_c;    // knots catch
   int Nlf;
   VEC *ln;
   VEC *tl;
 } NewData;
-
-typedef struct {
-  int I;
-  int J;
-  Real *cat;
-  Real *eff;
-  Real **p;
-  Real *Qp;
-} Da;
 
 typedef struct {
   VEC *eff;
@@ -69,13 +67,6 @@ typedef struct {
   int Y; // Number of years of input data
   
 } Data;
-
-typedef struct {
-  Da *d;
-  Real k;
-  int N;
-  Parameters *parameters;
-} Grad_Args_2;
 
 typedef struct {
   Data *d;
@@ -100,40 +91,27 @@ typedef struct {
   Parameters *parameters;
 } Grad_Args;
 
+Real iota1;
+Real iota2;
+Real phi;
+Real eta1;
+Real eta2;
 
-extern Real iota1;
-extern Real iota2;
-extern Real phi;
-extern Real eta1;
-extern Real eta2;
-
-extern Real h;
-extern int J;
-extern int interactive_mode_requested;
-extern Real k;
-
-extern Da d;
-
-extern int * idx;
-
-extern Real A1; 
-extern Real A2;
+Real h;
+int J;
+int interactive_mode_requested;
 
 void request_interactive_mode(int a);
 
 void spade_v_output(VEC* vec);
 
-void data_read_ce(const char * data_file_name, Data * data, int * N, Real k);
+void data_read_ce(char * data_file_name, Data * data, int * N, Real k);
 
-void data_read_lf(const char * data_file_name, Data * data, int N, Real k, int minfish);
+void data_read_lf(char * data_file_name, Data * data, int N, Real k, int minfish);
 
-void data_read(const char * data_file_name);
+void data_read_ce_new(char * data_file_name, NewData * newdata);
 
-void data_read_fast(const char * data_file_name);
+void data_read_lf_new(char * data_file_name, NewData * newdata);
 
-void data_read_ce_new(const char * data_file_name, NewData * newdata);
-
-void data_read_lf_new(const char * data_file_name, NewData * newdata);
-
-void optim_control_read(const char * optim_file_name, OptimControl * optim);
+void optim_control_read(char * optim_file_name, OptimControl * optim);
 #endif

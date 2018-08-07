@@ -47,16 +47,16 @@ typedef struct row_elt	{
 		} row_elt;
 
 typedef struct SPROW {
-	int	len, MeMemaxlen, diag;
-	row_elt	*elt;		/* elt[MeMemaxlen] */
+	int	len, maxlen, diag;
+	row_elt	*elt;		/* elt[maxlen] */
 		} SPROW;
 
 typedef struct SPMAT {
-	int	m, n, MeMemax_m, MeMemax_n;
+	int	m, n, max_m, max_n;
 	char	flag_col, flag_diag;
-	SPROW	*row;		/* row[MeMemax_m] */
-	int	*start_row;	/* start_row[MeMemax_n] */
-	int	*start_idx;	/* start_idx[MeMemax_n] */
+	SPROW	*row;		/* row[max_m] */
+	int	*start_row;	/* start_row[max_n] */
+	int	*start_idx;	/* start_idx[max_n] */
 	      } SPMAT;
 
 /* Note that the first allocated entry in column j is start_row[j];
@@ -66,8 +66,8 @@ typedef struct SPMAT {
 typedef struct pair { int pos;	Real val; } pair;
 
 typedef struct SPVEC {
-	int	dim, MeMemax_dim;
-	pair	*elt;		/* elt[MeMemax_dim] */
+	int	dim, max_dim;
+	pair	*elt;		/* elt[max_dim] */
 	       } SPVEC;
 
 #define	SMNULL	((SPMAT*)NULL)
@@ -107,7 +107,7 @@ extern	SPMAT	*sp_diag_access();
 extern  int     chk_col_access();
 
 /* Input/output operations */
-extern	SPMAT	*sp_fme_input();
+extern	SPMAT	*sp_finput();
 extern	void sp_foutput(), sp_foutput2();
 
 /* algebraic operations */
@@ -142,7 +142,7 @@ SPMAT	*sp_diag_access(SPMAT *);
 int     chk_col_access(const SPMAT *);
 
 /* Input/output operations */
-SPMAT	*sp_fme_input(FILE *);
+SPMAT	*sp_finput(FILE *);
 void	sp_foutput(FILE *, const SPMAT *);
 
 /* algebraic operations */
@@ -175,7 +175,7 @@ MAT	*sp_m2dense(const SPMAT *A,MAT *out);
 
 /* MACROS */
 
-#define	sp_me_input()	sp_fme_input(stdin)
+#define	sp_input()	sp_finput(stdin)
 #define	sp_output(A)	sp_foutput(stdout,(A))
 #define	sp_output2(A)	sp_foutput2(stdout,(A))
 #define	row_mltadd(r1,r2,alpha,out)	sprow_mltadd(r1,r2,alpha,0,out)
@@ -184,7 +184,7 @@ MAT	*sp_m2dense(const SPMAT *A,MAT *out);
 #define SP_FREE(A)    ( sp_free((A)),  (A)=(SPMAT *)NULL) 
 
 /* utility for index computations -- ensures index returned >= 0 */
-#define	fixindex(idx)	((idx) == -1 ? (Meerror(E_BOUNDS,"fixindex"),0) : \
+#define	fixindex(idx)	((idx) == -1 ? (error(E_BOUNDS,"fixindex"),0) : \
 			 (idx) < 0 ? -((idx)+2) : (idx))
 
 
@@ -205,7 +205,7 @@ MAT	*sp_m2dense(const SPMAT *A,MAT *out);
 	  if ( ! (A)->flag_col )	sp_col_access((A));		\
 	  col_num = (col);						\
 	  if ( col_num < 0 || col_num >= A->n )				\
-	      Meerror(E_BOUNDS,"loop_cols");				\
+	      error(E_BOUNDS,"loop_cols");				\
           _r_num = (A)->start_row[_c]; _r_idx = (A)->start_idx[_c];	\
 	  while ( _r_num >= 0 )  {					\
 	      _r = &((A)->row[_r_num]);					\

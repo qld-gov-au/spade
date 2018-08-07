@@ -36,7 +36,7 @@
 #include	"iter.h"
 #include	<math.h>
 
-#define	errmesg(mesg)	printf("Error: %s Meerror: line %d\n",mesg,__LINE__)
+#define	errmesg(mesg)	printf("Error: %s error: line %d\n",mesg,__LINE__)
 #define notice(mesg)	printf("# Testing %s...\n",mesg);
   
   /* for iterative methods */
@@ -109,7 +109,7 @@ SPMAT *A;
    int i,j,k;
    Real val;
    
-   B = sp_get(A->m,A->n,A->row[0].MeMemaxlen);
+   B = sp_get(A->m,A->n,A->row[0].maxlen);
    for (i=0; i < A->m; i++) {
       row = &(A->row[i]);
       for (j = 0; j < row->len; j++) {
@@ -138,9 +138,9 @@ VEC	*d, *x, *out;
     int		i;
 
     if ( ! d || ! x )
-	Meerror(E_NULL,"Dv_mlt");
+	error(E_NULL,"Dv_mlt");
     if ( d->dim != x->dim )
-	Meerror(E_SIZES,"Dv_mlt");
+	error(E_SIZES,"Dv_mlt");
     out = v_resize(out,x->dim);
 
     for ( i = 0; i < x->dim; i++ )
@@ -455,8 +455,8 @@ char	*argv[];
    /* check the equality:
       Q*A*Q^T = H; */
 
-   vt.dim = vt.MeMemax_dim = x->dim;
-   vt1.dim = vt1.MeMemax_dim = x->dim;
+   vt.dim = vt.max_dim = x->dim;
+   vt1.dim = vt1.max_dim = x->dim;
    for (j=0; j < kk; j++) {
       vt.ve = Q->me[j];
       vt1.ve = Q1->me[j];
@@ -487,8 +487,8 @@ char	*argv[];
    /* check the equality:
       Q*A*Q^T = H; */
 
-   vt.dim = vt.MeMemax_dim = x->dim;
-   vt1.dim = vt1.MeMemax_dim = x->dim;
+   vt.dim = vt.max_dim = x->dim;
+   vt1.dim = vt1.max_dim = x->dim;
    for (j=0; j < kk; j++) {
       vt.ve = Q->me[j];
       vt1.ve = Q1->me[j];
@@ -516,8 +516,8 @@ char	*argv[];
    /* check the equality:
       Q*A*Q^T = H; */
 
-   vt.dim = vt.MeMemax_dim = x->dim;
-   vt1.dim = vt1.MeMemax_dim = x->dim;
+   vt.dim = vt.max_dim = x->dim;
+   vt1.dim = vt1.max_dim = x->dim;
    for (j=0; j < kk; j++) {
       vt.ve = Q->me[j];
       vt1.ve = Q1->me[j];
@@ -560,7 +560,7 @@ char	*argv[];
       Q*A*Q^T = H; */
 
    vt.dim = vt1.dim = Q->n;
-   vt.MeMemax_dim = vt1.MeMemax_dim = Q->MeMemax_n;
+   vt.max_dim = vt1.max_dim = Q->max_n;
    Q1 = m_resize(Q1,Q->m,Q->n);
    for (j=0; j < Q->m; j++) {
       vt.ve = Q->me[j];
@@ -601,7 +601,7 @@ char	*argv[];
       Q*A*Q^T = H; */
 
    vt.dim = vt1.dim = Q->n;
-   vt.MeMemax_dim = vt1.MeMemax_dim = Q->MeMemax_n;
+   vt.max_dim = vt1.max_dim = Q->max_n;
    Q1 = m_resize(Q1,Q->m,Q->n);
    for (j=0; j < Q->m; j++) {
       vt.ve = Q->me[j];

@@ -44,9 +44,9 @@ MAT	*m_add(const MAT *mat1, const MAT *mat2, MAT *out)
 	unsigned int	m,n,i;
 
 	if ( mat1==(MAT *)NULL || mat2==(MAT *)NULL )
-		Meerror(E_NULL,"m_add");
+		error(E_NULL,"m_add");
 	if ( mat1->m != mat2->m || mat1->n != mat2->n )
-		Meerror(E_SIZES,"m_add");
+		error(E_SIZES,"m_add");
 	if ( out==(MAT *)NULL || out->m != mat1->m || out->n != mat1->n )
 		out = m_resize(out,mat1->m,mat1->n);
 	m = mat1->m;	n = mat1->n;
@@ -73,9 +73,9 @@ MAT	*m_sub(const MAT *mat1, const MAT *mat2, MAT *out)
 	unsigned int	m,n,i;
 
 	if ( mat1==(MAT *)NULL || mat2==(MAT *)NULL )
-		Meerror(E_NULL,"m_sub");
+		error(E_NULL,"m_sub");
 	if ( mat1->m != mat2->m || mat1->n != mat2->n )
-		Meerror(E_SIZES,"m_sub");
+		error(E_SIZES,"m_sub");
 	if ( out==(MAT *)NULL || out->m != mat1->m || out->n != mat1->n )
 		out = m_resize(out,mat1->m,mat1->n);
 	m = mat1->m;	n = mat1->n;
@@ -103,11 +103,11 @@ MAT	*m_mlt(const MAT *A, const MAT *B, MAT *OUT)
 	Real	**A_v, **B_v /*, *B_row, *OUT_row, sum, tmp */;
 
 	if ( A==(MAT *)NULL || B==(MAT *)NULL )
-		Meerror(E_NULL,"m_mlt");
+		error(E_NULL,"m_mlt");
 	if ( A->n != B->m )
-		Meerror(E_SIZES,"m_mlt");
+		error(E_SIZES,"m_mlt");
 	if ( A == OUT || B == OUT )
-		Meerror(E_INSITU,"m_mlt");
+		error(E_INSITU,"m_mlt");
 	m = A->m;	n = A->n;	p = B->n;
 	A_v = A->me;		B_v = B->me;
 
@@ -153,11 +153,11 @@ MAT	*mmtr_mlt(const MAT *A, const MAT *B, MAT *OUT)
 	/* Real	*A_row, *B_row, sum; */
 
 	if ( ! A || ! B )
-		Meerror(E_NULL,"mmtr_mlt");
+		error(E_NULL,"mmtr_mlt");
 	if ( A == OUT || B == OUT )
-		Meerror(E_INSITU,"mmtr_mlt");
+		error(E_INSITU,"mmtr_mlt");
 	if ( A->n != B->n )
-		Meerror(E_SIZES,"mmtr_mlt");
+		error(E_SIZES,"mmtr_mlt");
 	if ( ! OUT || OUT->m != A->m || OUT->n != B->m )
 		OUT = m_resize(OUT,A->m,B->m);
 
@@ -192,11 +192,11 @@ MAT	*mtrm_mlt(const MAT *A, const MAT *B, MAT *OUT)
 	/* Real	*B_row, *OUT_row, multiplier; */
 
 	if ( ! A || ! B )
-		Meerror(E_NULL,"mmtr_mlt");
+		error(E_NULL,"mmtr_mlt");
 	if ( A == OUT || B == OUT )
-		Meerror(E_INSITU,"mtrm_mlt");
+		error(E_INSITU,"mtrm_mlt");
 	if ( A->m != B->m )
-		Meerror(E_SIZES,"mmtr_mlt");
+		error(E_SIZES,"mmtr_mlt");
 	if ( ! OUT || OUT->m != A->n || OUT->n != B->n )
 		OUT = m_resize(OUT,A->n,B->n);
 
@@ -234,11 +234,11 @@ VEC	*mv_mlt(const MAT *A, const VEC *b, VEC *out)
 	/* register Real	sum; */
 
 	if ( A==(MAT *)NULL || b==(VEC *)NULL )
-		Meerror(E_NULL,"mv_mlt");
+		error(E_NULL,"mv_mlt");
 	if ( A->n != b->dim )
-		Meerror(E_SIZES,"mv_mlt");
+		error(E_SIZES,"mv_mlt");
 	if ( b == out )
-		Meerror(E_INSITU,"mv_mlt");
+		error(E_INSITU,"mv_mlt");
 	if ( out == (VEC *)NULL || out->dim != A->m )
 		out = v_resize(out,A->m);
 
@@ -272,7 +272,7 @@ MAT	*sm_mlt(double scalar, const MAT *matrix, MAT *out)
 	unsigned int	m,n,i;
 
 	if ( matrix==(MAT *)NULL )
-		Meerror(E_NULL,"sm_mlt");
+		error(E_NULL,"sm_mlt");
 	if ( out==(MAT *)NULL || out->m != matrix->m || out->n != matrix->n )
 		out = m_resize(out,matrix->m,matrix->n);
 	m = matrix->m;	n = matrix->n;
@@ -299,11 +299,11 @@ VEC	*vm_mlt(const MAT *A, const VEC *b, VEC *out)
 	/* Real	sum,**A_v,*b_v; */
 
 	if ( A==(MAT *)NULL || b==(VEC *)NULL )
-		Meerror(E_NULL,"vm_mlt");
+		error(E_NULL,"vm_mlt");
 	if ( A->m != b->dim )
-		Meerror(E_SIZES,"vm_mlt");
+		error(E_SIZES,"vm_mlt");
 	if ( b == out )
-		Meerror(E_INSITU,"vm_mlt");
+		error(E_INSITU,"vm_mlt");
 	if ( out == (VEC *)NULL || out->dim != A->n )
 		out = v_resize(out,A->n);
 
@@ -340,9 +340,9 @@ MAT	*m_transp(const MAT *in, MAT *out)
 	Real	tmp;
 
 	if ( in == (MAT *)NULL )
-		Meerror(E_NULL,"m_transp");
+		error(E_NULL,"m_transp");
 	if ( in == out && in->n != in->m )
-		Meerror(E_INSITU2,"m_transp");
+		error(E_INSITU2,"m_transp");
 	in_situ = ( in == out );
 	if ( out == (MAT *)NULL || out->m != in->n || out->n != in->m )
 		out = m_resize(out,in->n,in->m);
@@ -375,11 +375,11 @@ MAT	*swap_rows(MAT *A, int i, int j, int lo, int hi)
 	Real	**A_me, tmp;
 
 	if ( ! A )
-		Meerror(E_NULL,"swap_rows");
+		error(E_NULL,"swap_rows");
 	if ( i < 0 || j < 0 || i >= A->m || j >= A->m )
-		Meerror(E_SIZES,"swap_rows");
-	lo = MeMemax(0,lo);
-	hi = Memin(hi,A->n-1);
+		error(E_SIZES,"swap_rows");
+	lo = max(0,lo);
+	hi = min(hi,A->n-1);
 	A_me = A->me;
 
 	for ( k = lo; k <= hi; k++ )
@@ -404,11 +404,11 @@ MAT	*swap_cols(MAT *A, int i, int j, int lo, int hi)
 	Real	**A_me, tmp;
 
 	if ( ! A )
-		Meerror(E_NULL,"swap_cols");
+		error(E_NULL,"swap_cols");
 	if ( i < 0 || j < 0 || i >= A->n || j >= A->n )
-		Meerror(E_SIZES,"swap_cols");
-	lo = MeMemax(0,lo);
-	hi = Memin(hi,A->m-1);
+		error(E_SIZES,"swap_cols");
+	lo = max(0,lo);
+	hi = min(hi,A->m-1);
 	A_me = A->me;
 
 	for ( k = lo; k <= hi; k++ )
@@ -436,9 +436,9 @@ MAT	*ms_mltadd(const MAT *A1, const MAT *A2, double s, MAT *out)
 	int	i, m, n;
 
 	if ( ! A1 || ! A2 )
-		Meerror(E_NULL,"ms_mltadd");
+		error(E_NULL,"ms_mltadd");
 	if ( A1->m != A2->m || A1->n != A2->n )
-		Meerror(E_SIZES,"ms_mltadd");
+		error(E_SIZES,"ms_mltadd");
 
 	if ( out != A1 && out != A2 )
 		out = m_resize(out,A1->m,A1->n);
@@ -484,11 +484,11 @@ VEC	*mv_mltadd(const VEC *v1, const VEC *v2, const MAT *A,
 	Real	*v2_ve, *out_ve;
 
 	if ( ! v1 || ! v2 || ! A )
-		Meerror(E_NULL,"mv_mltadd");
+		error(E_NULL,"mv_mltadd");
 	if ( out == v2 )
-		Meerror(E_INSITU,"mv_mltadd");
+		error(E_INSITU,"mv_mltadd");
 	if ( v1->dim != A->m || v2->dim != A->n )
-		Meerror(E_SIZES,"mv_mltadd");
+		error(E_SIZES,"mv_mltadd");
 
 	tracecatch(out = v_copy(v1,out),"mv_mltadd");
 
@@ -530,11 +530,11 @@ VEC	*vm_mltadd(const VEC *v1, const VEC *v2, const MAT *A,
 	Real	tmp, /* *A_e, */ *out_ve;
 
 	if ( ! v1 || ! v2 || ! A )
-		Meerror(E_NULL,"vm_mltadd");
+		error(E_NULL,"vm_mltadd");
 	if ( v2 == out )
-		Meerror(E_INSITU,"vm_mltadd");
+		error(E_INSITU,"vm_mltadd");
 	if ( v1->dim != A->n || A->m != v2->dim )
-		Meerror(E_SIZES,"vm_mltadd");
+		error(E_SIZES,"vm_mltadd");
 
 	tracecatch(out = v_copy(v1,out),"vm_mltadd");
 

@@ -137,7 +137,7 @@ static int mem_lookup(void **var)
 	        " Increase MEM_HASHSIZE in file: %s (currently = %d)\n\n",
 		    MEM_HASHSIZE_FILE, MEM_HASHSIZE);
 	    }
-	    Meerror(E_MEM,"mem_lookup");
+	    error(E_MEM,"mem_lookup");
 	 }
       }
    }
@@ -154,7 +154,7 @@ static int mem_lookup(void **var)
      fname - source file name where last registered
      line - line number of source file
 
-   returned value < 0  --> Meerror,
+   returned value < 0  --> error,
    returned value == 0 --> not registered,
    returned value >= 0 --> registered with this mark;
 */
@@ -175,7 +175,7 @@ int mem_stat_reg_list(void **var, int type, int list,
      return -1;
 
    if (mem_stat_mark_curr == 0) return 0;  /* not registered */
-   if (var == NULL) return -1;             /* Meerror */
+   if (var == NULL) return -1;             /* error */
 
    if ( type < 0 || type >= mem_connect[list].ntypes || 
        mem_connect[list].free_funcs[type] == NULL )
@@ -215,7 +215,7 @@ int mem_stat_mark(int mark)
 {
    if (mark < 0) {
       mem_stat_mark_curr = 0;
-      return -1;   /* Meerror */
+      return -1;   /* error */
    }
    else if (mark == 0) {
       mem_stat_mark_curr = 0; 
@@ -235,7 +235,7 @@ int mem_stat_mark(int mark)
    mark - a positive number denoting the mark;
 
    Returned:
-     -1 if mark < 0 (Meerror);
+     -1 if mark < 0 (error);
      0  if mark == 0;
 */
 #ifndef ANSI_C

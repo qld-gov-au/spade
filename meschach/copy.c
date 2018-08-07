@@ -43,7 +43,7 @@ MAT	*_m_copy(const MAT *in, MAT *out, unsigned int i0, unsigned int j0)
 	unsigned int	i /* ,j */;
 
 	if ( in==MNULL )
-		Meerror(E_NULL,"_m_copy");
+		error(E_NULL,"_m_copy");
 	if ( in==out )
 		return (out);
 	if ( out==MNULL || out->m < in->m || out->n < in->n )
@@ -71,7 +71,7 @@ VEC	*_v_copy(const VEC *in, VEC *out, unsigned int i0)
 	/* unsigned int	i,j; */
 
 	if ( in==VNULL )
-		Meerror(E_NULL,"_v_copy");
+		error(E_NULL,"_v_copy");
 	if ( in==out )
 		return (out);
 	if ( out==VNULL || out->dim < in->dim )
@@ -96,7 +96,7 @@ PERM	*px_copy(const PERM *in, PERM *out)
 	/* int	i; */
 
 	if ( in == PNULL )
-		Meerror(E_NULL,"px_copy");
+		error(E_NULL,"px_copy");
 	if ( in == out )
 		return out;
 	if ( out == PNULL || out->size != in->size )
@@ -132,15 +132,15 @@ MAT	*m_move(const MAT *in, int i0,int j0, int m0,int n0,
     int		i;
 
     if ( ! in )
-	Meerror(E_NULL,"m_move");
+	error(E_NULL,"m_move");
     if ( i0 < 0 || j0 < 0 || i1 < 0 || j1 < 0 || m0 < 0 || n0 < 0 ||
 	 i0+m0 > in->m || j0+n0 > in->n )
-	Meerror(E_BOUNDS,"m_move");
+	error(E_BOUNDS,"m_move");
 
     if ( ! out )
 	out = m_resize(out,i1+m0,j1+n0);
     else if ( i1+m0 > out->m || j1+n0 > out->n )
-	out = m_resize(out,MeMemax(out->m,i1+m0),MeMemax(out->n,j1+n0));
+	out = m_resize(out,max(out->m,i1+m0),max(out->n,j1+n0));
 
     for ( i = 0; i < m0; i++ )
 	MEM_COPY(&(in->me[i0+i][j0]),&(out->me[i1+i][j1]),
@@ -163,10 +163,10 @@ VEC	*v_move(const VEC *in, int i0, int dim0,
 #endif
 {
     if ( ! in )
-	Meerror(E_NULL,"v_move");
+	error(E_NULL,"v_move");
     if ( i0 < 0 || dim0 < 0 || i1 < 0 ||
 	 i0+dim0 > in->dim )
-	Meerror(E_BOUNDS,"v_move");
+	error(E_BOUNDS,"v_move");
 
     if ( (! out) || i1+dim0 > out->dim )
 	out = v_resize(out,i1+dim0);
@@ -194,10 +194,10 @@ VEC	*mv_move(const MAT *in, int i0,int j0, int m0, int n0,
     int		dim1, i;
 
     if ( ! in )
-	Meerror(E_NULL,"mv_move");
+	error(E_NULL,"mv_move");
     if ( i0 < 0 || j0 < 0 || m0 < 0 || n0 < 0 || i1 < 0 ||
 	 i0+m0 > in->m || j0+n0 > in->n )
-	Meerror(E_BOUNDS,"mv_move");
+	error(E_BOUNDS,"mv_move");
 
     dim1 = m0*n0;
     if ( (! out) || i1+dim1 > out->dim )
@@ -228,15 +228,15 @@ MAT	*vm_move(const VEC *in, int i0,
     int		dim0, i;
 
     if ( ! in )
-	Meerror(E_NULL,"vm_move");
+	error(E_NULL,"vm_move");
     if ( i0 < 0 || i1 < 0 || j1 < 0 || m1 < 0 || n1 < 0 ||
 	 i0+m1*n1 > in->dim )
-	Meerror(E_BOUNDS,"vm_move");
+	error(E_BOUNDS,"vm_move");
 
     if ( ! out )
 	out = m_resize(out,i1+m1,j1+n1);
     else
-	out = m_resize(out,MeMemax(i1+m1,out->m),MeMemax(j1+n1,out->n));
+	out = m_resize(out,max(i1+m1,out->m),max(j1+n1,out->n));
 
     dim0 = m1*n1;
     for ( i = 0; i < m1; i++ )

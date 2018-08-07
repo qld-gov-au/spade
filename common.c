@@ -1,7 +1,18 @@
-﻿#include <math.h>
+// Copyright 2016 State of Queensland
+// This file is part of SPADE
+// See spade.c, COPYING, COPYING.LESSER
+
+#include <math.h>
 #include <signal.h>
 #include "common.h"
 #include "meschach/matrix.h"
+
+Real iota1=5.2;
+Real iota2=0.619;
+Real phi=17;
+Real eta1=1.703205e-5;
+Real eta2=2.9526;
+int interactive_mode_requested = 0;
 
 void request_interactive_mode(int s) {
   if(interactive_mode_requested == 0) {
@@ -22,7 +33,7 @@ void spade_v_output(VEC* vec) {
   }
 }
 
-void data_read_ce(const char * data_file_name, Data * data, int * N, Real k) {
+void data_read_ce(char * data_file_name, Data * data, int * N, Real k) {
   char buffer[30];
   sprintf(buffer,"%s-ce.dat",data_file_name);
 
@@ -88,7 +99,7 @@ void data_read_ce(const char * data_file_name, Data * data, int * N, Real k) {
   fclose(fp);
 }
 
-void data_read_ce_new(const char * data_file_name, NewData * newdata) {
+void data_read_ce_new(char * data_file_name, NewData * newdata) {
   char buffer[30];
   sprintf(buffer,"%s-ce-new.dat",data_file_name);
 
@@ -190,7 +201,7 @@ void data_read_ce_new(const char * data_file_name, NewData * newdata) {
 }
 
 
-void data_read_lf_new(const char * data_file_name, NewData * newdata) {
+void data_read_lf_new(char * data_file_name, NewData * newdata) {
   char buffer[30];
   sprintf(buffer,"%s-lf-new.dat",data_file_name);
 
@@ -245,127 +256,8 @@ void data_read_lf_new(const char * data_file_name, NewData * newdata) {
   fclose(fp);
 }
 
-void data_read(const char * data_file_name) {
 
-  char buffer[30];
-  sprintf(buffer,"%s_go.dat",data_file_name);
-
-  int N,I,J;
-  FILE * fp = fopen(buffer,"r");
-  fscanf(fp,"%d",&I);
-  fscanf(fp,"%d",&J);
-  fscanf(fp,"%lf",&k);
-
-  d.I = I;
-  d.J = J+I;
-
-  d.cat = (Real *) calloc(I+1,sizeof(Real));
-  d.eff = (Real *) calloc(2*I+1,sizeof(Real));
-
-  for (int i=0;i<=I;i++)
-    fscanf(fp, "%lf ",&d.cat[i]);
-  fscanf(fp,"\n");
-  
-  for (int i=0;i<=2*I;i++)
-    fscanf(fp, "%lf ",&d.eff[i]);
-  fscanf(fp,"\n");
-
-  d.p = (Real **) calloc(I+1,sizeof(Real *));
-
-  for (int i=0;i<=I;i++)
-    d.p[i] = (Real *) calloc(I+J+1,sizeof(Real));
-  			   
-  d.Qp = (Real *) calloc(I+1,sizeof(Real));
-
-  int dummy;
-  for (int i=0;i<=I;i++)
-    fscanf(fp, "%d ",&dummy);
-  fscanf(fp,"\n");
-
-  for (int i=0;i<=I;i++)
-    fscanf(fp, "%d ",&dummy);
-  fscanf(fp,"\n");
-
-  for (int i=0;i<=I;i++)
-    fscanf(fp, "%lf ",&d.Qp[i]);
-  fscanf(fp,"\n");
-
-  for (int i=0;i<=I;i++)
-    {
-      for (int j=0;j<=J+i;j++)
-	fscanf(fp, "%lf ",&d.p[i][j]);
-      fscanf(fp,"\n");
-    }
-  
-
-}
-
-
-void data_read_fast(const char * data_file_name) {
-
-  char buffer[30];
-  //  sprintf(buffer,"%s_fast_smooth_wide.dat",data_file_name);
-  sprintf(buffer,"%s_go.dat",data_file_name);
-
-  int N,I,J;
-  FILE * fp = fopen(buffer,"r");
-  fscanf(fp,"%d",&I);
-  fscanf(fp,"%d",&J);
-  fscanf(fp,"%lf",&k);
-
-  d.I = I;
-  d.J = J;
-
-  d.cat = (Real *) calloc(I+1,sizeof(Real));
-  d.eff = (Real *) calloc(2*I+1,sizeof(Real));
-
-  for (int i=0;i<=I;i++)
-    fscanf(fp, "%lf ",&d.cat[i]);
-  fscanf(fp,"\n");
-  
-  for (int i=0;i<=2*I;i++)
-    fscanf(fp, "%lf ",&d.eff[i]);
-  fscanf(fp,"\n");
-
-  d.p = (Real **) calloc(I+1,sizeof(Real *));
-
-  for (int i=0;i<=I;i++)
-    posix_memalign( &(d.p[i]),32,(J+1)*sizeof(float));
-  			   
-  d.Qp = (Real *) calloc(I+1,sizeof(Real));
-
-  for (int i=0;i<=I;i++)
-    fscanf(fp, "%lf ",&d.Qp[i]);
-  fscanf(fp,"\n");
-
-  for (int i=0;i<=I;i++)
-    {
-      for (int j=0;j<=J;j++)
-	fscanf(fp, "%lf ",&d.p[i][j]);
-      fscanf(fp,"\n");
-    }
-
-  idx = (int *) calloc(I,sizeof(int));
-  
-  for (int i=0;i<I;i++)
-    {
-      fscanf(fp, "%d ",&idx[i]);
-      idx[i] = idx[i] - 1;
-    }
-  fscanf(fp,"\n");
-  
-  fscanf(fp,"%lf\n",&iota1);
-  fscanf(fp,"%lf\n",&iota2);
-  fscanf(fp,"%lf\n",&phi);
-  fscanf(fp,"%lf\n",&eta1);
-  fscanf(fp,"%lf\n",&eta2);
-  
-  fclose(fp);
-  
-}
-
-
-void data_read_lf(const char * data_file_name, Data * data, int N, Real k, int minfish) {
+void data_read_lf(char * data_file_name, Data * data, int N, Real k, int minfish) {
   char buffer[30];
   sprintf(buffer,"%s-lf.dat",data_file_name);
 
@@ -439,7 +331,7 @@ void data_read_lf(const char * data_file_name, Data * data, int N, Real k, int m
   free(tl);
 }
 
-void optim_control_read(const char * optim_file_name, OptimControl * optim) {
+void optim_control_read(char * optim_file_name, OptimControl * optim) {
   #if REAL == DOUBLE
     // lf
     char * format = "%lf\n";

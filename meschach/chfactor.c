@@ -50,9 +50,9 @@ MAT	*CHfactor(MAT *A)
 	Real	**A_ent, *A_piv, *A_row, sum, tmp;
 
 	if ( A==(MAT *)NULL )
-		Meerror(E_NULL,"CHfactor");
+		error(E_NULL,"CHfactor");
 	if ( A->m != A->n )
-		Meerror(E_SQUARE,"CHfactor");
+		error(E_SQUARE,"CHfactor");
 	n = A->n;	A_ent = A->me;
 
 	for ( k=0; k<n; k++ )
@@ -67,7 +67,7 @@ MAT	*CHfactor(MAT *A)
 			sum -= tmp*tmp;
 		}
 		if ( sum <= 0.0 )
-			Meerror(E_POSDEF,"CHfactor");
+			error(E_POSDEF,"CHfactor");
 		A_ent[k][k] = sqrt(sum);
 
 		/* set values of column k */
@@ -100,9 +100,9 @@ VEC	*CHsolve(const MAT *A, const VEC *b, VEC *x)
 #endif
 {
 	if ( A==MNULL || b==VNULL )
-		Meerror(E_NULL,"CHsolve");
+		error(E_NULL,"CHsolve");
 	if ( A->m != A->n || A->n != b->dim )
-		Meerror(E_SIZES,"CHsolve");
+		error(E_SIZES,"CHsolve");
 	x = v_resize(x,b->dim);
 	Lsolve(A,b,x,0.0);
 	Usolve(A,x,x,0.0);
@@ -124,9 +124,9 @@ MAT	*LDLfactor(MAT *A)
 	STATIC VEC	*r = VNULL;
 
 	if ( ! A )
-		Meerror(E_NULL,"LDLfactor");
+		error(E_NULL,"LDLfactor");
 	if ( A->m != A->n )
-		Meerror(E_SQUARE,"LDLfactor");
+		error(E_SQUARE,"LDLfactor");
 	n = A->n;	A_ent = A->me;
 	r = v_resize(r,n);
 	MEM_STAT_REG(r,TYPE_VEC);
@@ -142,7 +142,7 @@ MAT	*LDLfactor(MAT *A)
 		d = A_ent[k][k] -= sum;
 
 		if ( d == 0.0 )
-		    Meerror(E_SING,"LDLfactor");
+		    error(E_SING,"LDLfactor");
 		for ( i = k+1; i < n; i++ )
 		{
 		    sum = __ip__(A_ent[i],r->ve,(int)k);
@@ -173,11 +173,11 @@ VEC	*LDLsolve(const MAT *LDL, const VEC *b, VEC *x)
 #endif
 {
 	if ( ! LDL || ! b )
-		Meerror(E_NULL,"LDLsolve");
+		error(E_NULL,"LDLsolve");
 	if ( LDL->m != LDL->n )
-		Meerror(E_SQUARE,"LDLsolve");
+		error(E_SQUARE,"LDLsolve");
 	if ( LDL->m != b->dim )
-		Meerror(E_SIZES,"LDLsolve");
+		error(E_SIZES,"LDLsolve");
 	x = v_resize(x,b->dim);
 
 	Lsolve(LDL,b,x,1.0);
@@ -200,11 +200,11 @@ MAT	*MCHfactor(MAT *A, double tol)
 	Real	**A_ent, *A_piv, *A_row, sum, tmp;
 
 	if ( A==(MAT *)NULL )
-		Meerror(E_NULL,"MCHfactor");
+		error(E_NULL,"MCHfactor");
 	if ( A->m != A->n )
-		Meerror(E_SQUARE,"MCHfactor");
+		error(E_SQUARE,"MCHfactor");
 	if ( tol <= 0.0 )
-	        Meerror(E_RANGE,"MCHfactor");
+	        error(E_RANGE,"MCHfactor");
 	n = A->n;	A_ent = A->me;
 
 	for ( k=0; k<n; k++ )

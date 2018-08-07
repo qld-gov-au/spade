@@ -47,18 +47,18 @@ IVEC	*iv_get(int dim)
    /* unsigned int	i; */
    
    if (dim < 0)
-     Meerror(E_NEG,"iv_get");
+     error(E_NEG,"iv_get");
 
    if ((iv=NEW(IVEC)) == IVNULL )
-     Meerror(E_MEM,"iv_get");
+     error(E_MEM,"iv_get");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_IVEC,0,sizeof(IVEC));
       mem_numvar(TYPE_IVEC,1);
    }
    
-   iv->dim = iv->MeMemax_dim = dim;
+   iv->dim = iv->max_dim = dim;
    if ((iv->ive = NEW_A(dim,int)) == (int *)NULL )
-     Meerror(E_MEM,"iv_get");
+     error(E_MEM,"iv_get");
    else if (mem_info_is_on()) {
       mem_bytes(TYPE_IVEC,0,dim*sizeof(int));
    }
@@ -88,7 +88,7 @@ int	iv_free(IVEC *iv)
    else
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_IVEC,sizeof(IVEC)+iv->MeMemax_dim*sizeof(int),0);
+	 mem_bytes(TYPE_IVEC,sizeof(IVEC)+iv->max_dim*sizeof(int),0);
 	 mem_numvar(TYPE_IVEC,-1);
       }	
       free((char *)iv->ive);
@@ -111,7 +111,7 @@ IVEC	*iv_resize(IVEC *iv, int new_dim)
    int	i;
    
    if (new_dim < 0)
-     Meerror(E_NEG,"iv_resize");
+     error(E_NEG,"iv_resize");
 
    if ( ! iv )
      return iv_get(new_dim);
@@ -119,16 +119,16 @@ IVEC	*iv_resize(IVEC *iv, int new_dim)
    if (new_dim == iv->dim)
      return iv;
 
-   if ( new_dim > iv->MeMemax_dim )
+   if ( new_dim > iv->max_dim )
    {
       if (mem_info_is_on()) {
-	 mem_bytes(TYPE_IVEC,iv->MeMemax_dim*sizeof(int),
+	 mem_bytes(TYPE_IVEC,iv->max_dim*sizeof(int),
 		      new_dim*sizeof(int));
       }
       iv->ive = RENEW(iv->ive,new_dim,int);
       if ( ! iv->ive )
-	Meerror(E_MEM,"iv_resize");
-      iv->MeMemax_dim = new_dim;
+	error(E_MEM,"iv_resize");
+      iv->max_dim = new_dim;
    }
    if ( iv->dim <= new_dim )
      for ( i = iv->dim; i < new_dim; i++ )
@@ -150,7 +150,7 @@ IVEC	*iv_copy(const IVEC *in, IVEC *out)
    int		i;
    
    if ( ! in )
-     Meerror(E_NULL,"iv_copy");
+     error(E_NULL,"iv_copy");
    out = iv_resize(out,in->dim);
    for ( i = 0; i < in->dim; i++ )
      out->ive[i] = in->ive[i];
@@ -171,10 +171,10 @@ IVEC	*iv_move(const IVEC *in, int i0, int dim0, IVEC *out, int i1)
 #endif
 {
     if ( ! in )
-	Meerror(E_NULL,"iv_move");
+	error(E_NULL,"iv_move");
     if ( i0 < 0 || dim0 < 0 || i1 < 0 ||
 	 i0+dim0 > in->dim )
-	Meerror(E_BOUNDS,"iv_move");
+	error(E_BOUNDS,"iv_move");
 
     if ( (! out) || i1+dim0 > out->dim )
 	out = iv_resize(out,i1+dim0);
@@ -196,9 +196,9 @@ IVEC	*iv_add(const IVEC *iv1, const IVEC *iv2, IVEC *out)
    int	*out_ive, *iv1_ive, *iv2_ive;
    
    if ( iv1==IVNULL || iv2==IVNULL )
-     Meerror(E_NULL,"iv_add");
+     error(E_NULL,"iv_add");
    if ( iv1->dim != iv2->dim )
-     Meerror(E_SIZES,"iv_add");
+     error(E_SIZES,"iv_add");
    if ( out==IVNULL || out->dim != iv1->dim )
      out = iv_resize(out,iv1->dim);
    
@@ -226,9 +226,9 @@ IVEC	*iv_sub(const IVEC *iv1, const IVEC *iv2, IVEC *out)
    int	*out_ive, *iv1_ive, *iv2_ive;
    
    if ( iv1==IVNULL || iv2==IVNULL )
-     Meerror(E_NULL,"iv_sub");
+     error(E_NULL,"iv_sub");
    if ( iv1->dim != iv2->dim )
-     Meerror(E_SIZES,"iv_sub");
+     error(E_SIZES,"iv_sub");
    if ( out==IVNULL || out->dim != iv1->dim )
      out = iv_resize(out,iv1->dim);
    
@@ -264,7 +264,7 @@ IVEC	*iv_sort(IVEC *x, PERM *order)
    int		stack[MAX_STACK], sp;
    
    if ( ! x )
-     Meerror(E_NULL,"iv_sort");
+     error(E_NULL,"iv_sort");
    if ( order != PNULL && order->size != x->dim )
      order = px_resize(order, x->dim);
    
@@ -323,7 +323,7 @@ IVEC	*iv_sort(IVEC *x, PERM *order)
 	 {   stack[sp++] = i+1;   stack[sp++] = r;   r = i-1;   }
       }
       
-      /* recursion eliMemination */
+      /* recursion elimination */
       if ( sp == 0 )
 	break;
       r = stack[--sp];

@@ -1,429 +1,248 @@
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+// SPADE: Stock assessment using PArtial Differential Equations
+// Copyright 2016 State of Queensland
 
+// This file is part of SPADE
+
+// SPADE is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// SPADE is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#include <fenv.h>
 #include <math.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_multimin.h>
-#include <GL/freeglut.h>
-#include "meschach/matrix.h"
-#include "meschach/matrix2.h"
-
-#include "trackball.h"
-
-int N;  
-int M;
-int I;
-int S;
-int P;
-double *z;
-double *d1;
-double *d2;
-double *effort,*effort2;
-
-int N2;
-int S2;
-int I2;
-double *z2;
-
-double pfake;
-
-int Nparams1;
-int Nparamsb;
-
-double *x,*x2;
-double *N2x;
-
-VEC *lx,*lx2;
-
-VEC *lb,*lb2;
-MAT *A, *LU, *A2, *LU2;
-PERM *pivot, *pivot2;
-
-int L;
-double tmax;
-int nx;
-int nt;
-double dx;
-double dt;
-double r,r2;
-double t;
-double *u;
-double alpha;
-
-typedef struct {
-
-  int nBlocks;
-  double *effort;
-  int nPoints;
-
-} GSL_reg;
-
-const gsl_multimin_fminimizer_type *T;
-
-gsl_multimin_fminimizer *s1,*s2,*sb,*sb2;
-gsl_vector *ss1, *ss2, *ssb, *q1, *q2, *qb,*qb2,*ssb2;
-gsl_multimin_function f1,f2,fb,fb2;
-
-GSL_reg reg;
-    
-size_t iter;
-int status;
-double size;
-
-int ci;
-
-double maxcurv;
-int mcidx;
-
-int pt,new_pt;
-
-int WindWidth, WindHeight;
-int window;
-
-void simp(void)
-{
-
-  int i=0;
-  for (int i=0;i<N;i++)
-    {
-
-      double dp = 0;
-
-      for (int j=0;j<M;j++)
-	dp += u[i*M+j];
-  
-      double dist = (dp - M*effort[i]); // / sqrt((double)M);
-
-      //printf("%f\n",dist);
-
-      //      double delta = 0.01;
-
-      for (int j=0;j<M;j++)	
-	u[i*M+j] -= (1.0/(double)M)*(dp - M*effort[i]);
-
-    }
-  
-      /*
-	  double dpd = 0;
-
-	  u[i*M+j] += delta;
-	  
-          for (int k=0;k<M;k++)
-	    dpd += u[i*M+k];
-
-	  double distd = (dpd - M*effort[i]) / sqrt((double)N);
-
-	  double derivj = (distd - dist) / delta;
-
-          u[i*M+j] -= delta;
-
-	  printf("%f ",derivj);
-	}
-      }
-
-      printf("\n");
-      */
-}
-
-void heat(void)
-{
-
-  double *uold = (double *) calloc(nx,sizeof(double));
-
-  for (int i=0;i<nx;i++)
-    uold[i] = u[i];
-
-  t = t + dt;
-
-  double *utrial = (double *) calloc(nx,sizeof(double));
-  
-  //  for (int i=1;i<nx-1;i++)
-  //utrial[i] = r*uold[i-1] + r2*uold[i] + r*uold[i+1];
-
-  for (int i=1;i<nx-1;i++)
-    u[i] = r*uold[i-1] + r2*uold[i] + r*uold[i+1];
-
-  for (int i=0;i<N;i++)
-    {
-
-      double dp = 0;
-
-      for (int j=0;j<M;j++)
-	dp += u[i*M+j];
-  
-      for (int j=0;j<M;j++)	
-	u[i*M+j] -= (1.0/(double)M)*(dp - M*effort[i]);
-
-    }
-  
-}
-    
-void test0 (VEC *, double *, double *, double);
-void test1 (VEC *, double *, double *, double);
-
-void fakeeffort(VEC *, double *, double *, int, double *);
-MAT *generateA(MAT *,double *,double *,int);
-double curvature(double ,VEC *);
-
-double maxCurvature(gsl_vector *,void *);
-
-void processNormalKeys(int, int, int);
-
-void process_Normal_Keys(int key, int xlah, int ylah) 
-{
-     switch (key) 
-    {    
-       case 27 :      break;
-	 
-       case 100 : printf("GLUT_KEY_LEFT %d\n",key);
-
-	   heat();
-	 
-	 glutPostRedisplay();
-	 
-	 break;
-	 
-       case 102: printf("GLUT_KEY_RIGHT %d\n",key);
-
-         for (int i=0;i<1000;i++) {
-	 
-	   heat();
-
-	 }
-
-	 for (int i=0;i<N;i++)
-	   {
-	     double dp = 0;
-
-	     for (int j=0;j<M;j++)
-	       dp += u[i*M+j];
-
-	     printf("%lf %lf\n",dp,M*effort[i]);
-	   }
-	       
-	 glutPostRedisplay();
-	 
-	 break;
-	 
-    case 101 : //printf("GLUT_KEY_UP %d\n",key); 
-	 
-	 break;
-
-    case 103 : 
-
-      break;
-
-    }
-
-}
-
-void display(void)
-{
-
-  
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  glPointSize(5.0f);
-  
-  glBegin(GL_POINTS);
-  
-  glColor3f(0.0f,0.0f,1.0f);
-
-  for (int i=0;i<nx;i++)
-    glVertex2f(i/((float)(nx-.5)),u[i]);
-  
-  glEnd();
-
-  /*
-  glBegin(GL_POINTS);
-  
-  glColor3f(0.0f,1.0f,0.0f);
-
-  for (int i=0;i<S;i++)
-    {
-      for (int j=0;j<100;j++)
-	{
-	  double xx = x[i]+j*(x[i+1]-x[i])/100.0;
-	  
-	  glVertex2f(xx/N,lx->ve[i*3] + lx->ve[i*3+1]*xx + lx->ve[i*3+2]*pow(xx,2.0));
-	}
-    }
-  
-  glEnd();
-
-  */
-  
-  glFlush ();
-  glutSwapBuffers();
-}
-
-void idle(void)
-{
-  glutPostRedisplay();
-}
-
-void Reshape(int width, int height)
-{
-  
-  glViewport(0, 0, width, height);
-  
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  gluOrtho2D(-0.1,1.1,0,2.2);
-
-  glMatrixMode(GL_MODELVIEW);
-  
-  WindWidth = width;
-  WindHeight = height;
-}
-
-void init(void)
-{
-   glClearColor (0.0, 0.0, 0.0, 0.0);
-   glShadeModel (GL_FLAT);
-
-   glEnable(GL_BLEND);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   
+#include "spade.h"
+#include "common.h"
+#include "arg.h"
+#include "parameters.h"
+#include "machinery/VMGMM.h"
+#include "machinery/objfns.h"
+#include "optim/optim.h"
+#include "plotting/plot.h"
+#include "mathprop/mathprop.h"
+#include "machinery/alpha/grad_alpha.h"
+#include "machinery/beta/grad_beta.h"
+#include "machinery/gamma/grad_gamma.h"
+#include "machinery/iota/grad_iota.h"
+#include "machinery/kappa/grad_kappa.h"
+#include "machinery/omega/grad_omega.h"
+#include "util/util.h"
+
+int feenableexcept(int);
+
+void print_usage() {
+    printf(
+      "SPADE: Stock assessment using PArtial Differential Equations\n"
+      "Copyright 2016 State of Queensland\n\n"
+      "SPADE comes with ABSOLUTELY NO WARRANTY and you are welcome \n"
+      "to redistribute it under certain conditions; further details below.\n"
+      "\n"
+      "Usage:\n"
+      "  spade -fn <file> -alpha <a> -beta <b> -gamma <g> -iota <i> -kappa <k>\n"
+      "        -omega <w>\n"
+      "\n"
+      "Options:\n"
+      "  -fn <file>\n"
+      "      Specifies the common name of the input data files. SPADE will attempt\n"
+      "      to read the files <file>-ce.dat and <file>-lf.dat from disk. This\n"
+      "      option is required.\n"
+      "\n"
+      "  -minfish <minfish>      Default: 250\n"
+      "\n"
+      "  -J <J>                  Default: 400\n"
+      "\n"
+      "  -timestep <timestep>    Default: 0.025\n"
+      "      The model timestep interval represented as a fraction of one year.\n"
+      "\n"
+      "  -warmup-ratio <ratio>   Default: 1\n"
+      "      The SPADE model consists of two stages: a warmup stage followed by\n"
+      "      a model stage. This option specifies the number of warmup steps as\n"
+      "      a function of the number of model steps. For example, a warmup ratio\n"
+      "      of 1 specified the same number of warmup steps as model steps. A warmup\n"
+      "      ratio of 0.5 specifies half the number of warmup steps as compared to\n"
+      "      model steps. Any numeric value greater than or equal to zero is an\n"
+      "      acceptable warmup ratio.\n"
+      "\n"
+      "Parameters:\n"
+      "  To disable a parameter suffix the parameter name with '-disabled'.\n"
+      "  Example: 'spade -alpha-disabled <a> ...'\n"
+      "\n"
+      "SPADE is free software: you can redistribute it and/or modify\n"
+      "it under the terms of the GNU Lesser General Public License as published by\n"
+      "the Free Software Foundation, either version 3 of the License, or\n"
+      "(at your option) any later version.\n\n"
+      "SPADE is distributed in the hope that it will be useful,\n"
+      "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+      "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+      "GNU Lesser General Public License for more details.\n\n"
+      "You should have received a copy of the GNU Lesser General Public License\n"
+      "along with this program.  If not, see <https://www.gnu.org/licenses/>.\n"
+      "This product includes code derived from software written by Jorge More and \n"
+      "developed by the University of Chicago, as Operator of Argonne National Laboratory.\n"
+      "This product includes software (Meschach) developed by David E. Stewart and Zbigniew Leyk.\n"
+
+  );
 }
 
 int main(int argc, char *argv[])
 {
- 
-  WindWidth = 1800;
-  WindHeight = 1800;
+  feenableexcept(FE_DIVBYZERO); 
+  feenableexcept(FE_INVALID); 
+  feenableexcept(FE_OVERFLOW);
+  signal(SIGINT, request_interactive_mode);
 
-  glutInit(&argc, (char **)argv);
-    
-  glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-  glutInitWindowSize(1800, 1800);
+  // To test interactive mode in the debug environment,
+  // uncomment this line
+  //request_interactive_mode(1);
+
+  int N;
+  int minfish;
+  Real k;
+  Real warmup_ratio;
+
+  if (!NEWOBJ) {
+    // Read model-related command line args and set defaults if
+    // arguments have not been provided
+    if(arg_read_int("minfish", &minfish, argc, argv) == FALSE) {
+      minfish = 250;
+    }
+  }
+
+  if(arg_read_int("J", &J, argc, argv) == FALSE) {
+    J = 400;
+  }
+
+  if(arg_read_real("timestep", &k, argc, argv) == FALSE) {
+    k = 0.025;
+  }
+
+  if(arg_read_real("warmup-ratio", &warmup_ratio, argc, argv) == FALSE) {
+    // By default we have an equal number of warmup and model steps
+    warmup_ratio = 1;
+  }
+
+  if(warmup_ratio < 0) {
+    print_usage();
+    exit(EXIT_FAILURE);
+  }
+
+  // Read and parse data files
+  char * data_file_name;
+  if(arg_read_string("fn", &data_file_name, argc, argv) == FALSE) {
+    print_usage();
+    exit(EXIT_FAILURE);
+  }
+
+  Data data;
+  NewData newdata; 
   
-  tbInit(GLUT_LEFT_BUTTON);
-  tbAnimate(GL_TRUE);
+  if (!NEWOBJ) {
 
-  window = glutCreateWindow("smooth");
-  glutSpecialFunc( process_Normal_Keys );
-
-  glutDisplayFunc(display);
-  glutReshapeFunc(Reshape);
-  
-  init();  
-
-  FILE * fp = fopen("bc2aex.dat","r");
-
-  int K;
-  
-  if (fscanf(fp,"%d",&K) <1)
+      data_read_ce(data_file_name, &data, &N, k);
+      data_read_lf(data_file_name, &data, N, k, minfish);
+  }
+  else
     {
-      printf("error reading I\n");
-      exit(1);
+      data_read_ce_new(data_file_name,&newdata);
+      data_read_lf_new(data_file_name,&newdata);
+      
     }
 
-  double * raweffort = (double *) calloc(K,sizeof(double));
+		       
+  // The model consists of two stages - a warmup stage followed by the model stage.
+  // I (total number of time steps) = warmup_steps + N (number of time steps for model)
+  //   * warmup_steps = N (number of time steps for model) * warmup_ratio
+  //       For example a warmup_ratio of 1 would imply an equal number of warmup steps and model steps
+  //   * warmup_ratio = number of warmup steps as a fraction of number of model steps
+  //   * Number of time steps for model is determined by k (time step as fraction of a year) and  data->Y (number of years of data)
 
-  for (int i=0;i<K;i++)
-    if ( fscanf(fp, "%lf ",&raweffort[i]) < 1)
-      {
-	printf("error reading raweffort %d\n",i);
-	exit(1);
-      }
+  int warmup_steps = floor(N * warmup_ratio);
+  data.I = warmup_steps + N;
+  data.S = warmup_steps;
 
-  double * begintime = (double *) calloc(K, sizeof(double));
+  if(!SGNM) {
+    data.J = J + data.I;
+  } else {
+    data.J = J;
+  }
+
+  data.k = k;
+
+  // Read optim options
+  OptimControl optim;
+  optim_control_read("control.optim", &optim);
+
+  // Configure each parameter. This must be updated when a
+  // new parameter is created.
+  Parameters parameters= {
+   .alpha = { .name = "alpha", .grad = &grad_alpha },
+   .beta = { .name = "beta", .grad = &grad_beta },
+   .gamma = { .name = "gamma", .grad = &grad_gamma },
+   .iota = { .name = "iota", .grad = &grad_iota },
+   .kappa = { .name = "kappa", .grad = &grad_kappa },
+   .omega = { .name = "omega", .grad = &grad_omega }
+  };
+
+  if (!MESCHACH)
+    {
+
+  parameters.alpha.grad = &grad_alpha_clean;
+  parameters.beta.grad = &grad_beta_clean;
+  parameters.gamma.grad = &grad_gamma_clean;
+  parameters.iota.grad = &grad_iota_clean;
+  parameters.kappa.grad = &grad_kappa_clean;
+  parameters.omega.grad = &grad_omega_clean;
+
+    }
   
-  for (int i=0;i<K;i++)
-    if ( fscanf(fp, "%lf ",&begintime[i]) < 1)
-      {
-	printf("error reading begintime %d\n",i);
-	exit(1);
-      }
+  // Map all parameters to the parameter array. This must
+  // be updated when a new parameter is created.
+  parameters.parameter[0] = &parameters.alpha;
+  parameters.parameter[1] = &parameters.beta;
+  parameters.parameter[2] = &parameters.gamma;
+  parameters.parameter[3] = &parameters.iota;
+  parameters.parameter[4] = &parameters.kappa;
+  parameters.parameter[5] = &parameters.omega;
+  parameters.count = PARAMETER_COUNT;
 
-  double * endtime = (double *) calloc(K, sizeof(double));
+  // Read all parameter values from the command line.
+  if(!parameters_read(&parameters, argc, argv)) {
+    print_usage();
+    exit(EXIT_FAILURE);
+  }
+
+  VEC *theta = parameters_to_vec(&parameters);
+
+  h = parameters.omega.value / J;
+
+  char labbuffer[10];
+  sprintf(labbuffer,"before");
+  //plot(&parameters,&data,labbuffer);
   
-  for (int i=0;i<K;i++)
-    if ( fscanf(fp, "%lf ",&endtime[i]) < 1)
-      {
-	printf("error reading endtime %d\n",i);
-	exit(1);
-      }
+  theta = bfgs(VMGMM,theta,&data,&parameters,optim);
+
+  char labbuffer2[10];
+  sprintf(labbuffer2,"after");
+  //plot(&parameters,&data,labbuffer2);
   
-  fclose(fp);
+  V_FREE(theta);
+  V_FREE(data.cat);
+  V_FREE(data.eff);
+  free(data.t_id);
+  free(data.t_sz);
 
-  N = 30;  // no. data blocks
-
-  double mintime=begintime[0];
-  for (int i=1;i<K;i++)
-    if (begintime[i] < mintime)
-      mintime = begintime[i];
-
-  double maxtime=endtime[0];
-  for (int i=1;i<K;i++)
-    if (endtime[i] > maxtime)
-      maxtime = endtime[i];
-  
-  effort = (double *) calloc(N,sizeof(double));
-  
-  double tottime = maxtime - mintime + 1e-12;
-
-  //printf("%lf %lf %lf\n",mintime,maxtime,tottime);
-  
-  for (int i=0;i<N;i++)
-    for (int j=0;j<K;j++)
-      {
-
-	double periodstart = mintime + i*tottime/N;
-	double periodend = mintime + (i+1)*tottime/N;
-	
-	if (begintime[j] >= periodstart && begintime[j] < periodend)
-	  {
-
-	    if (endtime[j] < periodend)
-	      effort[i] += raweffort[j];
-	    else	      
-              effort[i] += raweffort[j] * (periodend - begintime[j]) / (endtime[j] - begintime[j]); 			      
-
-	  }
-      }		      
-  
-  M = 100;
-  nx = M*N;
-
-  double toteffort = 0;
-  for (int i=0;i<N;i++)
-    toteffort += effort[i];
-
-  double avgeffort = toteffort / N;
-  
-  for (int i=0;i<N;i++)
-    effort[i] /= avgeffort;
-  
-  u = (double *) calloc(nx,sizeof(double));  
-  for ( int i=0;i<N;i++)
-    for (int m=0;m<M;m++)
-      u[i*M+m] = effort[i];
-
-  tmax = 1.0;
-  nt = 10000;
-
-  t = 0;
-  
-  dx = (double)N/(nx-1);
-  dt = tmax / (nt-1);
-
-  alpha = 0.5;
-  
-  r = alpha*dt / pow(dx,2.0);
-  r2 = 1-2*r;
-  
-  glutMainLoop();
+  for (int i=0;i<data.n;i++)
+    free(data.lf[i]);
+  free(data.lf);
 
   return(0);
-  
 }
 

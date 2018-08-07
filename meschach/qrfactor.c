@@ -73,10 +73,10 @@ MAT	*QRfactor(MAT *A, VEC *diag)
     STATIC	VEC	*hh=VNULL, *w=VNULL;
     
     if ( ! A || ! diag )
-	Meerror(E_NULL,"QRfactor");
-    limit = Memin(A->m,A->n);
+	error(E_NULL,"QRfactor");
+    limit = min(A->m,A->n);
     if ( diag->dim < limit )
-	Meerror(E_SIZES,"QRfactor");
+	error(E_SIZES,"QRfactor");
     
     hh = v_resize(hh,A->m);
     w  = v_resize(w, A->n);
@@ -115,15 +115,15 @@ PERM	*px;
 MAT	*QRCPfactor(MAT *A, VEC *diag, PERM *px)
 #endif
 {
-    unsigned int	i, i_MeMemax, j, k, limit;
+    unsigned int	i, i_max, j, k, limit;
     STATIC	VEC	*gamma=VNULL, *tmp1=VNULL, *tmp2=VNULL, *w=VNULL;
-    Real	beta, MeMemaxgamma, sum, tmp;
+    Real	beta, maxgamma, sum, tmp;
     
     if ( ! A || ! diag || ! px )
-	Meerror(E_NULL,"QRCPfactor");
-    limit = Memin(A->m,A->n);
+	error(E_NULL,"QRCPfactor");
+    limit = min(A->m,A->n);
     if ( diag->dim < limit || px->size != A->n )
-	Meerror(E_SIZES,"QRCPfactor");
+	error(E_SIZES,"QRCPfactor");
     
     tmp1 = v_resize(tmp1,A->m);
     tmp2 = v_resize(tmp2,A->m);
@@ -140,37 +140,37 @@ MAT	*QRCPfactor(MAT *A, VEC *diag, PERM *px)
 	px->pe[j] = j;
 	sum = 0.0;
 	for ( i=0; i<A->m; i++ )
-	    sum += Mesquare(A->me[i][j]);
+	    sum += square(A->me[i][j]);
 	gamma->ve[j] = sum;
     }
     
     for ( k=0; k<limit; k++ )
     {
 	/* find "best" column to use */
-	i_MeMemax = k;	MeMemaxgamma = gamma->ve[k];
+	i_max = k;	maxgamma = gamma->ve[k];
 	for ( i=k+1; i<A->n; i++ )
-	    /* Loop invariant:MeMemaxgamma=gamma[i_MeMemax]
+	    /* Loop invariant:maxgamma=gamma[i_max]
 	       >=gamma[l];l=k,...,i-1 */
-	    if ( gamma->ve[i] > MeMemaxgamma )
-	    {	MeMemaxgamma = gamma->ve[i]; i_MeMemax = i;	}
+	    if ( gamma->ve[i] > maxgamma )
+	    {	maxgamma = gamma->ve[i]; i_max = i;	}
 	
 	/* swap columns if necessary */
-	if ( i_MeMemax != k )
+	if ( i_max != k )
 	{
 	    /* swap gamma values */
 	    tmp = gamma->ve[k];
-	    gamma->ve[k] = gamma->ve[i_MeMemax];
-	    gamma->ve[i_MeMemax] = tmp;
+	    gamma->ve[k] = gamma->ve[i_max];
+	    gamma->ve[i_max] = tmp;
 	    
 	    /* update column permutation */
-	    px_transp(px,k,i_MeMemax);
+	    px_transp(px,k,i_max);
 	    
 	    /* swap columns of A */
 	    for ( i=0; i<A->m; i++ )
 	    {
 		tmp = A->me[i][k];
-		A->me[i][k] = A->me[i][i_MeMemax];
-		A->me[i][i_MeMemax] = tmp;
+		A->me[i][k] = A->me[i][i_max];
+		A->me[i][i_max] = tmp;
 	    }
 	}
 	
@@ -186,7 +186,7 @@ MAT	*QRCPfactor(MAT *A, VEC *diag, PERM *px)
 	
 	/* update gamma values */
 	for ( j=k+1; j<A->n; j++ )
-	    gamma->ve[j] -= Mesquare(A->me[k][j]);
+	    gamma->ve[j] -= square(A->me[k][j]);
     }
 
 #ifdef	THREADSAFE
@@ -211,12 +211,12 @@ VEC	*_Qsolve(const MAT *QR, const VEC *diag, const VEC *b,
     int		k, limit;
     Real	beta, r_ii, tmp_val;
     
-    limit = Memin(QR->m,QR->n);
+    limit = min(QR->m,QR->n);
     dynamic = FALSE;
     if ( ! QR || ! diag || ! b )
-	Meerror(E_NULL,"_Qsolve");
+	error(E_NULL,"_Qsolve");
     if ( diag->dim < limit || b->dim != QR->m )
-	Meerror(E_SIZES,"_Qsolve");
+	error(E_SIZES,"_Qsolve");
     x = v_resize(x,QR->m);
     if ( tmp == VNULL )
 	dynamic = TRUE;
@@ -256,11 +256,11 @@ MAT	*makeQ(const MAT *QR,const VEC *diag, MAT *Qout)
     Real	beta, r_ii, tmp_val;
     int	j;
     
-    limit = Memin(QR->m,QR->n);
+    limit = min(QR->m,QR->n);
     if ( ! QR || ! diag )
-	Meerror(E_NULL,"makeQ");
+	error(E_NULL,"makeQ");
     if ( diag->dim < limit )
-	Meerror(E_SIZES,"makeQ");
+	error(E_SIZES,"makeQ");
     if ( Qout==(MAT *)NULL || Qout->m < QR->m || Qout->n < QR->m )
 	Qout = m_get(QR->m,QR->m);
     
@@ -311,7 +311,7 @@ MAT	*makeR(const MAT *QR, MAT *Rout)
     unsigned int	i,j;
     
     if ( QR==MNULL )
-	Meerror(E_NULL,"makeR");
+	error(E_NULL,"makeR");
     Rout = m_copy(QR,Rout);
     
     for ( i=1; i<QR->m; i++ )
@@ -335,10 +335,10 @@ VEC	*QRsolve(const MAT *QR, const VEC *diag, const VEC *b, VEC *x)
     STATIC	VEC	*tmp = VNULL;
     
     if ( ! QR || ! diag || ! b )
-	Meerror(E_NULL,"QRsolve");
-    limit = Memin(QR->m,QR->n);
+	error(E_NULL,"QRsolve");
+    limit = min(QR->m,QR->n);
     if ( diag->dim < limit || b->dim != QR->m )
-	Meerror(E_SIZES,"QRsolve");
+	error(E_SIZES,"QRsolve");
     tmp = v_resize(tmp,limit);
     MEM_STAT_REG(tmp,TYPE_VEC);
 
@@ -370,9 +370,9 @@ VEC	*QRCPsolve(const MAT *QR, const VEC *diag, PERM *pivot,
     STATIC	VEC	*tmp=VNULL;
     
     if ( ! QR || ! diag || ! pivot || ! b )
-	Meerror(E_NULL,"QRCPsolve");
+	error(E_NULL,"QRCPsolve");
     if ( (QR->m > diag->dim &&QR->n > diag->dim) || QR->n != pivot->size )
-	Meerror(E_SIZES,"QRCPsolve");
+	error(E_SIZES,"QRCPsolve");
     
     tmp = QRsolve(QR,diag,b,tmp);
     MEM_STAT_REG(tmp,TYPE_VEC);
@@ -398,10 +398,10 @@ static	VEC	*Umlt(const MAT *U, const VEC *x, VEC *out)
     int		i, limit;
 
     if ( U == MNULL || x == VNULL )
-	Meerror(E_NULL,"Umlt");
-    limit = Memin(U->m,U->n);
+	error(E_NULL,"Umlt");
+    limit = min(U->m,U->n);
     if ( limit != x->dim )
-	Meerror(E_SIZES,"Umlt");
+	error(E_SIZES,"Umlt");
     if ( out == VNULL || out->dim < limit )
 	out = v_resize(out,limit);
 
@@ -423,8 +423,8 @@ static	VEC	*UTmlt(const MAT *U, const VEC *x, VEC *out)
     int		i, j, limit;
 
     if ( U == MNULL || x == VNULL )
-	Meerror(E_NULL,"UTmlt");
-    limit = Memin(U->m,U->n);
+	error(E_NULL,"UTmlt");
+    limit = min(U->m,U->n);
     if ( out == VNULL || out->dim < limit )
 	out = v_resize(out,limit);
 
@@ -454,9 +454,9 @@ VEC *QRTsolve(const MAT *A, const VEC *diag, const VEC *c, VEC *sc)
     Real	beta, r_ii, s, tmp_val;
 
     if ( ! A || ! diag || ! c )
-	Meerror(E_NULL,"QRTsolve");
-    if ( diag->dim < Memin(A->m,A->n) )
-	Meerror(E_SIZES,"QRTsolve");
+	error(E_NULL,"QRTsolve");
+    if ( diag->dim < min(A->m,A->n) )
+	error(E_SIZES,"QRTsolve");
     sc = v_resize(sc,A->m);
     n = sc->dim;
     p = c->dim;
@@ -476,7 +476,7 @@ VEC *QRTsolve(const MAT *A, const VEC *diag, const VEC *c, VEC *sc)
 	    for ( j = 0; j < i; j++ )
 		s += A->me[j][i]*sc->ve[j];
 	    if ( A->me[i][i] == 0.0 )
-		Meerror(E_SING,"QRTsolve");
+		error(E_SING,"QRTsolve");
 	    sc->ve[i]=(c->ve[i]-s)/A->me[i][i];
 	}
     }
@@ -517,9 +517,9 @@ double	QRcondest(const MAT *QR)
     int		i, j, limit;
 
     if ( QR == MNULL )
-	Meerror(E_NULL,"QRcondest");
+	error(E_NULL,"QRcondest");
 
-    limit = Memin(QR->m,QR->n);
+    limit = min(QR->m,QR->n);
     for ( i = 0; i < limit; i++ )
 	if ( QR->me[i][i] == 0.0 )
 	    return HUGE_VAL;

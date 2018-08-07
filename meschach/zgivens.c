@@ -47,7 +47,7 @@ static	char	rcsid[] = "$Id: ";
 */
 
 /* zgivens -- returns c,s parameters for Givens rotation to
-		eliMeminate y in the **column** vector [ x y ] */
+		eliminate y in the **column** vector [ x y ] */
 void	zgivens(x,y,c,s)
 complex	x,y,*s;
 Real	*c;
@@ -85,9 +85,9 @@ complex	s;
 	complex	temp1, temp2;
 
 	if ( x==ZVNULL )
-		Meerror(E_NULL,"rot_zvec");
+		error(E_NULL,"rot_zvec");
 	if ( i < 0 || i >= x->dim || k < 0 || k >= x->dim )
-		Meerror(E_RANGE,"rot_zvec");
+		error(E_RANGE,"rot_zvec");
 	if ( x != out )
 	    out = zv_copy(x,out);
 
@@ -120,9 +120,9 @@ complex	s;
 	complex	temp1, temp2;
 
 	if ( mat==ZMNULL )
-		Meerror(E_NULL,"zrot_rows");
+		error(E_NULL,"zrot_rows");
 	if ( i < 0 || i >= mat->m || k < 0 || k >= mat->m )
-		Meerror(E_RANGE,"zrot_rows");
+		error(E_RANGE,"zrot_rows");
 
 	if ( mat != out )
 		out = zm_copy(mat,zm_resize(out,mat->m,mat->n));
@@ -160,9 +160,9 @@ complex	s;
 	complex	x, y;
 
 	if ( mat==ZMNULL )
-		Meerror(E_NULL,"zrot_cols");
+		error(E_NULL,"zrot_cols");
 	if ( i < 0 || i >= mat->n || k < 0 || k >= mat->n )
-		Meerror(E_RANGE,"zrot_cols");
+		error(E_RANGE,"zrot_cols");
 
 	if ( mat != out )
 		out = zm_copy(mat,zm_resize(out,mat->m,mat->n));

@@ -1,4 +1,8 @@
-﻿#include <math.h>
+// Copyright 2016 State of Queensland
+// This file is part of SPADE
+// See spade.c, COPYING, COPYING.LESSER
+
+#include <math.h>
 #include "../../meschach/matrix.h"
 #include "../../common.h"
 
@@ -30,21 +34,4 @@ Real e(
       int idx = floor((t + (cek/2) - MACHEPS)/cek);
       return ef->ve[idx];
     }
-}
-
-
-Real _e(
-
-	  Real * ef,
-	  Real t
-
-	  )
-{
-
-  Real cek;
-  cek = k/2;
-    
-  int idx = floor((t + (cek/2) - MACHEPS)/cek);
-  return ef[idx];
-    
 }

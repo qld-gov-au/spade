@@ -34,7 +34,7 @@
 #include	"sparse2.h"
 #include        "iter.h"
 
-#define	errmesg(mesg)	printf("Error: %s Meerror: line %d\n",mesg,__LINE__)
+#define	errmesg(mesg)	printf("Error: %s error: line %d\n",mesg,__LINE__)
 #define notice(mesg)	printf("# Testing %s...\n",mesg);
 
 /* for iterative methods */
@@ -53,7 +53,7 @@ SPMAT	*A;
     row_elt	*e;
 
     if ( ! A )
-	Meerror(E_NULL,"chk_col_accessSPT");
+	error(E_NULL,"chk_col_accessSPT");
     if ( ! A->flag_col )
 	return FALSE;
 
@@ -295,12 +295,12 @@ char	*argv[];
 	printf("# Sparse Cholesky residual = %g [cf MACHEPS = %g]\n",
 	       v_norm2(v), MACHEPS);
     }
-    /* compute Meerror in solution */
+    /* compute error in solution */
     v_sub(x,z,z);
     if ( v_norm2(z) > MACHEPS*v_norm2(x)*10 )
     {
 	errmesg("spCHfactor()/spCHsolve()");
-	printf("# Solution Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# Solution error = %g [cf MACHEPS = %g]\n",
 	       v_norm2(z), MACHEPS);
     }
 
@@ -324,12 +324,12 @@ char	*argv[];
 	printf("# Sparse Cholesky residual = %g [cf MACHEPS = %g]\n",
 	       v_norm2(v), MACHEPS);
     }
-    /* compute Meerror in solution */
+    /* compute error in solution */
     v_sub(x,z,z);
     if ( v_norm2(z) > MACHEPS*v_norm2(x)*10 )
     {
 	errmesg("spCHsymb()/spICHfactor()");
-	printf("# Solution Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# Solution error = %g [cf MACHEPS = %g]\n",
 	       v_norm2(z), MACHEPS);
     }
 
@@ -363,12 +363,12 @@ char	*argv[];
 	printf("# Sparse LU residual = %g [cf MACHEPS = %g]\n",
 	       v_norm2(v), MACHEPS);
     }
-    /* compute Meerror in solution */
+    /* compute error in solution */
     v_sub(x,z,z);
     if ( v_norm2(z) > MACHEPS*v_norm2(x)*100*A->m )
     {
 	errmesg("spLUfactor()/spLUsolve()");
-	printf("# Sparse LU solution Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# Sparse LU solution error = %g [cf MACHEPS = %g]\n",
 	       v_norm2(z), MACHEPS);
     }
 
@@ -387,12 +387,12 @@ char	*argv[];
 	printf("# Sparse LU residual = %g [cf MACHEPS = %g]\n",
 	       v_norm2(v), MACHEPS);
     }
-    /* compute Meerror in solution */
+    /* compute error in solution */
     v_sub(x,z,z);
     if ( v_norm2(z) > MACHEPS*v_norm2(x)*100*A->m )
     {
 	errmesg("spLUTsolve()");
-	printf("# Sparse LU solution Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# Sparse LU solution error = %g [cf MACHEPS = %g]\n",
 	       v_norm2(z), MACHEPS);
     }
 

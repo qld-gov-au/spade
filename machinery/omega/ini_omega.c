@@ -1,4 +1,8 @@
-﻿#include <math.h>
+// Copyright 2016 State of Queensland
+// This file is part of SPADE
+// See spade.c, COPYING, COPYING.LESSER
+
+#include <math.h>
 #include "../../meschach/matrix.h"
 #include "../../common.h"
 #include "../../parameters.h"
@@ -14,7 +18,7 @@ VEC *ini_omega(
 
   x->ve[x->dim-1] -= 1e-5;
 
-  Real a = parameters->alpha1.value;
+  Real a = parameters->alpha.value;
   Real b = parameters->beta.value;
   Real g = parameters->gamma.value*1e-7;
   Real k = parameters->kappa.value;

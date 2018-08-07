@@ -42,7 +42,7 @@ ZMAT	*_zm_copy(const ZMAT *in, ZMAT *out, int i0, int j0)
 	unsigned int	i /* ,j */;
 
 	if ( in==ZMNULL )
-		Meerror(E_NULL,"_zm_copy");
+		error(E_NULL,"_zm_copy");
 	if ( in==out )
 		return (out);
 	if ( out==ZMNULL || out->m < in->m || out->n < in->n )
@@ -69,7 +69,7 @@ ZVEC	*_zv_copy(const ZVEC *in, ZVEC *out, int i0)
 	/* unsigned int	i,j; */
 
 	if ( in==ZVNULL )
-		Meerror(E_NULL,"_zv_copy");
+		error(E_NULL,"_zv_copy");
 	if ( in==out )
 		return (out);
 	if ( out==ZVNULL || out->dim < in->dim )
@@ -106,15 +106,15 @@ ZMAT	*zm_move(const ZMAT *in, int i0, int j0, int m0, int n0,
     int		i;
 
     if ( ! in )
-	Meerror(E_NULL,"zm_move");
+	error(E_NULL,"zm_move");
     if ( i0 < 0 || j0 < 0 || i1 < 0 || j1 < 0 || m0 < 0 || n0 < 0 ||
 	 i0+m0 > in->m || j0+n0 > in->n )
-	Meerror(E_BOUNDS,"zm_move");
+	error(E_BOUNDS,"zm_move");
 
     if ( ! out )
 	out = zm_resize(out,i1+m0,j1+n0);
     else if ( i1+m0 > out->m || j1+n0 > out->n )
-	out = zm_resize(out,MeMemax(out->m,i1+m0),MeMemax(out->n,j1+n0));
+	out = zm_resize(out,max(out->m,i1+m0),max(out->n,j1+n0));
 
     for ( i = 0; i < m0; i++ )
 	MEM_COPY(&(in->me[i0+i][j0]),&(out->me[i1+i][j1]),
@@ -137,10 +137,10 @@ ZVEC	*zv_move(const ZVEC *in, int i0, int dim0,
 #endif
 {
     if ( ! in )
-	Meerror(E_NULL,"zv_move");
+	error(E_NULL,"zv_move");
     if ( i0 < 0 || dim0 < 0 || i1 < 0 ||
 	 i0+dim0 > in->dim )
-	Meerror(E_BOUNDS,"zv_move");
+	error(E_BOUNDS,"zv_move");
 
     if ( (! out) || i1+dim0 > out->dim )
 	out = zv_resize(out,i1+dim0);
@@ -169,10 +169,10 @@ ZVEC	*zmv_move(const ZMAT *in, int i0, int j0, int m0, int n0,
     int		dim1, i;
 
     if ( ! in )
-	Meerror(E_NULL,"zmv_move");
+	error(E_NULL,"zmv_move");
     if ( i0 < 0 || j0 < 0 || m0 < 0 || n0 < 0 || i1 < 0 ||
 	 i0+m0 > in->m || j0+n0 > in->n )
-	Meerror(E_BOUNDS,"zmv_move");
+	error(E_BOUNDS,"zmv_move");
 
     dim1 = m0*n0;
     if ( (! out) || i1+dim1 > out->dim )
@@ -202,15 +202,15 @@ ZMAT	*zvm_move(const ZVEC *in, int i0,
     int		dim0, i;
 
     if ( ! in )
-	Meerror(E_NULL,"zvm_move");
+	error(E_NULL,"zvm_move");
     if ( i0 < 0 || i1 < 0 || j1 < 0 || m1 < 0 || n1 < 0 ||
 	 i0+m1*n1 > in->dim )
-	Meerror(E_BOUNDS,"zvm_move");
+	error(E_BOUNDS,"zvm_move");
 
     if ( ! out )
 	out = zm_resize(out,i1+m1,j1+n1);
     else
-	out = zm_resize(out,MeMemax(i1+m1,out->m),MeMemax(j1+n1,out->n));
+	out = zm_resize(out,max(i1+m1,out->m),max(j1+n1,out->n));
 
     dim0 = m1*n1;
     for ( i = 0; i < m1; i++ )

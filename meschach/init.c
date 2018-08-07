@@ -44,7 +44,7 @@ VEC	*v_zero(VEC *x)
 #endif
 {
 	if ( x == VNULL )
-		Meerror(E_NULL,"v_zero");
+		error(E_NULL,"v_zero");
 
 	__zero__(x->ve,x->dim);
 	/* for ( i = 0; i < x->dim; i++ )
@@ -65,7 +65,7 @@ IVEC	*iv_zero(IVEC *ix)
    int i;
    
    if ( ix == IVNULL )
-     Meerror(E_NULL,"iv_zero");
+     error(E_NULL,"iv_zero");
    
    for ( i = 0; i < ix->dim; i++ )
      ix->ive[i] = 0; 
@@ -86,7 +86,7 @@ MAT	*m_zero(MAT *A)
 	Real	**A_me;
 
 	if ( A == MNULL )
-		Meerror(E_NULL,"m_zero");
+		error(E_NULL,"m_zero");
 
 	A_m = A->m;	A_n = A->n;	A_me = A->me;
 	for ( i = 0; i < A_m; i++ )
@@ -109,10 +109,10 @@ MAT	*m_ident(MAT *A)
 	int	i, size;
 
 	if ( A == MNULL )
-		Meerror(E_NULL,"m_ident");
+		error(E_NULL,"m_ident");
 
 	m_zero(A);
-	size = Memin(A->m,A->n);
+	size = min(A->m,A->n);
 	for ( i = 0; i < size; i++ )
 		A->me[i][i] = 1.0;
 
@@ -131,7 +131,7 @@ PERM	*px_ident(PERM *px)
 	unsigned int	*px_pe;
 
 	if ( px == PNULL )
-		Meerror(E_NULL,"px_ident");
+		error(E_NULL,"px_ident");
 
 	px_size = px->size;	px_pe = px->pe;
 	for ( i = 0; i < px_size; i++ )
@@ -141,8 +141,8 @@ PERM	*px_ident(PERM *px)
 }
 
 /* Pseudo random number generator data structures */
-/* Knuth's lagged Fibonacci-based generator: See "SeMeminumerical Algorithms:
-   The Art of Computer ProgramMeming" sections 3.2-3.3 */
+/* Knuth's lagged Fibonacci-based generator: See "Seminumerical Algorithms:
+   The Art of Computer Programming" sections 3.2-3.3 */
 
 #ifdef ANSI_C
 #ifndef LONG_MAX
@@ -153,7 +153,7 @@ PERM	*px_ident(PERM *px)
 #ifdef LONG_MAX
 #define MODULUS	LONG_MAX
 #else
-#define MODULUS	1000000000L	/* assuMeming long's at least 32 bits long */
+#define MODULUS	1000000000L	/* assuming long's at least 32 bits long */
 #endif
 #define MZ	0L
 
@@ -254,7 +254,7 @@ VEC	*v_rand(VEC *x)
 	/* int	i; */
 
 	if ( ! x )
-		Meerror(E_NULL,"v_rand");
+		error(E_NULL,"v_rand");
 
 	/* for ( i = 0; i < x->dim; i++ ) */
 	    /* x->ve[i] = rand()/((Real)MAX_RAND); */
@@ -276,7 +276,7 @@ MAT	*m_rand(MAT *A)
 	int	i /* , j */;
 
 	if ( ! A )
-		Meerror(E_NULL,"m_rand");
+		error(E_NULL,"m_rand");
 
 	for ( i = 0; i < A->m; i++ )
 		/* for ( j = 0; j < A->n; j++ ) */
@@ -298,7 +298,7 @@ VEC	*v_ones(VEC *x)
 	int	i;
 
 	if ( ! x )
-		Meerror(E_NULL,"v_ones");
+		error(E_NULL,"v_ones");
 
 	for ( i = 0; i < x->dim; i++ )
 		x->ve[i] = 1.0;
@@ -317,7 +317,7 @@ MAT	*m_ones(MAT *A)
 	int	i, j;
 
 	if ( ! A )
-		Meerror(E_NULL,"m_ones");
+		error(E_NULL,"m_ones");
 
 	for ( i = 0; i < A->m; i++ )
 		for ( j = 0; j < A->n; j++ )
@@ -337,7 +337,7 @@ VEC	*v_count(VEC *x)
 	int	i;
 
 	if ( ! x )
-	    Meerror(E_NULL,"v_count");
+	    error(E_NULL,"v_count");
 
 	for ( i = 0; i < x->dim; i++ )
 	    x->ve[i] = (Real)i;

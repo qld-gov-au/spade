@@ -37,7 +37,7 @@ static char rcsid[] = "$Id: $";
 #include        "matlab.h"
 
 
-#define	errmesg(mesg)	printf("Error: %s Meerror: line %d\n",mesg,__LINE__)
+#define	errmesg(mesg)	printf("Error: %s error: line %d\n",mesg,__LINE__)
 #define notice(mesg)	printf("# Testing %s...\n",mesg);
 
 /* extern	int	malloc_chain_check(); */
@@ -55,7 +55,7 @@ PERM	*pi1, *pi2;
     int		i;
 
     if ( ! pi1 || ! pi2 )
-	Meerror(E_NULL,"cmp_perm");
+	error(E_NULL,"cmp_perm");
     if ( pi1->size != pi2->size )
 	return 0;
     for ( i = 0; i < pi1->size; i++ )
@@ -71,7 +71,7 @@ PERM	*pi;
     int		i, j, k;
 
     if ( ! pi )
-	Meerror(E_NULL,"px_rand");
+	error(E_NULL,"px_rand");
 
     for ( i = 0; i < 3*pi->size; i++ )
     {
@@ -124,14 +124,14 @@ char	*argv[];
     m_version();
 
     printf("# Meschach Complex numbers & vectors torture test\n\n");
-    printf("# grep \"^Error\" the output for a listing of Meerrors\n");
+    printf("# grep \"^Error\" the output for a listing of errors\n");
     printf("# Don't panic if you see \"Error\" appearing; \n");
-    printf("# Also check the reported size of Meerror\n");
+    printf("# Also check the reported size of error\n");
     printf("# This program uses randomly generated problems and therefore\n");
     printf("# may occasionally produce ill-conditioned problems\n");
-    printf("# Therefore check the size of the Meerror compared with MACHEPS\n");
-    printf("# If the Meerror is within 1000*MACHEPS then don't worry\n");
-    printf("# If you get an Meerror of size 0.1 or larger there is \n");
+    printf("# Therefore check the size of the error compared with MACHEPS\n");
+    printf("# If the error is within 1000*MACHEPS then don't worry\n");
+    printf("# If you get an error of size 0.1 or larger there is \n");
     printf("# probably a bug in the code or the compilation procedure\n\n");
     printf("# seed = %d\n",seed);
 
@@ -226,14 +226,14 @@ char	*argv[];
 	errmesg("PERMute vector");
 
     /* testing catch() etc */
-    notice("Meerror handling routines");
+    notice("error handling routines");
     catch(E_NULL,
 	  catchall(zv_add(ZVNULL,ZVNULL,ZVNULL);
 		     errmesg("tracecatch() failure"),
-		     printf("# tracecatch() caught Meerror\n");
-		     Meerror(E_NULL,"main"));
+		     printf("# tracecatch() caught error\n");
+		     error(E_NULL,"main"));
 	             errmesg("catch() failure"),
-	  printf("# catch() caught E_NULL Meerror\n"));
+	  printf("# catch() caught E_NULL error\n"));
 
     /* testing inner products and v_mltadd() etc */
     notice("inner products and linear combinations");
@@ -246,7 +246,7 @@ char	*argv[];
     if ( zabs(zin_prod(x,z)) >= 5*MACHEPS*x->dim )
     {
 	errmesg("zv_mltadd()/zin_prod()");
-	printf("# Meerror norm = %g\n", zabs(zin_prod(x,z)));
+	printf("# error norm = %g\n", zabs(zin_prod(x,z)));
     }
 
     z1 = zneg(zdiv(zin_prod(x,y),zmake(zv_norm2(x)*zv_norm2(x),0.0)));
@@ -255,7 +255,7 @@ char	*argv[];
     if ( zv_norm2(zv_sub(u,z,u)) >= MACHEPS*x->dim )
     {
 	errmesg("zv_mlt()/zv_norm2()");
-	printf("# Meerror norm = %g\n", zv_norm2(u));
+	printf("# error norm = %g\n", zv_norm2(u));
     }
 
 #ifdef ANSI_C
@@ -304,7 +304,7 @@ char	*argv[];
 
     /* ... and adjoints */
     notice("adjoints and adjoint-multiplies");
-    zm_adjoint(A,A);	/* can do Mesquare matrices in situ */
+    zm_adjoint(A,A);	/* can do square matrices in situ */
     zmam_mlt(A,B,C);
     for ( i = 0; i < C->m; i++ )
 	zm_set_val(C,i,i,zsub(zm_entry(C,i,i),ONE));
@@ -466,7 +466,7 @@ char	*argv[];
     if ( zv_norm2(zv_sub(x,z,u)) >= MACHEPS*zv_norm2(x)*cond_est)
     {
 	errmesg("zLUfactor()/zLUsolve()");
-	printf("# LU solution Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# LU solution error = %g [cf MACHEPS = %g]\n",
 	       zv_norm2(zv_sub(x,z,u)), MACHEPS);
     }
 
@@ -477,7 +477,7 @@ char	*argv[];
     if ( zv_norm2(zv_sub(x,z,u)) >= MACHEPS*zv_norm2(x)*cond_est)
     {
 	errmesg("zLUfactor()/zLUsolve()");
-	printf("# LU solution Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# LU solution error = %g [cf MACHEPS = %g]\n",
 	       zv_norm2(zv_sub(x,z,u)), MACHEPS);
     }
 
@@ -487,7 +487,7 @@ char	*argv[];
     if ( zv_norm2(zv_sub(x,z,u)) >= MACHEPS*zv_norm2(x)*cond_est)
     {
 	errmesg("zLUfactor()/zLUAsolve()");
-	printf("# LU solution Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# LU solution error = %g [cf MACHEPS = %g]\n",
 	       zv_norm2(zv_sub(x,z,u)), MACHEPS);
     }
 
@@ -503,7 +503,7 @@ char	*argv[];
     if ( zv_norm2(zv_sub(x,z,u)) >= MACHEPS*zv_norm2(x)*cond_est )
     {
 	errmesg("zQRfactor()/zQRsolve()");
-	printf("# QR solution Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# QR solution error = %g [cf MACHEPS = %g]\n",
 	       zv_norm2(zv_sub(x,z,u)), MACHEPS);
     }
     printf("# QR cond(A) approx= %g\n", zQRcondest(A));
@@ -515,13 +515,13 @@ char	*argv[];
     if ( zm_norm1(C) >= MACHEPS*zm_norm1(Q)*zm_norm1(B) )
     {
 	errmesg("zQRfactor()/zmakeQ()/zmakeR()");
-	printf("# QR reconstruction Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# QR reconstruction error = %g [cf MACHEPS = %g]\n",
 	       zm_norm1(C), MACHEPS);
     }
 
     MEMCHK();
 
-    /* now try with a non-Mesquare matrix */
+    /* now try with a non-square matrix */
     A = zm_resize(A,15,7);
     zm_rand(A);
     B = zm_copy(A,B);
@@ -538,7 +538,7 @@ char	*argv[];
     if ( zv_norm2(u) >= 100*MACHEPS*zm_norm1(B)*zv_norm2(y) )
     {
 	errmesg("zQRfactor()/zQRsolve()");
-	printf("# QR solution Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# QR solution error = %g [cf MACHEPS = %g]\n",
 	       zv_norm2(u), MACHEPS);
     }
     Q = zm_resize(Q,A->m,A->m);
@@ -549,7 +549,7 @@ char	*argv[];
     if ( zm_norm1(C) >= MACHEPS*zm_norm1(Q)*zm_norm1(B) )
     {
 	errmesg("zQRfactor()/zmakeQ()/zmakeR()");
-	printf("# QR reconstruction Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# QR reconstruction error = %g [cf MACHEPS = %g]\n",
 	       zm_norm1(C), MACHEPS);
     }
     D = zm_get(A->m,Q->m);
@@ -559,7 +559,7 @@ char	*argv[];
     if ( zm_norm1(D) >= MACHEPS*zm_norm1(Q)*zm_norm_inf(Q) )
     {
 	errmesg("QRfactor()/makeQ()/makeR()");
-	printf("# QR orthogonality Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# QR orthogonality error = %g [cf MACHEPS = %g]\n",
 	       zm_norm1(D), MACHEPS);
     }
 
@@ -580,7 +580,7 @@ char	*argv[];
     if ( zv_norm2(u) >= MACHEPS*zm_norm1(B)*zv_norm2(y) )
     {
 	errmesg("QRCPfactor()/QRsolve()");
-	printf("# QR solution Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# QR solution error = %g [cf MACHEPS = %g]\n",
 	       zv_norm2(u), MACHEPS);
     }
 
@@ -596,7 +596,7 @@ char	*argv[];
     if ( zm_norm1(D) >= MACHEPS*zm_norm1(Q)*zm_norm1(B) )
     {
 	errmesg("QRCPfactor()/makeQ()/makeR()");
-	printf("# QR reconstruction Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# QR reconstruction error = %g [cf MACHEPS = %g]\n",
 	       zm_norm1(D), MACHEPS);
     }
     ******************************/
@@ -629,7 +629,7 @@ char	*argv[];
     if ( zm_norm1(D) >= MACHEPS*zm_norm1(Q)*zm_norm_inf(Q)*zm_norm1(B)*5 )
     {
 	errmesg("zschur()");
-	printf("# Schur reconstruction Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# Schur reconstruction error = %g [cf MACHEPS = %g]\n",
 	       zm_norm1(D), MACHEPS);
     }
 
@@ -640,7 +640,7 @@ char	*argv[];
     if ( zm_norm1(D) >= MACHEPS*zm_norm1(Q)*zm_norm_inf(Q)*10 )
     {
 	errmesg("zschur()");
-	printf("# Schur orthogonality Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# Schur orthogonality error = %g [cf MACHEPS = %g]\n",
 	       zm_norm1(D), MACHEPS);
     }
 
@@ -652,7 +652,7 @@ char	*argv[];
     zm_rand(A);
     U = zm_get(A->n,A->n);
     Q = zm_resize(Q,A->m,A->m);
-    u = zv_resize(u,MeMemax(A->m,A->n));
+    u = zv_resize(u,max(A->m,A->n));
     svd(A,Q,U,u);
     ******************************/
     /* check reconstruction of A */
@@ -660,7 +660,7 @@ char	*argv[];
     D = zm_resize(D,A->m,A->n);
     C = zm_resize(C,A->m,A->n);
     zm_zero(D);
-    for ( i = 0; i < Memin(A->m,A->n); i++ )
+    for ( i = 0; i < min(A->m,A->n); i++ )
 	zm_set_val(D,i,i,v_entry(u,i));
     zmam_mlt(Q,D,C);
     zm_mlt(C,U,D);
@@ -668,7 +668,7 @@ char	*argv[];
     if ( zm_norm1(D) >= MACHEPS*zm_norm1(U)*zm_norm_inf(Q)*zm_norm1(A) )
     {
 	errmesg("svd()");
-	printf("# SVD reconstruction Meerror = %g [cf MACHEPS = %g]\n",
+	printf("# SVD reconstruction error = %g [cf MACHEPS = %g]\n",
 	       zm_norm1(D), MACHEPS);
     }
     ******************************/
@@ -681,7 +681,7 @@ char	*argv[];
     if ( zm_norm1(D) >= MACHEPS*zm_norm1(Q)*zm_norm_inf(Q)*5 )
     {
 	errmesg("svd()");
-	printf("# SVD orthognality Meerror (Q) = %g [cf MACHEPS = %g\n",
+	printf("# SVD orthognality error (Q) = %g [cf MACHEPS = %g\n",
 	       zm_norm1(D), MACHEPS);
     }
     D = zm_resize(D,U->n,U->n);
@@ -691,7 +691,7 @@ char	*argv[];
     if ( zm_norm1(D) >= MACHEPS*zm_norm1(U)*zm_norm_inf(U)*5 )
     {
 	errmesg("svd()");
-	printf("# SVD orthognality Meerror (U) = %g [cf MACHEPS = %g\n",
+	printf("# SVD orthognality error (U) = %g [cf MACHEPS = %g\n",
 	       zm_norm1(D), MACHEPS);
     }
     for ( i = 0; i < u->dim; i++ )
@@ -701,7 +701,7 @@ char	*argv[];
     if ( i < u->dim )
     {
 	errmesg("svd()");
-	printf("# SVD sorting Meerror\n");
+	printf("# SVD sorting error\n");
     }
     ******************************/
 

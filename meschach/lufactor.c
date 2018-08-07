@@ -40,7 +40,7 @@ static	char	rcsid[] = "$Id: lufactor.c,v 1.10 1995/05/16 17:26:44 des Exp $";
 
 /* Most matrix factorisation routines are in-situ unless otherwise specified */
 
-/* LUfactor -- gaussian eliMemination with scaled partial pivoting
+/* LUfactor -- gaussian elimination with scaled partial pivoting
 		-- Note: returns LU matrix which is A */
 #ifndef ANSI_C
 MAT	*LUfactor(A,pivot)
@@ -51,15 +51,15 @@ MAT	*LUfactor(MAT *A, PERM *pivot)
 #endif
 {
 	unsigned int	i, j, m, n;
-	int	i_MeMemax, k, k_MeMemax;
+	int	i_max, k, k_max;
 	Real	**A_v, *A_piv, *A_row;
-	Real	MeMemax1, temp, tiny;
+	Real	max1, temp, tiny;
 	STATIC	VEC	*scale = VNULL;
 
 	if ( A==(MAT *)NULL || pivot==(PERM *)NULL )
-		Meerror(E_NULL,"LUfactor");
+		error(E_NULL,"LUfactor");
 	if ( pivot->size != A->m )
-		Meerror(E_SIZES,"LUfactor");
+		error(E_SIZES,"LUfactor");
 	m = A->m;	n = A->n;
 	scale = v_resize(scale,A->m);
 	MEM_STAT_REG(scale,TYPE_VEC);
@@ -74,31 +74,31 @@ MAT	*LUfactor(MAT *A, PERM *pivot)
 	/* set scale parameters */
 	for ( i=0; i<m; i++ )
 	{
-		MeMemax1 = 0.0;
+		max1 = 0.0;
 		for ( j=0; j<n; j++ )
 		{
 			temp = fabs(A_v[i][j]);
-			MeMemax1 = MeMemax(MeMemax1,temp);
+			max1 = max(max1,temp);
 		}
-		scale->ve[i] = MeMemax1;
+		scale->ve[i] = max1;
 	}
 
 	/* main loop */
-	k_MeMemax = Memin(m,n)-1;
-	for ( k=0; k<k_MeMemax; k++ )
+	k_max = min(m,n)-1;
+	for ( k=0; k<k_max; k++ )
 	{
 	    /* find best pivot row */
-	    MeMemax1 = 0.0;	i_MeMemax = -1;
+	    max1 = 0.0;	i_max = -1;
 	    for ( i=k; i<m; i++ )
 		if ( fabs(scale->ve[i]) >= tiny*fabs(A_v[i][k]) )
 		{
 		    temp = fabs(A_v[i][k])/scale->ve[i];
-		    if ( temp > MeMemax1 )
-		    { MeMemax1 = temp;	i_MeMemax = i;	}
+		    if ( temp > max1 )
+		    { max1 = temp;	i_max = i;	}
 		}
 	    
 	    /* if no pivot then ignore column k... */
-	    if ( i_MeMemax == -1 )
+	    if ( i_max == -1 )
 	    {
 		/* set pivot entry A[k][k] exactly to zero,
 		   rather than just "small" */
@@ -107,13 +107,13 @@ MAT	*LUfactor(MAT *A, PERM *pivot)
 	    }
 	    
 	    /* do we pivot ? */
-	    if ( i_MeMemax != k )	/* yes we do... */
+	    if ( i_max != k )	/* yes we do... */
 	    {
-		px_transp(pivot,i_MeMemax,k);
+		px_transp(pivot,i_max,k);
 		for ( j=0; j<n; j++ )
 		{
-		    temp = A_v[i_MeMemax][j];
-		    A_v[i_MeMemax][j] = A_v[k][j];
+		    temp = A_v[i_max][j];
+		    A_v[i_max][j] = A_v[k][j];
 		    A_v[k][j] = temp;
 		}
 	    }
@@ -154,9 +154,9 @@ VEC	*LUsolve(const MAT *LU, PERM *pivot, const VEC *b, VEC *x)
 #endif
 {
 	if ( ! LU || ! b || ! pivot )
-		Meerror(E_NULL,"LUsolve");
+		error(E_NULL,"LUsolve");
 	if ( LU->m != LU->n || LU->n != b->dim )
-		Meerror(E_SIZES,"LUsolve");
+		error(E_SIZES,"LUsolve");
 
 	x = v_resize(x,b->dim);
 	px_vec(pivot,b,x);	/* x := P.b */
@@ -177,9 +177,9 @@ VEC	*LUTsolve(const MAT *LU, PERM *pivot, const VEC *b, VEC *x)
 #endif
 {
 	if ( ! LU || ! b || ! pivot )
-		Meerror(E_NULL,"LUTsolve");
+		error(E_NULL,"LUTsolve");
 	if ( LU->m != LU->n || LU->n != b->dim )
-		Meerror(E_SIZES,"LUTsolve");
+		error(E_SIZES,"LUTsolve");
 
 	x = v_copy(b,x);
 	UTsolve(LU,x,x,0.0);	/* explicit diagonal */
@@ -204,9 +204,9 @@ MAT	*m_inverse(const MAT *A, MAT *out)
 	STATIC PERM	*pivot = PNULL;
 
 	if ( ! A )
-	    Meerror(E_NULL,"m_inverse");
+	    error(E_NULL,"m_inverse");
 	if ( A->m != A->n )
-	    Meerror(E_SQUARE,"m_inverse");
+	    error(E_SQUARE,"m_inverse");
 	if ( ! out || out->m < A->m || out->n < A->n )
 	    out = m_resize(out,A->m,A->n);
 
@@ -251,11 +251,11 @@ double	LUcondest(const MAT *LU, PERM *pivot)
     int		i, j, n;
 
     if ( ! LU || ! pivot )
-	Meerror(E_NULL,"LUcondest");
+	error(E_NULL,"LUcondest");
     if ( LU->m != LU->n )
-	Meerror(E_SQUARE,"LUcondest");
+	error(E_SQUARE,"LUcondest");
     if ( LU->n != pivot->size )
-	Meerror(E_SIZES,"LUcondest");
+	error(E_SIZES,"LUcondest");
 
     tiny = 10.0/HUGE_VAL;
 

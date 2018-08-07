@@ -1,20 +1,12 @@
-﻿#ifndef SPADE_MACHINERY_H
+// Copyright 2016 State of Queensland
+// This file is part of SPADE
+// See spade.c, COPYING, COPYING.LESSER
+
+#ifndef SPADE_MACHINERY_H
 #define SPADE_MACHINERY_H
 
 #include "../meschach/matrix.h"
 #include "../parameters.h"
-#include "../common.h"
-
-
-VEC *_VMGMM(
-
-		  VEC *,
-		  VEC *,
-		  Real *,
-		  Parameters * parameters
-
-		  );
-
 
 VEC *VMGMM(
 
@@ -26,7 +18,6 @@ VEC *VMGMM(
 
 		  );
 
-void check_derivative2(Parameters * parameters, Real * f);
 void check_derivative(Parameters * parameters, Grad_Args * args, Data * d, Real * f, Solve_Core_Args core_args);
 void check_derivative_no_meschach(Parameters * parameters, Grad_Args_No_MESCHACH * args, Data * d, Real * f, Solve_Core_Args core_args);
 #endif

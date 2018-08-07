@@ -40,9 +40,9 @@ ZMAT	*mat1,*mat2,*out;
     unsigned int	m,n,i;
     
     if ( mat1==ZMNULL || mat2==ZMNULL )
-	Meerror(E_NULL,"zm_add");
+	error(E_NULL,"zm_add");
     if ( mat1->m != mat2->m || mat1->n != mat2->n )
-	Meerror(E_SIZES,"zm_add");
+	error(E_SIZES,"zm_add");
     if ( out==ZMNULL || out->m != mat1->m || out->n != mat1->n )
 	out = zm_resize(out,mat1->m,mat1->n);
     m = mat1->m;	n = mat1->n;
@@ -65,9 +65,9 @@ ZMAT	*mat1,*mat2,*out;
     unsigned int	m,n,i;
     
     if ( mat1==ZMNULL || mat2==ZMNULL )
-	Meerror(E_NULL,"zm_sub");
+	error(E_NULL,"zm_sub");
     if ( mat1->m != mat2->m || mat1->n != mat2->n )
-	Meerror(E_SIZES,"zm_sub");
+	error(E_SIZES,"zm_sub");
     if ( out==ZMNULL || out->m != mat1->m || out->n != mat1->n )
 	out = zm_resize(out,mat1->m,mat1->n);
     m = mat1->m;	n = mat1->n;
@@ -97,11 +97,11 @@ ZMAT	*A,*B,*OUT;
     complex	**A_v, **B_v /*, *B_row, *OUT_row, sum, tmp */;
     
     if ( A==ZMNULL || B==ZMNULL )
-	Meerror(E_NULL,"zm_mlt");
+	error(E_NULL,"zm_mlt");
     if ( A->n != B->m )
-	Meerror(E_SIZES,"zm_mlt");
+	error(E_SIZES,"zm_mlt");
     if ( A == OUT || B == OUT )
-	Meerror(E_INSITU,"zm_mlt");
+	error(E_INSITU,"zm_mlt");
     m = A->m;	n = A->n;	p = B->n;
     A_v = A->me;		B_v = B->me;
     
@@ -143,11 +143,11 @@ ZMAT	*A, *B, *OUT;
     /* complex	*A_row, *B_row, sum; */
     
     if ( ! A || ! B )
-	Meerror(E_NULL,"zmma_mlt");
+	error(E_NULL,"zmma_mlt");
     if ( A == OUT || B == OUT )
-	Meerror(E_INSITU,"zmma_mlt");
+	error(E_INSITU,"zmma_mlt");
     if ( A->n != B->n )
-	Meerror(E_SIZES,"zmma_mlt");
+	error(E_SIZES,"zmma_mlt");
     if ( ! OUT || OUT->m != A->m || OUT->n != B->m )
 	OUT = zm_resize(OUT,A->m,B->m);
     
@@ -179,11 +179,11 @@ ZMAT	*A, *B, *OUT;
     complex	tmp;
     
     if ( ! A || ! B )
-	Meerror(E_NULL,"zmam_mlt");
+	error(E_NULL,"zmam_mlt");
     if ( A == OUT || B == OUT )
-	Meerror(E_INSITU,"zmam_mlt");
+	error(E_INSITU,"zmam_mlt");
     if ( A->m != B->m )
-	Meerror(E_SIZES,"zmam_mlt");
+	error(E_SIZES,"zmam_mlt");
     if ( ! OUT || OUT->m != A->n || OUT->n != B->n )
 	OUT = zm_resize(OUT,A->n,B->n);
     
@@ -212,11 +212,11 @@ ZVEC	*b,*out;
     /* register complex	sum; */
     
     if ( A==ZMNULL || b==ZVNULL )
-	Meerror(E_NULL,"zmv_mlt");
+	error(E_NULL,"zmv_mlt");
     if ( A->n != b->dim )
-	Meerror(E_SIZES,"zmv_mlt");
+	error(E_SIZES,"zmv_mlt");
     if ( b == out )
-	Meerror(E_INSITU,"zmv_mlt");
+	error(E_INSITU,"zmv_mlt");
     if ( out == ZVNULL || out->dim != A->m )
 	out = zv_resize(out,A->m);
     
@@ -246,7 +246,7 @@ ZMAT	*matrix,*out;
     unsigned int	m,n,i;
     
     if ( matrix==ZMNULL )
-	Meerror(E_NULL,"zsm_mlt");
+	error(E_NULL,"zsm_mlt");
     if ( out==ZMNULL || out->m != matrix->m || out->n != matrix->n )
 	out = zm_resize(out,matrix->m,matrix->n);
     m = matrix->m;	n = matrix->n;
@@ -268,11 +268,11 @@ ZVEC	*b,*out;
     /* complex	sum,**A_v,*b_v; */
     
     if ( A==ZMNULL || b==ZVNULL )
-	Meerror(E_NULL,"zvm_mlt");
+	error(E_NULL,"zvm_mlt");
     if ( A->m != b->dim )
-	Meerror(E_SIZES,"zvm_mlt");
+	error(E_SIZES,"zvm_mlt");
     if ( b == out )
-	Meerror(E_INSITU,"zvm_mlt");
+	error(E_INSITU,"zvm_mlt");
     if ( out == ZVNULL || out->dim != A->n )
 	out = zv_resize(out,A->n);
     
@@ -305,9 +305,9 @@ ZMAT	*in, *out;
     complex	tmp;
     
     if ( in == ZMNULL )
-	Meerror(E_NULL,"zm_adjoint");
+	error(E_NULL,"zm_adjoint");
     if ( in == out && in->n != in->m )
-	Meerror(E_INSITU2,"zm_adjoint");
+	error(E_INSITU2,"zm_adjoint");
     in_situ = ( in == out );
     if ( out == ZMNULL || out->m != in->n || out->n != in->m )
 	out = zm_resize(out,in->n,in->m);
@@ -350,11 +350,11 @@ int	i, j, lo, hi;
     complex	**A_me, tmp;
     
     if ( ! A )
-	Meerror(E_NULL,"swap_rows");
+	error(E_NULL,"swap_rows");
     if ( i < 0 || j < 0 || i >= A->m || j >= A->m )
-	Meerror(E_SIZES,"swap_rows");
-    lo = MeMemax(0,lo);
-    hi = Memin(hi,A->n-1);
+	error(E_SIZES,"swap_rows");
+    lo = max(0,lo);
+    hi = min(hi,A->n-1);
     A_me = A->me;
     
     for ( k = lo; k <= hi; k++ )
@@ -375,11 +375,11 @@ int	i, j, lo, hi;
     complex	**A_me, tmp;
     
     if ( ! A )
-	Meerror(E_NULL,"swap_cols");
+	error(E_NULL,"swap_cols");
     if ( i < 0 || j < 0 || i >= A->n || j >= A->n )
-	Meerror(E_SIZES,"swap_cols");
-    lo = MeMemax(0,lo);
-    hi = Memin(hi,A->m-1);
+	error(E_SIZES,"swap_cols");
+    lo = max(0,lo);
+    hi = min(hi,A->m-1);
     A_me = A->me;
     
     for ( k = lo; k <= hi; k++ )
@@ -403,9 +403,9 @@ complex	s;
     int	i, m, n;
     
     if ( ! A1 || ! A2 )
-	Meerror(E_NULL,"mz_mltadd");
+	error(E_NULL,"mz_mltadd");
     if ( A1->m != A2->m || A1->n != A2->n )
-	Meerror(E_SIZES,"mz_mltadd");
+	error(E_SIZES,"mz_mltadd");
 
     if ( out != A1 && out != A2 )
         out = zm_resize(out,A1->m,A1->n);
@@ -446,11 +446,11 @@ complex	alpha;
     complex	tmp, *v2_ve, *out_ve;
     
     if ( ! v1 || ! v2 || ! A )
-	Meerror(E_NULL,"zmv_mltadd");
+	error(E_NULL,"zmv_mltadd");
     if ( out == v2 )
-	Meerror(E_INSITU,"zmv_mltadd");
+	error(E_INSITU,"zmv_mltadd");
     if ( v1->dim != A->m || v2->dim != A-> n )
-	Meerror(E_SIZES,"zmv_mltadd");
+	error(E_SIZES,"zmv_mltadd");
     
     tracecatch(out = zv_copy(v1,out),"zmv_mltadd");
     
@@ -489,11 +489,11 @@ complex	alpha;
     complex	tmp, /* *A_e, */ *out_ve;
     
     if ( ! v1 || ! v2 || ! A )
-	Meerror(E_NULL,"zvm_mltadd");
+	error(E_NULL,"zvm_mltadd");
     if ( v2 == out )
-	Meerror(E_INSITU,"zvm_mltadd");
+	error(E_INSITU,"zvm_mltadd");
     if ( v1->dim != A->n || A->m != v2->dim )
-	Meerror(E_SIZES,"zvm_mltadd");
+	error(E_SIZES,"zvm_mltadd");
     
     tracecatch(out = zv_copy(v1,out),"zvm_mltadd");
     
@@ -524,9 +524,9 @@ ZVEC	*vec;
 	unsigned int	i;
 
 	if ( mat==ZMNULL )
-		Meerror(E_NULL,"zget_col");
+		error(E_NULL,"zget_col");
 	if ( col < 0 || col >= mat->n )
-		Meerror(E_RANGE,"zget_col");
+		error(E_RANGE,"zget_col");
 	if ( vec==ZVNULL || vec->dim<mat->m )
 		vec = zv_resize(vec,mat->m);
 
@@ -545,13 +545,13 @@ ZVEC	*vec;
 	int	/* i, */ lim;
 
 	if ( mat==ZMNULL )
-		Meerror(E_NULL,"zget_row");
+		error(E_NULL,"zget_row");
 	if ( row < 0 || row >= mat->m )
-		Meerror(E_RANGE,"zget_row");
+		error(E_RANGE,"zget_row");
 	if ( vec==ZVNULL || vec->dim<mat->n )
 		vec = zv_resize(vec,mat->n);
 
-	lim = Memin(mat->n,vec->dim);
+	lim = min(mat->n,vec->dim);
 
 	/* for ( i=0; i<mat->n; i++ ) */
 	/*     vec->ve[i] = mat->me[row][i]; */
@@ -569,10 +569,10 @@ int	col;
 	unsigned int	i,lim;
 
 	if ( mat==ZMNULL || vec==ZVNULL )
-		Meerror(E_NULL,"zset_col");
+		error(E_NULL,"zset_col");
 	if ( col < 0 || col >= mat->n )
-		Meerror(E_RANGE,"zset_col");
-	lim = Memin(mat->m,vec->dim);
+		error(E_RANGE,"zset_col");
+	lim = min(mat->m,vec->dim);
 	for ( i=0; i<lim; i++ )
 	    mat->me[i][col] = vec->ve[i];
 
@@ -588,10 +588,10 @@ int	row;
 	unsigned int	/* j, */ lim;
 
 	if ( mat==ZMNULL || vec==ZVNULL )
-		Meerror(E_NULL,"zset_row");
+		error(E_NULL,"zset_row");
 	if ( row < 0 || row >= mat->m )
-		Meerror(E_RANGE,"zset_row");
-	lim = Memin(mat->n,vec->dim);
+		error(E_RANGE,"zset_row");
+	lim = min(mat->n,vec->dim);
 	/* for ( j=j0; j<lim; j++ ) */
 	/*     mat->me[row][j] = vec->ve[j]; */
 	MEMCOPY(vec->ve,mat->me[row],lim,complex);
@@ -606,7 +606,7 @@ ZMAT	*A;
     int		i;
 
     if ( ! A )
-	Meerror(E_NULL,"zm_rand");
+	error(E_NULL,"zm_rand");
 
     for ( i = 0; i < A->m; i++ )
 	mrandlist((Real *)(A->me[i]),2*A->n);

@@ -42,14 +42,14 @@ typedef struct  {
 
 /* complex vector definition */
 typedef struct  {
-                unsigned int   dim, MeMemax_dim;
+                unsigned int   dim, max_dim;
                 complex  *ve;
                 } ZVEC;
 
 /* complex matrix definition */
 typedef struct  {
                 unsigned int   m, n;
-                unsigned int   MeMemax_m, MeMemax_n, MeMemax_size;
+                unsigned int   max_m, max_n, max_size;
                 complex *base;          /* base is base of alloc'd mem */
                 complex **me;
                 } ZMAT;
@@ -65,25 +65,25 @@ typedef struct  {
 #define	zv_entry(x,i)		zv_get_val(x,i)
 #ifdef DEBUG
 #define	zm_set_val(A,i,j,val)	( m_chk_idx(A,i,j) ? \
-	(A)->me[(i)][(j)] = (val) : (Meerror(E_BOUNDS,"zm_set_val"), zmake(0.0,0.0)))
+	(A)->me[(i)][(j)] = (val) : (error(E_BOUNDS,"zm_set_val"), zmake(0.0,0.0)))
 #define	zm_add_val(A,i,j,val)	( m_chk_idx(A,i,j) ? \
 	(A)->me[(i)][(j)] = zadd((A)->me[(i)][(j)],(val)) : \
-	(Meerror(E_BOUNDS,"zm_add_val"), zmake(0.0,0.0)))
+	(error(E_BOUNDS,"zm_add_val"), zmake(0.0,0.0)))
 #define	zm_sub_val(A,i,j,val)	( m_chk_idx(A,i,j) ? \
 	(A)->me[(i)][(j)] = zsub((A)->me[(i)][(j)],(val)) : \
-	(Meerror(E_BOUNDS,"zm_sub_val"), zmake(0.0,0.0)))
+	(error(E_BOUNDS,"zm_sub_val"), zmake(0.0,0.0)))
 #define	zm_get_val(A,i,j)	( m_chk_idx(A,i,j) ? \
-	(A)->me[(i)][(j)] : (Meerror(E_BOUNDS,"zm_get_val"), zmake(0.0,0.0)))
+	(A)->me[(i)][(j)] : (error(E_BOUNDS,"zm_get_val"), zmake(0.0,0.0)))
 #define	zv_set_val(x,i,val)	( v_chk_idx(x,i) ? (x)->ve[(i)] = (val) : \
-	(Meerror(E_BOUNDS,"zv_set_val"), zmake(0.0,0.0)))
+	(error(E_BOUNDS,"zv_set_val"), zmake(0.0,0.0)))
 #define	zv_add_val(x,i,val)	( v_chk_idx(x,i) ? \
 	(x)->ve[(i)] = zadd((x)->ve[(i)],(val)) : \
-	(Meerror(E_BOUNDS,"zv_set_val"), zmake(0.0,0.0)))
+	(error(E_BOUNDS,"zv_set_val"), zmake(0.0,0.0)))
 #define	zv_sub_val(x,i,val)	( v_chk_idx(x,i) ? \
 	(x)->ve[(i)] = zsub((x)->ve[(i)],(val)) : \
-	(Meerror(E_BOUNDS,"zv_set_val"), zmake(0.0,0.0)))
+	(error(E_BOUNDS,"zv_set_val"), zmake(0.0,0.0)))
 #define	zv_get_val(x,i)	( v_chk_idx(x,i) ? (x)->ve[(i)] : \
-	(Meerror(E_BOUNDS,"zv_get_val"), zmake(0.0,0.0)))
+	(error(E_BOUNDS,"zv_get_val"), zmake(0.0,0.0)))
 #else /* no DEBUG */
 #define	zm_set_val(A,i,j,val)	((A)->me[(i)][(j)] = (val))
 #define	zm_add_val(A,i,j,val)	((A)->me[(i)][(j)] = zadd((A)->me[(i)][(j)],(val)))
@@ -125,9 +125,9 @@ extern ZMAT	*zvm_move(const ZVEC *, int, ZMAT *, int, int, int, int);
 extern ZVEC	*_zv_copy(const ZVEC *in,ZVEC *out,int i0);
 extern ZVEC	* zv_move(const ZVEC *, int, int, ZVEC *, int);
 extern ZVEC	*zmv_move(const ZMAT *, int, int, int, int, ZVEC *, int);
-extern complex	z_fme_input(FILE *fp);
-extern ZMAT	*zm_fme_input(FILE *fp,ZMAT *a);
-extern ZVEC     *zv_fme_input(FILE *fp,ZVEC *x);
+extern complex	z_finput(FILE *fp);
+extern ZMAT	*zm_finput(FILE *fp,ZMAT *a);
+extern ZVEC     *zv_finput(FILE *fp,ZVEC *x);
 extern ZMAT	*zm_add(ZMAT *mat1,ZMAT *mat2,ZMAT *out);
 extern ZMAT	*zm_sub(ZMAT *mat1,ZMAT *mat2,ZMAT *out);
 extern ZMAT	*zm_mlt(ZMAT *A,ZMAT *B,ZMAT *OUT);
@@ -218,8 +218,8 @@ complex	zneg(complex z);
 #else
 extern ZMAT	*_zm_copy();
 extern ZVEC	*_zv_copy();
-extern ZMAT	*zm_fme_input();
-extern ZVEC     *zv_fme_input();
+extern ZMAT	*zm_finput();
+extern ZVEC     *zv_finput();
 extern ZMAT	*zm_add();
 extern ZMAT	*zm_sub();
 extern ZMAT	*zm_mlt();
@@ -301,9 +301,9 @@ complex	zneg();
 #define	zv_copy(x,y)	_zv_copy(x,y,0)
 #define	zm_copy(A,B)	_zm_copy(A,B,0,0)
 
-#define	z_me_input()	z_fme_input(stdin)
-#define	zv_me_input(x)	zv_fme_input(stdin,x)
-#define	zm_me_input(A)	zm_fme_input(stdin,A)
+#define	z_input()	z_finput(stdin)
+#define	zv_input(x)	zv_finput(stdin,x)
+#define	zm_input(A)	zm_finput(stdin,A)
 #define	z_output(z)	z_foutput(stdout,z)
 #define	zv_output(x)	zv_foutput(stdout,x)
 #define	zm_output(A)	zm_foutput(stdout,A)

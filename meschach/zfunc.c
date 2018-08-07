@@ -138,7 +138,7 @@ complex	z;
     int		x_expt, y_expt;
 
     if ( z.re == 0.0 && z.im == 0.0 )
-	Meerror(E_SING,"zinv");
+	error(E_SING,"zinv");
     /* Note: we must ensure that overflow does not occur! */
     x = ( z.re >= 0.0 ) ? z.re : -z.re;
     y = ( z.im >= 0.0 ) ? z.im : -z.im;

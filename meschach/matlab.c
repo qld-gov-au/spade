@@ -54,7 +54,7 @@ MAT     *m_save(FILE *fp, MAT *A, const char *name)
 	matlab  mat;
 
 	if ( ! A )
-		Meerror(E_NULL,"m_save");
+		error(E_NULL,"m_save");
 
 	mat.type = 1000*MACH_ID + 100*ORDER + 10*PRECISION + 0;
 	mat.m = A->m;
@@ -98,7 +98,7 @@ VEC     *v_save(FILE *fp, VEC *x, const char *name)
 	matlab  mat;
 
 	if ( ! x )
-		Meerror(E_NULL,"v_save");
+		error(E_NULL,"v_save");
 
 	mat.type = 1000*MACH_ID + 100*ORDER + 10*PRECISION + 0;
 	mat.m = x->dim;
@@ -171,22 +171,22 @@ MAT     *m_load(FILE *fp, char **name)
 	matlab  mat;
 
 	if ( fread(&mat,sizeof(matlab),1,fp) != 1 )
-	    Meerror(E_FORMAT,"m_load");
+	    error(E_FORMAT,"m_load");
 	if ( mat.type >= 10000 )	/* don't load a sparse matrix! */
-	    Meerror(E_FORMAT,"m_load");
+	    error(E_FORMAT,"m_load");
 	m_flag = (mat.type/1000) % 10;
 	o_flag = (mat.type/100) % 10;
 	p_flag = (mat.type/10) % 10;
 	t_flag = (mat.type) % 10;
 	if ( m_flag != MACH_ID )
-		Meerror(E_FORMAT,"m_load");
+		error(E_FORMAT,"m_load");
 	if ( t_flag != 0 )
-		Meerror(E_FORMAT,"m_load");
+		error(E_FORMAT,"m_load");
 	if ( p_flag != DOUBLE_PREC && p_flag != SINGLE_PREC )
-		Meerror(E_FORMAT,"m_load");
+		error(E_FORMAT,"m_load");
 	*name = (char *)malloc((unsigned)(mat.namlen)+1);
 	if ( fread(*name,sizeof(char),(unsigned)(mat.namlen),fp) == 0 )
-		Meerror(E_FORMAT,"m_load");
+		error(E_FORMAT,"m_load");
 	A = m_get((unsigned)(mat.m),(unsigned)(mat.n));
 	for ( i = 0; i < A->m*A->n; i++ )
 	{
@@ -202,7 +202,7 @@ MAT     *m_load(FILE *fp, char **name)
 		else if ( o_flag == COL_ORDER )
 		    A->me[i % A->m][i / A->m] = d_temp;
 		else
-		    Meerror(E_FORMAT,"m_load");
+		    error(E_FORMAT,"m_load");
 	}
 
 	if ( mat.imag )         /* skip imaginary part */

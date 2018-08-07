@@ -70,10 +70,10 @@ ZVEC	*diag;
     STATIC	ZVEC	*tmp1=ZVNULL, *w=ZVNULL;
     
     if ( ! A || ! diag )
-	Meerror(E_NULL,"zQRfactor");
-    limit = Memin(A->m,A->n);
+	error(E_NULL,"zQRfactor");
+    limit = min(A->m,A->n);
     if ( diag->dim < limit )
-	Meerror(E_SIZES,"zQRfactor");
+	error(E_SIZES,"zQRfactor");
     
     tmp1 = zv_resize(tmp1,A->m);
     w    = zv_resize(w,   A->n);
@@ -106,18 +106,18 @@ ZMAT	*A;
 ZVEC	*diag;
 PERM	*px;
 {
-    unsigned int	i, i_MeMemax, j, k, limit;
+    unsigned int	i, i_max, j, k, limit;
     STATIC	ZVEC	*tmp1=ZVNULL, *tmp2=ZVNULL, *w=ZVNULL;
     STATIC	VEC	*gamma=VNULL;
     Real 	beta;
-    Real	MeMemaxgamma, sum, tmp;
+    Real	maxgamma, sum, tmp;
     complex	ztmp;
     
     if ( ! A || ! diag || ! px )
-	Meerror(E_NULL,"QRCPfactor");
-    limit = Memin(A->m,A->n);
+	error(E_NULL,"QRCPfactor");
+    limit = min(A->m,A->n);
     if ( diag->dim < limit || px->size != A->n )
-	Meerror(E_SIZES,"QRCPfactor");
+	error(E_SIZES,"QRCPfactor");
     
     tmp1 = zv_resize(tmp1,A->m);
     tmp2 = zv_resize(tmp2,A->m);
@@ -134,37 +134,37 @@ PERM	*px;
 	px->pe[j] = j;
 	sum = 0.0;
 	for ( i=0; i<A->m; i++ )
-	    sum += Mesquare(A->me[i][j].re) + Mesquare(A->me[i][j].im);
+	    sum += square(A->me[i][j].re) + square(A->me[i][j].im);
 	gamma->ve[j] = sum;
     }
     
     for ( k=0; k<limit; k++ )
     {
 	/* find "best" column to use */
-	i_MeMemax = k;	MeMemaxgamma = gamma->ve[k];
+	i_max = k;	maxgamma = gamma->ve[k];
 	for ( i=k+1; i<A->n; i++ )
-	    /* Loop invariant:MeMemaxgamma=gamma[i_MeMemax]
+	    /* Loop invariant:maxgamma=gamma[i_max]
 	       >=gamma[l];l=k,...,i-1 */
-	    if ( gamma->ve[i] > MeMemaxgamma )
-	    {	MeMemaxgamma = gamma->ve[i]; i_MeMemax = i;	}
+	    if ( gamma->ve[i] > maxgamma )
+	    {	maxgamma = gamma->ve[i]; i_max = i;	}
 	
 	/* swap columns if necessary */
-	if ( i_MeMemax != k )
+	if ( i_max != k )
 	{
 	    /* swap gamma values */
 	    tmp = gamma->ve[k];
-	    gamma->ve[k] = gamma->ve[i_MeMemax];
-	    gamma->ve[i_MeMemax] = tmp;
+	    gamma->ve[k] = gamma->ve[i_max];
+	    gamma->ve[i_max] = tmp;
 	    
 	    /* update column permutation */
-	    px_transp(px,k,i_MeMemax);
+	    px_transp(px,k,i_max);
 	    
 	    /* swap columns of A */
 	    for ( i=0; i<A->m; i++ )
 	    {
 		ztmp = A->me[i][k];
-		A->me[i][k] = A->me[i][i_MeMemax];
-		A->me[i][i_MeMemax] = ztmp;
+		A->me[i][k] = A->me[i][i_max];
+		A->me[i][i_max] = ztmp;
 	    }
 	}
 	
@@ -179,7 +179,7 @@ PERM	*px;
 	
 	/* update gamma values */
 	for ( j=k+1; j<A->n; j++ )
-	    gamma->ve[j] -= Mesquare(A->me[k][j].re)+Mesquare(A->me[k][j].im);
+	    gamma->ve[j] -= square(A->me[k][j].re)+square(A->me[k][j].im);
     }
 
 #ifdef	THREADSAFE
@@ -199,12 +199,12 @@ ZVEC	*diag, *b, *x, *tmp;
     int		k, limit;
     Real	beta, r_ii, tmp_val;
     
-    limit = Memin(QR->m,QR->n);
+    limit = min(QR->m,QR->n);
     dynamic = FALSE;
     if ( ! QR || ! diag || ! b )
-	Meerror(E_NULL,"_zQsolve");
+	error(E_NULL,"_zQsolve");
     if ( diag->dim < limit || b->dim != QR->m )
-	Meerror(E_SIZES,"_zQsolve");
+	error(E_SIZES,"_zQsolve");
     x = zv_resize(x,QR->m);
     if ( tmp == ZVNULL )
 	dynamic = TRUE;
@@ -240,11 +240,11 @@ ZVEC	*diag;
     Real	beta, r_ii, tmp_val;
     int	j;
 
-    limit = Memin(QR->m,QR->n);
+    limit = min(QR->m,QR->n);
     if ( ! QR || ! diag )
-	Meerror(E_NULL,"zmakeQ");
+	error(E_NULL,"zmakeQ");
     if ( diag->dim < limit )
-	Meerror(E_SIZES,"zmakeQ");
+	error(E_SIZES,"zmakeQ");
     Qout = zm_resize(Qout,QR->m,QR->m);
 
     tmp1 = zv_resize(tmp1,QR->m);	/* contains basis vec & columns of Q */
@@ -290,7 +290,7 @@ ZMAT	*QR,*Rout;
     unsigned int	i,j;
     
     if ( QR==ZMNULL )
-	Meerror(E_NULL,"zmakeR");
+	error(E_NULL,"zmakeR");
     Rout = zm_copy(QR,Rout);
     
     for ( i=1; i<QR->m; i++ )
@@ -310,10 +310,10 @@ ZVEC	*diag, *b, *x;
     STATIC	ZVEC	*tmp = ZVNULL;
     
     if ( ! QR || ! diag || ! b )
-	Meerror(E_NULL,"zQRsolve");
-    limit = Memin(QR->m,QR->n);
+	error(E_NULL,"zQRsolve");
+    limit = min(QR->m,QR->n);
     if ( diag->dim < limit || b->dim != QR->m )
-	Meerror(E_SIZES,"zQRsolve");
+	error(E_SIZES,"zQRsolve");
     tmp = zv_resize(tmp,limit);
     MEM_STAT_REG(tmp,TYPE_ZVEC);
 
@@ -341,10 +341,10 @@ ZVEC	*diag, *b, *x;
     STATIC	ZVEC	*tmp = ZVNULL;
     
     if ( ! QR || ! diag || ! b )
-	Meerror(E_NULL,"zQRAsolve");
-    limit = Memin(QR->m,QR->n);
+	error(E_NULL,"zQRAsolve");
+    limit = min(QR->m,QR->n);
     if ( diag->dim < limit || b->dim != QR->n )
-	Meerror(E_SIZES,"zQRAsolve");
+	error(E_SIZES,"zQRAsolve");
 
     x = zv_resize(x,QR->m);
     x = zUAsolve(QR,b,x,0.0);
@@ -382,9 +382,9 @@ PERM	*pivot;
 ZVEC	*b, *x;
 {
     if ( ! QR || ! diag || ! pivot || ! b )
-	Meerror(E_NULL,"zQRCPsolve");
+	error(E_NULL,"zQRCPsolve");
     if ( (QR->m > diag->dim && QR->n > diag->dim) || QR->n != pivot->size )
-	Meerror(E_SIZES,"zQRCPsolve");
+	error(E_SIZES,"zQRCPsolve");
     
     x = zQRsolve(QR,diag,b,x);
     x = pxinv_zvec(pivot,x,x);
@@ -401,10 +401,10 @@ ZVEC	*x, *out;
     int		i, limit;
 
     if ( U == ZMNULL || x == ZVNULL )
-	Meerror(E_NULL,"zUmlt");
-    limit = Memin(U->m,U->n);
+	error(E_NULL,"zUmlt");
+    limit = min(U->m,U->n);
     if ( limit != x->dim )
-	Meerror(E_SIZES,"zUmlt");
+	error(E_SIZES,"zUmlt");
     if ( out == ZVNULL || out->dim < limit )
 	out = zv_resize(out,limit);
 
@@ -423,8 +423,8 @@ ZVEC	*x, *out;
     int		i, limit;
 
     if ( U == ZMNULL || x == ZVNULL )
-	Meerror(E_NULL,"zUAmlt");
-    limit = Memin(U->m,U->n);
+	error(E_NULL,"zUAmlt");
+    limit = min(U->m,U->n);
     if ( out == ZVNULL || out->dim < limit )
 	out = zv_resize(out,limit);
 
@@ -456,9 +456,9 @@ ZMAT	*QR;
     int		i, j, limit;
 
     if ( QR == ZMNULL )
-	Meerror(E_NULL,"zQRcondest");
+	error(E_NULL,"zQRcondest");
 
-    limit = Memin(QR->m,QR->n);
+    limit = min(QR->m,QR->n);
     for ( i = 0; i < limit; i++ )
 	/* if ( QR->me[i][i] == 0.0 ) */
 	if ( is_zero(QR->me[i][i]) )

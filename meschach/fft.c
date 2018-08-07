@@ -55,9 +55,9 @@ void    fft(VEC *x_re, VEC *x_im)
     Real      tmp, tmpr, tmpi;
 
     if ( ! x_re || ! x_im )
-        Meerror(E_NULL,"fft");
+        error(E_NULL,"fft");
     if ( x_re->dim != x_im->dim )
-        Meerror(E_SIZES,"fft");
+        error(E_SIZES,"fft");
 
     n = 1;
     while ( x_re->dim > n )
